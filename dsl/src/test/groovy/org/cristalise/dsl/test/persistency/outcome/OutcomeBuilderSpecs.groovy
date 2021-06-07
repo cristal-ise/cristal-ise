@@ -32,8 +32,8 @@ import spock.lang.Specification
  */
 class OutcomeBuilderSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def 'Empty root is built from the parameters given to the build method'() {
         expect:

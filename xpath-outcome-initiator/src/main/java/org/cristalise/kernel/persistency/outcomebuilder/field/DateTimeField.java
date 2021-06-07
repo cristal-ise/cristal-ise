@@ -21,6 +21,7 @@
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
@@ -32,6 +33,7 @@ public class DateTimeField extends DateField {
 
     public DateTimeField() {
         super();
+        javaType = OffsetDateTime.class;
     }
     
     @Override

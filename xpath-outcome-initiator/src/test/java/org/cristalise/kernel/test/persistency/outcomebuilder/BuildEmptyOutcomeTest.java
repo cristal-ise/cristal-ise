@@ -157,4 +157,10 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
         
         assertEquals("UnitTest", field.getAppInfoNodeElementValue("reference", "itemType"));
     }
+
+    @Test
+    public void checkDependnecyXsd() throws Exception {
+        String xsd = Gateway.getResource().getTextResource(null, "boot/OD/Dependency.xsd");
+        new OutcomeBuilder(new Schema("Dependency", 0, null, xsd));
+    }
 }

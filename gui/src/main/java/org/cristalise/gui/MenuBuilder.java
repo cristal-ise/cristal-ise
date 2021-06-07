@@ -49,7 +49,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.FileStringUtility;
@@ -65,7 +65,6 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
 	protected UIManager.LookAndFeelInfo[] availableViews = UIManager.getInstalledLookAndFeels();
 	protected MainFrame myParentFrame;
 	protected JMenu fileMenu;
-	protected JMenu consoleMenu;
 	protected JMenu styleMenu;
 	protected JMenu prefMenu;
 	protected JMenu helpMenu;
@@ -79,12 +78,10 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
 	{
 		myParentFrame = parentFrame;
 		fileMenu = new JMenu("File");
-		consoleMenu = new JMenu("Console");
 		styleMenu = new JMenu("Style");
 		prefMenu = new JMenu("Preferences");
 		helpMenu = new JMenu("Help");
 		availableMenus.put("file", fileMenu);
-		availableMenus.put("console", consoleMenu);
 		availableMenus.put("preferences", prefMenu);
 		availableMenus.put("style", styleMenu);
 		availableMenus.put("help", helpMenu);
@@ -93,10 +90,6 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
         addMenuItem("Close Others", "file", null, 0);
         fileMenu.insertSeparator(2);
 		addMenuItem("Exit", "file", null, 0);
-
-        addMenuItem("Local console", "console", null, 0);
-        consoleMenu.insertSeparator(5);
-        addServerConsoles();
 
 		ButtonGroup styleButtonGroup = new ButtonGroup();
 		for (LookAndFeelInfo availableView : availableViews)
@@ -107,30 +100,10 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
 		addMenuItem("About", "help", null, 0);
 
 		add(fileMenu);
-		add(consoleMenu);
 		add(styleMenu);
 		add(prefMenu);
 		add(helpMenu);
 	}
-	/**
-     *
-     */
-    private void addServerConsoles() {
-        Iterator<?> servers = Gateway.getLookup().search(new DomainPath("/servers"), new Property("Type", "Server", false));
-        while(servers.hasNext()) {
-            Path thisServerPath = (Path)servers.next();
-            try {
-                ItemPath serverItemPath = thisServerPath.getItemPath();
-                String serverName = ((Property)Gateway.getStorage().get(serverItemPath, ClusterStorage.PROPERTY+"/Name", null)).getValue();
-                String portStr = ((Property)Gateway.getStorage().get(serverItemPath, ClusterStorage.PROPERTY+"/ConsolePort", null)).getValue();
-                addMenuItem(serverName+":"+portStr, "console", null, 0);
-            } catch (Exception ex) {
-                Logger.error("Exception retrieving proxy server connection data for "+thisServerPath);
-                Logger.error(ex);
-            }
-        }
-
-    }
 
     /**
 	 * Adds a menu item to a menu. Adds an action listener to the menu item.
@@ -196,27 +169,6 @@ public class MenuBuilder extends JMenuBar implements ActionListener, ItemListene
 		{
 			myParentFrame.toggleTree();
 		}
-        else if (s.indexOf(":")>0) { // server console
-            try
-            {
-                String[] serverDetails = s.split(":");
-                new Console(serverDetails[0], Integer.parseInt(serverDetails[1])).setVisible(true);
-            }
-            catch (Exception ex)
-            {
-                Logger.error(ex);
-            }
-        }
-        else if (s.equals("Local console")) {
-            try
-            {
-                new Console("localhost", Logger.getConsolePort()).setVisible(true);
-            }
-            catch (Exception ex)
-            {
-                Logger.error(ex);
-            }
-        }
         else if (s.equals("Graph Properties")) {
         	MainFrame.setPref("ShowProps", String.valueOf(!MainFrame.getPref("ShowProps", "true").equals("true")));
         }

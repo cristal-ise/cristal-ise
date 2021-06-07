@@ -20,6 +20,8 @@
  */
 package org.cristalise.dev.scaffold
 
+import org.apache.commons.lang3.StringUtils
+import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.utils.FileStringUtility
 import org.mvel2.templates.CompiledTemplate
@@ -87,7 +89,11 @@ class CRUDGenerator {
     public void generate(Map<String, Object> inputs, boolean generateModule) {
         assert inputs
 
+        //String prefix = BindingConvention.variablePrefix -- DOES NOT WORK!??!?
+        String prefix = Gateway.getProperties().getString('DSL.Module.BindingConvention.variablePrefix', '$')
+
         inputs.rootDir = rootDir
+        inputs.itemVar = prefix + StringUtils.uncapitalize(inputs.item as String)
         inputs.resourceRootDir = resourceRootDir
         if (moduleXmlDir) inputs.moduleXmlDir = moduleXmlDir
 
@@ -155,6 +161,7 @@ class CRUDGenerator {
             r longOpt: 'rootDir',   args: 1, argName: 'root',  'Root directory'
             t longOpt: 'itemTypes', args: 1, argName: 'types', 'Comma separated list of Item types'
             n longOpt: 'moduleNs',  args: 1, argName: 'ns',    'Module namespace'
+            a longOpt: 'agent',                                'Generated Item(s) is an Agent'
         }
 
         def options = cli.parse(args)
@@ -192,6 +199,7 @@ class CRUDGenerator {
         def items     = (String)options.t
         def ns        = (String)options.n
         def inputFile = options.arguments()[0]
+        def isAgent   = options.arguments() as Boolean
 
         def generator = new CRUDGenerator(rootDir: rootDir)
 
@@ -203,7 +211,7 @@ class CRUDGenerator {
                 version:        0,
                 moduleNs:       ns,
                 useConstructor: false,
-                isAgent:        false,
+                isAgent:        isAgent,
                 generatedName:  false,
                 inputFile:      inputFile
             ]

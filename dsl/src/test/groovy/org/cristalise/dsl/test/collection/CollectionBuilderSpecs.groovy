@@ -31,8 +31,8 @@ import spock.lang.Specification
  */
 class CollectionBuilderSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def 'Build Dependency adding member with UUID'() {
         when:

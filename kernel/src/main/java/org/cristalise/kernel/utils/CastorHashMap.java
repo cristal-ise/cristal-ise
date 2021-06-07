@@ -23,6 +23,7 @@ package org.cristalise.kernel.utils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -30,12 +31,11 @@ import org.cristalise.kernel.graph.model.BuiltInEdgeProperties;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.routingHelpers.DataHelperUtility;
 import org.cristalise.kernel.lookup.ItemPath;
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 /**
  * This subclass of HashMap can be marshalled and unmarshalled with Castor
  */
-@Slf4j
 public class CastorHashMap extends HashMap<String, Object> {
 
     private static final long serialVersionUID = -8756025533843275162L;
@@ -138,9 +138,9 @@ public class CastorHashMap extends HashMap<String, Object> {
         else            abstractPropNames.remove(key);
     }
 
-    public Object evaluateProperty(ItemPath itemPath, String propName, String actContext, Object locker) throws InvalidDataException, PersistencyException, ObjectNotFoundException {
+    public Object evaluateProperty(ItemPath itemPath, String propName, String actContext, TransactionKey transactionKey) throws InvalidDataException, PersistencyException, ObjectNotFoundException {
         //DataHelper can only be used when ItemPath is NOT null
-        if (itemPath != null) return DataHelperUtility.evaluateValue(itemPath, get(propName), actContext, locker);
+        if (itemPath != null) return DataHelperUtility.evaluateValue(itemPath, get(propName), actContext, transactionKey);
         else                  return get(propName);
     }
 
@@ -153,23 +153,6 @@ public class CastorHashMap extends HashMap<String, Object> {
         //FIXME: optimise code, this solution traverses twice the newProps
         for (KeyValuePair kvPair : newProps.getKeyValuePairs()) {
             setKeyValuePair(kvPair);
-        }
-    }
-    
-    /**
-     * @deprecated HashMap can be printed or use StringUtils.join()
-     * @param logLevel
-     */
-    @Deprecated
-    public void dump(int logLevel) {
-        if(log.isDebugEnabled()) {
-            StringBuffer sb = new StringBuffer();
-
-            sb.append("{ ");
-            for(Entry<String, Object> e : entrySet())  sb.append(e.getKey() + ":'" + e.getValue()+"',");
-            sb.append("}");
-
-            log.debug("CastorHashMap : {}", sb);
         }
     }
 }

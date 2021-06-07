@@ -23,7 +23,9 @@ package org.cristalise.dsl.test.module
 import org.cristalise.dsl.module.ModuleBuilder
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
+import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.test.utils.CristalTestSetup
+import org.cristalise.kernel.utils.LocalObjectLoader
 
 import spock.lang.Specification
 
@@ -32,9 +34,10 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
     def setupSpec() {
         def props = new Properties()
         props.put('DSL.GenerateModuleXml', false)
-        props.put('DSL.Module.generateAllResourceItems', false)
-        props.put('Resource.moduleUseFileNameWithVersion', 'dev')
-        inMemoryServer(8, props, false)
+        props.put('DSL.GenerateResourceXml', false)
+        props.put('DSL.Module.generateAllResourceItems', true)
+
+        inMemoryServer(props, true) //skips bootstrap
     }
     def cleanupSpec() { cristalCleanup() }
 
@@ -95,7 +98,7 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
         module.getImports().list[4].name == 'ManageScript'
     }
 
-    def 'Module can create new Item, Agent and Role'() {
+    def 'Module can create new Item, Agent and Role keeping the order of creation'() {
         when:
         def module = ModuleBuilder.build('ttt', 'integtest', 0) {
             Item(name: "ScriptFactory", folder: "/", workflow: "ScriptFactoryWorkflow", workflowVer: 0) {
@@ -128,31 +131,95 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
         then:
         module != null
         module.getImports().list.size() == 3
-        
+
         module.getImports().findImport('Test', 'agent')
         module.getImports().findImport('Abort', 'role')
         module.getImports().findImport('ScriptFactory', 'item')
 
         //the order is important
+        module.getImports().list[0].namespace == 'ttt'
         module.getImports().list[0].name == 'ScriptFactory'
+        module.getImports().list[1].namespace == 'ttt'
         module.getImports().list[1].name == 'Test'
+        module.getImports().list[2].namespace == 'ttt'
         module.getImports().list[2].name == 'Abort'
+    }
 
-        def item = (ImportItem)module.getImports().list[0]
-        item.initialPath == '/'
-        item.workflow == 'ScriptFactoryWorkflow'
-        item.workflowVer == 0
-        item.dependencyList.size() == 2
-        item.dependencyList[0].name == 'workflow\''
-        item.dependencyList[0].isDescription == false
-        item.dependencyList[0].dependencyMemberList[0].itemPath == '/desc/ActivityDesc/kernel/ManageSchema'
+    def 'Module can create new PropertyDescriptionList'() {
+        when:
+        def module = ModuleBuilder.build('ttt', 'integtest', 0) {
+            PropertyDescriptionList('DummyProps', 0) {}
+        }
 
-        item.dependencyList[1].name == 'MasterOutcome'
-        item.dependencyList[1].isDescription == true
-        item.dependencyList[1].dependencyMemberList[0].itemPath == '/desc/ActivityDesc/kernel/ManageSchema'
+        then:
+        module != null
+        module.getImports().list.size() == 1
+        module.getImports().list[0].namespace == 'ttt'
+        module.getImports().list[0].name == 'DummyProps'
+    }
 
-        def agent = (ImportAgent)module.getImports().list[1]
-        agent.initialPath == '/agents'
-        agent.password == 'Test'
+    def 'Module can create new Query'() {
+        when:
+        def module = ModuleBuilder.build('ttt', 'integtest', 0) {
+            Query('DummyQuery', 0) {
+                parameter(name: 'root', type: 'java.lang.String')
+                query(language: "dummy") {
+                    new File('src/test/data/TestData.xsd').text // NOTE: content is not checked
+                }
+            }
+        }
+
+        then:
+        module != null
+        module.getImports().list.size() == 1
+        module.getImports().list[0].name == 'DummyQuery'
+        module.getImports().list[0].namespace == 'ttt'
+    }
+
+    def 'Module can create new Schema'() {
+        when:
+        def module = ModuleBuilder.build('ttt', 'integtest', 0) {
+            Schema("DummySchema", 0) {
+                struct(name: 'DummyData') {}
+            }
+        }
+
+        then:
+        module != null
+        module.getImports().list.size() == 1
+        module.getImports().list[0].name == 'DummySchema'
+        module.getImports().list[0].namespace == 'ttt'
+    }
+
+    def 'Module can create new Script'() {
+        when:
+        def module = ModuleBuilder.build('ttt', 'integtest', 0) {
+            Script("CounterScript", 0) {
+                input("counter", "java.lang.String")
+                output('java.lang.Integer')
+                javascript { "new java.lang.Integer(counter % 2);" }
+            }
+        }
+
+        then:
+        module != null
+        module.getImports().list.size() == 1
+        module.getImports().list[0].name == 'CounterScript'
+        module.getImports().list[0].namespace == 'ttt'
+    }
+
+    def 'Module can create new StateMachine'() {
+        when:
+        def module = ModuleBuilder.build('ttt', 'integtest', 0) {
+            StateMachine("DummySM", 0) {
+                state("Idle")
+            }
+        }
+
+        then:
+        module != null
+        module.getImports().list.size() == 1
+        module.getImports().list[0].name == 'DummySM'
+        module.getImports().list[0].namespace == 'ttt'
     }
 }

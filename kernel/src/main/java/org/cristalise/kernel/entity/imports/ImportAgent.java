@@ -36,14 +36,17 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.ActiveEntity;
-import org.cristalise.kernel.lifecycle.CompositeActivityDef;
+import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
+import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
 import org.cristalise.kernel.process.resource.BuiltInResources;
@@ -90,6 +93,11 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         this(null, aName, null, pwd);
     }
 
+    @Override
+    public void setID(String uuid) throws InvalidItemPathException {
+        if (StringUtils.isNotBlank(uuid)) itemPath = new AgentPath(new ItemPath(uuid), name);
+    }
+
     /**
      * 
      */
@@ -101,12 +109,12 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         return domainPath;
     }
 
-    public boolean exists() {
-        return getAgentPath().exists();
+    public boolean exists(TransactionKey transactionKey) {
+        return getAgentPath(transactionKey).exists(transactionKey);
     }
 
     @Override
-    public Path create(AgentPath agentPath, boolean reset)
+    public Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
     {
         if (roles.isEmpty()) throw new ObjectNotFoundException("Agent '"+name+"' must declare at least one Role ");
@@ -114,10 +122,10 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         if (StringUtils.isNotBlank(initialPath)) {
             getDomainPath();
 
-            if (domainPath.exists()) {
-                ItemPath domItem = domainPath.getItemPath();
-                if (!getItemPath().equals(domItem)) {
-                    throw new CannotManageException("'"+domainPath+"' was found with the different itemPath ("+domainPath.getItemPath()+" vs "+getItemPath()+")");
+            if (domainPath.exists(transactionKey)) {
+                ItemPath domItem = domainPath.getItemPath(transactionKey);
+                if (!getItemPath(transactionKey).equals(domItem)) {
+                    throw new CannotManageException("'"+domainPath+"' was found with the different itemPath ("+domainPath.getItemPath(transactionKey)+" vs "+getItemPath(transactionKey)+")");
                 }
             }
             else {
@@ -125,40 +133,46 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
             }
         }
 
-        ActiveEntity newAgentEnt = getActiveEntity();
-
         // assemble properties
         properties.add(new Property(NAME, name, true));
         properties.add(new Property(TYPE, "Agent", false));
 
-        try {
-            if (StringUtils.isNotBlank(password)) Gateway.getLookupManager().setAgentPassword(getAgentPath(), password);
+        LookupManager lookupManager = Gateway.getLookupManager();
 
-            newAgentEnt.initialise(
-                    agentPath.getSystemKey(), 
-                    Gateway.getMarshaller().marshall(new PropertyArrayList(properties)), 
-                    Gateway.getMarshaller().marshall(((CompositeActivityDef)LocalObjectLoader.getCompActDef("NoWorkflow", 0)).instantiate()), 
-                    null, "", "");
+        try {
+            CreateItemFromDescription.storeItem(
+                    agentPath, 
+                    getOrCreateAgentPath(transactionKey),
+                    new PropertyArrayList(properties),
+                    null, //colls
+                    (CompositeActivity)LocalObjectLoader.getCompActDef("NoWorkflow", 0, transactionKey).instantiate(transactionKey),
+                    null, //initViewpoint
+                    null, //initOutcomeString
+                    transactionKey);
+
+            if (StringUtils.isNotBlank(password)) {
+                lookupManager.setAgentPassword(getAgentPath(transactionKey), password, false, transactionKey);
+            }
         }
         catch (Exception ex) {
             log.error("Error initialising new agent name:{}", name, ex);
-            Gateway.getLookupManager().delete(getAgentPath());
+            lookupManager.delete(getAgentPath(transactionKey), transactionKey);
             throw new CannotManageException("Error initialising new agent name:"+name);
         }
 
         for (ImportRole role : roles) {
             RolePath rp = role.getRolePath();
-            if (rp.exists()) {
-                if (!getAgentPath().hasRole(rp)) {
-                    Gateway.getLookupManager().addRole(getAgentPath(), rp);
+            if (rp.exists(transactionKey)) {
+                if (!getAgentPath().hasRole(rp, transactionKey)) {
+                    lookupManager.addRole(getAgentPath(), rp, transactionKey);
                 }
                 // no update to the role is done, because role might not be fully specified (i.e. it only contains the name as a reference)
             }
             else {
                 if (Gateway.getProperties().getBoolean("Module.ImportAgent.enableRoleCreation", false)) {
                     // Creates Role even if it is not fully specified in the ImportAgent (i.e. no permissions were specified)
-                    RolePath thisRole = (RolePath)role.create(agentPath, reset);
-                    Gateway.getLookupManager().addRole(getAgentPath(), thisRole);
+                    RolePath thisRole = (RolePath)role.create(agentPath, reset, transactionKey);
+                    lookupManager.addRole(getAgentPath(), thisRole, transactionKey);
                 }
                 else {
                     throw new CannotManageException("Role '"+rp+ "' does not exists");
@@ -167,40 +181,36 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         }
 
         if (domainPath != null && !isDOMPathExists) {
-            domainPath.setItemPath(getItemPath());
-            Gateway.getLookupManager().add(domainPath);
+            domainPath.setItemPath(getItemPath(transactionKey));
+            lookupManager.add(domainPath, transactionKey);
         }
 
         return getAgentPath();
     }
 
-    private ActiveEntity getActiveEntity()
+    private AgentPath getOrCreateAgentPath(TransactionKey transactionKey)
             throws ObjectNotFoundException, CannotManageException, ObjectAlreadyExistsException, ObjectCannotBeUpdated
     {
-        ActiveEntity activeEntity;
-        AgentPath ap = getAgentPath();
+        AgentPath ap = getAgentPath(transactionKey);
 
-        if (ap.exists()) {
+        if (ap.exists(transactionKey)) {
             log.info("getActiveEntity() - Existing agent:{}", name);
-            try {
-                activeEntity = Gateway.getCorbaServer().getAgent(ap);
-                isNewItem = false;
-            }
-            catch (InvalidAgentPathException  e) {
-                log.error("", e);
-                throw new CannotManageException(e.getMessage());
-            }
+            isNewItem = false;
         }
         else {
             log.info("getActiveEntity() - Creating agent:{}", name);
-            activeEntity = Gateway.getCorbaServer().createAgent(ap);
-            Gateway.getLookupManager().add(ap);
+            Gateway.getLookupManager().add(ap, transactionKey);
         }
-        return activeEntity;
+        
+        return ap;
     }
 
     public AgentPath getAgentPath() {
-        return (AgentPath)getItemPath();
+        return getAgentPath(null);
+    }
+
+    public AgentPath getAgentPath(TransactionKey transactionKey) {
+        return (AgentPath)getItemPath(transactionKey);
     }
 
     /**
@@ -208,10 +218,10 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
      * otherwise creates  new ItemPath, i.e. it creates new UUID.
      */
     @Override
-    public ItemPath getItemPath() {
+    public ItemPath getItemPath(TransactionKey transactionKey) {
         if (itemPath == null) {
             try {
-                itemPath = Gateway.getLookup().getAgentPath(name);
+                itemPath = Gateway.getLookup().getAgentPath(name, transactionKey);
             }
             catch (ObjectNotFoundException ex) {
                 itemPath = new AgentPath(new ItemPath(), name);
@@ -224,13 +234,21 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         for (RolePath rp: newRoles) roles.add(ImportRole.getImportRole(rp));
     }
 
+    public void addRole(ImportRole ir) {
+        roles.add(ir);
+    }
+
+    public void addRole(RolePath rp) {
+        roles.add(ImportRole.getImportRole(rp));
+    }
+
     @Override
     public String getItemID() {
         return getID();
     }
 
     @Override
-    public CollectionArrayList makeDescCollections() throws InvalidDataException, ObjectNotFoundException {
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         return new CollectionArrayList();
     }
 
@@ -241,7 +259,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
 
         try {
-            xml = Gateway.getMarshaller().marshall(this);
+            xml = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
         }
         catch (Exception e) {
             log.error("Couldn't marshall name:" + getName(), e);

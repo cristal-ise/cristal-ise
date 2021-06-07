@@ -25,6 +25,7 @@ import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +42,7 @@ public class Loop extends XOrSplit {
     }
 
     @Override
-    public void followNext(Next activeNext, AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
+    public void followNext(Next activeNext, AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
         WfVertex v = activeNext.getTerminusVertex();
 
         Boolean isMyPair = isMyPair(v);
@@ -55,7 +56,7 @@ public class Loop extends XOrSplit {
             if (isInPrev(v)) v.reinit(getID());
         }
 
-        v.run(agent, itemPath, locker);
+        v.run(agent, itemPath, transactionKey);
     }
 
     @Override

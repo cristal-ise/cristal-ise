@@ -31,14 +31,14 @@ import spock.lang.Specification
  */
 class WorkflowVerifySpecs extends Specification implements CristalTestSetup {
 
-    WorkflowTestBuilder wfBuilder
+    static WorkflowTestBuilder wfBuilder
 
-    def setup() {
-        inMemorySetup('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8)
+    def setupSpec() {
+        inMemorySetup('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc')
         wfBuilder = new WorkflowTestBuilder()
     }
 
-    def cleanup() {
+    def cleanupSpec() {
         cristalCleanup()
     }
 

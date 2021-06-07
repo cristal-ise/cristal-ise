@@ -20,6 +20,8 @@
  */
 package org.cristalise.gui.tree;
 
+import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
+
 import java.util.ArrayList;
 
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -31,71 +33,87 @@ import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.entity.proxy.MemberSubscription;
-import org.cristalise.kernel.entity.proxy.ProxyObserver;
+import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
-import org.cristalise.kernel.utils.Logger;
 
+import io.vertx.core.Vertx;
+import lombok.extern.slf4j.Slf4j;
 
-public class NodeCollection extends Node implements ProxyObserver<Collection<? extends CollectionMember>> {
+@Slf4j
+public class NodeCollection extends Node {
 
-    ItemProxy parent;
+    ItemProxy                              parent;
     Collection<? extends CollectionMember> thisCollection;
-    String path;
+    String                                 path;
 
     public NodeCollection(ItemProxy parent, String name, ItemTabManager desktop) {
-    	super(desktop);
+        super(desktop);
         this.parent = parent;
         this.name = name;
-        this.path = parent.getPath()+"/"+ClusterStorage.COLLECTION+"/"+name+"/last";
+        this.path = parent.getPath() + "/" + COLLECTION + "/" + name + "/last";
         createTreeNode();
         this.makeExpandable();
+
+        Vertx vertx = Gateway.getVertx();
+        vertx.eventBus().localConsumer(parent.getPath().getUUID() + "/" + COLLECTION, message -> {
+            String[] tokens = ((String) message.body()).split(":");
+             String collPath = tokens[0];
+
+            if (tokens[1].equals("DELETE")) return;
+
+            vertx.executeBlocking(promise -> {
+                try {
+                    add(parent.getCollection(collPath));
+                }
+                catch (ObjectNotFoundException e) {
+                    log.error("", e);
+                }
+                promise.complete();
+            }, res -> {
+                //
+            });
+        });
     }
-    
+
     public NodeCollection(ItemProxy parent, Collection<? extends CollectionMember> coll, ItemTabManager desktop) {
-    	super(desktop);
-        this.parent = parent;
-        this.name = coll.getName();
-        this.path = parent.getPath()+"/"+ClusterStorage.COLLECTION+"/"+name+"/last";
-        createTreeNode();
-        this.makeExpandable();
+        this(parent, coll.getName(), desktop);
         add(coll);
     }
 
     @Override
-	public void loadChildren() {
-        Logger.msg(8, "NodeCollection::loadChildren()");
+    public void loadChildren() {
         try {
-        	if (thisCollection == null) {
-        		Collection<? extends CollectionMember> initColl = (Collection<? extends CollectionMember>)parent.getObject(ClusterStorage.COLLECTION+"/"+name+"/last");
-        		add(initColl);
-        	}
-            parent.subscribe(new MemberSubscription<Collection<? extends CollectionMember>>(this, ClusterStorage.COLLECTION, false));
-        } catch (ObjectNotFoundException ex) {
+            if (thisCollection == null) {
+                @SuppressWarnings("unchecked")
+                Collection<? extends CollectionMember> initColl = (Collection<? extends CollectionMember>) parent
+                        .getObject(COLLECTION + "/" + name + "/last");
+                add(initColl);
+            }
+        }
+        catch (ObjectNotFoundException ex) {
             end(false);
             return;
         }
     }
-    
-    @Override
+
     public void add(Collection<? extends CollectionMember> contents) {
-    	if (!contents.getName().equals(name)) return;
-    	this.type = contents.getClass().getSimpleName();
+        if (!contents.getName().equals(name)) return;
+        this.type = contents.getClass().getSimpleName();
         ArrayList<? extends CollectionMember> newMembers = contents.getMembers().list;
         ArrayList<? extends CollectionMember> oldMembers;
         if (thisCollection == null)
-        	oldMembers = new ArrayList<CollectionMember>();
+            oldMembers = new ArrayList<CollectionMember>();
         else
-        	oldMembers = thisCollection.getMembers().list;
-        
+            oldMembers = thisCollection.getMembers().list;
+
         ArrayList<Path> currentPaths = new ArrayList<Path>();
         // add any missing paths
         for (CollectionMember newMember : newMembers) {
-        	ItemPath itemPath = newMember.getItemPath();
+            ItemPath itemPath = newMember.getItemPath();
             if (!oldMembers.contains(newMember) && itemPath != null) {
                 currentPaths.add(itemPath);
                 NodeItem newMemberNode = new NodeItem(itemPath, desktop);
@@ -106,59 +124,47 @@ public class NodeCollection extends Node implements ProxyObserver<Collection<? e
         }
         // remove those no longer present
         for (Path childPath : childNodes.keySet()) {
-        	if (!currentPaths.contains(childPath)) {
-        		remove(childPath);
-        	}
-			
-		}
-        
+            if (!currentPaths.contains(childPath)) {
+                remove(childPath);
+            }
+        }
+
         thisCollection = contents;
-    	if (isDependency())
-    		setToolTip(getPropertyToolTip(((Dependency)contents).getProperties()));
-    	end(false);
+        if (isDependency())
+            setToolTip(getPropertyToolTip(((Dependency) contents).getProperties()));
+        end(false);
     }
-    
+
     public boolean addMember(ItemPath itemPath) {
-    	if (!isDependency()) return false;
-    	String[] params = { thisCollection.getName(), itemPath.getUUID().toString() };
-		try {
-			MainFrame.userAgent.execute(parent, "AddMemberToCollection", params);
-			return true;
-		} catch (Exception e1) {
-			MainFrame.exceptionDialog(e1);
-			return false;
-		}
+        if (!isDependency()) return false;
+        try {
+            Dependency dep = new Dependency(thisCollection.getName());
+            CastorHashMap memberProps1 = new CastorHashMap();
+            dep.addMember(itemPath, memberProps1, "", null);
+            MainFrame.userAgent.execute(parent, AddMembersToCollection.class, Gateway.getMarshaller().marshall(dep));
+            return true;
+        }
+        catch (Exception e1) {
+            MainFrame.exceptionDialog(e1);
+            return false;
+        }
     }
-    
+
     public static String getPropertyToolTip(CastorHashMap props) {
-    	if (props.size() == 0) return null;
-    	StringBuffer verStr = new StringBuffer("<html>");
-    	for (KeyValuePair prop : props.getKeyValuePairs()) {
-			verStr.append("<b>").append(prop.getKey()).append(":</b> ").append(prop.getValue()).append("<br/>");
-		}
-    	return verStr.append("</html>").toString();
+        if (props.size() == 0) return null;
+        StringBuffer verStr = new StringBuffer("<html>");
+        for (KeyValuePair prop : props.getKeyValuePairs()) {
+            verStr.append("<b>").append(prop.getKey()).append(":</b> ").append(prop.getValue()).append("<br/>");
+        }
+        return verStr.append("</html>").toString();
     }
 
     @Override
-	public DefaultMutableTreeNode getTreeNode() {
+    public DefaultMutableTreeNode getTreeNode() {
         return treeNode;
     }
 
-
-
-	@Override
-	public void remove(String id) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void control(String control, String msg) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public boolean isDependency() {
-		return thisCollection instanceof Dependency;
-	}
+    public boolean isDependency() {
+        return thisCollection instanceof Dependency;
+    }
 }

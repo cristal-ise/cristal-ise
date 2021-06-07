@@ -27,6 +27,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.resource.BuiltInResources;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -40,6 +41,11 @@ public class SchemaCache extends DescriptionObjectCache<Schema> {
     @Override
     public String getSchemaName() {
         return BuiltInResources.SCHEMA_RESOURCE.getSchemaName();
+    }
+
+    @Override
+    public String getTypeRoot() {
+        return BuiltInResources.SCHEMA_RESOURCE.getTypeRoot();
     }
 
     @Override

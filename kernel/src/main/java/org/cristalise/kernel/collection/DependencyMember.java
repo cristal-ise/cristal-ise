@@ -21,6 +21,7 @@
 package org.cristalise.kernel.collection;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_NAME;
+
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
@@ -33,6 +34,7 @@ import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
@@ -47,7 +49,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DependencyMember implements CollectionMember {
     private ItemPath      mItemPath   = null;
-    private ItemProxy     mItem       = null;
     private int           mId         = -1;
     private CastorHashMap mProperties = null;
     private String        mClassProps = "";
@@ -97,7 +98,7 @@ public class DependencyMember implements CollectionMember {
     }
 
     @Override
-    public void assignItem(ItemPath itemPath) throws InvalidCollectionModification {
+    public void assignItem(ItemPath itemPath, TransactionKey transactionKey) throws InvalidCollectionModification {
         if (itemPath != null) {
             if (mClassProps == null || getProperties() == null)
                 throw new InvalidCollectionModification("ClassProps not yet set. Cannot check membership validity.");
@@ -109,7 +110,7 @@ public class DependencyMember implements CollectionMember {
                 String aClassProp = sub.nextToken();
                 try {
                     String memberValue = (String) getProperties().get(aClassProp);
-                    Property itemProperty = (Property) Gateway.getStorage().get(itemPath, ClusterType.PROPERTY + "/" + aClassProp, null);
+                    Property itemProperty = (Property) Gateway.getStorage().get(itemPath, ClusterType.PROPERTY + "/" + aClassProp, transactionKey);
 
                     if (itemProperty == null)
                         throw new InvalidCollectionModification("Property " + aClassProp + " does not exist for item " + itemPath);
@@ -126,20 +127,16 @@ public class DependencyMember implements CollectionMember {
         }
 
         mItemPath = itemPath;
-        mItem = null;
     }
 
     @Override
     public void clearItem() {
         mItemPath = null;
-        mItem = null;
     }
 
     @Override
-    public ItemProxy resolveItem() throws ObjectNotFoundException {
-        if (mItem == null && mItemPath != null)
-            mItem = Gateway.getProxyManager().getProxy(mItemPath);
-        return mItem;
+    public ItemProxy resolveItem(TransactionKey transactionKey) throws ObjectNotFoundException {
+        return Gateway.getProxy(mItemPath, transactionKey);
     }
 
     public void setChildUUID(String uuid) throws InvalidCollectionModification, InvalidItemPathException {
@@ -166,15 +163,15 @@ public class DependencyMember implements CollectionMember {
      * @throws InvalidDataException
      * @throws ObjectNotFoundException
      */
-    protected Object evaluateScript() throws InvalidDataException, ObjectNotFoundException {
+    protected Object evaluateScript(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         log.debug("evaluateScript() - memberUUID:" + getChildUUID());
-        Script script = LocalObjectLoader.getScript(getProperties());
+        Script script = LocalObjectLoader.getScript(getProperties(), transactionKey);
 
         try {
             script.setInputParamValue("dependencyMember", this);
 
             script.setInputParamValue("storage", Gateway.getStorage());
-            script.setInputParamValue("proxy", Gateway.getProxyManager());
+//            script.setInputParamValue("proxy", Gateway.getProxyManager());
             script.setInputParamValue("lookup", Gateway.getLookup());
 
             return script.evaluate(getItemPath(), getProperties(), null, null);
@@ -263,13 +260,13 @@ public class DependencyMember implements CollectionMember {
      * @throws InvalidDataException
      * @throws ObjectNotFoundException
      */
-    public boolean convertToItemPropertyByScript(PropertyArrayList props)  throws InvalidDataException, ObjectNotFoundException {
+    public boolean convertToItemPropertyByScript(PropertyArrayList props, TransactionKey transactionKey)  throws InvalidDataException, ObjectNotFoundException {
         log.debug("convertToItemPropertyByScript() - memberUUID:"+getChildUUID());
 
         String scriptName = (String)getBuiltInProperty(SCRIPT_NAME);
 
         if (scriptName != null && scriptName.length() > 0) {
-            Object result = evaluateScript();
+            Object result = evaluateScript(transactionKey);
 
             if (result != null && result instanceof PropertyArrayList) {
                 props.merge((PropertyArrayList)result);

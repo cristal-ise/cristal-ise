@@ -1,1 +1,18 @@
-<Item name="DescriptionFactory" version="0" initialPath="/desc/dev" workflow="ItemDescriptionFactoryWf" workflowVer="0"><Property name="Type" mutable="false">Factory</Property><Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ItemDescription_0.xml</Outcome><Dependency name="workflow" isDescription="false"><DependencyMember itemPath="/desc/ActivityDesc/dev/ItemDescriptionWf"><MemberProperties><KeyValuePair Key="Version" isAbstract="false" Integer="0"/></MemberProperties></DependencyMember><CollectionProperties/></Dependency><Dependency name="workflow'" isDescription="true"><DependencyMember itemPath="/desc/dev/CompositeActivityDefFactory"><MemberProperties/></DependencyMember><CollectionProperties/></Dependency></Item>
+<Item initialPath="/desc/dev" name="DescriptionFactory" ns="dev" version="0" workflow="ItemDescriptionFactoryWf" workflowVer="0">
+  <Property mutable="false" name="Type">Factory</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/ItemDescription_0.xml</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow">
+    <DependencyMember itemPath="/desc/ActivityDesc/dev/ItemDescriptionWf">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="workflow'">
+    <DependencyMember itemPath="/desc/dev/CompositeActivityDefFactory">
+      <MemberProperties/>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+</Item>

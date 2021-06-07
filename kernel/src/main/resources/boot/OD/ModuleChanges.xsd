@@ -25,6 +25,8 @@
   <xs:element name='ModuleChanges'>
     <xs:complexType>
       <xs:sequence>
+        <xs:element name='ModuleName' type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='ModuleVersion' type='xs:string' minOccurs='1' maxOccurs='1' />
         <xs:element name='ResourceChangeDetails' minOccurs='0' maxOccurs='unbounded'>
           <xs:complexType>
             <xs:sequence>

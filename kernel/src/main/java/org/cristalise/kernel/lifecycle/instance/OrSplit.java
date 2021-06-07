@@ -29,6 +29,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.graph.model.DirectedEdge;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,9 +41,9 @@ public class OrSplit extends Split {
     }
 
     @Override
-    public void runNext(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
+    public void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
         int id = getID();
-        String[] nextsTab = calculateNexts(itemPath, locker);
+        String[] nextsTab = calculateNexts(itemPath, transactionKey);
 
         ArrayList<DirectedEdge> nextsToFollow = new ArrayList<DirectedEdge>();
 
@@ -61,7 +62,7 @@ public class OrSplit extends Split {
         for (DirectedEdge edge : nextsToFollow) {
             Next next = (Next)edge;
             log.debug("runNext(id:{}) - Running {}", id, next.getBuiltInProperty(ALIAS));
-            next.getTerminusVertex().run(agent, itemPath, locker);
+            next.getTerminusVertex().run(agent, itemPath, transactionKey);
         }
     }
 

@@ -26,9 +26,9 @@ import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 import static org.cristalise.kernel.persistency.ClusterType.PATH;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
@@ -53,7 +53,6 @@ public class XMLClusterStorageTest {
 
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
-
         itemPath = new ItemPath("fcecd4ad-40eb-421c-a648-edc1d74f339b");
     }
 
@@ -63,46 +62,46 @@ public class XMLClusterStorageTest {
     }
 
     public void checkXMLClusterStorage(XMLClusterStorage importCluster) throws Exception {
-        ClusterType[] types = importCluster.getClusters(itemPath);
+        ClusterType[] types = importCluster.getClusters(itemPath, null);
 
         assertEquals(6, types.length);
 
         for (ClusterType type : types) {
-            String[] contents = importCluster.getClusterContents(itemPath, type);
+            String[] contents = importCluster.getClusterContents(itemPath, type, null);
 
             switch (type) {
                 case PATH:
                     assertEquals(2,  contents.length);
                     assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder("Domain", "Item"));
-                    assertNotNull( importCluster.get(itemPath, PATH+"/Item") );
-                    assertNotNull( importCluster.get(itemPath, PATH+"/Domain/Batches2016FG160707C-08") );
+                    assertNotNull( importCluster.get(itemPath, PATH+"/Item", null) );
+                    assertNotNull( importCluster.get(itemPath, PATH+"/Domain/Batches2016FG160707C-08", null) );
                     break;
 
                 case PROPERTY:
                     assertEquals(19, contents.length);
-                    assertNotNull( importCluster.get(itemPath, PROPERTY+"/Name") );
+                    assertNotNull( importCluster.get(itemPath, PROPERTY+"/Name", null) );
                     break;
 
                 case LIFECYCLE:
                     assertEquals(1,  contents.length);
-                    assertNotNull( importCluster.get(itemPath, LIFECYCLE+"/workflow") );
+                    assertNotNull( importCluster.get(itemPath, LIFECYCLE+"/workflow", null) );
                     break;
 
                 case OUTCOME:
                     assertEquals(14, contents.length);
-                    assertNotNull( importCluster.get(itemPath, OUTCOME+"/PredefinedStepOutcome/0/7") );
+                    assertNotNull( importCluster.get(itemPath, OUTCOME+"/PredefinedStepOutcome/0/7", null) );
                     break;
 
                 case VIEWPOINT:
                     assertEquals(14, contents.length);
-                    assertNotNull( importCluster.get(itemPath, VIEWPOINT+"/NextStepData/last") );
+                    assertNotNull( importCluster.get(itemPath, VIEWPOINT+"/NextStepData/last", null) );
                     break;
 
                 case HISTORY:
                     assertEquals(30, contents.length);
-                    assertNotNull( importCluster.get(itemPath, HISTORY+"/0") );
-                    assertNotNull( importCluster.get(itemPath, HISTORY+"/29") );
-                    assertEquals(29, importCluster.getLastIntegerId(itemPath, HISTORY.getName()));
+                    assertNotNull( importCluster.get(itemPath, HISTORY+"/0", null) );
+                    assertNotNull( importCluster.get(itemPath, HISTORY+"/29", null) );
+                    assertEquals(29, importCluster.getLastIntegerId(itemPath, HISTORY.getName(), null));
                     break;
 
                 default:

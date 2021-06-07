@@ -35,6 +35,7 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
@@ -122,7 +123,7 @@ public class XMLClusterStorage extends ClusterStorage {
 
     // introspection
     @Override
-    public short queryClusterSupport(String clusterType) {
+    public short queryClusterSupport(ClusterType clusterType) {
         return ClusterStorage.READWRITE;
     }
 
@@ -143,12 +144,12 @@ public class XMLClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String executeQuery(Query query) throws PersistencyException {
+    public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("UNIMPLEMENTED funnction");
     }
 
     @Override
-    public C2KLocalObject get(ItemPath itemPath, String path) throws PersistencyException {
+    public C2KLocalObject get(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         try {
             ClusterType type      = ClusterStorage.getClusterType(path);
             String      filePath  = getFilePath(itemPath, path) + fileExtension;
@@ -168,7 +169,7 @@ public class XMLClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void put(ItemPath itemPath, C2KLocalObject obj) throws PersistencyException {
+    public void put(ItemPath itemPath, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException {
         try {
             String filePath = getFilePath(itemPath, getPath(obj) + fileExtension);
             log.trace("put() - Writing " + filePath);
@@ -190,7 +191,7 @@ public class XMLClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void delete(ItemPath itemPath, String path) throws PersistencyException {
+    public void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         try {
             String filePath = getFilePath(itemPath, path + fileExtension);
             boolean success = FileStringUtility.deleteDir(filePath, true, true);
@@ -209,7 +210,7 @@ public class XMLClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
+    public String[] getClusterContents(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         try {
             if (useDirectories) return getContentsFromDirectories(itemPath, path);
             else                return getContentsFromFileNames(itemPath, path);
@@ -293,10 +294,10 @@ public class XMLClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+    public int getLastIntegerId(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         int lastId = -1;
         try {
-            String[] keys = getClusterContents(itemPath, path);
+            String[] keys = getClusterContents(itemPath, path, transactionKey);
             for (String key : keys) {
                 int newId = Integer.parseInt(key);
                 lastId = newId > lastId ? newId : lastId;
@@ -308,5 +309,23 @@ public class XMLClusterStorage extends ClusterStorage {
         }
 
         return lastId;
+    }
+
+    @Override
+    public void begin(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void commit(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void abort(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
     }
 }

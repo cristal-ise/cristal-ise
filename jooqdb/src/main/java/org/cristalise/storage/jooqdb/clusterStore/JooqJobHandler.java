@@ -42,6 +42,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
+import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -60,7 +61,7 @@ public class JooqJobHandler extends JooqHandler {
 
     static final Field<UUID>      UUID              = field(name("UUID"),              UUID.class);
     static final Field<Integer>   ID                = field(name("ID"),                Integer.class);
-    static final Field<UUID>      DELEGATE_UUID     = field(name("DELEGATE_UUID"),     UUID.class);
+//    static final Field<UUID>      DELEGATE_UUID     = field(name("DELEGATE_UUID"),     UUID.class);
     static final Field<UUID>      ITEM_UUID         = field(name("ITEM_UUID"),         UUID.class);
     static final Field<String>    STEP_NAME         = field(name("STEP_NAME"),         String.class);
     static final Field<String>    STEP_PATH         = field(name("STEP_PATH"),         String.class);
@@ -126,7 +127,6 @@ public class JooqJobHandler extends JooqHandler {
                 .insertInto(JOB_TABLE)
                 .set(UUID,              uuid)
                 .set(ID,                job.getId())
-                .set(DELEGATE_UUID,     (job.getDelegatePath() == null) ? null: job.getDelegatePath().getUUID())
                 .set(ITEM_UUID,         job.getItemPath().getUUID())
                 .set(STEP_NAME,         job.getStepName())
                 .set(STEP_PATH,         job.getStepPath())
@@ -149,8 +149,6 @@ public class JooqJobHandler extends JooqHandler {
                 Transition trans       = (Transition)   Gateway.getMarshaller().unmarshall(result.get(TRANSITION));
                 CastorHashMap actProps = (CastorHashMap)Gateway.getMarshaller().unmarshall(result.get(ACT_PROPERTIES));
 
-                UUID delegate = getUUID(result, DELEGATE_UUID);
-
                 GTimeStamp ts = DateUtility.fromSqlTimestamp( result.get(CREATION_TS));
                 //GTimeStamp ts = DateUtility.fromOffsetDateTime( result.get(CREATION_TS));
 
@@ -165,9 +163,8 @@ public class JooqJobHandler extends JooqHandler {
                         result.get(TARGET_STATE_NAME),
                         result.get(AGENT_ROLE),
                         new AgentPath(getUUID(result, UUID)),
-                        (delegate == null) ? null : new AgentPath(delegate),
-                                actProps,
-                                ts);
+                        actProps,
+                        ts);
             }
             catch (Exception ex) {
                 log.error("", ex);
@@ -180,12 +177,12 @@ public class JooqJobHandler extends JooqHandler {
 
     @Override
     public void createTables(DSLContext context) {
-        DataType<String> xmlType = getStringXmlType();
+        DataType<String> xmlType = JooqDataSourceHandler.getStringXmlType();
 
         context.createTableIfNotExists(JOB_TABLE)
         .column(UUID,               UUID_TYPE     .nullable(false))
         .column(ID,                 ID_TYPE       .nullable(false))
-        .column(DELEGATE_UUID,      UUID_TYPE     .nullable(true))
+//        .column(DELEGATE_UUID,      UUID_TYPE     .nullable(true))
         .column(ITEM_UUID,          UUID_TYPE     .nullable(false))
         .column(STEP_NAME,          NAME_TYPE     .nullable(false))
         .column(STEP_PATH,          STRING_TYPE   .nullable(false))

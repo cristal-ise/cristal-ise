@@ -1,1 +1,13 @@
-<ActivityDef ID="-1" Name="CrudState_Activate" Height="0" Width="0" IsLayoutable="false" IsComposite="false"><Properties><KeyValuePair Key="ItemProperty.State" isAbstract="false" String="ACTIVE"/><KeyValuePair Key="Breakpoint" isAbstract="false" Boolean="false"/><KeyValuePair Key="OutcomeInit" isAbstract="false" String=""/><KeyValuePair Key="StateMachineVersion" isAbstract="false" String="0"/><KeyValuePair Key="Description" isAbstract="false" String=""/><KeyValuePair Key="Viewpoint" isAbstract="false" String=""/><KeyValuePair Key="Agent Name" isAbstract="false" String=""/><KeyValuePair Key="StateMachineName" isAbstract="false" String="Default"/><KeyValuePair Key="Agent Role" isAbstract="false" String=""/></Properties></ActivityDef>
+<ActivityDef Height="0" ID="-1" IsComposite="false" IsLayoutable="false" Name="CrudState_Activate" Width="0">
+  <Properties>
+    <KeyValuePair Key="ItemProperty.State" String="ACTIVE" isAbstract="false"/>
+    <KeyValuePair Boolean="false" Key="Breakpoint" isAbstract="false"/>
+    <KeyValuePair Key="OutcomeInit" String="" isAbstract="false"/>
+    <KeyValuePair Key="StateMachineVersion" String="0" isAbstract="false"/>
+    <KeyValuePair Key="Description" String="" isAbstract="false"/>
+    <KeyValuePair Key="Viewpoint" String="" isAbstract="false"/>
+    <KeyValuePair Key="Agent Name" String="" isAbstract="false"/>
+    <KeyValuePair Key="StateMachineName" String="Default" isAbstract="false"/>
+    <KeyValuePair Key="Agent Role" String="" isAbstract="false"/>
+  </Properties>
+</ActivityDef>

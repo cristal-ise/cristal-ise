@@ -20,7 +20,7 @@
  */
 package org.cristalise.kernel.graph.model;
 
-import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.collection.Collection;
 
 /**
  * Enumeration to define all Vertex properties which are used by collection and lifecycle packages
@@ -48,14 +48,8 @@ public enum BuiltInVertexProperties {
     ATTACHMENT_MIME_TYPES("AttachmentMimeTypes"),
 
     /**
-     * String property. The name of the Delegate Agent associated with Activities. Can be null or undefined.
-     */
-    DELEGATE_NAME("DelegateName"),
-
-    /**
-     * String property. The role of the Agent associated with Activities. Can be null or undefined.
-     * 
-     * @deprecated use {@link RolePath#setPermissions(java.util.List)} instead
+     * String property. The role of the Agent associated with Activities. It should only be used to
+     * for UserCode like functionality. Can be null or undefined.
      */
     AGENT_ROLE("Agent Role"),
 
@@ -63,6 +57,34 @@ public enum BuiltInVertexProperties {
      * Boolean property ...
      */
     BREAKPOINT("Breakpoint"),
+
+    /**
+     * String property of Collection specifying the cardinality. It contains one of the values of {@link Collection.Cardinality} 
+     */
+    DEPENDENCY_CARDINALITY("DependencyCardinality"),
+
+    /**
+     * String property. The name of the ... In DSL it is used like this:
+     *
+     * <pre>
+     * Activity('User_AddAddress', 0) {
+     *   Property(PredefinedStep: 'AddMemberToCollection')
+     *   Property(DependencyName: 'Addresses')
+     *   Schema('Address_Detaails', 0)
+     * }</pre>
+     */
+    DEPENDENCY_NAME("DependencyName"),
+
+    /**
+     * String property of Collection specifying the Name of the Collection in the other Item. 
+     * It is used in case of Bidirectional Dependency.
+     */
+    DEPENDENCY_TO("DependencyTo"),
+
+    /**
+     * String property of Collection specifying the type. It contains one of the values of {@link Collection.Type}
+     */
+    DEPENDENCY_TYPE("DependencyType"),
 
     /**
      * String property used in ActivityDef to store the description text
@@ -75,7 +97,7 @@ public enum BuiltInVertexProperties {
     LAST_NUM("LastNum"),
 
     /**
-     * String property used in CollectionDefinition to specify the Script to be executed during AddMemberToCollection. 
+     * String property used in CollectionDefinition to specify the Script to be executed during AddMembersToCollection. 
      * Its primary purpose is to  ensure referential integrity. It shall contain the Name or UUID of the Script and the version number 
      * separated with colon.
      * 
@@ -123,9 +145,14 @@ public enum BuiltInVertexProperties {
     MEMBER_UPDATE_SCRIPT("MemberUpdateScript"),
 
     /**
-     * String property. It is used in ActivitySlotDef to override the name of the ActivityDef
+     * String property. It is used in ActivityDef and ActivitySlotDef to override the name of the ActivityDef
      */
     NAME("Name"),
+
+    /**
+     * String property. It is used in ActivityDef or ActivitySlotDef
+     */
+    NAMESPACE("Namespace"),
 
     /**
      * String property. The type of object the Activity is going to create. Values are Schema, Script, StateMachine and Query.
@@ -152,6 +179,22 @@ public enum BuiltInVertexProperties {
      * Can be null or undefined.
      */
     PAIRING_ID("PairingID"),
+
+    /**
+     * String property. Declares the Activity to be associated with a PredefinedStep, therefore the Outcome
+     * shall contain the data required to execute automatically the predefined step.
+     * 
+     * In DSL it is used like this:
+     *
+     * <pre>
+     * Activity('Equipment_AddDevice', 0) {
+     *   Property(PredefinedStep: 'AddMembersToCollection')
+     *   Schema('Equipment_Device', 0)
+     * }</pre>
+     * 
+     * Can be null or undefined.
+     */
+    PREDEFINED_STEP("PredefinedStep"),
 
     /**
      * String property. It contains either the name or the UUID of the PropertyDescription Item.

@@ -22,16 +22,21 @@ package org.cristalise.kernel.process.resource;
 
 public class BadArgumentsException extends Exception {
 
-	public BadArgumentsException() {
-		super();
-	}
+    /**
+     * 
+     */
+    private static final long serialVersionUID = -3128853826685544954L;
 
-	public BadArgumentsException(String message) {
-		super(message);
-	}
+    public BadArgumentsException() {
+        super();
+    }
 
-	public BadArgumentsException(Throwable cause) {
-		super(cause);
-	}
+    public BadArgumentsException(String message) {
+        super(message);
+    }
+
+    public BadArgumentsException(Throwable cause) {
+        super(cause);
+    }
 
 }

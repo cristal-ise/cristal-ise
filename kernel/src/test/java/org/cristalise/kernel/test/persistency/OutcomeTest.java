@@ -21,6 +21,7 @@
 package org.cristalise.kernel.test.persistency;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -102,6 +103,17 @@ public class OutcomeTest {
 
     @Test
     public void testFieldAccess() throws Exception {
+        assertTrue   ("Field1 exists",     testOc.hasField("Field1"));
+        assertNotNull("Field1 has value",  testOc.getField("Field1"));
+        assertTrue   ("Field2 exists",     testOc.hasField("Field2"));
+        assertNull   ("Field2 NO value",   testOc.getField("Field2"));  //<Field2></Field2>
+        assertTrue   ("Field3 exists",     testOc.hasField("Field3"));
+        assertNotNull("Field3 has value",  testOc.getField("Field3"));  //Field3 occur multiple times
+        assertTrue   ("Field4 exists",     testOc.hasField("Field4"));
+        assertNull   ("Field4 is NULL",    testOc.getField("Field4"));  //<Field4/>
+        assertFalse  ("Field5 NOT exists", testOc.hasField("Field5"));
+        assertNull   ("Field5 NOT exists", testOc.getField("Field5"));
+
         assertEquals("Field1contents", testOc.getField("Field1"));
         testOc.setField("Field1", "Field1contents_updated");
         assertEquals("Field1contents_updated", testOc.getField("Field1"));

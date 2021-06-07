@@ -71,7 +71,7 @@ public class PathUtils extends RestHandler {
             uuid = itemPath.getUUID();
 
             try {
-                name = Gateway.getProxyManager().getProxy(itemPath).getName();
+                name = Gateway.getProxy(itemPath).getName();
             }
             catch (ObjectNotFoundException e) {
                 name = itemPath.getUUID().toString();

@@ -47,8 +47,9 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -246,16 +247,16 @@ public class CompositeActivity extends Activity {
     }
 
     @Override
-    public void run(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
+    public void run(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
         log.trace("run() path:" + getPath() + " state:" + getState());
 
-        super.run(agent, itemPath, locker);
+        super.run(agent, itemPath, transactionKey);
 
         Transition autoStart = getAutoStart(agent, getStateMachine().getState(state));
 
         if (autoStart != null) {
             try {
-                request(agent, null, itemPath, autoStart.getId(), null, "", null, locker);
+                request(agent, itemPath, autoStart.getId(), null, "", null, transactionKey);
             }
             catch (RuntimeException e) {
                 throw e;
@@ -272,7 +273,7 @@ public class CompositeActivity extends Activity {
     }
 
     @Override
-    public void runNext(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException  {
+    public void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException  {
         if (!isFinished()) {
             Transition trans = null;
             try {
@@ -291,8 +292,8 @@ public class CompositeActivity extends Activity {
                 }
             }
             catch (ObjectNotFoundException e) {
-                log.error("", e);
-                throw new InvalidDataException("Problem calculating possible transitions for agent "+agent.toString());
+                log.error("runNext() - Problem calculating possible transitions for agent:{}", agent, e);
+                throw new InvalidDataException("Problem calculating possible transitions for agent "+agent.toString(), e);
             }
 
             if (trans == null) { // current agent can't proceed
@@ -301,7 +302,7 @@ public class CompositeActivity extends Activity {
                 return;
             }
             else {
-                // automatically execute the next outcome if it doesn't require an outcome.
+                // automatically execute the next transition if it doesn't require an outcome.
                 if (trans.hasOutcome(getProperties()) || trans.hasScript(getProperties())) {
                     log.info("Composite activity '"+getName()+"' has script or schema defined. Cannot proceed automatically.");
                     setActive(true);
@@ -309,18 +310,18 @@ public class CompositeActivity extends Activity {
                 }
 
                 try {
-                    request(agent, null, itemPath, trans.getId(), null, "", null, locker);
-                    if (!trans.isFinishing()) // don't run next if we didn't finish
-                        return;
+                    request(agent, itemPath, trans.getId(), /*requestData*/null, "", /*attachment*/null, transactionKey);
+                    // don't run next if we didn't finish
+                    if (!trans.isFinishing()) return;
                 }
                 catch (Exception e) {
-                    log.error("", e);
+                    log.error("runNext() - Problem completing CompAct:{}", getName(), e);
                     setActive(true);
-                    throw new InvalidDataException("Problem completing composite activity: "+e.getMessage());
+                    throw new InvalidDataException("Problem completing CompAct:"+getName(), e);
                 }
             }
         }
-        super.runNext(agent, itemPath, locker);
+        super.runNext(agent, itemPath, transactionKey);
     }
 
     /**
@@ -328,7 +329,7 @@ public class CompositeActivity extends Activity {
      */
     @Override
     public ArrayList<Job> calculateJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
-            throws InvalidAgentPathException, ObjectNotFoundException, InvalidDataException
+            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException
     {
         ArrayList<Job> jobs = new ArrayList<Job>();
         boolean childActive = false;
@@ -349,7 +350,7 @@ public class CompositeActivity extends Activity {
 
     @Override
     public ArrayList<Job> calculateAllJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
-            throws InvalidAgentPathException, ObjectNotFoundException, InvalidDataException
+            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException
     {
         ArrayList<Job> jobs = new ArrayList<Job>();
 
@@ -423,11 +424,16 @@ public class CompositeActivity extends Activity {
     }
 
     @Override
-    public String request(AgentPath agent, AgentPath delegator, ItemPath itemPath, int transitionID, String requestData, String attachmentType, byte[] attachment, Object locker)
+    public String request(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, String attachmentType, byte[] attachment, TransactionKey transactionKey)
             throws AccessRightsException, InvalidTransitionException, InvalidDataException, ObjectNotFoundException, PersistencyException,
             ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification
     {
-        Transition trans = getStateMachine().getTransition(transitionID);
+        StateMachine sm = getStateMachine();
+        Transition trans = sm.getTransition(transitionID);
+
+        if (log.isTraceEnabled()) {
+            log.trace("request() - path:{} state:{} transition:{}", getPath(), sm.getState(getState()), trans);
+        }
 
         if (trans.isFinishing() && hasActive()) {
             if ((Boolean)getBuiltInProperty(ABORTABLE))
@@ -436,20 +442,29 @@ public class CompositeActivity extends Activity {
                 throw new InvalidTransitionException("Attempted to finish '"+getPath()+"' it had active children but was not Abortable");
         }
 
-        if (getStateMachine().getTransition(transitionID).reinitializes()) {
+        if (trans.reinitializes()) {
             int preserveState = state;
             reinit(getID());
             setState(preserveState);
         }
 
-        if (getChildrenGraphModel().getStartVertex() != null
-                && (getStateMachine().getState(state).equals(getStateMachine().getInitialState())
-                        || getStateMachine().getTransition(transitionID).reinitializes()))
-        {
-            ((WfVertex) getChildrenGraphModel().getStartVertex()).run(agent, itemPath, locker);
+        // request() changes the state of CA, so check now if the children has to be initialized
+        boolean initChldren = sm.getState(state).equals(sm.getInitialState()) || trans.reinitializes();
+
+        // execute request() first to create the correct order of events
+        String  result = super.request(agent, itemPath, transitionID, requestData, attachmentType, attachment, transactionKey);
+
+        // init children if needed. 
+        if (initChldren) {
+            if (getChildrenGraphModel().getStartVertex() != null) {
+                ((WfVertex) getChildrenGraphModel().getStartVertex()).runFirst(agent, itemPath, transactionKey);
+            }
+            else {
+                throw new InvalidDataException("CompAct '" + getPath() + "' has NO start vertex");
+            }
         }
 
-        return super.request(agent, delegator, itemPath, transitionID, requestData, attachmentType, attachment, locker);
+        return result;
     }
 
     public void refreshJobs(ItemPath itemPath) {

@@ -32,6 +32,7 @@ import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
@@ -51,7 +52,7 @@ public class ImportAggregation {
         this.isDescription = isDescription;
     }
 
-    public org.cristalise.kernel.collection.Aggregation create()
+    public org.cristalise.kernel.collection.Aggregation create(TransactionKey transactionKey)
             throws InvalidCollectionModification, ObjectNotFoundException, ObjectAlreadyExistsException
     {
         Aggregation newAgg = isDescription ? new AggregationDescription(name) : new AggregationInstance(name);
@@ -90,7 +91,8 @@ public class ImportAggregation {
             }
             newAgg.addMember(itemPath, thisMem.props, classProps.toString(), 
                             new GraphPoint(thisMem.geometry.x, thisMem.geometry.y),
-                            thisMem.geometry.width, thisMem.geometry.height);
+                            thisMem.geometry.width, thisMem.geometry.height,
+                            transactionKey);
         }
         return newAgg;
     }

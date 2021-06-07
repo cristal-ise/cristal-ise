@@ -35,17 +35,26 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class StateMachine implements DescriptionObject {
+    @Getter @Setter
+    public String   namespace;
+    @Getter @Setter
     public String   name;
+    @Getter @Setter
     public Integer  version;
+    @Getter @Setter
     public ItemPath itemPath;
 
     private ArrayList<State>                   states;
@@ -203,36 +212,6 @@ public class StateMachine implements DescriptionObject {
     }
 
     @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public Integer getVersion() {
-        return version;
-    }
-
-    @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
-    @Override
-    public ItemPath getItemPath() {
-        return itemPath;
-    }
-
-    @Override
-    public void setItemPath(ItemPath path) {
-        itemPath = path;
-    }
-
-    @Override
     public String getItemID() {
         if (itemPath == null || itemPath.getUUID() == null) return "";
         return itemPath.getUUID().toString();
@@ -289,7 +268,7 @@ public class StateMachine implements DescriptionObject {
     }
 
     @Override
-    public CollectionArrayList makeDescCollections() {
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) {
         return new CollectionArrayList();
     }
 
@@ -323,7 +302,9 @@ public class StateMachine implements DescriptionObject {
             transition.getPerformingRole(act, agent);
             return transition.targetState;
         }
-        else throw new InvalidTransitionException("Transition '" + transition + "' not valid from state '" + currentState.getName() + "'");
+        else {
+            throw new InvalidTransitionException("Transition "+transition+" not valid from state "+currentState);
+        }
     }
 
     public boolean isCoherent() {
@@ -341,7 +322,7 @@ public class StateMachine implements DescriptionObject {
         String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
 
         try {
-            smXML = Gateway.getMarshaller().marshall(this);
+            smXML = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
         }
         catch (Exception e) {
             log.error("", e);

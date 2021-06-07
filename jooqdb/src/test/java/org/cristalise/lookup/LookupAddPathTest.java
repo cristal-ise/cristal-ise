@@ -30,7 +30,6 @@ import java.util.UUID;
 import org.cristalise.JooqTestConfigurationBase;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
-import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -42,7 +41,6 @@ import org.junit.Test;
 public class LookupAddPathTest extends LookupTestBase {
 
     UUID uuid0 = new UUID(0,0);
-    SystemKey sysKey0 = new SystemKey(0,0);
 
     @Test
     public void addDeleteItemPath() throws Exception {
@@ -102,10 +100,17 @@ public class LookupAddPathTest extends LookupTestBase {
         catch (ObjectAlreadyExistsException e) {}
     }
 
-    @Test(expected=ObjectCannotBeUpdated.class)
+    @Test
     public void deleteDomainPath_ObjectIsNotALeafError() throws Exception {
-        lookup.add(new DomainPath("empty/toto"));
-        lookup.delete(new DomainPath("empty"));
+        Path p = new DomainPath("empty/toto");
+        try {
+            lookup.add(p);
+            lookup.delete(new DomainPath("empty"));
+            fail("shall throw ObjectCannotBeUpdated");
+        }
+        catch (ObjectCannotBeUpdated e) {
+            lookup.delete(p);
+        }
     }
 
     @Test

@@ -21,6 +21,7 @@
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
+import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
 
 import java.io.IOException;
 
@@ -32,6 +33,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
@@ -52,14 +54,15 @@ public class ImportImportAgent extends PredefinedStep {
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
     {
         try {
             ImportAgent importAgent = (ImportAgent) Gateway.getMarshaller().unmarshall(requestData);
-            importAgent.setPassword("");
-            importAgent.create(agent, true);
-            return requestData;
+            importAgent.create(agent, true, transactionKey);
+            importAgent.setPassword(REDACTED);
+
+            return Gateway.getMarshaller().marshall(importAgent);
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
             log.error("Couldn't unmarshall Agent: " + requestData, e);

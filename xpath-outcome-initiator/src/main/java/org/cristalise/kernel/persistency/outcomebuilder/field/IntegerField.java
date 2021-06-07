@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -33,6 +34,7 @@ public class IntegerField extends NumberField {
 
     public IntegerField() {
         super(Arrays.asList(strFields), Arrays.asList(excFields));
+        javaType = BigInteger.class;
     }
 
     @Override

@@ -30,9 +30,6 @@
 
     <class name="org.cristalise.kernel.lookup.ItemPath" extends="org.cristalise.kernel.lookup.Path">
         <map-to xml="ItemPath" />
-        <field name="mIOR" type="string" direct="false" get-method="getIORString" set-method="setIORString">
-            <bind-xml node="text" />
-        </field>
     </class>
 
     <class name="org.cristalise.kernel.lookup.AgentPath" extends="org.cristalise.kernel.lookup.ItemPath">

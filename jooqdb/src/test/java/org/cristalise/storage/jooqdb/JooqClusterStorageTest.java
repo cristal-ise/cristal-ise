@@ -26,7 +26,7 @@ import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.nio.file.Files;
@@ -79,6 +79,7 @@ public class JooqClusterStorageTest extends JooqTestConfigurationBase {
 
         props.put("ClusterStorage", "org.cristalise.storage.jooqdb.JooqClusterStorage");
         props.put("BulkImport.rootDirectory", "src/test/data");
+        props.put("Gateway.clusteredVertx", false);
 
         setUpStorage(props);
 
@@ -92,12 +93,7 @@ public class JooqClusterStorageTest extends JooqTestConfigurationBase {
     public void importItem() throws Exception {
         BulkImport importer = new BulkImport();
         importer.initialise();
-
-        importer.importProperty (itemPath, null);
-        importer.importLifeCycle(itemPath, null);
-        importer.importOutcome  (itemPath, null);
-        importer.importViewPoint(itemPath, null);
-        importer.importHistory  (itemPath, null);
+        importer.importAllClusters(null);
     }
 
     @After

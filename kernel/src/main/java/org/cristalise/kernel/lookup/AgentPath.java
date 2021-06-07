@@ -24,8 +24,8 @@ import java.util.List;
 import java.util.UUID;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 /**
@@ -40,29 +40,20 @@ public class AgentPath extends ItemPath {
         super();
     }
 
-    public AgentPath(UUID uuid, String ior, String agentName) {
-        super(uuid, ior);
-        mAgentName = agentName;
-    }
-
-    public AgentPath(UUID uuid, String ior, String agentName, boolean isPwdTemporary) {
-        super(uuid, ior);
+    public AgentPath(UUID uuid, String agentName, boolean isPwdTemporary) {
+        super(uuid);
         mAgentName = agentName;
         mPasswordTemporary = isPwdTemporary;
     }
 
-    public AgentPath(UUID uuid) throws InvalidAgentPathException {
+    public AgentPath(UUID uuid) throws InvalidItemPathException {
         super(uuid);
 
         //This is commented so a AgentPath can be constructed without setting up Lookup
         //if (getAgentName() == null) throw new InvalidAgentPathException();
     }
 
-    public AgentPath(SystemKey syskey) throws InvalidAgentPathException {
-        this(new UUID(syskey.msb, syskey.lsb));
-    }
-
-    public AgentPath(ItemPath itemPath) throws InvalidAgentPathException {
+    public AgentPath(ItemPath itemPath) throws InvalidItemPathException {
         this(itemPath.getUUID());
     }
 
@@ -86,9 +77,13 @@ public class AgentPath extends ItemPath {
     }
 
     public String getAgentName() {
+        return getAgentName(null);
+    }
+
+    public String getAgentName(TransactionKey transactionKey) {
         if (mAgentName == null) {
             try {
-                mAgentName = Gateway.getLookup().getAgentName(this);
+                mAgentName = Gateway.getLookup().getAgentName(this, transactionKey);
             }
             catch (ObjectNotFoundException e) {
                 return null;
@@ -98,23 +93,39 @@ public class AgentPath extends ItemPath {
     }
 
     public RolePath[] getRoles() {
-        return Gateway.getLookup().getRoles(this);
+        return getRoles(null);
+    }
+
+    public RolePath[] getRoles(TransactionKey transactionKey) {
+        return Gateway.getLookup().getRoles(this, transactionKey);
     }
 
     public RolePath getFirstMatchingRole(List<RolePath> roles) {
+        return getFirstMatchingRole(roles, null);
+    }
+
+    public RolePath getFirstMatchingRole(List<RolePath> roles, TransactionKey transactionKey) {
         for (RolePath role : roles) {
-            if (Gateway.getLookup().hasRole(this, role)) return role;
+            if (Gateway.getLookup().hasRole(this, role, transactionKey)) return role;
         }
         return null;
     }
 
     public boolean hasRole(RolePath role) {
-        return Gateway.getLookup().hasRole(this, role);
+        return hasRole(role, null);
+    }
+
+    public boolean hasRole(RolePath role, TransactionKey transactionKey) {
+        return Gateway.getLookup().hasRole(this, role, transactionKey);
     }
 
     public boolean hasRole(String role) {
+        return hasRole(role, null);
+    }
+
+    public boolean hasRole(String role, TransactionKey transactionKey) {
         try {
-            return hasRole(Gateway.getLookup().getRolePath(role));
+            return hasRole(Gateway.getLookup().getRolePath(role, transactionKey));
         }
         catch (ObjectNotFoundException ex) {
             return false;

@@ -35,6 +35,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.lookup.Lookup.SearchConstraints;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -172,13 +173,21 @@ public class JooqDomainPathHandler {
         return getListOfPath(result);
     }
 
-    public String getFindPattern(Path startPath, String name) {
-        if (StringUtils.isBlank(name)) return startPath.getStringPath() + "%";
-        else                           return startPath.getStringPath() + "/%" + name;
+    public String getFindPattern(Path startPath, String name, SearchConstraints constraints) {
+        if (StringUtils.isBlank(name)) {
+            return startPath.getStringPath() + "%";
+        }
+        else {
+            switch (constraints) {
+                case EXACT_NAME_MATCH: return startPath.getStringPath() + "/%/" + name;
+                case WILDCARD_MATCH:
+                default:               return startPath.getStringPath() + "/%"  + name;
+            }
+        }
     }
 
-    public List<Path> find(DSLContext context, DomainPath startPath, String name, List<UUID> uuids) {
-        String pattern = getFindPattern(startPath, name);
+    public List<Path> find(DSLContext context, DomainPath startPath, String name, List<UUID> uuids, SearchConstraints constraints) {
+        String pattern = getFindPattern(startPath, name, constraints);
 
         SelectConditionStep<?> select = context.select().from(DOMAIN_PATH_TABLE).where(PATH.like(pattern));
 

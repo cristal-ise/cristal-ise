@@ -39,16 +39,16 @@ import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.graph.model.TypeNameAndConstructionInfo;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 import lombok.extern.slf4j.Slf4j;
 
  @Slf4j
 public class Workflow extends CompositeActivity implements C2KLocalObject {
-    public History   history;
+    // public History   history;
     private ItemPath itemPath = null;
 
     /** TypeNameAndConstructionInfo[] variables added by Steve */
@@ -79,28 +79,21 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
     }
 
     /**
-     * Caches a History object for this Item, using the workflow as a locker. This object will be used for all Event storage during
+     * Caches a History object for this Item, using the workflow as a transactionKey. This object will be used for all Event storage during
      * execution, to reduce the cost of creating a new one for each one.
      * 
      * For other storage, such as during initialization, a non-cached History is created
      * 
-     * @param locker the transaction locker
+     * @param transactionKey the transaction transactionKey
      * @return History object
      * @throws InvalidDataException inconsistent data
      */
-    public History getHistory(Object locker) throws InvalidDataException {
-        if (locker != this) return new History(itemPath, locker);
-        
-        if (history == null) {
-            if (itemPath == null) throw new InvalidDataException("Workflow not initialized.");
-
-            history = new History(itemPath, this);
-        }
-        return history;
+    public History getHistory(TransactionKey transactionKey) throws InvalidDataException {
+        return new History(itemPath, transactionKey);
     }
 
     public History getHistory() throws InvalidDataException {
-        return getHistory(this);
+        return getHistory(null);
     }
 
     /**
@@ -123,7 +116,7 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
         return mEdgeTypeNameAndConstructionInfo;
     }
 
-    public String requestAction(AgentPath agent, AgentPath delegator, String stepPath, ItemPath itemPath, int transitionID, String requestData, String attachmentType, byte[] attachment)
+    public String requestAction(AgentPath agent, String stepPath, ItemPath itemPath, int transitionID, String requestData, String attachmentType, byte[] attachment, TransactionKey transactionKey)
             throws ObjectNotFoundException, AccessRightsException, InvalidTransitionException, InvalidDataException,
                    ObjectAlreadyExistsException, PersistencyException, ObjectCannotBeUpdated, CannotManageException,
                    InvalidCollectionModification
@@ -131,7 +124,7 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
         log.info("requestAction() - transition:" + transitionID + " step:" + stepPath + " agent:" + agent);
         GraphableVertex vert = search(stepPath);
         if (vert != null && vert instanceof Activity)
-            return ((Activity) vert).request(agent, delegator, itemPath, transitionID, requestData, attachmentType, attachment, this);
+            return ((Activity) vert).request(agent, itemPath, transitionID, requestData, attachmentType, attachment, transactionKey);
         else
             throw new ObjectNotFoundException(stepPath + " not found");
     }
@@ -189,9 +182,9 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
         return this;
     }
 
-    public void initialise(ItemPath itemPath, AgentPath agent, Object locker) throws InvalidDataException {
+    public void initialise(ItemPath itemPath, AgentPath agent, TransactionKey transactionKey) throws InvalidDataException {
         setItemPath(itemPath);
-        runFirst(agent, itemPath, locker);
+        runFirst(agent, itemPath, transactionKey);
     }
 
     public ItemPath getItemPath() {
@@ -214,7 +207,7 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
      * if type = 0 only domain steps will be queried if type = 1 only predefined steps will be queried else both will be queried
      */
     public ArrayList<Job> calculateJobs(AgentPath agent, ItemPath itemPath, int type)
-            throws InvalidAgentPathException, ObjectNotFoundException, InvalidDataException {
+            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException {
         ArrayList<Job> jobs = new ArrayList<Job>();
         if (type != 1)
             jobs.addAll(((CompositeActivity) search("workflow/domain")).calculateJobs(agent, itemPath, true));

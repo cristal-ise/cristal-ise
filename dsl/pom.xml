@@ -80,12 +80,29 @@
     </mailingLists>
 
     <properties>
-        <commons-lang.version>2.6</commons-lang.version>
         <unitils-core.version>3.4.6</unitils-core.version>
         <maven.deploy.skip>false</maven.deploy.skip>
     </properties>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <targetPath>META-INF/cristal</targetPath>
+                <filtering>true</filtering>
+                <includes>
+                    <include>module.xml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <targetPath>org/cristalise/dsl/resources</targetPath>
+                <excludes>
+                    <exclude>module.xml</exclude>
+                </excludes>
+            </resource>
+        </resources>
+
         <plugins>
             <plugin>
                 <groupId>org.codehaus.groovy</groupId>
@@ -170,10 +187,8 @@
             <type>pom</type>
         </dependency>
         <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>${commons-lang.version}</version>
-            <scope>compile</scope>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
         </dependency>
         <dependency>
             <groupId>org.xmlunit</groupId>
@@ -198,6 +213,17 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>4.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jfree</groupId>
+            <artifactId>jfreesvg</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-xpath-outcomeinit</artifactId>
+            <version>${revision}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -229,7 +255,11 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

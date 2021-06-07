@@ -31,15 +31,13 @@ import java.util.ArrayList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeValidator;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
@@ -55,9 +53,14 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
 @Getter @Setter @Slf4j
 public class Query implements DescriptionObject {
 
+    private String   namespace;
     private String   name = "";
     private Integer  version = null;
     private ItemPath itemPath;
@@ -240,7 +243,7 @@ public class Query implements DescriptionObject {
     }
 
     @Override
-    public CollectionArrayList makeDescCollections() throws InvalidDataException, ObjectNotFoundException {
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         return new CollectionArrayList();
     }
 
@@ -248,7 +251,8 @@ public class Query implements DescriptionObject {
     public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
         String resType = QUERY_RESOURCE.getTypeCode();
 
-        FileStringUtility.string2File(new File(new File(dir, resType), getName()+(getVersion()==null?"":"_"+getVersion())+".xml"), getQueryXML());
+        String xml = new Outcome(getQueryXML()).getData(true);
+        FileStringUtility.string2File(new File(new File(dir, resType), getName()+(getVersion()==null?"":"_"+getVersion())+".xml"), xml);
 
         if (imports == null) return;
 

@@ -33,16 +33,16 @@ import org.junit.Test
 
 class SplitGenerationTests  implements CristalTestSetup {
 
-    WorkflowTestBuilder util
+    static WorkflowTestBuilder util
 
     @Before
-    public void setup() {
+    public void setupSpec() {
         inMemorySetup()
         util = new WorkflowTestBuilder()
     }
 
     @After
-    public void cleanup() {
+    public void cleanupSpec() {
         //println Gateway.getMarshaller().marshall(util.wf)
         cristalCleanup()
     }

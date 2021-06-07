@@ -1,22 +1,22 @@
 <CristalModule ns="integTest" name="IntegrationTest">
     <Info>
         <Description>CRISTAL-iSE Items for testing</Description>
-        <Version>3.3-SNAPSHOT</Version>
-        <KernelVersion>3.3</KernelVersion>
+        <Version>${version}</Version>
+        <KernelVersion>${version}</KernelVersion>
         <Dependency>CristaliseDev</Dependency>
     </Info>
     <ResourceURL>org/cristalise/testing/resources/</ResourceURL>
     <Config name="Module.dev.debug">true</Config>
     <Config name="OutcomeInit.Query">org.cristalise.kernel.persistency.outcome.QueryOutcomeInitiator</Config>
     <Imports>
-        <Workflow name="TestSchemaFactoryWf" version="0" resource="boot/CA/TestSchemaFactoryWf.xml">
+        <Workflow name="TestSchemaFactoryWf" version="0">
             <StateMachine name="CompositeActivity" version="0"/>
             <Activity name="EditPropertyDescription" version="0"/>
             <Activity name="EditDefinition" version="0"/>
             <Activity name="CreateNewLocalObjectDef" version="0"/>
         </Workflow>
 
-        <Workflow name="AssetDescriptionWf" version="0" resource="boot/CA/AssetDescriptionWf.xml">
+        <Workflow name="AssetDescriptionWf" version="0">
             <Activity name="EditPropertyDescription" version="0" />
             <Activity name="SetInstanceWorkflow" version="0" />
             <Activity name="CreateItem" version="0" />
@@ -29,7 +29,7 @@
             <Property name="LocalObjectType">Schema</Property>
             <Property name="Type">Factory</Property>
 
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/SchemaProp.xml</Outcome>
+            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/SchemaProp_0.xml</Outcome>
 <!--        <Outcome viewname="last" schema="Schema"              version="0">boot/OD/New.xsd</Outcome> -->
 
             <Dependency name="workflow" isDescription="false">
@@ -47,7 +47,7 @@
         <Item name="AssetDescriptionFactory" initialPath="/desc/integTest" workflow="ItemDescriptionFactoryWf">
             <Property name="Type">Factory</Property>
 
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/AssetDescProp.xml</Outcome>
+            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/AssetDescProp_0.xml</Outcome>
 
             <Dependency name="workflow" isDescription="false">
                 <DependencyMember itemPath="desc/ActivityDesc/integTest/AssetDescriptionWf">
@@ -74,17 +74,17 @@
         <SchemaResource name="XPathOutcomeInitTest_Details"             version="0"/>
         <ScriptResource name="XPathOutcomeInitTest_DetailsInstantiator" version="0"/>
 
-        <Activity name="XPathOutcomeInitTest_SetDetails" resource="boot/EA/XPathOutcomeInitTest_SetDetails.xml" version="0">
+        <Activity name="XPathOutcomeInitTest_SetDetails">
             <Schema name="XPathOutcomeInitTest_Details" version="0"/>
         </Activity>
 
-        <Workflow name="XPathOutcomeInitTest_DetailsLifecycle" version="0" resource="boot/CA/XPathOutcomeInitTest_DetailsLifecycle.xml">
+        <Workflow name="XPathOutcomeInitTest_DetailsLifecycle" version="0">
             <Activity name="MoveLatestVersionToLast"         version="0"/>
             <Activity name="AssignNewVersionFromLast"        version="0"/>
             <Activity name="XPathOutcomeInitTest_SetDetails" version="0"/>
         </Workflow>
 
-        <Workflow name="XPathOutcomeInitTest_FactoryLifecycle" version="0" resource="boot/CA/XPathOutcomeInitTest_FactoryLifecycle.xml">
+        <Workflow name="XPathOutcomeInitTest_FactoryLifecycle" version="0">
             <StateMachine name="CompositeActivity"   version="0"/>
             <Activity name="CreateItem"              version="0"/>
             <Activity name="EditPropertyDescription" version="0"/>
@@ -93,7 +93,7 @@
         <Item name="XPathOutcomeInitTest_DetailsFactory" initialPath="/desc/integTest" workflow="XPathOutcomeInitTest_FactoryLifecycle">
             <Property name="Type">Factory</Property>
 
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/XPathOutcomeInitTest_DetailsInitialProps.xml</Outcome>
+            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/XPathOutcomeInitTest_DetailsInitialProps_0.xml</Outcome>
 
             <Dependency name="workflow" isDescription="false">
                 <DependencyMember itemPath="/desc/ActivityDesc/integTest/XPathOutcomeInitTest_DetailsLifecycle">
@@ -105,7 +105,7 @@
             </Dependency>
         </Item>
 
-        <Workflow name="XPathOutcomeInitTest_ManageCADef" version="0" resource="boot/CA/XPathOutcomeInitTest_ManageCADef.xml">
+        <Workflow name="XPathOutcomeInitTest_ManageCADef" version="0">
             <StateMachine name="CompositeActivity" version="0"/>
             <Activity name="MoveLatestVersionToLast" version="0"/>
             <Activity name="EditDefinition" version="0"/>
@@ -116,7 +116,7 @@
         <Item name="XPathOutcomeInitTest_CADefFactory" initialPath="/desc/integTest" workflow="CompositeActivityFactory">
             <Property name="LocalObjectType">CompositeActivityDef</Property>
             <Property name="Type">Factory</Property>
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/CAProp.xml</Outcome>
+            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/CAProp_0.xml</Outcome>
             <Dependency name="workflow" isDescription="false">
                 <DependencyMember itemPath="/desc/ActivityDesc/integTest/XPathOutcomeInitTest_ManageCADef">
                     <MemberProperties>
@@ -156,6 +156,41 @@
             <Role name="User/SubUser"/>
         </Agent>
         <AgentResource name="mainUser" version="0"/>
+
+        <!-- Patient Descriptions -->
+
+        <PropertyDescriptionResource name="Doctor" version="0"/>
+        <PropertyDescriptionResource name="Patient" version="0"/>
+        <SchemaResource name="Patient_Details" version="0"/>
+        <Activity name="Patient_SetDetails" version="0">
+          <Schema name="Patient_Details" version="0"/>
+        </Activity>
+        <SchemaResource name="Patient_UrinSample" version="0"/>
+        <Activity name="Patient_SetUrinSample" version="0">
+          <Schema name="Patient_UrinSample" version="0"/>
+        </Activity>
+        <SchemaResource name="Patient" version="0"/>
+        <ScriptResource name="Patient_Aggregate" version="0"/>
+        <Activity name="Patient_Aggregate" version="0">
+          <Schema name="Patient" version="0"/>
+          <Script name="Patient_Aggregate" version="0"/>
+        </Activity>
+        <Workflow name="Patient_Workflow" version="0">
+          <Activity name="Patient_SetDetails" version="0"/>
+          <Activity name="Patient_SetUrinSample" version="0"/>
+          <Activity name="Patient_Aggregate" version="0"/>
+        </Workflow>
+        <ItemResource name="PatientFactory" version="0"/>
+        <SchemaResource name="Doctor_Patient" version="0"/>
+        <ScriptResource name="Doctor_AddPatient" version="0"/>
+        <Activity name="Doctor_AddPatient" version="0">
+          <Schema name="Doctor_Patient" version="0"/>
+          <Script name="Doctor_AddPatient" version="0"/>
+        </Activity>
+        <Workflow name="Doctor_Workflow" version="0">
+          <Activity name="Doctor_AddPatient" version="0"/>
+        </Workflow>
+        <ItemResource name="DoctorFactory" version="0"/>
 
     </Imports>
 </CristalModule>

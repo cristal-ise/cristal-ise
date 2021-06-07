@@ -33,14 +33,18 @@ import spock.lang.Specification
  */
 class WfInitialiseSpecs extends Specification  implements CristalTestSetup {
 
-    WorkflowTestBuilder wfBuilder
+    static WorkflowTestBuilder wfBuilder
 
-    def setup() {
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8)
+    def setupSpec() {
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true)
         wfBuilder = new WorkflowTestBuilder()
     }
 
     def cleanup() {
+        println Gateway.getMarshaller().marshall(wfBuilder.wf)
+    }
+
+    def cleanupSpec() {
         println Gateway.getMarshaller().marshall(wfBuilder.wf)
         cristalCleanup()
     }

@@ -21,14 +21,17 @@
 package org.cristalise.kernel.lifecycle.routingHelpers;
 
 import javax.xml.xpath.XPathExpressionException;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
+
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -42,7 +45,7 @@ public class ViewpointDataHelper implements DataHelper {
      * dataPath syntax is used for search : viewpoint:/xpath/to/field
      */
     @Override
-    public String get(ItemPath itemPath, String actContext, String dataPath, Object locker)
+    public String get(ItemPath itemPath, String actContext, String dataPath, TransactionKey transactionKey)
             throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
         String[] paths = dataPath.split(":");
@@ -59,8 +62,8 @@ public class ViewpointDataHelper implements DataHelper {
         }
 
         // load Viewpoint and Outcome
-        Viewpoint view  = (Viewpoint) Gateway.getStorage().get(itemPath, ClusterType.VIEWPOINT+"/"+viewpoint, locker);
-        Outcome outcome = (Outcome)   view.getOutcome(locker);
+        Viewpoint view  = (Viewpoint) Gateway.getStorage().get(itemPath, ClusterType.VIEWPOINT+"/"+viewpoint, transactionKey);
+        Outcome outcome = (Outcome)   view.getOutcome(transactionKey);
 
         // apply the XPath to its outcome
        	try {

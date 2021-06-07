@@ -28,6 +28,7 @@ import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.utils.CastorHashMap;
 
 
@@ -47,22 +48,22 @@ public class AggregationInstance extends Aggregation {
     }
 
     @Override
-    public AggregationMember addMember(ItemPath itemPath, CastorHashMap props, String classProps)
+    public AggregationMember addMember(ItemPath itemPath, CastorHashMap props, String classProps, TransactionKey transactionKey)
         throws InvalidCollectionModification, ObjectAlreadyExistsException
     {
         if( itemPath != null && exists(itemPath))
             throw new ObjectAlreadyExistsException(itemPath+" already exists in this collection.");
         else
-            return super.addMember(itemPath, props, classProps);
+            return super.addMember(itemPath, props, classProps, transactionKey);
     }
 
     @Override
-    public AggregationMember addMember(ItemPath itemPath, CastorHashMap props, String classProps, GraphPoint location, int w, int h)
+    public AggregationMember addMember(ItemPath itemPath, CastorHashMap props, String classProps, GraphPoint location, int w, int h, TransactionKey transactionKey)
         throws InvalidCollectionModification, ObjectAlreadyExistsException
     {
         if( itemPath != null && exists(itemPath))
             throw new ObjectAlreadyExistsException(itemPath+" already exists in this collection.");
         else
-            return super.addMember(itemPath, props, classProps, location, w, h);
+            return super.addMember(itemPath, props, classProps, location, w, h, transactionKey);
     }
 }

@@ -20,6 +20,7 @@
  */
 package org.cristalise.dsl.module
 
+import static org.cristalise.dsl.lifecycle.definition.CompActDefBuilder.generateWorkflowSVG
 import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE
 
 import org.codehaus.groovy.control.CompilerConfiguration
@@ -51,6 +52,7 @@ import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
+import org.cristalise.kernel.lifecycle.renderer.LifecycleRenderer
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.module.Module
@@ -75,6 +77,8 @@ import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.FileStringUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
+import org.jfree.graphics2d.svg.SVGGraphics2D
+import org.jfree.graphics2d.svg.SVGUtils
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -85,6 +89,8 @@ import groovy.xml.XmlUtil
  */
 @CompileStatic @Slf4j
 class ModuleDelegate implements BindingConvention {
+
+    private static final boolean generateResourceXml = Gateway.properties.getBoolean('DSL.GenerateResourceXml', true)
 
     Module module = null
     Module newModule = null
@@ -108,6 +114,9 @@ class ModuleDelegate implements BindingConvention {
 
         if (args.bindings) bindings = (Binding) args.bindings
         else               bindings = new Binding()
+
+        addToBingings(bindings, 'moduleNs',      newModule.ns as String)
+        addToBingings(bindings, 'moduleVersion', newModule.info.version as String)
 
         if (args.resourceRoot) resourceRoot = args.resourceRoot
         if (args.moduleDir)    moduleDir    = args.moduleDir
@@ -153,17 +162,31 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Schema Schema(String name, Integer version, @DelegatesTo(SchemaDelegate) Closure cl) {
-        def schema = SchemaBuilder.build(name, version, cl)
-        schema.export(null, resourceBootDir, true)
-        addSchema(schema)
-        return schema
+        def sb = SchemaBuilder.build(newModule.ns, name, version, cl)
+
+        if (generateResourceXml) sb.schema.export(null, resourceBootDir, true)
+
+        sb.expressionScipts.each { script ->
+            if (generateResourceXml) script.export(null, resourceBootDir, true)
+            addScript(script)
+        }
+        addSchema(sb.schema)
+        
+        return sb.schema
     }
 
     public Schema Schema(String name, Integer version, File file) {
-        def schema = SchemaBuilder.build(name, version, file)
-        schema.export(null, resourceBootDir, true)
-        addSchema(schema)
-        return schema
+        def sb = SchemaBuilder.build(newModule.ns, name, version, file)
+
+        if (generateResourceXml) sb.schema.export(null, resourceBootDir, true)
+        addSchema(sb.schema)
+
+        sb.expressionScipts.each { script ->
+            if (generateResourceXml) script.export(null, resourceBootDir, true)
+            addScript(script)
+        }
+
+        return sb.schema
     }
 
     public Query Query(String name, Integer version) {
@@ -173,8 +196,8 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Query Query(String name, Integer version, @DelegatesTo(QueryDelegate) Closure cl) {
-        def query = QueryBuilder.build(newModule.name, name, version, cl)
-        query.export(null, resourceBootDir, true)
+        def query = QueryBuilder.build(newModule.ns, name, version, cl)
+        if (generateResourceXml) query.export(null, resourceBootDir, true)
         addQuery(query)
         return query
     }
@@ -186,10 +209,10 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Script Script(String name, Integer version, @DelegatesTo(ScriptDelegate) Closure cl) {
-        def script = ScriptBuilder.build(name, version, cl)
-        script.export(null, resourceBootDir, true)
-        addScript(script)
-        return script
+        def sb = ScriptBuilder.build(newModule.ns, name, version, cl)
+        if (generateResourceXml) sb.script.export(null, resourceBootDir, true)
+        addScript(sb.script)
+        return sb.script
     }
 
     public StateMachine StateMachine(String name, Integer version) {
@@ -199,8 +222,8 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public StateMachine StateMachine(String name, Integer version, @DelegatesTo(StateMachineDelegate) Closure cl) {
-        def sm = StateMachineBuilder.build("", name, version, cl).sm
-        sm.export(null, resourceBootDir, true)
+        def sm = StateMachineBuilder.build(newModule.ns, name, version, cl).sm
+        if (generateResourceXml) sm.export(null, resourceBootDir, true)
         addStateMachine(sm)
         return sm
     }
@@ -213,11 +236,17 @@ class ModuleDelegate implements BindingConvention {
 
     public ActivityDef Activity(String name, Integer version, @DelegatesTo(ElemActDefDelegate) Closure cl) {
         def eaDef = ElemActDefBuilder.build(name, version, cl)
-        eaDef.export(null, resourceBootDir, true)
+        if (generateResourceXml) eaDef.export(null, resourceBootDir, true)
         addActivityDef(eaDef)
         return eaDef
     }
 
+    /**
+     * 
+     * @param name
+     * @param version
+     * @return
+     */
     public CompositeActivityDef Workflow(String name, Integer version) {
         def caDef = LocalObjectLoader.getCompActDef(name, version)
         addCompositeActivityDef(caDef)
@@ -245,11 +274,21 @@ class ModuleDelegate implements BindingConvention {
         def caDef = CompActDefBuilder.build((String)args.name, (Integer)args.version, cl)
 
         if (args?.generate) {
-            DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
-            caDef.export(null, resourceBootDir, true)
+            if (generateResourceXml) {
+                DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
+                //do not rebuild during export, because LocalObjectLoader will not find new actDefs declared in DSL
+                caDef.export(null, resourceBootDir, true, false)
+                generateWorkflowSVG('target', caDef)
+            }
         }
         else {
-            assert new File(new File(resourceBootDir, 'CA'), ""+args.name + (args.version == null ? "" : "_" + args.version) + ".xml").exists()
+            // since the workflow was not generated the XML file must exist
+            File caDir = new File(resourceBootDir, 'CA')
+            assert caDir.exists(), "Directory '$caDir' must exists"
+
+            String caFileName = ""+args.name + (args.version == null ? "" : "_" + args.version) + ".xml"
+            File caXmlFile = new File(caDir, caFileName)
+            assert caXmlFile.exists(), "File '$caXmlFile' must exists"
         }
 
         addCompositeActivityDef(caDef)
@@ -270,9 +309,16 @@ class ModuleDelegate implements BindingConvention {
         )
     }
 
+    /**
+     * 
+     * @param name
+     * @param version
+     * @param cl
+     * @return
+     */
     public PropertyDescriptionList PropertyDescriptionList(String name, Integer version, @DelegatesTo(PropertyDescriptionDelegate) Closure cl) {
-        def propDescList = PropertyDescriptionBuilder.build(name, version, cl)
-        propDescList.export(null, resourceBootDir, true)
+        def propDescList = PropertyDescriptionBuilder.build(newModule.ns, name, version, cl)
+        if (generateResourceXml) propDescList.export(null, resourceBootDir, true)
         addPropertyDescriptionList(propDescList)
 
         return propDescList
@@ -285,11 +331,12 @@ class ModuleDelegate implements BindingConvention {
      * @param cl
      */
     public ImportAgent Agent(Map args, @DelegatesTo(AgentDelegate) Closure cl) {
+        args.ns = newModule.ns
         def agent = AgentBuilder.build(args, cl)
         agent.roles.each { it.jobList = null }
 
         if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
-            agent.export(null, resourceBootDir, true)
+            if (generateResourceXml) agent.export(null, resourceBootDir, true)
             addImportAgent(agent)
         }
         else {
@@ -307,11 +354,12 @@ class ModuleDelegate implements BindingConvention {
      * @param cl
      */
     public ImportItem Item(Map args, @DelegatesTo(ItemDelegate) Closure cl) {
+        args.ns = newModule.ns
         def item = ItemBuilder.build(args, cl)
         item.properties.removeAll { it.value == args.name }
 
         if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
-            item.export(null, resourceBootDir, true)
+            if (generateResourceXml) item.export(null, resourceBootDir, true)
             addImportItem(item)
         }
         else {
@@ -327,11 +375,11 @@ class ModuleDelegate implements BindingConvention {
      * @param cl
      */
     public List<ImportRole> Roles(@DelegatesTo(RoleDelegate) Closure cl) {
-        def importRoles = RoleBuilder.build(cl)
+        def importRoles = RoleBuilder.build(newModule.ns, cl)
 
         importRoles.each { role ->
             if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
-                role.export(null, resourceBootDir, true)
+                if (generateResourceXml) role.export(null, resourceBootDir, true)
                 addImportRole(role)
             }
             else {
@@ -413,7 +461,8 @@ class ModuleDelegate implements BindingConvention {
 
         moduleSm.setVersion(sm.version)
         moduleSm.setName(sm.name)
-
+        moduleSm.setNamespace(sm.namespace)
+        
         updateImports(moduleSm)
     }
 
@@ -429,6 +478,7 @@ class ModuleDelegate implements BindingConvention {
 
         moduleQuery.setVersion(query.version)
         moduleQuery.setName(query.name)
+        moduleQuery.setNamespace(query.namespace)
 
         updateImports(moduleQuery)
     }
@@ -445,6 +495,7 @@ class ModuleDelegate implements BindingConvention {
 
         moduleSchema.setVersion(schema.version)
         moduleSchema.setName(schema.name)
+        moduleSchema.setNamespace(schema.namespace)
 
         updateImports(moduleSchema)
     }
@@ -461,6 +512,7 @@ class ModuleDelegate implements BindingConvention {
 
         moduleScript.setVersion(script.version)
         moduleScript.setName(script.name)
+        moduleScript.setNamespace(script.namespace)
 
         updateImports(moduleScript)
     }
@@ -504,7 +556,7 @@ class ModuleDelegate implements BindingConvention {
         if (caDef.refChildActDef) {
             caDef.refChildActDef.each {
                 ActivityDef act = ActivityDef.cast(it)
-                moduleWf.activities.add(new ModuleDescRef(act.name, act.itemID, act.version))
+                moduleWf.activities.add(new ModuleDescRef(act.name, null/*act.itemID*/, act.version))
             }
         }
 
@@ -522,6 +574,7 @@ class ModuleDelegate implements BindingConvention {
         def modulePropDesc = new ModulePropertyDescription()
         modulePropDesc.setVersion(pdl.version)
         modulePropDesc.setName(pdl.name)
+        modulePropDesc.setNamespace(pdl.namespace)
 
         updateImports(modulePropDesc)
     }
@@ -532,6 +585,7 @@ class ModuleDelegate implements BindingConvention {
         def moduleAgent = new ModuleAgent()
         moduleAgent.setName(agent.name)
         moduleAgent.setVersion(agent.version)
+        moduleAgent.setNamespace(agent.namespace)
 
         updateImports(moduleAgent)
     }
@@ -542,6 +596,7 @@ class ModuleDelegate implements BindingConvention {
         def moduleItem = new ModuleItem()
         moduleItem.setName(item.name)
         moduleItem.setVersion(item.version)
+        moduleItem.setNamespace(item.namespace)
 
         updateImports(moduleItem)
     }
@@ -552,7 +607,8 @@ class ModuleDelegate implements BindingConvention {
         def moduleRole = new ModuleRole()
         moduleRole.setName(role.name)
         moduleRole.setVersion(role.version)
-
+        moduleRole.setNamespace(role.namespace)
+        
         updateImports(moduleRole)
     }
 

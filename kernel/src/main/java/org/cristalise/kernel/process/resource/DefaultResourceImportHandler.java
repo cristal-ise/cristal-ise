@@ -27,7 +27,6 @@ import static org.cristalise.kernel.process.resource.ResourceImportHandler.Statu
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.NEW;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.OVERWRITTEN;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.SKIPPED;
-import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.REMOVED;
 import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.UPDATED;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
@@ -40,6 +39,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
+import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -47,11 +47,13 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
+import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
@@ -94,29 +96,36 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     }
 
     @Override
-    public CollectionArrayList getCollections(String name, String ns, String location, Integer version) throws Exception {
-        return getCollections(name, version,Gateway.getResource().getTextResource(ns, location));
+    public CollectionArrayList getCollections(String name, String ns, String location, Integer version, TransactionKey transactionKey) throws Exception {
+        return getCollections(name, version, Gateway.getResource().getTextResource(ns, location), transactionKey);
     }
 
     @Override
-    public CollectionArrayList getCollections(String name, Integer version, Outcome outcome) throws Exception {
-        return getCollections(name, version, outcome.getData());
+    public CollectionArrayList getCollections(String name, Integer version, Outcome outcome, TransactionKey transactionKey) throws Exception {
+        return getCollections(name, version, outcome.getData(), transactionKey);
     }
 
-    private CollectionArrayList getCollections(String name, Integer version, String xml) throws Exception {
+    private CollectionArrayList getCollections(String name, Integer version, String xml, TransactionKey transactionKey) throws Exception {
         if (type == SCHEMA_RESOURCE) {
-            return new Schema(name, version, null, xml).makeDescCollections();
+            return new Schema(name, version, null, xml).makeDescCollections(transactionKey);
         }
         else if (type == SCRIPT_RESOURCE) {
-            return new Script(name, version, null, xml).makeDescCollections();
+            return new Script(name, version, null, xml).makeDescCollections(transactionKey);
         }
         else if (type == QUERY_RESOURCE) {
-            return new Query(name, version, null, xml).makeDescCollections();
+            return new Query(name, version, null, xml).makeDescCollections(transactionKey);
         }
         else {
             DescriptionObject descObject = (DescriptionObject)Gateway.getMarshaller().unmarshall(xml);
             descObject.setVersion(version);
-            return descObject.makeDescCollections();
+
+            // caDef.setRefChildActDef(...) is called during unmarshall, but without using transactionKey.
+            if (type == BuiltInResources.COMP_ACT_DESC_RESOURCE) {
+                CompositeActivityDef caDesc = (CompositeActivityDef)descObject;
+                caDesc.setRefChildActDef(caDesc.findRefActDefs(caDesc.getChildrenGraphModel(), transactionKey));
+            }
+
+            return descObject.makeDescCollections(transactionKey);
         }
     }
 
@@ -143,7 +152,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
 
         if (data == null) throw new ObjectNotFoundException("No data found for "+type.getSchemaName()+" "+name);
 
-        return new Outcome(-1, data, LocalObjectLoader.getSchema(type.getSchemaName(), version));
+        return new Outcome(-1, data, type.getSchemaName(), version);
     }
 
     @Override
@@ -162,24 +171,24 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      ********************************/
 
     @Override
-    public DomainPath createResource(String ns, String itemName, int version, Outcome outcome, boolean reset)
+    public DomainPath createResource(String ns, String itemName, int version, Outcome outcome, boolean reset, TransactionKey transactionKey)
             throws Exception
     {
-        return verifyResource(ns, itemName, version, null, outcome, reset);
+        return verifyResource(ns, itemName, version, null, outcome, reset, transactionKey);
     }
 
     @Override
-    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset)
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset, TransactionKey transactionKey)
             throws Exception
     {
-        return verifyResource(ns, itemName, version, itemPath, getResourceOutcome(itemName, ns, dataLocation, version), reset);
+        return verifyResource(ns, itemName, version, itemPath, getResourceOutcome(itemName, ns, dataLocation, version), reset, transactionKey);
     }
 
     @Override
-    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset)
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset, TransactionKey transactionKey)
             throws Exception
     {
-        return verifyResource(ns, itemName, version, itemPath, outcome, reset);
+        return verifyResource(ns, itemName, version, itemPath, outcome, reset, transactionKey);
     }
 
     /**
@@ -194,7 +203,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      * @return
      * @throws Exception
      */
-    private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset) 
+    private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset, TransactionKey transactionKey) 
             throws Exception
     {
         if (outcome == null) {
@@ -208,40 +217,53 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
         ItemProxy thisProxy;
         DomainPath modDomPath = getPath(itemName, ns);
 
-        if (modDomPath.exists()) {
+        if (modDomPath.exists(transactionKey)) {
             log.debug("verifyResource() - Found "+getName()+" "+itemName + ".");
 
-            thisProxy = verifyPathAndModuleProperty(ns, itemName, itemPath, modDomPath, modDomPath);
+            thisProxy = verifyPathAndModuleProperty(ns, itemName, itemPath, modDomPath, modDomPath, transactionKey);
         }
         else {
             log.debug("verifyResource() - "+getName()+" "+itemName+" not found. Creating new.");
 
             if (itemPath == null) itemPath = new ItemPath(); //itemPath can be hardcoded in the bootstrap for example
-            thisProxy = createResourceItem(itemName, version, ns, itemPath);
+            thisProxy = createResourceItem(itemName, version, ns, itemPath, transactionKey);
         }
         
         // Verify/Import Outcome, creating events and views as necessary
-        status = checkToStoreOutcomeVersion(thisProxy, outcome, version, reset);
+        status = checkToStoreOutcomeVersion(thisProxy, outcome, version, reset, transactionKey);
 
         log.info("verifyResource() - Outcome {} of item:{} schema:{} version:{} ", status.name(), thisProxy.getName(), outcome.getSchema().getName(), version);
 
-        if (status == NEW || status == UPDATED || status == OVERWRITTEN) {
-            // validate it, but not for kernel objects (ns == null) because those are to validate the rest
-            if (ns != null) outcome.validateAndCheck();
+        switch (status) {
+            case NEW:
+            case UPDATED:
+            case OVERWRITTEN:
+                // validate it, but not for kernel objects (ns == null) because those are to validate the rest
+                if (ns != null) outcome.validateAndCheck();
 
-            PredefinedStep.storeOutcomeEventAndViews(thisProxy.getPath(), outcome, version);
+                PredefinedStep.storeOutcomeEventAndViews(thisProxy.getPath(), outcome, version, transactionKey);
 
-            CollectionArrayList cols = getCollections(itemName, version, outcome);
+                CollectionArrayList cols = getCollections(itemName, version, outcome, transactionKey);
 
-            for (Collection<?> col : cols.list) {
-                Gateway.getStorage().put(thisProxy.getPath(), col, null);
-                Gateway.getStorage().clearCache(thisProxy.getPath(), ClusterType.COLLECTION+"/"+col.getName());
-                col.setVersion(null);
-                Gateway.getStorage().put(thisProxy.getPath(), col, null);
-            }
-        }
-        else if (status == REMOVED) {
-            // TODO implement
+                for (Collection<?> col : cols.list) {
+                    Gateway.getStorage().put(thisProxy.getPath(), col, transactionKey);
+                    Gateway.getStorage().clearCache(thisProxy.getPath(), ClusterType.COLLECTION+"/"+col.getName());
+                    col.setVersion(null);
+                    Gateway.getStorage().put(thisProxy.getPath(), col, transactionKey);
+                }
+                break;
+
+            case IDENTICAL:
+            case SKIPPED:
+                //nothing to do
+                break;
+
+            case REMOVED:
+                //TODO: implement
+                throw new CannotManageException("Unimplemented resourceChangeStatus '"+status+ "' for "+ns+"/"+itemName);
+
+            default:
+                throw new CannotManageException("Unknown resourceChangeStatus '"+status+ "' for "+ns+"/"+itemName);
         }
 
         resourceChangeDetails = convertToResourceChangeDetails(itemName, version, outcome.getSchema(), status);
@@ -250,18 +272,17 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             log.trace("verifyResource() - resourceChangeDetails:{}", resourceChangeDetails.replace("\n", "").replaceAll(">\\s*<", "><"));
         }
 
-        Gateway.getStorage().commit(null);
         return modDomPath;
     }
 
     /**
      * Verify module property and location
      */
-    private ItemProxy verifyPathAndModuleProperty(String ns, String itemName, ItemPath itemPath, DomainPath modDomPath, DomainPath path)
+    private ItemProxy verifyPathAndModuleProperty(String ns, String itemName, ItemPath itemPath, DomainPath modDomPath, DomainPath path, TransactionKey transactionKey)
             throws Exception
     {
         LookupManager lookupManager = Gateway.getLookupManager();
-        ItemProxy thisProxy = Gateway.getProxyManager().getProxy(path);
+        ItemProxy thisProxy = Gateway.getProxy(path, transactionKey);
 
         if (itemPath != null && !path.getItemPath().equals(itemPath)) {
             String error = "Resource "+type+"/"+itemName+" should have path "+itemPath+" but was found with path "+path.getItemPath();
@@ -289,8 +310,8 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             log.info("Module item "+itemName+" found with path "+path.toString()+". Moving to "+modDomPath.toString());
             modDomPath.setItemPath(itemPath);
 
-            if (!modDomPath.exists()) lookupManager.add(modDomPath);
-            lookupManager.delete(path);
+            if (!modDomPath.exists(transactionKey)) lookupManager.add(modDomPath, transactionKey);
+            lookupManager.delete(path, transactionKey);
         }
         return thisProxy;
     }
@@ -298,16 +319,16 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
     /**
      * TODO implement REMOVED
      */
-    private Status checkToStoreOutcomeVersion(ItemProxy item, Outcome newOutcome, int version, boolean reset)
+    private Status checkToStoreOutcomeVersion(ItemProxy item, Outcome newOutcome, int version, boolean reset, TransactionKey transactionKey)
             throws PersistencyException, InvalidDataException, ObjectNotFoundException
     {
-        Schema schema = newOutcome.getSchema();
+        Schema schema = newOutcome.getSchema(transactionKey);
 
-        if (! item.checkViewpoint(schema.getName(), Integer.toString(version))) {
+        if (! item.checkViewpoint(schema.getName(), Integer.toString(version), transactionKey)) {
             return NEW;
         }
 
-        Viewpoint currentData = item.getViewpoint(schema.getName(), Integer.toString(version));
+        Viewpoint currentData = item.getViewpoint(schema.getName(), Integer.toString(version), transactionKey);
 
         if (newOutcome.isIdentical(currentData.getOutcome())) {
             return IDENTICAL;
@@ -332,7 +353,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      * @return
      * @throws Exception
      */
-    private ItemProxy createResourceItem(String itemName, int version, String ns, ItemPath itemPath) throws Exception {
+    private ItemProxy createResourceItem(String itemName, int version, String ns, ItemPath itemPath, TransactionKey transactionKey) throws Exception {
         // create props
         PropertyDescriptionList pdList = getPropDesc();
         PropertyArrayList props = new PropertyArrayList();
@@ -350,23 +371,24 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             props.list.add(new Property(propName, propVal, pd.getIsMutable()));
         }
 
-        CompositeActivity ca = new CompositeActivity();
+        CompositeActivity ca = null;
+
         try {
-            ca = (CompositeActivity) ((CompositeActivityDef)LocalObjectLoader.getActDef(getWorkflowName(), version)).instantiate();
+            ca = (CompositeActivity) ((CompositeActivityDef)LocalObjectLoader.getCompActDef(getWorkflowName(), version, transactionKey)).instantiate(transactionKey);
         }
         catch (ObjectNotFoundException ex) {
             // FIXME check if this could be a real error
-            log.warn("Module resource workflow "+getWorkflowName()+" not found. Using empty.", ex);
         }
 
-        Gateway.getCorbaServer().createItem(itemPath);
-        lookupManager.add(itemPath);
+        lookupManager.add(itemPath, transactionKey);
+
+        CreateItemFromDescription.storeItem((AgentPath)SYSTEM_AGENT.getPath(transactionKey), itemPath, props, null, ca, null, null, transactionKey);
+
         DomainPath newDomPath = getPath(itemName, ns);
         newDomPath.setItemPath(itemPath);
-        lookupManager.add(newDomPath);
-        ItemProxy newItemProxy = Gateway.getProxyManager().getProxy(itemPath);
-        newItemProxy.initialise((AgentPath)SYSTEM_AGENT.getPath(), props, ca, null);
-        return newItemProxy;
+        lookupManager.add(newDomPath, transactionKey);
+
+        return Gateway.getProxy(itemPath, transactionKey);
     }
 
     /**

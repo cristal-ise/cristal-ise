@@ -33,8 +33,8 @@ import spock.lang.Specification
  */
 class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
 
     def 'Schema can be built from XSD file'() {

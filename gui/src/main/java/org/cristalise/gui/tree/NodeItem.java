@@ -27,6 +27,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.swing.JMenuItem;
@@ -42,7 +43,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
 
@@ -63,7 +64,7 @@ public class NodeItem extends Node implements Transferable {
 
         // if an item - resolve the item and get its properties
 		try {
-			myItem = Gateway.getProxyManager().getProxy(path);
+			myItem = Gateway.getProxy(path);
 	        this.itemPath = path.getItemPath();
 	        Logger.msg(2,"NodeEntity.<init> - System key is "+this.itemPath);
 	
@@ -177,7 +178,7 @@ public class NodeItem extends Node implements Transferable {
 			popup.addSeparator();
 		}
 		try {
-            ArrayList<Job> jobList = myItem.getJobList(MainFrame.userAgent);
+            List<Job> jobList = myItem.getJobs(MainFrame.userAgent);
             ArrayList<String> already = new ArrayList<String>();
 			if (jobList.size() > 0) {
 	            for (Job thisJob : jobList) {
@@ -221,7 +222,7 @@ public class NodeItem extends Node implements Transferable {
         ArrayList<String> requiredTabs = new ArrayList<String>();
         requiredTabs.add("Properties");
         try {
-            String collNames = myItem.queryData(ClusterStorage.COLLECTION+"/all");
+            String collNames = myItem.queryData(ClusterType.COLLECTION+"/all");
             if (collNames.length() > 0)
                 requiredTabs.add("Collection");
         } catch (Exception e) { }

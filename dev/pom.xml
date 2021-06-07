@@ -180,10 +180,7 @@
                 <version>1.8</version>
                 <configuration>
                     <repositoryLayout>flat</repositoryLayout>
-                    <configurationDirectory>conf</configurationDirectory>
-                    <copyConfigurationDirectory>true</copyConfigurationDirectory>
                     <useTimestampInSnapshotFileName>false</useTimestampInSnapshotFileName>
-                    <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
                     <assembleDirectory>${project.build.directory}/dist</assembleDirectory>
                     <showConsoleWindow>true</showConsoleWindow>
                     <repositoryName>lib</repositoryName>
@@ -268,7 +265,11 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

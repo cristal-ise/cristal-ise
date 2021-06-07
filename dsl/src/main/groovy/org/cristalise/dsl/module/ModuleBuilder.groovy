@@ -43,6 +43,6 @@ class ModuleBuilder {
     public static Path create(String ns, String name, int version, @DelegatesTo(ModuleDelegate) Closure cl) {
         def module = build(ns, name, version, cl)
 
-        return module.create(null, false)
+        return module.create(null, false, null)
     }
 }

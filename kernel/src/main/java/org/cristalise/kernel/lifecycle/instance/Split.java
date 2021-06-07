@@ -37,6 +37,7 @@ import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.routingHelpers.DataHelperUtility;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 
@@ -59,7 +60,7 @@ public abstract class Split extends WfVertex {
      * 
      */
     @Override
-    public abstract void runNext(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException;
+    public abstract void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException;
 
     /**
      * Method addNext.
@@ -159,8 +160,8 @@ public abstract class Split extends WfVertex {
      * 
      */
     @Override
-    public void run(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
-        runNext(agent, itemPath, locker);
+    public void run(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+        runNext(agent, itemPath, transactionKey);
     }
 
     /**
@@ -202,29 +203,30 @@ public abstract class Split extends WfVertex {
         return stringValue.split(",");
     }
 
-    protected String[] calculateNexts(ItemPath itemPath, Object locker) throws InvalidDataException {
+    protected String[] calculateNexts(ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
         String expr = (String) getBuiltInProperty(ROUTING_EXPR);
         String scriptName = (String) getBuiltInProperty(ROUTING_SCRIPT_NAME);
         Integer scriptVersion = deriveVersionNumber(getBuiltInProperty(ROUTING_SCRIPT_VERSION));
 
         if (StringUtils.isNotBlank(expr)) {
             try {
-                Object returnValue = DataHelperUtility.evaluateValue(itemPath, expr, getActContext(), locker);
+                Object returnValue = DataHelperUtility.evaluateValue(itemPath, expr, getActContext(), transactionKey);
                 return getRoutingReturnValue(returnValue);
             }
             catch (PersistencyException | ObjectNotFoundException e) {
                 log.error("", e);
-                throw new InvalidDataException("Routing expression evaulation failed: " + expr + " with " + e.getMessage());
+                throw new InvalidDataException("Routing expression evaluation failed: " + expr + " with " + e.getMessage());
             }
         }
         else if (StringUtils.isNotBlank(scriptName)) {
             try {
-                Object returnValue = evaluateScript(scriptName, scriptVersion, itemPath, locker);
+                Object returnValue = evaluateScript(scriptName, scriptVersion, itemPath, transactionKey);
                 return getRoutingReturnValue(returnValue);
             }
             catch (ScriptingEngineException e) {
-                log.error("", e);
-                throw new InvalidDataException("Error running Routing script " + scriptName + " v" + scriptVersion);
+                String msg = "Error running Routing script "+scriptName+" v"+scriptVersion;
+                log.error(msg, e);
+                throw new InvalidDataException(msg + " error:" + e.getMessage());
             }
         }
         else
@@ -253,7 +255,7 @@ public abstract class Split extends WfVertex {
     }
 
     @Override
-    public void runFirst(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
-        runNext(agent, itemPath, locker);
+    public void runFirst(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+        runNext(agent, itemPath, transactionKey);
     }
 }

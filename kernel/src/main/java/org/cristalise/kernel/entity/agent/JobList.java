@@ -21,117 +21,93 @@
 package org.cristalise.kernel.entity.agent;
 
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
+
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Vector;
+
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.persistency.RemoteMap;
+import org.cristalise.kernel.persistency.C2KLocalObjectMap;
+import org.cristalise.kernel.persistency.TransactionKey;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class JobList extends RemoteMap<Job> {
+public class JobList extends C2KLocalObjectMap<Job> {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = -1110616958817712975L;
-
-    public JobList(AgentPath agentPath, Object locker) {
-        super(agentPath, JOB.getName(), locker);
+    public JobList(AgentPath agentPath) {
+        super(agentPath, JOB);
     }
 
-    public void addJob(Job job) {
-        synchronized (this) {
-            int jobId = getLastId() + 1;
-            job.setId(jobId);
-            put(String.valueOf(jobId), job);
-        }
+    public JobList(AgentPath agentPath, TransactionKey transactionKey) {
+        super(agentPath, JOB, transactionKey);
     }
 
-    @Override
-    public ClusterType getClusterType() {
-        return null;
+    public synchronized void addJob(Job job) {
+        int jobId = getLastId() + 1;
+        job.setId(jobId);
+        put(String.valueOf(jobId), job);
     }
 
-    public Job getJob(int id) {
+    public Job get(int id) {
         return get(String.valueOf(id));
-    }
-
-    public void removeJobsForItem(ItemPath itemPath) {
-        Iterator<Job> currentMembers = values().iterator();
-        Job j = null;
-
-        while (currentMembers.hasNext()) {
-            j = currentMembers.next();
-
-            if (j.getItemPath().equals(itemPath)) remove(String.valueOf(j.getId()));
-        }
-
-        log.info("JobList::removeJobsWithSysKey() - " + itemPath + " DONE.");
     }
 
     /**
      * Find the list of JobKeys for the given Item and its Step
      * 
-     * @param itemPath the ItemPath (uuid)
-     * @param stepPath the Step path 
-     * @return the list of JobKeys mathcing the inputs
+     * @param otherJob use this Job's itemPath and stepPath for search
+     * @return the current list of Job keys matching the inputs
      */
-    public List<String> getKeysForStep(ItemPath itemPath, String stepPath) {
-        List<String> jobKeys = new ArrayList<String>();
-        Iterator<String> jobIter = keySet().iterator();
+    public List<String> getJobIdsForStep(Job otherJob) {
+        if (otherJob == null) return new ArrayList<String>();
+        return getJobIdsForStep(otherJob.getItemPath(), otherJob.getStepPath(), null);
+    }
 
-        while (jobIter.hasNext()) {
-            String jid = jobIter.next();
-            Job j = get(jid);
-            if (j.getItemPath().equals(itemPath) && j.getStepPath().equals(stepPath)) jobKeys.add(jid);
+    /**
+     * Find the list of JobKeys for the given Item and its Step
+     * 
+     * @param itemPath for search
+     * @param stepPath for search, can be null
+     * @param transitionId for search, can be null
+     * @return the current list of Job keys matching the inputs
+     */
+    public synchronized List<String> getJobIdsForStep(ItemPath itemPath, String stepPath, Integer transitionId) {
+        List<String> jobKeys = new ArrayList<String>();
+
+        log.debug("getKeysForStep() - item:{} step:{}", itemPath, stepPath);
+
+        for (String jid: keySet()) {
+            Job currentJob = get(jid);
+            boolean addJob = false;
+
+            if (currentJob.getItemPath().equals(itemPath)) {
+                if (StringUtils.isBlank(stepPath)) {
+                    addJob = true;
+                }
+                else if(currentJob.getStepPath().equals(stepPath)) {
+                    if (transitionId == null) {
+                        addJob = true;
+                    }
+                    else if (currentJob.getTransition().getId() == transitionId) {
+                        addJob = true;
+                    }
+                }
+            }
+            if (addJob) {
+                log.trace("getKeysForStep() - adding job:{}", currentJob);
+                jobKeys.add(jid);
+            }
         }
         return jobKeys;
     }
 
-    public void removeJobsForStep(ItemPath itemPath, String stepPath) {
-        List<String> staleJobs = getKeysForStep(itemPath, stepPath);
-
-        log.info("JobList.removeJobsForStep() - removing " + staleJobs.size());
-
-        for (String jid : staleJobs) remove(jid);
-
-        log.info("JobList::removeJobsForStep() - " + itemPath + " DONE.");
-    }
-
-    public Vector<Job> getJobsOfItem(ItemPath itemPath) {
-        Iterator<Job> currentMembers = values().iterator();
-        Job j = null;
-        Vector<Job> jobs = new Vector<Job>();
-
-        while (currentMembers.hasNext()) {
-            j = currentMembers.next();
-
-            if (j.getItemPath().equals(itemPath)) jobs.add(j);
-        }
-
-        log.info("JobList::getJobsOfSysKey() - returning " + jobs.size() + " Jobs.");
-
-        return jobs;
-    }
-
-    public void dump(int logLevel) {
-        StringBuffer sb = new StringBuffer("{ ");
-
-        Iterator<String> jobIter = keySet().iterator();
-
-        while (jobIter.hasNext()) {
-            String jid = jobIter.next();
-            Job j = get(jid);
-            sb.append("[id:"+jid+" ");
-            sb.append("step:"+j.getStepName()+" ");
-            sb.append("role:"+j.getAgentRole()+" ");
-            sb.append("trans:"+j.getTransition().getName()+"] ");
-        }
+    @Override
+    public String toString() {
+        StringBuffer sb = new StringBuffer("{");
+        for (String jid:  keySet()) sb.append(get(jid).toString());
         sb.append("}");
-        log.info("Joblist "+sb);
+        return sb.toString();
     }
 }

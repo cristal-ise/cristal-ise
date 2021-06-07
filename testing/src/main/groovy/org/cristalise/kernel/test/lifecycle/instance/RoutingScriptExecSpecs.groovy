@@ -13,15 +13,19 @@ import spock.lang.Specification
 
 class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
 
-    WorkflowTestBuilder wfBuilder
+    static WorkflowTestBuilder wfBuilder
 
-    def setup() {
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8)
+    def setupSpec() {
+        //skips boostrap!!!
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true)
         wfBuilder = new WorkflowTestBuilder()
     }
 
     def cleanup() {
         println Gateway.getMarshaller().marshall(wfBuilder.wf)
+    }
+    
+    def cleanupSpec() {
         cristalCleanup()
     }
 
@@ -31,7 +35,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         String module = 'integTest'
         String schemaName = 'TestData'
 
-        ScriptBuilder.create(module, "CounterScript", 0) {
+        ScriptBuilder.create(module, "CounterScript01", 0) {
             input("counter", "java.lang.String")
             output('java.lang.Integer')
             javascript { "new java.lang.Integer(counter % 2);" }
@@ -43,7 +47,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
             ElemAct("first") {
                 Property(SchemaType: schemaName, SchemaVersion: 0, Viewpoint: 'last')
             }
-            OrSplit(RoutingScriptName: 'CounterScript', RoutingScriptVersion: 0) {
+            OrSplit(RoutingScriptName: 'CounterScript01', RoutingScriptVersion: 0) {
                 Property(counter: "activity//./first:/TestData/counter")
 
                 Block { ElemAct("left")  }
@@ -67,7 +71,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         String module = 'integTest'
         String schemaName = 'TestData'
 
-        ScriptBuilder.create(module, "CounterScript", 0) {
+        ScriptBuilder.create(module, "CounterScript02", 0) {
             input("counter", "java.lang.String")
             output('java.lang.Integer')
             javascript { "new java.lang.Integer(counter % 2);" }
@@ -79,7 +83,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
             ElemAct("first") {
                 Property(SchemaType: schemaName, SchemaVersion: 0, Viewpoint: 'last')
             }
-            OrSplit(RoutingScriptName: 'CounterScript', RoutingScriptVersion: 0) {
+            OrSplit(RoutingScriptName: 'CounterScript02', RoutingScriptVersion: 0) {
                 Property(counter: "activity//workflow/domain/first:/TestData/counter")
 
                 Block { ElemAct("left")  }
@@ -103,7 +107,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         String module = 'integTest'
         String schemaName = 'TestData'
 
-        ScriptBuilder.create(module, "CounterScript", 0) {
+        ScriptBuilder.create(module, "CounterScript03", 0) {
             input("counter", "java.lang.String")
             output('java.lang.Boolean')
             javascript { "counter < 10;" }
@@ -112,7 +116,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         def schema = SchemaBuilder.create(module, schemaName, 0, "src/main/data/${schemaName}.xsd")
 
         wfBuilder.buildAndInitWf {
-            Loop(RoutingScriptName: 'CounterScript', RoutingScriptVersion: 0) {
+            Loop(RoutingScriptName: 'CounterScript03', RoutingScriptVersion: 0) {
                 Property(counter: "activity//./incrementer:/TestData/counter")
 
                 ElemAct("incrementer")  {
@@ -140,7 +144,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
         String module = 'integTest'
         String schemaName = 'TestData'
 
-        ScriptBuilder.create(module, "CounterScript", 0) {
+        ScriptBuilder.create(module, "CounterScript04", 0) {
             input("counter", "java.lang.Integer")
             output('java.lang.Integer')
             javascript { "new java.lang.Integer(counter % 2);" }
@@ -152,7 +156,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
             ElemAct("first") {
                 Property(SchemaType: schemaName, SchemaVersion: 0, Viewpoint: 'last')
             }
-            OrSplit(RoutingScriptName: 'CounterScript', RoutingScriptVersion: 0) {
+            OrSplit(RoutingScriptName: 'CounterScript04', RoutingScriptVersion: 0) {
                 Property(counter: "activity//./first:/TestData/counter")
 
                 Block { ElemAct("left")  }

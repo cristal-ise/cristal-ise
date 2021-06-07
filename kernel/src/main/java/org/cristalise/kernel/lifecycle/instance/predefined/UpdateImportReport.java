@@ -21,6 +21,7 @@
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
 
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
@@ -32,6 +33,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,9 +48,10 @@ public class UpdateImportReport extends PredefinedStep {
     public UpdateImportReport() {
         super();
         setBuiltInProperty(SCHEMA_NAME, "ModuleChanges");
+        setBuiltInProperty(VIEW_POINT, "xpath://ModuleName");
     }
 
-    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, TransactionKey transactionKey)
             throws  InvalidDataException,
                     InvalidCollectionModification,
                     ObjectAlreadyExistsException,
@@ -58,7 +61,7 @@ public class UpdateImportReport extends PredefinedStep {
                     CannotManageException,
                     AccessRightsException
     {
-        log.debug("Called by {} on {}", agent.getAgentName(), itemPath);
+        log.debug("Called by {} on {}", agent.getAgentName(transactionKey), itemPath);
         // not much to do here
         return requestData;
     }

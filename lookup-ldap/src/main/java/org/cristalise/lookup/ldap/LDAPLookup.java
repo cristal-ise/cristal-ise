@@ -20,6 +20,9 @@
  */
 package org.cristalise.lookup.ldap;
 
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
+
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +44,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
@@ -123,7 +127,7 @@ public class LDAPLookup implements LookupManager {
         //INIMPLEMENTED
     }
 
-    private void migrateOldRoles() {
+    private void migrateOldRoles(TransactionKey transactionKey) {
         // search the mDomainPath tree uniqueMember=userDN
         // filter = objectclass=cristalrole AND uniqueMember=userDN
 
@@ -160,7 +164,7 @@ public class LDAPLookup implements LookupManager {
                 RolePath newRole = new RolePath(rolePathStr, hasJobList);
                 Logger.msg("Migrating role: " + newRole.toString());
                 try {
-                    createRole(newRole);
+                    createRole(newRole, transactionKey);
                 }
                 catch (ObjectAlreadyExistsException e1) {
                     Logger.warning("Role " + newRole.toString() + " already exists");
@@ -181,7 +185,7 @@ public class LDAPLookup implements LookupManager {
                             if (!agent.hasRole(newRole)) {
                                 try {
                                     Logger.msg("Adding agent " + agent.getAgentName() + " to new role " + newRole.toString());
-                                    addRole(agent, newRole);
+                                    addRole(agent, newRole, transactionKey);
                                 }
                                 catch (Exception e) {
                                     Logger.die("Could not add agent " + agent.getAgentName() + " to role " + newRole);
@@ -230,46 +234,8 @@ public class LDAPLookup implements LookupManager {
         }
     }
 
-    /**
-     * Attempts to resolve the CORBA object for a Path, either directly or through an alias.
-     *
-     * @param path
-     *            the path to resolve
-     * @return the CORBA object
-     * @throws ObjectNotFoundException
-     *             When the path does not exist
-     */
-
     @Override
-    public String getIOR(Path path) throws ObjectNotFoundException {
-        return resolveObject(getFullDN(path));
-    }
-
-    /**
-     * Attempts to resolve the CORBA object from the IOR attribute of a DN, either directly or through an alias
-     *
-     * @param dn
-     *            The String dn
-     * @throws ObjectNotFoundException
-     *             when the dn or aliased dn does not exist
-     */
-    private String resolveObject(String dn) throws ObjectNotFoundException {
-        Logger.msg(8, "LDAPLookup.resolveObject(" + dn + ")");
-        LDAPEntry anEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), dn, LDAPSearchConstraints.DEREF_NEVER);
-        if (anEntry != null) {
-            try {
-                return LDAPLookupUtils.getFirstAttributeValue(anEntry, "ior");
-            }
-            catch (ObjectNotFoundException ex) {
-                return resolveObject(LDAPLookupUtils.getFirstAttributeValue(anEntry, "aliasedObjectName"));
-            }
-        }
-        else
-            throw new ObjectNotFoundException("LDAPLookup.resolveObject() LDAP node " + dn + " is not in LDAP or has no IOR.");
-    }
-
-    @Override
-    public ItemPath resolvePath(DomainPath domPath) throws InvalidItemPathException, ObjectNotFoundException {
+    public ItemPath resolvePath(DomainPath domPath, TransactionKey transactionKey) throws InvalidItemPathException, ObjectNotFoundException {
         LDAPEntry domEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(domPath), LDAPSearchConstraints.DEREF_ALWAYS);
         String entityKey = LDAPLookupUtils.getFirstAttributeValue(domEntry, "cn");
 
@@ -280,13 +246,11 @@ public class LDAPLookup implements LookupManager {
         ItemPath referencedPath = new ItemPath(entityKey);
 
         if (objClass.equals("cristalagent")) return new AgentPath(referencedPath);
-        else
-            return referencedPath;
+        else                                 return referencedPath;
     }
 
     @Override
-    public void add(Path path)
-            throws ObjectCannotBeUpdated, ObjectAlreadyExistsException {
+    public void add(Path path, TransactionKey transactionKey) throws ObjectCannotBeUpdated, ObjectAlreadyExistsException {
         try {
             checkLDAPContext(path);
             LDAPAttributeSet attrSet = createAttributeSet(path);
@@ -295,7 +259,7 @@ public class LDAPLookup implements LookupManager {
 
             // FIXME: Check if this is correct to call in the Lookup implementation
             if (path instanceof DomainPath)
-                Gateway.getProxyServer().sendProxyEvent(new ProxyMessage(null, path.toString(), ProxyMessage.ADDED));
+                Gateway.sendProxyEvent(new ProxyMessage(null, path.toString(), ADD));
         }
         catch (LDAPException ex) {
             if (ex.getResultCode() == LDAPException.ENTRY_ALREADY_EXISTS)
@@ -309,7 +273,7 @@ public class LDAPLookup implements LookupManager {
     // deletes a node
     // throws LDAPexception if node cannot be deleted (eg node is not a leaf)
     @Override
-    public void delete(Path path) throws ObjectCannotBeUpdated {
+    public void delete(Path path, TransactionKey transactionKey) throws ObjectCannotBeUpdated {
         try {
             LDAPLookupUtils.delete(mLDAPAuth.getAuthObject(), getDN(path) + mLocalPath);
         }
@@ -317,8 +281,7 @@ public class LDAPLookup implements LookupManager {
             throw new ObjectCannotBeUpdated("Cannot delete Path '" + path.getStringPath() + "' - LDAPException:" + ex.getLDAPErrorMessage());
         }
         if (path instanceof DomainPath) {
-            // FIXME: Check if this is correct to call in the Lookup implementation
-            Gateway.getProxyServer().sendProxyEvent(new ProxyMessage(null, path.toString(), ProxyMessage.DELETED));
+            Gateway.sendProxyEvent(new ProxyMessage(null, path.toString(), DELETE));
         }
     }
 
@@ -358,29 +321,29 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public void initializeDirectory() throws ObjectNotFoundException {
+    public void initializeDirectory(TransactionKey transactionKey) throws ObjectNotFoundException {
         createBootTree();
         LDAPLookupUtils.createCristalContext(mLDAPAuth.getAuthObject(), mItemTypeRoot);
         LDAPLookupUtils.createCristalContext(mLDAPAuth.getAuthObject(), mDomainTypeRoot);
         try {
-            createRole(new RolePath());
+            createRole(new RolePath(), transactionKey);
         }
         catch (ObjectAlreadyExistsException e) {}
         catch (ObjectCannotBeUpdated e) {
             Logger.die("Could not create root Role");
         }
-        if (new DomainPath("agent").exists()) migrateOldRoles();
+        if (new DomainPath("agent").exists()) migrateOldRoles(transactionKey);
     }
 
     // typically search for cn=barcode
     @Override
-    public LDAPPathSet search(Path start, String filter) {
+    public LDAPPathSet search(Path start, String filter, SearchConstraints constraints, TransactionKey transactionKey) {
         Logger.msg(8, "LDAPLookup::search() From " + getDN(start) + " for cn=" + filter);
         return search(getFullDN(start), "cn=" + LDAPLookupUtils.escapeSearchFilter(filter));
     }
 
     @Override
-    public LDAPPathSet search(Path start, Property... props) {
+    public LDAPPathSet search(Path start, TransactionKey transactionKey, Property... props) {
         StringBuffer filter = new StringBuffer();
         int propCount = 0;
         for (Property prop : props) {
@@ -406,14 +369,13 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public LDAPPathSet search(Path start, PropertyDescriptionList props) {
-
+    public LDAPPathSet search(Path start, PropertyDescriptionList props, TransactionKey transactionKey) {
         ArrayList<Property> params = new ArrayList<Property>();
         for (PropertyDescription propDesc : props.list) {
             if (propDesc.getIsClassIdentifier())
                 params.add(propDesc.getProperty());
         }
-        return search(start, params.toArray(new Property[params.size()]));
+        return search(start, transactionKey, params.toArray(new Property[params.size()]));
     }
 
     protected LDAPPathSet search(String startDN, int scope, String filter, LDAPSearchConstraints searchCons) {
@@ -440,7 +402,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public LDAPPathSet searchAliases(ItemPath entity) {
+    public LDAPPathSet searchAliases(ItemPath entity, TransactionKey transactionKey) {
         LDAPSearchConstraints searchCons = new LDAPSearchConstraints();
         searchCons.setBatchSize(0);
         searchCons.setDereference(LDAPSearchConstraints.DEREF_NEVER);
@@ -449,12 +411,12 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public boolean exists(Path path) {
+    public boolean exists(Path path, TransactionKey transactionKey) {
         return LDAPLookupUtils.exists(mLDAPAuth.getAuthObject(), getFullDN(path));
     }
 
     @Override
-    public ItemPath getItemPath(String uuid) throws ObjectNotFoundException, InvalidItemPathException {
+    public ItemPath getItemPath(String uuid, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidItemPathException {
         String[] attr = { LDAPConnection.ALL_USER_ATTRS };
         try {
             ItemPath item = new ItemPath(uuid);
@@ -474,13 +436,12 @@ public class LDAPLookup implements LookupManager {
     }
 
     /**
-     * converts an LDAPentry to a Path object Note that the search producing the entry should have retrieved the attrs 'ior' and
+     * converts an LDAPentry to a Path object Note that the search producing the entry should have retrieved
      * 'uniquemember' @throws ObjectNotFoundException @throws ObjectNotFoundException @throws
      */
     protected Path nodeToPath(LDAPEntry entry) throws InvalidItemPathException, ObjectNotFoundException {
         String dn = entry.getDN();
         ItemPath entityKey;
-        org.omg.CORBA.Object ior;
 
         // extract syskey
         try {
@@ -492,15 +453,6 @@ public class LDAPLookup implements LookupManager {
         }
         catch (InvalidItemPathException ex) {
             entityKey = null;
-        }
-
-        // extract IOR
-        try {
-            String stringIOR = LDAPLookupUtils.getFirstAttributeValue(entry, "ior");
-            ior = Gateway.getORB().string_to_object(stringIOR);
-        }
-        catch (ObjectNotFoundException ex) {
-            ior = null;
         }
 
         /* Find the right path class */
@@ -534,8 +486,6 @@ public class LDAPLookup implements LookupManager {
             throw new ObjectNotFoundException("Unrecognised LDAP entry. Not a cristal entry '" + entry + "'");
         }
 
-        // set IOR if we have one
-        if (ior != null) thisPath.setIOR(ior);
         return thisPath;
     }
 
@@ -567,7 +517,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public Iterator<Path> getChildren(Path path) {
+    public Iterator<Path> getChildren(Path path, TransactionKey transactionKey) {
         String filter = "objectclass=*";
         LDAPSearchConstraints searchCons = new LDAPSearchConstraints();
         searchCons.setBatchSize(10);
@@ -600,8 +550,6 @@ public class LDAPLookup implements LookupManager {
         else if (path instanceof ItemPath) {
             ItemPath itemPath = (ItemPath) path;
             attrs.add(new LDAPAttribute("cn", itemPath.getUUID().toString()));
-            if (itemPath.getIOR() != null)
-                attrs.add(new LDAPAttribute("ior", Gateway.getORB().object_to_string(itemPath.getIOR())));
 
             if (path instanceof AgentPath) {
                 AgentPath agentPath = (AgentPath) path;
@@ -629,7 +577,7 @@ public class LDAPLookup implements LookupManager {
     // Creates a cristalRole
     // CristalRole is-a specialized CristalContext which contains multi-valued uniqueMember attribute pointing to cristalagents
     @Override
-    public RolePath createRole(RolePath rolePath) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
+    public RolePath createRole(RolePath rolePath, TransactionKey transactionKey) throws ObjectAlreadyExistsException, ObjectCannotBeUpdated {
         // create the role
         String roleDN = getFullDN(rolePath);
         LDAPEntry roleNode;
@@ -661,7 +609,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public void addRole(AgentPath agent, RolePath role)
+    public void addRole(AgentPath agent, RolePath role, TransactionKey transactionKey)
             throws ObjectCannotBeUpdated, ObjectNotFoundException {
         LDAPEntry roleEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(role));
         // add memberDN to uniqueMember if it is not yet a member
@@ -672,7 +620,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public void removeRole(AgentPath agent, RolePath role) throws ObjectCannotBeUpdated, ObjectNotFoundException {
+    public void removeRole(AgentPath agent, RolePath role, TransactionKey transactionKey) throws ObjectCannotBeUpdated, ObjectNotFoundException {
         LDAPEntry roleEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(role));
         if (LDAPLookupUtils.existsAttributeValue(roleEntry, "uniqueMember", getFullDN(agent)))
             LDAPLookupUtils.removeAttributeValue(mLDAPAuth.getAuthObject(), roleEntry, "uniqueMember", getFullDN(agent));
@@ -681,7 +629,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public boolean hasRole(AgentPath agent, RolePath role) {
+    public boolean hasRole(AgentPath agent, RolePath role, TransactionKey transactionKey) {
         String filter = "(&(objectclass=cristalrole)(uniqueMember=" + getFullDN(agent) + ")(cn=" + role.getName() + "))";
         LDAPSearchConstraints searchCons = new LDAPSearchConstraints();
         searchCons.setBatchSize(0);
@@ -690,7 +638,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public AgentPath[] getAgents(RolePath role)
+    public AgentPath[] getAgents(RolePath role, TransactionKey transactionKey)
             throws ObjectNotFoundException {
         // get the roleDN entry, and its uniqueMember entry pointing to
         LDAPEntry roleEntry;
@@ -723,7 +671,7 @@ public class LDAPLookup implements LookupManager {
 
     // returns the role/s of a user
     @Override
-    public RolePath[] getRoles(AgentPath agentPath) {
+    public RolePath[] getRoles(AgentPath agentPath, TransactionKey transactionKey) {
         // search the mDomainPath tree uniqueMember=userDN
         // filter = objectclass=cristalrole AND uniqueMember=userDN
         String filter = "(&(objectclass=cristalrole)(uniqueMember=" + getFullDN(agentPath) + "))";
@@ -743,7 +691,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public AgentPath getAgentPath(String agentName) throws ObjectNotFoundException {
+    public AgentPath getAgentPath(String agentName, TransactionKey transactionKey) throws ObjectNotFoundException {
         // search to get the userDN equivalent of the userID
         LDAPSearchConstraints searchCons = new LDAPSearchConstraints();
         searchCons.setBatchSize(0);
@@ -760,7 +708,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public RolePath getRolePath(String roleName) throws ObjectNotFoundException {
+    public RolePath getRolePath(String roleName, TransactionKey transactionKey) throws ObjectNotFoundException {
         // empty rolename gives the core role
         if (roleName.length() == 0) return new RolePath();
 
@@ -796,7 +744,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public void setHasJobList(RolePath role, boolean hasJobList) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+    public void setHasJobList(RolePath role, boolean hasJobList, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         // get entry
         LDAPEntry roleEntry;
         try {
@@ -810,14 +758,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public void setAgentPassword(AgentPath agent, String newPassword)
-            throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException
-    {
-        setAgentPassword(agent, newPassword, false);
-    }
-
-    @Override
-    public void setAgentPassword(AgentPath agent, String newPassword, boolean temporary)
+    public void setAgentPassword(AgentPath agent, String newPassword, boolean temporary, TransactionKey transactionKey)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException
     {
         if (temporary) Logger.warning("LDAPLookup.setAgentPassword() - Does NOT support temporary passords!");
@@ -834,28 +775,23 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public String getAgentName(AgentPath agentPath) throws ObjectNotFoundException {
+    public String getAgentName(AgentPath agentPath, TransactionKey transactionKey) throws ObjectNotFoundException {
         LDAPEntry agentEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(agentPath));
         return LDAPLookupUtils.getFirstAttributeValue(agentEntry, "uid");
     }
 
     @Override
-    public void setIOR(ItemPath item, String ior) throws ObjectNotFoundException, ObjectCannotBeUpdated {
-        throw new ObjectCannotBeUpdated("UNIMPLEMENTED");
-    }
-
-    @Override
-    public PagedResult getChildren(Path path, int offset, int limit) {
+    public PagedResult getChildren(Path path, int offset, int limit, TransactionKey transactionKey) {
         if (ldapProps.mEnablePagingMethods) {
             Logger.warning("LDAPLookup.getChildren() - Paging support is not implemented, original method is used");
-            return new PagedResult(-1, IteratorUtils.toList(getChildren(path)));
+            return new PagedResult(-1, IteratorUtils.toList(getChildren(path, transactionKey)));
         }
 
         throw new NotImplementedException("Paging support is not implemented");
     }
 
     @Override
-    public PagedResult search(Path start, List<Property> props, int offset, int limit) {
+    public PagedResult search(Path start, List<Property> props, int offset, int limit, TransactionKey transactionKey) {
         if (ldapProps.mEnablePagingMethods) {
             Logger.warning("LDAPLookup.search() - Paging support is not implemented, original method is used");
             return new PagedResult(-1, IteratorUtils.toList(search(start, props.toArray(new Property[0]))));
@@ -865,7 +801,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit) {
+    public PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit, TransactionKey transactionKey) {
         if (ldapProps.mEnablePagingMethods) {
             Logger.warning("LDAPLookup.search() - Paging support is not implemented, original method is used");
             return new PagedResult(-1, IteratorUtils.toList(search(start, props)));
@@ -875,42 +811,42 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public PagedResult searchAliases(ItemPath itemPath, int offset, int limit) {
+    public PagedResult searchAliases(ItemPath itemPath, int offset, int limit, TransactionKey transactionKey) {
         if (ldapProps.mEnablePagingMethods) {
             Logger.warning("LDAPLookup.searchAliases() - Paging support is not implemented, original method is used");
-            return new PagedResult(-1, IteratorUtils.toList(searchAliases(itemPath)));
+            return new PagedResult(-1, IteratorUtils.toList(searchAliases(itemPath, transactionKey)));
         }
 
         throw new NotImplementedException("Paging support is not implemented");
     }
 
     @Override
-    public PagedResult getAgents(RolePath rolePath, int offset, int limit) throws ObjectNotFoundException {
+    public PagedResult getAgents(RolePath rolePath, int offset, int limit, TransactionKey transactionKey) throws ObjectNotFoundException {
         if (ldapProps.mEnablePagingMethods) {
             Logger.warning("LDAPLookup.getAgents() - Paging support is not implemented, original method is used");
-            return new PagedResult(-1, Arrays.asList(getAgents(rolePath)));
+            return new PagedResult(-1, Arrays.asList(getAgents(rolePath, transactionKey)));
         }
 
         throw new NotImplementedException("Paging support is not implemented");
     }
 
     @Override
-    public PagedResult getRoles(AgentPath agentPath, int offset, int limit) {
+    public PagedResult getRoles(AgentPath agentPath, int offset, int limit, TransactionKey transactionKey) {
         if (ldapProps.mEnablePagingMethods) {
             Logger.warning("LDAPLookup.getRoles() - Paging support is not implemented, original method is used");
-            return new PagedResult(-1, Arrays.asList(getRoles(agentPath)));
+            return new PagedResult(-1, Arrays.asList(getRoles(agentPath, transactionKey)));
         }
 
         throw new NotImplementedException("Paging support is not implemented");
     }
 
     @Override
-    public void setPermission(RolePath role, String permission) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+    public void setPermission(RolePath role, String permission, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         throw new NotImplementedException("Permission support is not implemented");
     }
 
     @Override
-    public void setPermissions(RolePath role, List<String> permissions) throws ObjectNotFoundException, ObjectCannotBeUpdated {
+    public void setPermissions(RolePath role, List<String> permissions, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         throw new NotImplementedException("Permission support is not implemented");
     }
 }

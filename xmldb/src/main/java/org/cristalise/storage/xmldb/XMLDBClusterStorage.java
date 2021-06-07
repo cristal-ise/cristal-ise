@@ -31,6 +31,7 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
@@ -178,7 +179,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public short queryClusterSupport(String clusterType) {
+    public short queryClusterSupport(ClusterType clusterType) {
         return READWRITE;
     }
 
@@ -198,7 +199,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String executeQuery(Query query) throws PersistencyException {
+    public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
         if(!checkQuerySupport(query.getLanguage())) throw new PersistencyException("Unsupported query:"+query.getLanguage());
 
         try {
@@ -244,7 +245,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public C2KLocalObject get(ItemPath itemPath, String path) throws PersistencyException {
+    public C2KLocalObject get(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         ClusterType type = ClusterStorage.getClusterType(path);
         // Get item collection
         Collection itemColl = getItemCollection(itemPath, false);
@@ -269,7 +270,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void put(ItemPath itemPath, C2KLocalObject obj) throws PersistencyException {
+    public void put(ItemPath itemPath, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException {
         String resName = getPath(obj);
         Collection itemColl = getItemCollection(itemPath, true);
 
@@ -289,7 +290,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void delete(ItemPath itemPath, String path) throws PersistencyException {
+    public void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         Collection itemColl = getItemCollection(itemPath, false);
         if (itemColl == null) return;
 
@@ -305,7 +306,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
+    public String[] getClusterContents(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         Collection itemCollection = getItemCollection(itemPath, false);
         if (itemCollection == null) return new String[0];
 
@@ -358,10 +359,10 @@ public class XMLDBClusterStorage extends ClusterStorage {
      * FIXME use xquery instead of calling getClusterContents()
      */
     @Override
-    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+    public int getLastIntegerId(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         int lastId = -1;
         try {
-            String[] keys = getClusterContents(itemPath, path);
+            String[] keys = getClusterContents(itemPath, path, transactionKey);
             for (String key : keys) {
                 int newId = Integer.parseInt(key);
                 lastId = newId > lastId ? newId : lastId;
@@ -373,5 +374,23 @@ public class XMLDBClusterStorage extends ClusterStorage {
         }
 
         return lastId;
+    }
+
+    @Override
+    public void begin(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void commit(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void abort(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
     }
 }

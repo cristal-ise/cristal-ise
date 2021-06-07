@@ -23,12 +23,14 @@ package org.cristalise.kernel.collection;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.graph.model.GraphModel;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.TypeNameAndConstructionInfo;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 
@@ -111,31 +113,34 @@ abstract public class Aggregation extends Collection<AggregationMember> {
         aggMem.setIsLayoutable(true);
 
         mMembers.list.add(aggMem);
-        log.debug("AggregationDescription::addSlot new slot linked to vertexid " + vertex.getID());
+        log.debug("addSlot() - new slot linked to vertexid " + vertex.getID());
         return aggMem;
     }
 
-    public AggregationMember addMember(ItemPath itemPath, CastorHashMap props, String classProps, GraphPoint location, int w, int h)
-            throws InvalidCollectionModification, ObjectAlreadyExistsException {
+    public AggregationMember addMember(ItemPath itemPath, CastorHashMap props, String classProps, GraphPoint location, int w, int h, TransactionKey transactionKey)
+            throws InvalidCollectionModification, ObjectAlreadyExistsException
+    {
         AggregationMember aggMem = addSlot(props, classProps, location, w, h);
         if (itemPath != null) { // some clients use this method when not setting a member
-            aggMem.assignItem(itemPath);
-            aggMem.setIsComposite(getIsComposite(itemPath, getName()));
+            aggMem.assignItem(itemPath, transactionKey);
+            aggMem.setIsComposite(getIsComposite(itemPath, getName(), transactionKey));
         }
-        log.debug("AggregationDescription::addMember(" + itemPath + ") assigned to new slot " + aggMem.getID());
+        log.debug("addMember(" + itemPath + ") - assigned to new slot " + aggMem.getID());
         return aggMem;
     }
 
     @Override
-    public AggregationMember addMember(ItemPath itemPath, CastorHashMap props, String classProps)
-            throws InvalidCollectionModification, ObjectAlreadyExistsException {
-        return addMember(itemPath, props, classProps, null, -1, -1);
+    public AggregationMember addMember(ItemPath itemPath, CastorHashMap props, String classProps, TransactionKey transactionKey)
+            throws InvalidCollectionModification, ObjectAlreadyExistsException
+    {
+        return addMember(itemPath, props, classProps, null, -1, -1, transactionKey);
     }
 
-    public AggregationMember addMember(CastorHashMap props, String classProps, GraphPoint location, int w, int h)
-            throws InvalidCollectionModification {
+    public AggregationMember addMember(CastorHashMap props, String classProps, GraphPoint location, int w, int h, TransactionKey transactionKey)
+            throws InvalidCollectionModification
+    {
         try {
-            return addMember(null, props, classProps, location, w, h);
+            return addMember(null, props, classProps, location, w, h, transactionKey);
         }
         catch (ObjectAlreadyExistsException e) { // not assigning an item so this won't happen
             return null;
@@ -158,13 +163,14 @@ abstract public class Aggregation extends Collection<AggregationMember> {
         throw new ObjectNotFoundException("Member " + memberId + " not found");
     }
 
-    static public boolean getIsComposite(ItemPath itemPath, String name) {
+    static public boolean getIsComposite(ItemPath itemPath, String name, TransactionKey transactionKey) {
         if (itemPath == null) return false;
         try {
-            for (String collName : Gateway.getProxyManager().getProxy(itemPath).getContents(ClusterType.COLLECTION))
+            for (String collName : Gateway.getStorage().getClusterContents(itemPath, ClusterType.COLLECTION, transactionKey)) {
                 if (name == null || name.equals(collName)) return true;
+            }
         }
-        catch (ObjectNotFoundException e) {
+        catch (PersistencyException e) {
             return false;
         }
         return false;

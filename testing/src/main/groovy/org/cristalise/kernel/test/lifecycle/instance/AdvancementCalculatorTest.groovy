@@ -27,37 +27,38 @@ import org.cristalise.kernel.lifecycle.instance.Activity
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup;
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
 
+import spock.lang.Specification
 
 /**
  *
  */
-class AdvancementCalculatorTest implements CristalTestSetup {
+class AdvancementCalculatorTest extends Specification implements CristalTestSetup {
 
-    WorkflowTestBuilder wfBuilder
-    
-    @Before
-    public void setup() {
-        inMemorySetup('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8)
+    static WorkflowTestBuilder wfBuilder
+
+    def setupSpec() {
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true)
         wfBuilder = new WorkflowTestBuilder()
     }
 
-    @After
-    public void cleanup() {
+    def setup() {}
+
+    def cleanup() {
         if(wfBuilder && wfBuilder.wf) println Gateway.getMarshaller().marshall(wfBuilder.wf)
+    }
+
+    def cleanupSpec() {
         cristalCleanup()
     }
-    
+
     def printVertex(v) {
         print " - $v.path"
         if(v instanceof Activity) println "- active:"+((Activity)v).active
         else println ""
     }
 
-    private List<WfVertex> getActiveActs(String fromVertex, int direction = GraphTraversal.kUp) {
+    List<WfVertex> getActiveActs(String fromVertex, int direction = GraphTraversal.kUp) {
         assert wfBuilder.vertexCache[fromVertex]
 
         List<WfVertex> activeActs = []
@@ -75,21 +76,24 @@ class AdvancementCalculatorTest implements CristalTestSetup {
         return activeActs
     }
 
-    @Test
-    public void 'Loop(inner) to check GraphTraversal'() {
+    def 'Loop(inner) to check GraphTraversal'() {
+        given:
         wfBuilder.buildAndInitWf {
             Loop {
                 ElemAct("inner")
             }
         }
 
+        when:
         List<WfVertex> acts = getActiveActs('LoopJoin_last')
-        assert acts && acts.size() == 1
-        assert acts[0].name == 'inner'
+
+        then:
+        acts && acts.size() == 1
+        acts[0].name == 'inner'
     }
 
-    @Test
-    void 'Two overlapping loops to test GraphTraversal'() {
+    def 'Two overlapping loops to test GraphTraversal'() {
+        given:
         wfBuilder.buildAndInitWf {
             connect Join:      'Join1' to ElemAct:   'EA1'
             connect ElemAct:   'EA1'   to Join:      'Join2'
@@ -105,24 +109,24 @@ class AdvancementCalculatorTest implements CristalTestSetup {
             setRoutingScript('Loop1', 'javascript:"false";')
             setRoutingScript('Loop2', 'javascript:"true";')
         }
+
+        when:
         wfBuilder.checkActStatus("EA1", [state: 'Waiting', active: true])
 
-        List<WfVertex> acts = getActiveActs('Join1')
-        assert !acts
-        
+        then:
+        ! getActiveActs('Join1')
+
+        when:
         wfBuilder.requestAction("EA1", "Done")
+
+        then:
         wfBuilder.checkActStatus("EA1", [state: 'Finished', active: false])
         wfBuilder.checkActStatus("EA2", [state: 'Waiting',  active: true])
-
-        acts = getActiveActs('Join2')
-        assert !acts
+        ! getActiveActs('Join2')
     }
 
-
-
-
-    @Test
     public void 'Complex unbalanced workflow to test GraphTraversal'() {
+        given:
         wfBuilder.buildAndInitWf {
             connect ElemAct:   'first'        to OrSplit:   'DateSplit'
             connect OrSplit:   'DateSplit'    to Join:      'JoinTop'
@@ -144,10 +148,15 @@ class AdvancementCalculatorTest implements CristalTestSetup {
             setFirst('first')
         }
 
+        when:
         Vertex[] vertices = GraphTraversal.getTraversal(wfBuilder.vertexCache["rootCA"].getChildrenGraphModel(),
                                                         wfBuilder.vertexCache["Join2"], 
                                                         GraphTraversal.kUp,
                                                         true)
-        vertices.each { printVertex(it) }
+        then:
+        vertices.each {
+            it
+            printVertex(it)
+        }
     }
 }

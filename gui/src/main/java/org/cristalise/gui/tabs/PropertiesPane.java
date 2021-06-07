@@ -26,6 +26,8 @@
 
 package org.cristalise.gui.tabs;
 
+import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
+
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.Insets;
@@ -39,31 +41,33 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import org.cristalise.gui.ItemDetails;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tree.NodeAgent;
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
-import org.cristalise.kernel.entity.proxy.MemberSubscription;
-import org.cristalise.kernel.entity.proxy.ProxyObserver;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.kernel.persistency.C2KLocalObjectMap;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 
+import io.vertx.core.Vertx;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * Pane to display all work orders that this agent can execute, and activate
- * them on request from the user. Subscribes to NodeItem for Property objects.
- * @version $Revision: 1.44 $ $Date: 2005/08/31 07:21:20 $
- * @author  $Author: abranson $
+ * Pane to display all work orders that this agent can execute, and activate them on 
+ * request from the user. Subscribes to NodeItem for Property objects.
  */
-public class PropertiesPane extends ItemTabPane implements ProxyObserver<Property>, ActionListener {
+@Slf4j
+public class PropertiesPane extends ItemTabPane implements ActionListener {
 
-    Box propertyBox;
-    JButton eraseButton;
-    boolean subbed = false;
+    Box                     propertyBox;
+    JButton                 eraseButton;
+    boolean                 subbed      = false;
     HashMap<String, JLabel> loadedProps = new HashMap<String, JLabel>();
-    DomainPathAdmin domAdmin;
-    JLabel roleTitle;
-    RoleAdmin roleAdmin = null;
+    DomainPathAdmin         domAdmin;
+    JLabel                  roleTitle;
+    RoleAdmin               roleAdmin   = null;
 
     public PropertiesPane() {
         super("Properties", "Properties");
@@ -73,17 +77,17 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
         propertyBox = Box.createVerticalBox();
         add(propertyBox);
         addGlue();
-        
-        if (MainFrame.isAdmin) { 
-        	// role paths
+
+        if (MainFrame.isAdmin) {
+            // role paths
             // Domain Paths
-        	roleTitle = getTitle("Roles");
+            roleTitle = getTitle("Roles");
             roleAdmin = new RoleAdmin();
             roleTitle.setVisible(false);
             roleAdmin.setVisible(false);
             addTitle(roleTitle);
             add(roleAdmin);
-            
+
             // Domain Paths
             addTitle(getTitle("Domain Paths"));
             add(Box.createVerticalStrut(5));
@@ -91,9 +95,9 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
             add(domAdmin);
 
             if (Gateway.getProperties().getBoolean("EnableItemErase")) {
-            	addGlue();
-            	Box eraseBox = Box.createHorizontalBox();
-            	eraseBox.add(Box.createHorizontalGlue());
+                addGlue();
+                Box eraseBox = Box.createHorizontalBox();
+                eraseBox.add(Box.createHorizontalGlue());
                 eraseButton = new JButton("Erase!");
                 eraseButton.addActionListener(this);
                 eraseButton.setAlignmentX(RIGHT_ALIGNMENT);
@@ -104,36 +108,72 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
             addGlue();
         }
     }
+    
+    @Override
+    public void setParent(ItemDetails parent) {
+        super.setParent(parent);
+
+        Vertx vertx = Gateway.getVertx();
+        vertx.eventBus().localConsumer(parent.getItemPath().getUUID() + "/" + PROPERTY, message -> {
+            String[] tokens = ((String) message.body()).split(":");
+            String propName = tokens[0];
+
+            vertx.executeBlocking(promise -> {
+                try {
+                    if (tokens[1].equals("DELETE")) {
+                        remove(propName);
+                    }
+                    else {
+                        add((Property)sourceItem.getItem().getObject(PROPERTY+"/"+propName));
+                    }
+                }
+                catch (ObjectNotFoundException e) {
+                    log.error("", e);
+                }
+                promise.complete();
+            }, res -> {
+                //
+            });
+        });
+    }
 
     @Override
-	public void reload() {
-    	Gateway.getStorage().clearCache(sourceItem.getItemPath(), ClusterStorage.PROPERTY);
+    public void reload() {
+        Gateway.getStorage().clearCache(sourceItem.getItemPath(), ClusterType.PROPERTY.getName());
         loadedProps = new HashMap<String, JLabel>();
         initForItem(sourceItem);
     }
 
     @Override
-	public void run() {
+    public void run() {
         Thread.currentThread().setName("Property Pane Builder");
-        if (sourceItem instanceof NodeAgent && roleAdmin!=null) {
-            roleAdmin.setEntity((AgentProxy)sourceItem.getItem());
-            roleTitle.setVisible(true); roleAdmin.setVisible(true);
+        if (sourceItem instanceof NodeAgent && roleAdmin != null) {
+            roleAdmin.setEntity((AgentProxy) sourceItem.getItem());
+            roleTitle.setVisible(true);
+            roleAdmin.setVisible(true);
         }
-        if (domAdmin != null)
-            domAdmin.setEntity(sourceItem.getItem());
+        if (domAdmin != null) domAdmin.setEntity(sourceItem.getItem());
         propertyBox.removeAll();
-		revalidate();
-        sourceItem.getItem().subscribe(new MemberSubscription<Property>(this, ClusterStorage.PROPERTY, true));
-
+        revalidate();
+        
+        try {
+            @SuppressWarnings("unchecked")
+            //Load all properties
+            C2KLocalObjectMap<Property> propMap = (C2KLocalObjectMap<Property>)sourceItem.getItem().getObject(PROPERTY);
+            for (String propName: propMap.keySet()) add(propMap.get(propName));
+        }
+        catch (ObjectNotFoundException e) {
+            log.error("Could not load all the ItemProperties", e);
+        }
     }
+
     /**
      *
      */
-    @Override
-	public void add(Property newProp) {
+    public void add(Property newProp) {
         JLabel propLabel = loadedProps.get(newProp.getName());
         if (propLabel == null) { // new prop
-            JPanel summaryPanel = new JPanel(new GridLayout(0,2));
+            JPanel summaryPanel = new JPanel(new GridLayout(0, 2));
             summaryPanel.add(new JLabel(newProp.getName() + ":"));
             Box valueBox = Box.createHorizontalBox();
             propLabel = new JLabel(newProp.getValue());
@@ -141,7 +181,7 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
             valueBox.add(propLabel);
             if (MainFrame.isAdmin && newProp.isMutable()) {
                 JButton editButton = new JButton("...");
-                editButton.setMargin(new Insets(0,0,0,0));
+                editButton.setMargin(new Insets(0, 0, 0, 0));
                 editButton.setActionCommand(newProp.getName());
                 editButton.addActionListener(this);
                 valueBox.add(Box.createHorizontalStrut(7));
@@ -156,50 +196,42 @@ public class PropertiesPane extends ItemTabPane implements ProxyObserver<Propert
         propLabel.setText(newProp.getValue());
         revalidate();
     }
-   
-    @Override
-	public void remove(String id) {
-        String propName = id.substring(id.lastIndexOf("/")+1);
+
+    public void remove(String id) {
+        String propName = id.substring(id.lastIndexOf("/") + 1);
         JLabel propbox = loadedProps.get(propName);
-        if (propbox!= null) propbox.setText("[DELETED]");
+        if (propbox != null) propbox.setText("[DELETED]");
         revalidate();
     }
 
     @Override
-	public void actionPerformed(ActionEvent e) {
-
-    	if (e.getSource() == eraseButton) {
-        	try {
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == eraseButton) {
+            try {
                 if (JOptionPane.showConfirmDialog(this,
                         "Are you sure?",
                         "Erase Item",
                         JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION)
                     return;
-                String predefStep = sourceItem instanceof NodeAgent?"RemoveAgent":"Erase";
-        		MainFrame.userAgent.execute(sourceItem.getItem(), predefStep, new String[0]);
-        	} catch (Exception ex) {
-        		MainFrame.exceptionDialog(ex);
-        	}
+                String predefStep = sourceItem instanceof NodeAgent ? "RemoveAgent" : "Erase";
+                MainFrame.userAgent.execute(sourceItem.getItem(), predefStep, new String[0]);
+            }
+            catch (Exception ex) {
+                MainFrame.exceptionDialog(ex);
+            }
         }
-    	
-    	else {
-	        String oldVal = loadedProps.get(e.getActionCommand()).getText();
-	        String newVal = (String)JOptionPane.showInputDialog(null, "Enter new value for "+e.getActionCommand(), "Edit Property",
-	            JOptionPane.QUESTION_MESSAGE, null, null, oldVal);
-	        if (newVal!=null && !(newVal.equals(oldVal))) {
-	            try {
-	                (sourceItem.getItem()).setProperty(MainFrame.userAgent, e.getActionCommand(), newVal);
-	            } catch (Exception ex) {
-	            	MainFrame.exceptionDialog(ex);
-	            }
-	        }
-    	}
+        else {
+            String oldVal = loadedProps.get(e.getActionCommand()).getText();
+            String newVal = (String) JOptionPane.showInputDialog(null, "Enter new value for " + e.getActionCommand(), "Edit Property",
+                    JOptionPane.QUESTION_MESSAGE, null, null, oldVal);
+            if (newVal != null && !(newVal.equals(oldVal))) {
+                try {
+                    (sourceItem.getItem()).setProperty(MainFrame.userAgent, e.getActionCommand(), newVal);
+                }
+                catch (Exception ex) {
+                    MainFrame.exceptionDialog(ex);
+                }
+            }
+        }
     }
-
-	@Override
-	public void control(String control, String msg) {
-		// TODO Auto-generated method stub
-		
-	}
-
 }

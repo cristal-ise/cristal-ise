@@ -26,6 +26,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.lifecycle.instance.WfVertex;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.utils.KeyValuePair;
 
 /**
@@ -44,7 +45,7 @@ public abstract class WfVertexDef extends GraphableVertex {
         setIsLayoutable(true);
     }
 
-    public abstract WfVertex instantiate() throws ObjectNotFoundException, InvalidDataException;
+    public abstract WfVertex instantiate(TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException;
 
     /**
      * Copies Properties from vertex definition to vertex instance, and also set the Edges
@@ -53,7 +54,7 @@ public abstract class WfVertexDef extends GraphableVertex {
      * @throws InvalidDataException inconsistent data
      * @throws ObjectNotFoundException data was not found
      */
-    public void configureInstance(WfVertex newVertex) throws InvalidDataException, ObjectNotFoundException {
+    public void configureInstance(WfVertex newVertex, TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         for (KeyValuePair element : getProperties().getKeyValuePairs()) {
             newVertex.getProperties().put(element.getKey(), element.getValue(), element.isAbstract());
         }

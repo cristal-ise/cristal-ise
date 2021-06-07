@@ -44,7 +44,12 @@ import spock.util.concurrent.PollingConditions
 @UnitilsSupport
 class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8) }
+    def setup() {
+        def props = new Properties()
+        props.put('Shiro.iniFile', 'src/main/bin/shiroInMemory.ini')
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', props, true) //skips boostrap!!!
+    }
+
     def cleanup() { cristalCleanup() }
 
     def 'Job is only given to the Agent with the proper Role'() {
@@ -76,8 +81,8 @@ class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetu
         }
 
         then: "Agent 'oper1' gets 2 Jobs but the Agent 'clerk1' get no Job"
-        oper1.getJobs(dummyItem.itemDomPath.itemPath).size() == 2
         clerk1.getJobs(dummyItem.itemDomPath.itemPath).size() == 0
+        oper1.getJobs(dummyItem.itemDomPath.itemPath).size() == 2
     }
 
     def "Activity property 'Agent Role' can contain a list of Roles"() {
@@ -109,7 +114,8 @@ class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetu
         }
 
         then: "Agents 'oper1' and 'clerk1' gets the same set of Jobs"
-        oper1.getJobs(dummyItem.itemDomPath.itemPath).size() == clerk1.getJobs(dummyItem.itemDomPath.itemPath).size()
+        oper1.getJobs(dummyItem.itemDomPath.itemPath).size() == 2
+        clerk1.getJobs(dummyItem.itemDomPath.itemPath).size() == 2
 
         //Deep comparision of Job does not work, becuase many fields should be ignored
         //assertLenientEquals(oper1.getJobs(dummyItem.itemDomPath.itemPath), clerk1.getJobs(dummyItem.itemDomPath.itemPath))

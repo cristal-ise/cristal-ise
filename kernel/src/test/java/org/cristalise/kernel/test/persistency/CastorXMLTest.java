@@ -26,7 +26,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MA
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
 import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
@@ -38,6 +38,7 @@ import java.util.UUID;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.agent.JobArrayList;
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportItem;
 import org.cristalise.kernel.entity.imports.ImportRole;
@@ -50,17 +51,20 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.ErrorInfo;
+import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.test.process.MainTest;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.FileStringUtility;
+import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.xmlunit.builder.DiffBuilder;
@@ -73,12 +77,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CastorXMLTest {
 
-    String ior = "IOR:005858580000001549444C3A69646C746573742F746573743A312E3000585858"+
-            "0000000100000000000000350001005800000006636F726261009B44000000214F52"+
-            "424C696E6B3A3A636F7262613A33393734383A3A736B656C65746F6E202330";
-
-    @Before
-    public void setup() throws Exception {
+    @BeforeClass
+    public static void setup() throws Exception {
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
     }
@@ -99,8 +99,9 @@ public class CastorXMLTest {
                 .build();
 
         if(diffIdentical.hasDifferences()) {
-            log.info("actual:{}", actual);
             log.warn(diffIdentical.toString());
+            log.info("expected:\n{}", expected);
+            log.info("actual:\n{}", actual);
         }
 
         return !diffIdentical.hasDifferences();
@@ -112,6 +113,14 @@ public class CastorXMLTest {
         String marshalledScriptXML = Gateway.getMarshaller().marshall(Gateway.getMarshaller().unmarshall(origScriptXML));
 
         assertTrue(compareXML(origScriptXML, marshalledScriptXML));
+    }
+
+    @Test 
+    public void testScriptParseXml() throws Exception {
+        String origXML = FileStringUtility.url2String(Gateway.getResource().getKernelResourceURL("boot/SC/CreateNewNumberedVersionFromLast.xml"));
+        String primeXml = new Script("CreateNewNumberedVersionFromLast", 0, null, origXML, true).toXml();
+
+        assertTrue(compareXML(origXML, primeXml));
     }
 
     @Test @Ignore("Castor XML mapping is not done for Query")
@@ -166,11 +175,10 @@ public class CastorXMLTest {
     public void testCastorItemPath() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
 
-        ItemPath item      = new ItemPath(UUID.randomUUID(), ior);
+        ItemPath item      = new ItemPath(UUID.randomUUID());
         ItemPath itemPrime = (ItemPath) marshaller.unmarshall(marshaller.marshall(item));
 
         assertEquals( item.getUUID(),      itemPrime.getUUID());
-        assertEquals( item.getIORString(), itemPrime.getIORString());
 
         log.info(marshaller.marshall(itemPrime));
     }
@@ -179,11 +187,10 @@ public class CastorXMLTest {
     public void testCastorAgentPath() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
 
-        AgentPath agent      = new AgentPath(UUID.randomUUID(), ior, "toto");
+        AgentPath agent      = new AgentPath(UUID.randomUUID(), "toto");
         AgentPath agentPrime = (AgentPath) marshaller.unmarshall(marshaller.marshall(agent));
 
         assertEquals( agent.getUUID(),      agentPrime.getUUID());
-        assertEquals( agent.getIORString(), agentPrime.getIORString());
         assertEquals( agent.getAgentName(), agentPrime.getAgentName());
 
         log.info(marshaller.marshall(agentPrime));
@@ -242,7 +249,7 @@ public class CastorXMLTest {
             CastorHashMap actProps = new CastorHashMap();
             actProps.setBuiltInProperty(STATE_MACHINE_NAME, "Default");
             actProps.setBuiltInProperty(STATE_MACHINE_VERSION, 0);
-            Job j = new Job(-1, new ItemPath(), "TestStep", "workflow/1", "", t, "Waiting", "Finished", "Admin", new AgentPath(), null, actProps, new GTimeStamp());
+            Job j = new Job(-1, new ItemPath(), "TestStep", "workflow/1", "", t, "Waiting", "Finished", "Admin", new AgentPath(), actProps, new GTimeStamp());
 
             ErrorInfo ei = new ErrorInfo(j, ex);
             ErrorInfo eiPrime = (ErrorInfo) marshaller.unmarshall(marshaller.marshall(ei));
@@ -252,6 +259,30 @@ public class CastorXMLTest {
             Outcome errors = new Outcome("/Outcome/Errors/0/0", marshaller.marshall(ei));
             errors.validateAndCheck();
         }
+    }
+
+    @Test
+    public void testCastorJobArrayList() throws Exception {
+        CastorXMLUtility marshaller = Gateway.getMarshaller();
+
+        Transition t = new Transition(1, "Done", 0, 3);
+        CastorHashMap actProps = new CastorHashMap();
+        actProps.setBuiltInProperty(STATE_MACHINE_NAME, "Default");
+        actProps.setBuiltInProperty(STATE_MACHINE_VERSION, 0);
+
+        Job j1 = new Job(1, new ItemPath(), "TestStep", "workflow/1", "", t, "Waiting", "Finished", "Admin", new AgentPath(), actProps, new GTimeStamp());
+        Job j2 = new Job(2, new ItemPath(), "TestStep2", "workflow/2", "", t, "Waiting", "Finished", "Admin", new AgentPath(), actProps, new GTimeStamp());
+
+        JobArrayList jobs = new JobArrayList();
+        jobs.list.add(j1);
+        jobs.list.add(j2);
+
+        JobArrayList jobsPrime = (JobArrayList) marshaller.unmarshall(marshaller.marshall(jobs));
+
+        assertThat(jobs).isEqualToComparingFieldByField(jobsPrime);
+
+        Outcome jobsOutcome = new Outcome("/Outcome/JobArrayList/0/0", marshaller.marshall(jobs));
+        jobsOutcome.validateAndCheck();
     }
 
     @Test
@@ -284,22 +315,33 @@ public class CastorXMLTest {
 
         assertReflectionEquals(pdl, pdlPrime, LENIENT_ORDER);
     }
-    
+
     @Test
     public void testCastorDependency() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
+        Schema schema = LocalObjectLoader.getSchema("Dependency", 0);
 
         //THIS is not the correct way of creating a new Dependency, it is used here to make testing possible
         Dependency dep = new Dependency("TestDep");
-        dep.addMember(new ItemPath());
-        dep.setClassProps("Type,State");
-        dep.getMember(0).setClassProps("Type,State");
+        CastorHashMap collProps = new CastorHashMap();
+        collProps.put("Type", "Unknown");
+        collProps.put("State", "Unmanaged");
+        dep.setProperties(collProps);
+//        dep.setClassProps("Type,State"); // this can be tested after mocking Gateway.getStorage().get(Property)
+
+        new Outcome(marshaller.marshall(dep), schema).validateAndCheck();
+
+        CastorHashMap memberProps = new CastorHashMap();
+        memberProps.put("Name", "myName");
+        memberProps.put("Stats", "chaotic");
+        dep.addMember(new ItemPath(), memberProps, "", null);
         dep.getCounter(); //counter is not persistent but calculated from the IDs of its members
 
         Dependency depPrime = (Dependency) marshaller.unmarshall(marshaller.marshall(dep));
         depPrime.getCounter();
 
         assertReflectionEquals(dep, depPrime);
+        new Outcome(marshaller.marshall(dep), schema).validateAndCheck();
     }
 
     @Test

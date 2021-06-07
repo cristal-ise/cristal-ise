@@ -1,6 +1,7 @@
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
+import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
 
 // this is defined in CrudState.groovy of the dev module
 def states = ['ACTIVE', 'INACTIVE']
@@ -11,24 +12,24 @@ def states = ['ACTIVE', 'INACTIVE']
 
 def xlsxFile = new File(moduleDir+'/TestItemExcel.xlsx')
 
-def TestItemExcel         = Schema('TestItemExcel', 0, xlsxFile) 
-def TestItemExcelDetails =  Schema('TestItemExcel_Details', 0, xlsxFile)
+Schema('TestItemExcel', 0, xlsxFile)
+Schema('TestItemExcel_Details', 0, xlsxFile)
 
 
 
-def TestItemExcelUpdateAct = Activity('TestItemExcel_Update', 0) {
+Activity('TestItemExcel_Update', 0) {
     Property('OutcomeInit': 'Empty')
-    Schema(TestItemExcelDetails)
+    Schema($testItemExcel_Details_Schema)
     //Script('CrudEntity_ChangeName', 0)
 }
 
-def TestItemExcelAggregateScript = Script('TestItemExcel_Aggregate', 0) {
+Script('TestItemExcel_Aggregate', 0) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
     output('TestItemExcelXML', 'java.lang.String')
     script('groovy', moduleDir+'/script/TestItemExcel_Aggregate.groovy')
 }
 
-def TestItemExcelQueryListScript = Script('TestItemExcel_QueryList', 0) {
+Script('TestItemExcel_QueryList', 0) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
     output('TestItemExcelMap', 'java.util.Map')
     script('groovy', moduleDir+'/script/TestItemExcel_QueryList.groovy')
@@ -38,16 +39,16 @@ Activity('TestItemExcel_Aggregate', 0) {
     Property('OutcomeInit': 'Empty')
     Property('Agent Role': 'UserCode')
 
-    Schema(TestItemExcel)
-    Script(TestItemExcelAggregateScript)
+    Schema($testItemExcel_Schema)
+    Script($testItemExcel_Aggregate_Script)
 }
 
-def TestItemExcelWf = Workflow('TestItemExcel_Workflow', 0) {
-    ElemActDef(TestItemExcelUpdateAct)
+Workflow('TestItemExcel_Workflow', 0) {
+    ElemActDef($testItemExcel_Update_ActivityDef)
     CompActDef('CrudState_Manage', 0)
 }
 
-def TestItemExcelPropDesc = PropertyDescriptionList('TestItemExcel', 0) {
+PropertyDescriptionList('TestItemExcel', 0) {
     PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
     PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestItemExcel')
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
@@ -66,20 +67,20 @@ Item(name: 'TestItemExcelFactory', version: 0, folder: '/devtest', workflow: 'Cr
 
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItemExcel_0.xml')
 
-    Dependency('workflow') {
-        Member(itemPath: '/desc/ActivityDesc/devtest/TestItemExcel_Workflow') {
+    Dependency(WORKFLOW) {
+        Member(itemPath: $testItemExcel_Workflow_CompositeActivityDef) {
             Property('Version': 0)
         }
     }
 
     Dependency(MASTER_SCHEMA) {
-        Member(itemPath: '/desc/Schema/devtest/TestItemExcel') {
+        Member(itemPath: $testItemExcel_Schema) {
             Property('Version': 0)
         }
     }
 
     Dependency(AGGREGATE_SCRIPT) {
-        Member(itemPath: '/desc/Script/devtest/TestItemExcel_Aggregate') {
+        Member(itemPath: $testItemExcel_Aggregate_Script) {
             Property('Version': 0)
         }
     }

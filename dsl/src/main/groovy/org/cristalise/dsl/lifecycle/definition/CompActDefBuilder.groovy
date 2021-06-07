@@ -21,6 +21,9 @@
 package org.cristalise.dsl.lifecycle.definition
 
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lifecycle.renderer.LifecycleRenderer
+import org.jfree.graphics2d.svg.SVGGraphics2D
+import org.jfree.graphics2d.svg.SVGUtils
 
 import groovy.transform.CompileStatic
 
@@ -31,19 +34,36 @@ import groovy.transform.CompileStatic
 @CompileStatic
 class CompActDefBuilder {
 
-    public static CompositeActivityDef build(String name, int version, Closure cl) {
+    public static CompositeActivityDef build(String name, int version, @DelegatesTo(CompActDefDelegate) Closure cl) {
         return build([module: "", name: name, version: version] as LinkedHashMap, cl)
     }
 
-    public static CompositeActivityDef build(Map<String, Object> attrs,  @DelegatesTo(CompActDefDelegate) Closure cl) {
-        def delegate = new CompActDefDelegate()
-        delegate.processClosure((String)attrs.name, (Integer)attrs.version, cl)
-        return delegate.compActDef
+    public static CompositeActivityDef build(Map<String, Object> attrs, @DelegatesTo(CompActDefDelegate) Closure cl) {
+        def delegate = new CompActDefDelegate((String)attrs.name, (Integer)attrs.version)
+        delegate.processClosure(cl)
+        return (CompositeActivityDef) delegate.activityDef
     }
 
-    public static CompositeActivityDef build(CompositeActivityDef caDef,  @DelegatesTo(CompActDefDelegate) Closure cl) {
-        def delegate = new CompActDefDelegate()
-        delegate.processClosure(caDef, cl)
-        return caDef
+//    public static CompositeActivityDef build(CompositeActivityDef caDef,  @DelegatesTo(CompActDefDelegate) Closure cl) {
+//        def delegate = new CompActDefDelegate()
+//        delegate.processClosure(caDef, cl)
+//        return caDef
+//    }
+    
+    /**
+     *
+     * @param caDef
+     */
+    public static void generateWorkflowSVG(String dir, CompositeActivityDef caDef) {
+        LifecycleRenderer generator = new LifecycleRenderer(caDef.getChildrenGraphModel(), true)
+        int zoomFactor = generator.getZoomFactor(1000, 1000)
+
+        SVGGraphics2D svgG2D = new SVGGraphics2D(1000, 1000)
+        svgG2D.scale((double) zoomFactor / 100, (double) zoomFactor / 100)
+
+        generator.draw(svgG2D)
+
+        SVGUtils.writeToSVG(new File("${dir}/${caDef.name}_${caDef.version}.svg"), svgG2D.getSVGElement())
     }
+
 }

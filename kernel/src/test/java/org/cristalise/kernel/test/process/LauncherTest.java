@@ -20,6 +20,9 @@
  */
 package org.cristalise.kernel.test.process;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.util.Properties;
 
 import org.cristalise.kernel.process.AbstractMain;
@@ -29,15 +32,11 @@ import org.junit.Test;
 public class LauncherTest {
 
     private String[] standardArgs() {
-        String[] args = new String[8];
-        args[0] = "-logLevel";
-        args[1] = "0";
-        args[2] = "-logFile";
-        args[3] = "target/testlog.txt";
-        args[4] = "-config";
-        args[5] = LauncherTest.class.getResource("/server.conf").getPath();
-        args[6] = "-connect";
-        args[7] = LauncherTest.class.getResource("/test.clc").getPath();
+        String[] args = new String[4];
+        args[0] = "-config";
+        args[1] = LauncherTest.class.getResource("/server.conf").getPath();
+        args[2] = "-connect";
+        args[3] = LauncherTest.class.getResource("/test.clc").getPath();
 
         return args;
     }
@@ -46,17 +45,17 @@ public class LauncherTest {
     public void testValidC2KArgs() throws Exception {
         Properties props = AbstractMain.readC2KArgs(standardArgs());
 
-        assert "MemoryOnlyClusterStorage".equals(props.get("ClusterStorage")) : "Config file properties not loaded";
-        assert "1553".equals(props.get("ItemServer.Proxy.port")) : "Connect file properties not loaded";
+        assertEquals("Config file properties not loaded",  "XMLClusterStorage", props.get("ClusterStorage"));
+        assertEquals("Connect file properties not loaded", "localhost",         props.get("ItemServer.name"));
     }
 
     @Test
     public void testWrongConfigFileName() throws Exception {
         String[] args = standardArgs();
-        args[5] = "filenotfound";
+        args[1] = "filenotfound";
         try {
             AbstractMain.readC2KArgs(args);
-            assert false : "Invalid connect file not detected";
+            fail("Invalid config file not detected");
         }
         catch (BadArgumentsException ex) {}
     }
@@ -64,10 +63,10 @@ public class LauncherTest {
     @Test
     public void testWrongConnectFileName() throws Exception {
         String[] args = standardArgs();
-        args[7] = "alsonotfound";
+        args[3] = "alsonotfound";
         try {
             AbstractMain.readC2KArgs(args);
-            assert false : "Invalid connect file not detected";
+            fail("Invalid connect file not detected");
         }
         catch (BadArgumentsException ex) {}
     }
@@ -79,7 +78,7 @@ public class LauncherTest {
         args[1] = LauncherTest.class.getResource("/server.conf").getPath();
         try {
             AbstractMain.readC2KArgs(args);
-            assert false : "Missing connect file not detected";
+            fail("Missing connect file not detected");
         }
         catch (BadArgumentsException ex) {}
     }
@@ -91,7 +90,7 @@ public class LauncherTest {
         args[1] = LauncherTest.class.getResource("/test.clc").getPath();
         try {
             AbstractMain.readC2KArgs(args);
-            assert false : "Missing config file not detected";
+            fail("Missing config file not detected");
         }
         catch (BadArgumentsException ex) {}
     }

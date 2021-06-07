@@ -20,8 +20,6 @@
  */
 package org.cristalise.restapi;
 
-import static org.cristalise.kernel.persistency.ClusterType.JOB;
-
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -33,12 +31,17 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
-import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
@@ -58,17 +61,9 @@ public class AgentJobList extends ItemUtils {
             @Context                                UriInfo uri)
     {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
-        ItemProxy item  = getProxy(uuid, cookie);
+        AgentProxy agent = getAgentProxy(uuid, cookie);
 
         descending = descending != null;
-
-        if (!(item instanceof AgentProxy)) {
-            throw new WebAppExceptionBuilder()
-                    .message("UUID does not belong to an Agent")
-                    .status(Response.Status.BAD_REQUEST)
-                    .newCookie(cookie)
-                    .build();
-        }
 
         if (batchSize == null) {
             batchSize = Gateway.getProperties().getInt("REST.Job.DefaultBatchSize",
@@ -76,29 +71,27 @@ public class AgentJobList extends ItemUtils {
         }
 
         // fetch this batch of events from the RemoteMap
-        LinkedHashMap<String, Object> batch;
+        JobList jobList;
         try {
-            batch = RemoteMapAccess.list(item, JOB, start, batchSize, descending, uri);
-        } catch (ClassCastException | ObjectNotFoundException e) {
+            jobList = agent.getJobList();
+        }
+        catch (ObjectNotFoundException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
 
         ArrayList<LinkedHashMap<String, Object>> jobs = new ArrayList<>();
 
         // replace Jobs with their JSON form. Leave any other object (like the nextBatch URI) as they are
-        for (String key : batch.keySet()) {
-            Object obj = batch.get(key);
-            if (obj instanceof Job) {
-                Job job = (Job) obj;
-                try {
-                    jobs.add(makeJobData(job, job.getItemProxy().getName(), uri));
-                }
-                catch (ObjectNotFoundException | InvalidItemPathException e) {
-                    throw new WebAppExceptionBuilder()
-                            .message( "Item " + job.getItemUUID() + " in Job not found" )
-                            .status( Response.Status.NOT_FOUND )
-                            .newCookie(cookie).build();
-                }
+        for (String key : jobList.keySet()) {
+            Job job = jobList.get(key);
+            try {
+                jobs.add(makeJobData(job, job.getItemProxy().getName(), uri));
+            }
+            catch (ObjectNotFoundException | InvalidItemPathException e) {
+                throw new WebAppExceptionBuilder()
+                    .message( "Item " + job.getItemUUID() + " in Job not found" )
+                    .status( Response.Status.NOT_FOUND )
+                    .newCookie(cookie).build();
             }
         }
 
@@ -115,18 +108,11 @@ public class AgentJobList extends ItemUtils {
             @Context                 UriInfo uri)
     {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
-        ItemProxy item = getProxy(uuid, cookie);
-
-        if (!(item instanceof AgentProxy)) {
-            throw new WebAppExceptionBuilder()
-                    .message( "UUID does not belong to an Agent")
-                    .status(Response.Status.BAD_REQUEST)
-                    .newCookie(cookie).build();
-        }
+        AgentProxy agent = getAgentProxy(uuid, cookie);
 
         try {
-            Job job = (Job) RemoteMapAccess.get(item, JOB, jobId);
-            return toJSON(makeJobData(job, item.getName(), uri), cookie).build();
+            Job job = (Job) agent.getJobList().get(jobId);
+            return toJSON(makeJobData(job, agent.getName(), uri), cookie).build();
         }
         catch ( ObjectNotFoundException | ClassCastException e ) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
@@ -142,16 +128,8 @@ public class AgentJobList extends ItemUtils {
             @Context                 UriInfo uri)
     {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
-        ItemProxy item  = getProxy(uuid, cookie);
+        AgentProxy agent = getAgentProxy(uuid, cookie);
 
-        if (!(item instanceof AgentProxy)) {
-            throw new WebAppExceptionBuilder()
-                    .message( "UUID does not belong to an Agent")
-                    .status( Response.Status.BAD_REQUEST )
-                    .newCookie(cookie).build();
-        }
-
-        AgentProxy agent = (AgentProxy) item;
         RolePath[] roles = Gateway.getLookup().getRoles(agent.getPath());
         LinkedHashMap<String, URI> roleData = new LinkedHashMap<String, URI>();
 

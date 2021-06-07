@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <cristalscript>
-  <param name='item' type='org.cristalise.kernel.entity.proxy.ItemProxy' />
-  <output name='TestAgentUseConstructorMap' type='java.util.Map' />
-  <script language='groovy' name='TestAgentUseConstructor_QueryList'><![CDATA[ import org.cristalise.kernel.entity.proxy.AgentProxy
+  <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
+  <output name="TestAgentUseConstructorMap" type="java.util.Map"/>
+  <script language="groovy" name="TestAgentUseConstructor_QueryList"><![CDATA[ import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.property.Property
@@ -21,7 +20,7 @@ import org.cristalise.kernel.property.Property
 def properties = [new Property('Type', 'TestAgentUseConstructor'), new Property('State', 'ACTIVE')]
 
 def result = Gateway.getLookup().search(new DomainPath(), properties, 0, 100)
-TestAgentUseConstructorMap = [];
+TestAgentUseConstructorMap = [:]
 
 for (DomainPath dp: result.rows) {
     TestAgentUseConstructorMap.put(dp.name, dp.itemPath.UUID)

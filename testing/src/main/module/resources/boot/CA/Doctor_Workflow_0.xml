@@ -1,0 +1,30 @@
+<CompositeActivityDef Height="0" ID="-1" IsComposite="true" IsLayoutable="false" Name="Doctor_Workflow" Width="0">
+  <childrenGraphModel>
+    <GraphModelCastorData NextId="1" StartVertexId="0">
+      <ActivitySlotDef Height="60" ID="0" IsComposite="false" IsLayoutable="true" Name="AddPatient" Width="130">
+        <CentrePoint x="100" y="50"/>
+        <OutlinePoint x="35" y="20"/>
+        <OutlinePoint x="165" y="20"/>
+        <OutlinePoint x="165" y="80"/>
+        <OutlinePoint x="35" y="80"/>
+        <Properties>
+          <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+          <KeyValuePair Key="Name" String="AddPatient" isAbstract="false"/>
+        </Properties>
+        <activityDef>Doctor_AddPatient</activityDef>
+      </ActivitySlotDef>
+    </GraphModelCastorData>
+  </childrenGraphModel>
+  <Properties>
+    <KeyValuePair Boolean="false" Key="Breakpoint" isAbstract="false"/>
+    <KeyValuePair Key="OutcomeInit" String="" isAbstract="false"/>
+    <KeyValuePair Key="StateMachineVersion" String="0" isAbstract="false"/>
+    <KeyValuePair Key="Description" String="" isAbstract="false"/>
+    <KeyValuePair Boolean="false" Key="Abortable" isAbstract="false"/>
+    <KeyValuePair Boolean="false" Key="RepeatWhen" isAbstract="false"/>
+    <KeyValuePair Key="Viewpoint" String="" isAbstract="false"/>
+    <KeyValuePair Key="Agent Name" String="" isAbstract="false"/>
+    <KeyValuePair Key="StateMachineName" String="CompositeActivity" isAbstract="false"/>
+    <KeyValuePair Key="Agent Role" String="" isAbstract="false"/>
+  </Properties>
+</CompositeActivityDef>

@@ -25,8 +25,6 @@ import groovy.transform.CompileStatic
 import org.cristalise.kernel.common.CannotManageException
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.common.ObjectNotFoundException
-import org.cristalise.kernel.entity.CorbaServer
-import org.cristalise.kernel.entity.agent.ActiveEntity
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.lifecycle.instance.Workflow
@@ -72,6 +70,6 @@ class AgentBuilder {
 
     public static AgentPath create(AgentPath builderAgent, ImportAgent newAgent) {
         assert builderAgent && newAgent
-        return (AgentPath)newAgent.create(builderAgent, true)
+        return (AgentPath)newAgent.create(builderAgent, true, null)
     }
 }

@@ -27,7 +27,6 @@ import java.util.Properties;
 
 import org.cristalise.kernel.process.resource.BadArgumentsException;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Logger;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,7 +44,6 @@ abstract public class AbstractMain {
     public static final String MAIN_ARG_LOGLEVEL       = "logLevel";
     public static final String MAIN_ARG_LOGFILE        = "logFile";
     public static final String MAIN_ARG_CONNECT        = "connect";
-    public static final String MAIN_ARG_RESETIOR       = "resetIOR";
     public static final String MAIN_ARG_SKIPBOOTSTRAP  = "skipBootstrap";
 
     /**
@@ -94,7 +92,7 @@ abstract public class AbstractMain {
             if (argProps.containsKey(MAIN_ARG_LOGLEVEL)) logLevel = Integer.parseInt(argProps.getProperty(MAIN_ARG_LOGLEVEL));
 
             //This is required until the Logger class is fully phased out
-            Logger.addLogStream(null, logLevel);
+            org.cristalise.kernel.utils.Logger.addLogStream(null, logLevel);
         }
 
         // Dump params if log high enough

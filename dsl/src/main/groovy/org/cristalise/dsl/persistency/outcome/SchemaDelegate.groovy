@@ -20,13 +20,15 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
-import org.apache.poi.xssf.usermodel.XSSFSheet
 import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.property.BuiltInItemProperties
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.property.PropertyUtility
+import org.cristalise.kernel.scripting.Script
 
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 
@@ -34,11 +36,34 @@ import groovy.xml.MarkupBuilder
 /**
  *
  */
-@Slf4j
+@Slf4j @CompileStatic
 class SchemaDelegate {
 
-    String xsdString
+    String  name
+    Integer version
 
+    String xsdString
+    
+    Map<String, Script> expressionScripts = [:]
+    Map<String, List<String>> expressionScriptsInputFields = [:]
+    
+    private updateScriptReferences(Struct s) {
+        if (!s || !s.fields) return
+
+        s.fields.each { name, f ->
+            if (f.expression) this.generateExpressionScript(s, f)
+        }
+
+        expressionScriptsInputFields.each { scriptName, inputFields ->
+            inputFields.each { fieldName ->
+                def inputField = s.fields[fieldName]
+                if (inputField.dynamicForms == null) inputField.dynamicForms = new DynamicForms()
+                inputField.dynamicForms.updateScriptRef = expressionScripts[scriptName]
+            }
+        }
+    }
+
+    @CompileDynamic
     public void processClosure(Closure cl) {
         assert cl, "Schema only works with a valid Closure"
 
@@ -49,14 +74,19 @@ class SchemaDelegate {
 
         cl.delegate = objBuilder
 
-        xsdString = buildXSD( cl() )
+        Struct s = cl()
+        updateScriptReferences(s)
+        xsdString = buildXSD(s)
     }
 
     public void processTabularData(TabularGroovyParser parser) {
         def tsb = new TabularSchemaBuilder()
-        xsdString = buildXSD(tsb.build(parser))
+        Struct s = tsb.build(parser)
+        updateScriptReferences(s)
+        xsdString = buildXSD(s)
     }
 
+    @CompileDynamic
     public String buildXSD(Struct s) {
         if(!s) throw new InvalidDataException("Schema cannot be built from empty declaration")
 
@@ -68,17 +98,17 @@ class SchemaDelegate {
 
         xsd.mkp.xmlDeclaration(version: "1.0", encoding: "utf-8")
 
-        xsd.'xs:schema'('xmlns:xs': 'http://www.w3.org/2001/XMLSchema') { 
-            buildStruct(xsd,s) 
+        xsd.'xs:schema'('xmlns:xs': 'http://www.w3.org/2001/XMLSchema') {
+            buildStruct(xsd, s) 
         }
 
         return writer.toString()
     }
 
+    @CompileDynamic
     private void buildStruct(MarkupBuilder xsd, Struct s) {
         log.info "buildStruct() - Struct: $s.name"
         xsd.'xs:element'(name: s.name, minOccurs: s.minOccurs, maxOccurs: s.maxOccurs) {
-
             if(s.documentation || s.dynamicForms) {
                 'xs:annotation' { 
                     if (s.documentation) {
@@ -87,9 +117,10 @@ class SchemaDelegate {
                     if (s.dynamicForms) {
                         'xs:appinfo' {
                             dynamicForms {
-                                if (s.dynamicForms.width)     width(     s.dynamicForms.width)
-                                if (s.dynamicForms.label)     label(     s.dynamicForms.label)
-                                if (s.dynamicForms.container) container( s.dynamicForms.container)
+                                if (s.dynamicForms.width)          width(    s.dynamicForms.width)
+                                if (s.dynamicForms.label)          label(    s.dynamicForms.label)
+                                if (s.dynamicForms.container)      container(s.dynamicForms.container)
+                                if (s.dynamicForms.hidden != null) hidden(   s.dynamicForms.hidden)
                             }
                         }
                     }
@@ -169,6 +200,7 @@ class SchemaDelegate {
         else                    return a.type
     }
 
+    @CompileDynamic
     private void buildAtribute(MarkupBuilder xsd, Attribute a) {
         log.info "buildAtribute() - attribute: $a.name"
 
@@ -181,6 +213,7 @@ class SchemaDelegate {
         }
     }
 
+    @CompileDynamic
     private void setAppinfoDynamicForms(xsd, Field f) {
         xsd.dynamicForms {
             if (f.dynamicForms.hidden   != null)             hidden(      f.dynamicForms.hidden)
@@ -232,6 +265,7 @@ class SchemaDelegate {
         }
     }
 
+    @CompileDynamic
     private void setAppinfoListOfValues(xsd, Field f) {
         xsd.listOfValues {
             if (f.listOfValues.scriptRef)       scriptRef(      f.listOfValues.getScriptRefString())
@@ -242,6 +276,7 @@ class SchemaDelegate {
         }
     }
 
+    @CompileDynamic
     private void setAppinfoReference(xsd, Field f) {
         xsd.reference {
             if (f.reference.itemType) {
@@ -263,7 +298,26 @@ class SchemaDelegate {
             }
         }
     }
-        
+
+    private void generateExpressionScript(Struct s, Field f) {
+        log.info('generateExpressionScript(struct:{}, field:{}) - script:{}', s.name, f.name, f.expression.name)
+
+        def script = new Script('groovy', f.expression.generateUpdateScript(s, f, name, version))
+        // this constructor adds a default output which is not needed
+        script.getOutputParams().clear()
+
+        script.name = f.expression.name ?: f.expression.generateName(name, f.name)
+        script.version = f.expression.version != null ? f.expression.version : version
+        script.addInputParam(name, 'org.json.JSONObject')
+        script.addInputParam('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+        script.addInputParam('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
+        script.addOutput(name+'Xml', 'java.lang.String')
+
+        expressionScripts[script.name] = script
+        expressionScriptsInputFields[script.name] = f.expression.inputFields
+    }
+
+    @CompileDynamic
     private void buildField(MarkupBuilder xsd, Field f) {
         log.info "buildField() - Field: $f.name"
 
@@ -317,12 +371,14 @@ class SchemaDelegate {
         }
     }
 
+    @CompileDynamic
     private void buildAnyField(MarkupBuilder xsd, AnyField any) {
         log.info "buildAnyField()"
 
         xsd.'xs:any'(minOccurs: any.minOccurs, maxOccurs: any.maxOccurs, processContents: any.processContents)
     }
 
+    @CompileDynamic
     private void buildRestriction(MarkupBuilder xsd, Attribute fieldOrAttr) {
         log.info "buildRestriction() - type:$fieldOrAttr.type"
 

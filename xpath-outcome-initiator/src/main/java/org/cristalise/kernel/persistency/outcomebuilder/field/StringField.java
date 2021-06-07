@@ -51,6 +51,8 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
+import lombok.Getter;
+
 /**
  * Superclass for the entry field for Field and AttributeList.
  */
@@ -71,6 +73,9 @@ public class StringField extends StructureWithAppInfo {
     String     container;
     String     control;
     String     labelGrid;
+
+    @Getter
+    Class<?> javaType = String.class;
 
     /**
      * Javascript regexp pattern to validate field value in DynamicForms. It is either provided in the AppInfo.pattern field 

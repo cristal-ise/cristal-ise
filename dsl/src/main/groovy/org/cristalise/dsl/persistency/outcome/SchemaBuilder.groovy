@@ -33,6 +33,7 @@ import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.ResourceImportHandler
+import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.utils.LocalObjectLoader
 
 import groovy.transform.CompileStatic
@@ -53,6 +54,7 @@ class SchemaBuilder {
     DomainPath domainPath = null
 
     Schema schema = null
+    Collection<Script> expressionScipts = []
 
     public SchemaBuilder() {}
 
@@ -97,10 +99,30 @@ class SchemaBuilder {
     }
     
     public SchemaBuilder generateSchema(Closure cl) {
-        def schemaD = new SchemaDelegate()
+        def schemaD = new SchemaDelegate(name: name, version: version)
         schemaD.processClosure(cl)
 
         log.debug "generated xsd:\n" + schemaD.xsdString
+
+        schema = new Schema(name, version, schemaD.xsdString)
+        String errors = schema.validate()
+        schema.namespace = module
+
+        if (errors) {
+            log.error "generateSchema() - xsd:\n{}", schemaD.xsdString
+            throw new InvalidDataException(errors)
+        }
+
+        if (schemaD.expressionScripts) {
+            expressionScipts = schemaD.expressionScripts.values()
+        }
+
+        return this
+    }
+
+    public SchemaBuilder generateSchema(TabularGroovyParser parser) {
+        def schemaD = new SchemaDelegate(name: name, version: version)
+        schemaD.processTabularData(parser)
 
         schema = new Schema(name, version, schemaD.xsdString)
         String errors = schema.validate()
@@ -110,19 +132,8 @@ class SchemaBuilder {
             throw new InvalidDataException(errors)
         }
 
-        return this
-    }
-
-    public SchemaBuilder generateSchema(TabularGroovyParser parser) {
-        def schemaD = new SchemaDelegate()
-        schemaD.processTabularData(parser)
-
-        schema = new Schema(name, version, schemaD.xsdString)
-        String errors = schema.validate()
-
-        if (errors) {
-            log.error "generateSchema() - xsd:\n{}", schemaD.xsdString
-            throw new InvalidDataException(errors)
+        if (schemaD.expressionScripts) {
+            expressionScipts = schemaD.expressionScripts.values()
         }
 
         return this
@@ -165,8 +176,8 @@ class SchemaBuilder {
      * @param cl
      * @return
      */
-    public static Schema build(String name, int version, Closure cl) {
-        return build('', name, version, cl).schema
+    public static SchemaBuilder build(String name, int version, Closure cl) {
+        return build('', name, version, cl)
     }
 
     /**
@@ -201,8 +212,8 @@ class SchemaBuilder {
      * @param file
      * @return
      */
-    public static Schema build(String name, int version, File file) {
-        return build('', name, version, file).schema
+    public static SchemaBuilder build(String name, int version, File file) {
+        return build('', name, version, file)
     }
 
     /**
@@ -237,6 +248,6 @@ class SchemaBuilder {
     public DomainPath create() {
         Schema schemaSchema = LocalObjectLoader.getSchema("Schema", 0)
         ResourceImportHandler importHandler = Gateway.getResourceImportHandler(SCHEMA_RESOURCE);
-        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, schema.schemaData, schemaSchema), false)
+        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, schema.schemaData, schemaSchema), false, null)
     }
 }

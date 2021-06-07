@@ -29,7 +29,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.auth.Authenticator;
-import org.cristalise.storage.jooqdb.JooqHandler;
+import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
 import org.cristalise.storage.jooqdb.lookup.JooqItemHandler;
 import org.jooq.DSLContext;
@@ -52,12 +52,12 @@ public class JooqAuthenticator implements Authenticator {
     @Override
     public boolean authenticate(String resource) throws InvalidDataException, ObjectNotFoundException {
         try {
-            context = JooqHandler.connect();
+            context = JooqDataSourceHandler.connect();
 
             items      = new JooqItemHandler();
             properties = new JooqItemPropertyHandler();
 
-            if (!JooqHandler.readOnlyDataSource) {
+            if (!JooqDataSourceHandler.readOnlyDataSource) {
                 items     .createTables(context);
                 properties.createTables(context);
             }

@@ -30,8 +30,13 @@ import org.cristalise.kernel.entity.imports.ImportRole
  */
 @CompileStatic
 class RoleDelegate {
+    String namespace
 
     ArrayList<ImportRole> roles = new ArrayList<ImportRole>()
+    
+    public RoleDelegate(String ns) {
+        namespace = ns
+    }
 
     public void processClosure(Closure cl) {
         cl.delegate = this
@@ -45,6 +50,7 @@ class RoleDelegate {
         if(!attrs.jobList) attrs.jobList = false
 
         def role = new ImportRole()
+        role.namespace = namespace
         role.name = attrs.name
         role.jobList = attrs.jobList
 

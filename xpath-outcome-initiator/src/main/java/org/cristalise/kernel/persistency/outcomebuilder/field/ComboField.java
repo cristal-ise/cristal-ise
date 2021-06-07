@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.AttributeDecl;
@@ -57,6 +58,7 @@ public class ComboField extends StringField {
         // if (lov == null && !multiple) throw new RuntimeException("");
 
         isMultiple = multiple;
+        javaType = OutcomeStructure.getJavaClass(type.getTypeCode());
     }
 
     @Override

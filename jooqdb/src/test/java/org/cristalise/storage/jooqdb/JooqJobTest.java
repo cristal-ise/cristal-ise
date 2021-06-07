@@ -22,6 +22,7 @@ package org.cristalise.storage.jooqdb;
 
 import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
 import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -83,9 +84,6 @@ public class JooqJobTest extends StorageTestBase {
         Assert.assertEquals(expected.getOriginStateName(), actual.getOriginStateName());
         Assert.assertEquals(expected.getTargetStateName(), actual.getTargetStateName());
 
-        if (expected.getDelegatePath() != null)
-            Assert.assertEquals(expected.getDelegatePath(), actual.getDelegatePath());
-
         compareTimestramps(actual.getCreationDate(), expected.getCreationDate());
     }
 
@@ -101,7 +99,6 @@ public class JooqJobTest extends StorageTestBase {
                 "targetStateName"+id,
                 "admin",
                 new AgentPath(itemUUID),
-                null,
                 actProps, 
                 DateUtility.getNow());
     }
@@ -150,6 +147,6 @@ public class JooqJobTest extends StorageTestBase {
 
         String[] keys = jooq.getNextPrimaryKeys(context, uuid);
 
-        Assert.assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("0", "1", "2", "3"));
+        assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("0", "1", "2", "3"));
     }
 }

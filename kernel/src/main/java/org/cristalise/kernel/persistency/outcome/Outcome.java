@@ -55,6 +55,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
@@ -91,11 +92,17 @@ public class Outcome implements C2KLocalObject {
 
     private static final int NONE = -1;
 
-    /** ID is the eventID created when the Outcome is stored in History */
+    /** ID is the eventID created when the Outcome is stored in History. Can be NONE = -1 */
     Integer mID;
 
-    /** The Schema object associated with the Outcome */
-    Schema mSchema;
+    /** The Schema object associated with the Outcome. Can be null. */
+    Schema mSchema = null;
+
+    /** The name or UUID of the Schema item associated with the Outcome. Can be null. */
+    String mSchemaName = null;
+
+    /** The version of the Schema item associated with the Outcome. Can be null. */
+    Integer mSchemaVersion;
 
     /** The parsed XML document */
     Document mDOM;
@@ -148,6 +155,20 @@ public class Outcome implements C2KLocalObject {
      */
     public Outcome(String xml, Schema schema) throws InvalidDataException {
         this(NONE, xml, schema);
+    }
+
+    public Outcome(int id, String xml, String schemaName, Integer schemaVersion) throws InvalidDataException {
+        this(id, (Document)null, null);
+        mSchemaName = schemaName;
+        mSchemaVersion = schemaVersion;
+
+        try {
+            mDOM = parse(xml);
+        }
+        catch (IOException | SAXException ex) {
+            log.error("INVALID XML - schema:"+(null == mSchema ? null : mSchema.getName())+"\n"+xml, ex);
+            throw new InvalidDataException("XML not valid for schema:"+mSchema+" error:"+ex.getMessage());
+        }
     }
 
     /**
@@ -214,6 +235,32 @@ public class Outcome implements C2KLocalObject {
     public Outcome(String path, Document data) throws PersistencyException, InvalidDataException {
         setMetaDataFromPath(path);
         mDOM = data;
+    }
+
+    /**
+     * Gets the Schema object associated with the Outcome
+     * @return the Schema object associated with the Outcome
+     */
+    public Schema getSchema() {
+        return getSchema(null);
+    }
+
+    /**
+     * Gets the Schema object associated with the Outcome
+     * 
+     * @param transactionKey the key of the transaction
+     * @return the Schema object associated with the Outcome
+     */
+    public Schema getSchema(TransactionKey transactionKey) {
+        if (mSchema == null) {
+            try {
+                mSchema = LocalObjectLoader.getSchema(mSchemaName, mSchemaVersion, transactionKey);
+            }
+            catch (ObjectNotFoundException | InvalidDataException e) {
+                log.debug("Cannot retrieve Schema object", e);
+            }
+        }
+        return mSchema;
     }
 
     /**
@@ -656,13 +703,23 @@ public class Outcome implements C2KLocalObject {
     }
 
     /**
-     * Returns the serialised DOM as a string
+     * Returns the serialised DOM as a string without pretty printing-
      *
      * @return the xml string
      */
     public String getData() {
+        return getData(false);
+    }
+
+    /**
+     * Returns the serialised DOM as a string -
+     *
+     * @param prettyPrint is the string should be pretty printed or not
+     * @return the xml string
+     */
+    public String getData(boolean prettyPrint) {
         try {
-            return serialize(mDOM, false);
+            return serialize(mDOM, prettyPrint);
         }
         catch (InvalidDataException e) {
            log.error("", e);
@@ -670,18 +727,42 @@ public class Outcome implements C2KLocalObject {
         }
     }
 
-    @Deprecated
-    public String getSchemaType() {
-        if (mSchema == null) throw new IllegalArgumentException("Outcome must have valid Schema");
+    /**
+     * Gets the name or UUID of the Schema item associated with the Outcome
+     * @return the name or UUID of the Schema item associated with the Outcome
+     */
+    public String getSchemaName() {
+        if (mSchema != null) {
+            return mSchema.getName();
+        }
+        else if (StringUtils.isNoneBlank(mSchemaName)) {
+            return mSchemaName;
+        }
 
-        return mSchema.getName();
+        throw new IllegalArgumentException("Outcome must have valid Schema");
     }
 
-    @Deprecated
-    public int getSchemaVersion() {
-        if (mSchema == null) throw new IllegalArgumentException("Outcome must have valid Schema");
+    /**
+     * @deprecated use {@link Outcome#getSchemaName()} instead
+     * @return
+     */
+    public String getSchemaType() {
+        return getSchemaName();
+    }
 
-        return mSchema.getVersion();
+    /**
+     * Gets the version of the Schema item associated with the Outcome
+     * @return the version of the Schema item associated with the Outcome
+     */
+    public int getSchemaVersion() {
+        if (mSchema != null) {
+            return mSchema.getVersion();
+        }
+        else if (mSchemaVersion != null) {
+            return mSchemaVersion;
+        }
+
+        throw new IllegalArgumentException("Outcome must have valid Schema");
     }
 
     /**
@@ -878,7 +959,8 @@ public class Outcome implements C2KLocalObject {
             return "";
         }
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-        transformer.setOutputProperty(OutputKeys.INDENT, prettyPrint?"yes":"no");
+        transformer.setOutputProperty(OutputKeys.INDENT, prettyPrint ? "yes" : "no");
+        if (prettyPrint) transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
         transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
 
         Writer out = new StringWriter();

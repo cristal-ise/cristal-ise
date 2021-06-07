@@ -20,11 +20,11 @@
  */
 package org.cristalise.restapi;
 
-import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.GET;
@@ -70,22 +70,19 @@ public class ItemHistory extends ItemUtils {
         }
 
         // fetch this batch of events from the RemoteMap
-        LinkedHashMap<String, Object> batch;
+        Map<Integer, Event> batch;
         try {
-            batch = RemoteMapAccess.list(item, HISTORY, start, batchSize, descending, uri);
+            batch = item.getHistory().list(start, batchSize, descending);
         } 
-        catch (ClassCastException | ObjectNotFoundException e) {
+        catch (ObjectNotFoundException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
 
         ArrayList<LinkedHashMap<String, Object>> events = new ArrayList<>();
 
         // replace Events with their JSON form. Leave any other object (like the nextBatch URI) as they are
-        for (String key : batch.keySet()) {
-            Object obj = batch.get(key);
-            if (obj instanceof Event) {
-                events.add(makeEventData((Event) obj, uri));
-            }
+        for (Integer key : batch.keySet()) {
+            events.add(makeEventData(batch.get(key), uri));
         }
 
         return toJSON(events, cookie).build();
@@ -104,8 +101,7 @@ public class ItemHistory extends ItemUtils {
         ItemProxy item = getProxy(uuid, cookie);
 
         try {
-            Event ev = (Event) RemoteMapAccess.get(item, HISTORY, eventId);
-
+            Event ev = item.getEvent(Integer.parseInt(eventId));
             return toJSON(makeEventData(ev, uri), cookie).build();
         }
         catch (ObjectNotFoundException e) {
@@ -123,8 +119,8 @@ public class ItemHistory extends ItemUtils {
      */
     private Response.ResponseBuilder getEventOutcome(ItemProxy item, String eventId, UriInfo uri, boolean json, NewCookie cookie) {
         try {
-            Event ev = (Event) RemoteMapAccess.get(item, HISTORY, eventId);
-    
+            Event ev = item.getEvent(Integer.valueOf(eventId));
+
             if (ev.getSchemaName() == null || ev.getSchemaName().equals("")) {
                 throw new ObjectNotFoundException( "This event has no data" );
             }

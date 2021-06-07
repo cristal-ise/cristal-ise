@@ -32,6 +32,7 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.graph.model.GraphModel;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.utils.CastorHashMap;
 
 /**
@@ -59,6 +60,8 @@ import org.cristalise.kernel.utils.CastorHashMap;
  * Collections are managed through predefined steps.
  */
 abstract public class Collection<E extends CollectionMember> implements C2KLocalObject {
+    public enum Type {Bidirectional, Unidirectional}
+    public enum Cardinality {OneToMany, ManyToOne, OneToOne, ManyToMany}
 
     private int                       mCounter = -1;   // Contains next available Member ID
     protected CollectionMemberList<E> mMembers = new CollectionMemberList<E>();
@@ -218,7 +221,7 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
      * @throws ObjectAlreadyExistsException
      *             some collections don't allow multiple slots assigned to the same Item, and throw this Exception if it is attempted
      */
-    public abstract E addMember(ItemPath itemPath, CastorHashMap props, String classProps)
+    public abstract E addMember(ItemPath itemPath, CastorHashMap props, String classProps, TransactionKey transactionKey)
             throws InvalidCollectionModification, ObjectAlreadyExistsException;
 
     /**

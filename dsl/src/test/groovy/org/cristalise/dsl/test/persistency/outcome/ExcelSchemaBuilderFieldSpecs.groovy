@@ -33,8 +33,8 @@ import spock.lang.Specification
  */
 class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def xlsxFile = 'src/test/data/ExcelSchemaBuilderField.xlsx'
 
@@ -226,6 +226,35 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                             </xs:element>
                         </xs:schema>""")
     }
+
+    def 'Values can be defined using excel formula'() {
+      expect:
+      SchemaTestBuilder.build('test', 'Formula', 0, xlsxFile)
+      .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+                       <xs:element name='Formula'>
+                         <xs:complexType>
+                           <xs:sequence>
+                             <xs:element minOccurs="1" maxOccurs="1" name="Gender">
+                               <xs:simpleType>
+                                 <xs:restriction base="xs:string">
+                                   <xs:enumeration value="male" />
+                                   <xs:enumeration value="female" />
+                                   <xs:enumeration value="she male" />
+                                 </xs:restriction>
+                               </xs:simpleType>
+                             </xs:element>
+                             <xs:element name='FakeGender' minOccurs='1' maxOccurs='1'>
+                               <xs:simpleType>
+                                 <xs:restriction base='xs:string'>
+                                   <xs:enumeration value='unit' />
+                                 </xs:restriction>
+                               </xs:simpleType>
+                             </xs:element>
+                           </xs:sequence>
+                         </xs:complexType>
+                       </xs:element>
+                     </xs:schema>""")
+  }
 
     def 'Field value can be restricted by reqex pattern'() {
         expect:
