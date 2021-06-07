@@ -26,7 +26,6 @@ import static javax.ws.rs.core.MediaType.TEXT_XML_TYPE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ATTACHMENT_MIME_TYPES;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
-import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
@@ -60,6 +59,7 @@ import org.cristalise.kernel.collection.CollectionDescription;
 import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.InvalidTransitionException;
@@ -72,6 +72,7 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
+import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -84,7 +85,6 @@ import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
@@ -147,14 +147,31 @@ public abstract class ItemUtils extends RestHandler {
         return props;
     }
 
-    //protected ItemProxy getProxy(String uuid) { return getProxy(uuid, null); }
-
     protected ItemProxy getProxy(String uuid, NewCookie cookie) {
         try {
             ItemPath itemPath = Gateway.getLookup().getItemPath(uuid);
-            return Gateway.getProxyManager().getProxy(itemPath);
+            return Gateway.getProxy(itemPath);
         }
         catch(InvalidItemPathException | ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+    }
+
+    protected AgentProxy getAgentProxy(String uuid, NewCookie cookie) {
+        try {
+            ItemPath itemPath = Gateway.getLookup().getItemPath(uuid);
+            return Gateway.getAgentProxy((AgentPath)itemPath);
+        }
+        catch(InvalidItemPathException | ObjectNotFoundException e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+    }
+
+    protected AgentProxy getAgentProxy(NewCookie cookie) {
+        try {
+            return Gateway.getAgentProxy(getAgentPath(cookie));
+        }
+        catch (ObjectNotFoundException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -176,7 +193,8 @@ public abstract class ItemUtils extends RestHandler {
 
         try {
             Outcome outcome = item.getOutcome(schema, version, eventId);
-            return getOutcomeResponse(outcome,(Event)RemoteMapAccess.get(item, HISTORY, Integer.toString(eventId)), json, cookie);
+            Event event = item.getEvent(eventId);
+            return getOutcomeResponse(outcome, event, json, cookie);
         }
         catch (ObjectNotFoundException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
@@ -553,8 +571,7 @@ public abstract class ItemUtils extends RestHandler {
      * @throws InvalidCollectionModification
      */
     protected String executePredefinedStep(ItemProxy item, String postData, String contentType, String actPath, AgentProxy agent)
-            throws ObjectNotFoundException, InvalidDataException, OutcomeBuilderException, AccessRightsException,
-            InvalidTransitionException, PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
+            throws IOException, CriseVertxException, OutcomeBuilderException
     {
         if ( ! actPath.startsWith(PREDEFINED_PATH) ) {
             throw new InvalidDataException("Predefined Step path should start with " + PREDEFINED_PATH);
@@ -599,19 +616,19 @@ public abstract class ItemUtils extends RestHandler {
     }
 
     protected String executeJob(ItemProxy item, String outcome, String outcomeType,  String actPath, String transition, AgentProxy agent)
-        throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
-            InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
+            throws IOException, CriseVertxException, OutcomeBuilderException
     {
         return executeJob(item, outcome, outcomeType, null, null, actPath, transition, agent);
     }
 
     /**
+     * @throws CriseVertxException 
+     * @throws OutcomeBuilderException 
      * 
      */
     protected String executeJob(ItemProxy item, String outcome, String outcomeType, InputStream attachment, String fileName, 
             String actPath, String transition, AgentProxy agent)
-        throws AccessRightsException, ObjectNotFoundException, PersistencyException, InvalidDataException, OutcomeBuilderException,
-            InvalidTransitionException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException, IOException
+        throws IOException, CriseVertxException, OutcomeBuilderException
     {
         Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
 

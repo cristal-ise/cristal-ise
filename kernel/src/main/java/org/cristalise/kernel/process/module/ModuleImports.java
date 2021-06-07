@@ -20,6 +20,13 @@
  */
 package org.cristalise.kernel.process.module;
 
+import static org.cristalise.kernel.process.resource.BuiltInResources.ACTIVITY_DESC_RESOURCE;
+import static org.cristalise.kernel.process.resource.BuiltInResources.AGENT_DESC_RESOURCE;
+import static org.cristalise.kernel.process.resource.BuiltInResources.ELEM_ACT_DESC_RESOURCE;
+import static org.cristalise.kernel.process.resource.BuiltInResources.COMP_ACT_DESC_RESOURCE;
+import static org.cristalise.kernel.process.resource.BuiltInResources.ITEM_DESC_RESOURCE;
+import static org.cristalise.kernel.process.resource.BuiltInResources.ROLE_DESC_RESOURCE;
+
 import java.util.ArrayList;
 
 import org.cristalise.kernel.common.InvalidDataException;
@@ -155,27 +162,39 @@ public class ModuleImports extends CastorArrayList<ModuleImport> {
      * @return the ModuleImport if found null otherwise
      */
     public ModuleImport findImport(String name, String typeCode) {
-        for (ModuleImport imp : list) {
-            String thisTypeCode = "";
+        BuiltInResources type = BuiltInResources.getValue(typeCode);
+
+        for (ModuleImport thisImport : list) {
+            BuiltInResources thisType = null;
             //ImportItem/ImportAgent/ImportRole does not have a getTypeCode()
-            if (imp instanceof ModuleResource) {
-                thisTypeCode = ((ModuleResource) imp).type.getTypeCode();
+            if (thisImport instanceof ModuleResource) {
+                thisType = ((ModuleResource) thisImport).type;
             }
-            else if(imp instanceof ImportAgent) {
-                thisTypeCode =  BuiltInResources.AGENT_DESC_RESOURCE.getTypeCode();
+            else if(thisImport instanceof ImportAgent) {
+                thisType =  AGENT_DESC_RESOURCE;
             }
-            else if(imp instanceof ImportItem) {
-                thisTypeCode =  BuiltInResources.ITEM_DESC_RESOURCE.getTypeCode();
+            else if(thisImport instanceof ImportItem) {
+                thisType =  ITEM_DESC_RESOURCE;
             }
-            else if(imp instanceof ImportRole) {
-                thisTypeCode =  BuiltInResources.ROLE_DESC_RESOURCE.getTypeCode();
+            else if(thisImport instanceof ImportRole) {
+                thisType =  ROLE_DESC_RESOURCE;
             }
             else {
                 // this case should never happen?!?!
-                log.warn("findImport() -  No typeCode is available for ModuleImport:{}", imp.getName());
+                log.warn("findImport() -  No typeCode is available for ModuleImport:{}", thisImport.getName());
             }
 
-            if (imp.getName().equals(name) && thisTypeCode.equals(typeCode)) return imp;
+            if (thisType != null && thisImport.getName().equals(name)) {
+                // AC is an abstract type, it can be either EA or CA
+                if (type == ACTIVITY_DESC_RESOURCE) {
+                    if (thisType == ELEM_ACT_DESC_RESOURCE || thisType == COMP_ACT_DESC_RESOURCE) {
+                        return thisImport;
+                    }
+                }
+                else if (type == thisType) {
+                    return thisImport;
+                }
+            }
         }
         return null;
     }

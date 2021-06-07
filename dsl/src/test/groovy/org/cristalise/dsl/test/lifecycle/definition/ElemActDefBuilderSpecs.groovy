@@ -33,8 +33,8 @@ class ElemActDefBuilderSpecs extends Specification implements CristalTestSetup {
     
     def defaultActProps = [StateMachineName: "Default", StateMachineVersion: "0", Breakpoint: false, Description: '', 'Agent Role': '', 'Agent Name': '', Viewpoint: '', OutcomeInit: '']
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def 'ElemActDef has a set of default Properties'() {
         when:

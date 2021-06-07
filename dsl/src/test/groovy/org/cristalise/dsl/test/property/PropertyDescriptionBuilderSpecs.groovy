@@ -33,8 +33,8 @@ import spock.lang.Specification
  */
 class PropertyDescriptionBuilderSpecs extends Specification implements CristalTestSetup {
     
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def 'PropertyDescription can be created specifying the name only, creates a mutable Property'() {
         when:

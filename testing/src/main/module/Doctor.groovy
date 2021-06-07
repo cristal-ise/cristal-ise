@@ -32,7 +32,9 @@ def doctorAddPatient = Activity("Doctor_AddPatient", 0) {
 }
 
 def doctorWf = Workflow(name: "Doctor_Workflow", version: 0, generate: true) {
-    ElemActDef('AddPatient', doctorAddPatient)
+    Layout {
+        Act('AddPatient', doctorAddPatient)
+    }
 }
 
 Item(name: 'DoctorFactory', version: 0, folder: '/integTest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {

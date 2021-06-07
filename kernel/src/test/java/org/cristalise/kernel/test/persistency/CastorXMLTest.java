@@ -26,7 +26,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MA
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
 import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
@@ -38,6 +38,7 @@ import java.util.UUID;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.agent.JobArrayList;
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportItem;
 import org.cristalise.kernel.entity.imports.ImportRole;
@@ -75,10 +76,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CastorXMLTest {
-
-    String ior = "IOR:005858580000001549444C3A69646C746573742F746573743A312E3000585858"+
-            "0000000100000000000000350001005800000006636F726261009B44000000214F52"+
-            "424C696E6B3A3A636F7262613A33393734383A3A736B656C65746F6E202330";
 
     @BeforeClass
     public static void setup() throws Exception {
@@ -178,11 +175,10 @@ public class CastorXMLTest {
     public void testCastorItemPath() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
 
-        ItemPath item      = new ItemPath(UUID.randomUUID(), ior);
+        ItemPath item      = new ItemPath(UUID.randomUUID());
         ItemPath itemPrime = (ItemPath) marshaller.unmarshall(marshaller.marshall(item));
 
         assertEquals( item.getUUID(),      itemPrime.getUUID());
-        assertEquals( item.getIORString(), itemPrime.getIORString());
 
         log.info(marshaller.marshall(itemPrime));
     }
@@ -191,11 +187,10 @@ public class CastorXMLTest {
     public void testCastorAgentPath() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
 
-        AgentPath agent      = new AgentPath(UUID.randomUUID(), ior, "toto");
+        AgentPath agent      = new AgentPath(UUID.randomUUID(), "toto");
         AgentPath agentPrime = (AgentPath) marshaller.unmarshall(marshaller.marshall(agent));
 
         assertEquals( agent.getUUID(),      agentPrime.getUUID());
-        assertEquals( agent.getIORString(), agentPrime.getIORString());
         assertEquals( agent.getAgentName(), agentPrime.getAgentName());
 
         log.info(marshaller.marshall(agentPrime));
@@ -254,7 +249,7 @@ public class CastorXMLTest {
             CastorHashMap actProps = new CastorHashMap();
             actProps.setBuiltInProperty(STATE_MACHINE_NAME, "Default");
             actProps.setBuiltInProperty(STATE_MACHINE_VERSION, 0);
-            Job j = new Job(-1, new ItemPath(), "TestStep", "workflow/1", "", t, "Waiting", "Finished", "Admin", new AgentPath(), null, actProps, new GTimeStamp());
+            Job j = new Job(-1, new ItemPath(), "TestStep", "workflow/1", "", t, "Waiting", "Finished", "Admin", new AgentPath(), actProps, new GTimeStamp());
 
             ErrorInfo ei = new ErrorInfo(j, ex);
             ErrorInfo eiPrime = (ErrorInfo) marshaller.unmarshall(marshaller.marshall(ei));
@@ -264,6 +259,30 @@ public class CastorXMLTest {
             Outcome errors = new Outcome("/Outcome/Errors/0/0", marshaller.marshall(ei));
             errors.validateAndCheck();
         }
+    }
+
+    @Test
+    public void testCastorJobArrayList() throws Exception {
+        CastorXMLUtility marshaller = Gateway.getMarshaller();
+
+        Transition t = new Transition(1, "Done", 0, 3);
+        CastorHashMap actProps = new CastorHashMap();
+        actProps.setBuiltInProperty(STATE_MACHINE_NAME, "Default");
+        actProps.setBuiltInProperty(STATE_MACHINE_VERSION, 0);
+
+        Job j1 = new Job(1, new ItemPath(), "TestStep", "workflow/1", "", t, "Waiting", "Finished", "Admin", new AgentPath(), actProps, new GTimeStamp());
+        Job j2 = new Job(2, new ItemPath(), "TestStep2", "workflow/2", "", t, "Waiting", "Finished", "Admin", new AgentPath(), actProps, new GTimeStamp());
+
+        JobArrayList jobs = new JobArrayList();
+        jobs.list.add(j1);
+        jobs.list.add(j2);
+
+        JobArrayList jobsPrime = (JobArrayList) marshaller.unmarshall(marshaller.marshall(jobs));
+
+        assertThat(jobs).isEqualToComparingFieldByField(jobsPrime);
+
+        Outcome jobsOutcome = new Outcome("/Outcome/JobArrayList/0/0", marshaller.marshall(jobs));
+        jobsOutcome.validateAndCheck();
     }
 
     @Test

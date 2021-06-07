@@ -84,9 +84,6 @@ public class JooqJobTest extends StorageTestBase {
         Assert.assertEquals(expected.getOriginStateName(), actual.getOriginStateName());
         Assert.assertEquals(expected.getTargetStateName(), actual.getTargetStateName());
 
-        if (expected.getDelegatePath() != null)
-            Assert.assertEquals(expected.getDelegatePath(), actual.getDelegatePath());
-
         compareTimestramps(actual.getCreationDate(), expected.getCreationDate());
     }
 
@@ -102,7 +99,6 @@ public class JooqJobTest extends StorageTestBase {
                 "targetStateName"+id,
                 "admin",
                 new AgentPath(itemUUID),
-                null,
                 actProps, 
                 DateUtility.getNow());
     }

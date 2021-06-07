@@ -21,8 +21,9 @@
 package org.cristalise.kernel.entity.agent;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NAME;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DELEGATE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.OUTCOME_INIT;
+import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+import static org.cristalise.kernel.property.PropertyUtility.getPropertyValue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,7 +42,6 @@ import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
@@ -78,13 +78,11 @@ public class Job implements C2KLocalObject {
     private String         targetStateName;
     private String         agentRole;
     private AgentPath      agentPath;
-    private AgentPath      delegatePath;
     private CastorHashMap  actProps = new CastorHashMap();
     private GTimeStamp     creationDate;
 
     // Non-persistent fields
     private ErrorInfo  error;
-    private ItemProxy  item = null;
     private boolean    transitionResolved = false;
 
     private Outcome           outcome = null;
@@ -99,6 +97,7 @@ public class Job implements C2KLocalObject {
      * Empty constructor required for Castor
      */
     public Job() {
+        id = -1;
         setCreationDate(DateUtility.getNow());
         setActProps(new CastorHashMap());
     }
@@ -106,10 +105,10 @@ public class Job implements C2KLocalObject {
     /**
      * Main constructor to create Job during workflow enactment
      */
-    public Job(Activity act, ItemPath itemPath, Transition transition, AgentPath agent, AgentPath delegate, String role)
-            throws InvalidDataException, ObjectNotFoundException, InvalidAgentPathException
+    public Job(Activity act, ItemPath itemPath, Transition transition, AgentPath agent, String role)
+            throws InvalidDataException, ObjectNotFoundException
     {
-        setCreationDate(DateUtility.getNow());
+        this();
         setItemPath(itemPath);
         setStepPath(act.getPath());
         setTransition(transition);
@@ -130,9 +129,9 @@ public class Job implements C2KLocalObject {
      */
     public Job(int id, ItemPath itemPath, String stepName, String stepPath, String stepType, 
             Transition transition, String originStateName, String targetStateName, 
-            String agentRole, AgentPath agentPath, AgentPath delegatePath, CastorHashMap actProps, GTimeStamp creationDate)
+            String agentRole, AgentPath agentPath, CastorHashMap actProps, GTimeStamp creationDate)
     {
-        super();
+        this();
         setId(id);
         setItemPath(itemPath);
         setStepName(stepName);
@@ -143,14 +142,12 @@ public class Job implements C2KLocalObject {
         setTargetStateName(targetStateName);
         setAgentRole(agentRole);
         setAgentPath(agentPath);
-        setDelegatePath(delegatePath);
         setActProps(actProps);
         setCreationDate(creationDate);
     }
 
     public void setItemPath(ItemPath path) {
         itemPath = path;
-        item = null;
     }
 
     public void setItemUUID( String uuid ) throws InvalidItemPathException {
@@ -166,12 +163,12 @@ public class Job implements C2KLocalObject {
             return getItemProxy();
         }
         catch (InvalidItemPathException | ObjectNotFoundException e) {
-            throw new InvalidDataException(e.getMessage());
+            throw new InvalidDataException(e);
         }
     }
 
     public Transition getTransition() {
-        if (transition != null && transitionResolved == false) {
+        if (transition != null && transitionResolved == false && actProps.size() != 0) {
             log.debug("getTransition() - retrieving state machine for actProps:{}", actProps);
             try {
                 StateMachine sm = LocalObjectLoader.getStateMachine(actProps);
@@ -195,35 +192,21 @@ public class Job implements C2KLocalObject {
      * Used by castor to unmarshall from XML
      * 
      * @param uuid the string representation of UUID
-     * @throws InvalidItemPathException Cannot set UUID of agent and delegate from parameter
+     * @throws InvalidItemPathException Cannot set UUID of agent
+     * @throws InvalidAgentPathException 
      */
-    public void setAgentUUID( String uuid ) throws InvalidItemPathException {
-        if (StringUtils.isBlank(uuid)) { 
-            agentPath = null; 
-            delegatePath = null;
-        }
-        else if (uuid.contains(":")) {
-            String[] agentStr = uuid.split(":");
-
-            if (agentStr.length!=2) throw new InvalidItemPathException("Cannot set UUID of agent and delegate from string:"+uuid);
-
-            setAgentPath(    new AgentPath(agentStr[0]) );
-            setDelegatePath( new AgentPath(agentStr[1]) );
-        }
-        else
-            setAgentPath(new AgentPath(uuid));
+    public void setAgentUUID(String uuid) throws InvalidItemPathException {
+        if (StringUtils.isBlank(uuid)) agentPath = null; 
+        else                           setAgentPath(new AgentPath(uuid));
     }
 
     /**
     * Used by castor to marshall to XML
-     * @return The stringified UUID of Agent concatenated with ':' and UUID of Delegate if exists
+     * @return The stringified UUID of Agent
      */
     public String getAgentUUID() {
-        if (agentPath != null) {
-            if (delegatePath != null) return getAgentPath().getUUID().toString()+":"+getDelegatePath().getUUID().toString();
-            else                      return getAgentPath().getUUID().toString();
-        }
-        return null;
+        if (agentPath != null) return getAgentPath().getUUID().toString();
+        else                   return null;
     }
 
     public String getAgentName() {
@@ -233,15 +216,6 @@ public class Job implements C2KLocalObject {
         if (agentName == null) agentName = (String) actProps.getBuiltInProperty(AGENT_NAME);
 
         return agentName;
-    }
-
-    public String getDelegateName() {
-        String delegateName = null;
-
-        if (delegatePath != null) delegateName = delegatePath.getAgentName();
-        if (delegateName == null) delegateName = (String) actProps.getBuiltInProperty(DELEGATE_NAME);
-
-        return delegateName;
     }
 
     public Schema getSchema() throws InvalidDataException, ObjectNotFoundException {
@@ -327,8 +301,7 @@ public class Job implements C2KLocalObject {
     }
 
     public ItemProxy getItemProxy() throws ObjectNotFoundException, InvalidItemPathException {
-        if (item == null) item = Gateway.getProxyManager().getProxy(itemPath, null);
-        return item;
+        return Gateway.getProxy(itemPath, null);
     }
 
     public String getDescription() {
@@ -382,11 +355,11 @@ public class Job implements C2KLocalObject {
      */
     public Outcome getLastOutcome() throws InvalidDataException, ObjectNotFoundException {
         try {
-            return item.getViewpoint(getSchema().getName(), getValidViewpointName()).getOutcome();
+            return getItemProxy().getViewpoint(getSchema().getName(), getValidViewpointName()).getOutcome();
         }
-        catch (PersistencyException e) {
+        catch (PersistencyException | InvalidItemPathException e) {
             log.error("Error loading viewpoint", e);
-            throw new InvalidDataException("Error loading viewpoint:"+e.getMessage()); 
+            throw new InvalidDataException("Error loading viewpoint:"+e.getMessage(), e); 
         }
     }
 
@@ -633,7 +606,7 @@ public class Job implements C2KLocalObject {
         }
 
         if(result.size() == 0) {
-            log.info("Job.matchActPropNames() - NO properties were found for propName.startsWith(pattern:'{}')", pattern);
+            log.info("matchActPropNames() - NO properties were found for propName.startsWith(pattern:'{}')", pattern);
             log.trace("matchActPropNames() - actProps:", actProps);
         }
 
@@ -642,11 +615,14 @@ public class Job implements C2KLocalObject {
 
     @Override
     public String toString() {
-        String agent = agentPath.toString();
         //enable to use toString even if Lookup is not configured in Gateway
-        if (Gateway.getLookup() != null) {
-            agent = agentPath.getAgentName();
-        }
-        return "[item:"+itemPath+" step:"+stepName+" trans:"+getTransition()+" agent:"+agent+"]";
+        String agent = agentPath.toString();
+        if (Gateway.getLookup() != null) agent = agentPath.getAgentName();
+
+        //enable to use toString even if ClusterStorage is not configured in Gateway
+        String item = itemPath.toString();
+        if (Gateway.getStorage() != null) item = getPropertyValue(itemPath, NAME, item, null);
+
+        return "[id:"+id+" item:"+item+" step:"+stepName+" trans:"+getTransition()+" agent:"+agent+"]";
     }
 }

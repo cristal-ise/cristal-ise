@@ -39,7 +39,6 @@ import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.graph.model.TypeNameAndConstructionInfo;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
@@ -117,7 +116,7 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
         return mEdgeTypeNameAndConstructionInfo;
     }
 
-    public String requestAction(AgentPath agent, AgentPath delegator, String stepPath, ItemPath itemPath, int transitionID, String requestData, String attachmentType, byte[] attachment, TransactionKey transactionKey)
+    public String requestAction(AgentPath agent, String stepPath, ItemPath itemPath, int transitionID, String requestData, String attachmentType, byte[] attachment, TransactionKey transactionKey)
             throws ObjectNotFoundException, AccessRightsException, InvalidTransitionException, InvalidDataException,
                    ObjectAlreadyExistsException, PersistencyException, ObjectCannotBeUpdated, CannotManageException,
                    InvalidCollectionModification
@@ -125,7 +124,7 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
         log.info("requestAction() - transition:" + transitionID + " step:" + stepPath + " agent:" + agent);
         GraphableVertex vert = search(stepPath);
         if (vert != null && vert instanceof Activity)
-            return ((Activity) vert).request(agent, delegator, itemPath, transitionID, requestData, attachmentType, attachment, transactionKey);
+            return ((Activity) vert).request(agent, itemPath, transitionID, requestData, attachmentType, attachment, transactionKey);
         else
             throw new ObjectNotFoundException(stepPath + " not found");
     }
@@ -208,7 +207,7 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
      * if type = 0 only domain steps will be queried if type = 1 only predefined steps will be queried else both will be queried
      */
     public ArrayList<Job> calculateJobs(AgentPath agent, ItemPath itemPath, int type)
-            throws InvalidAgentPathException, ObjectNotFoundException, InvalidDataException {
+            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException {
         ArrayList<Job> jobs = new ArrayList<Job>();
         if (type != 1)
             jobs.addAll(((CompositeActivity) search("workflow/domain")).calculateJobs(agent, itemPath, true));

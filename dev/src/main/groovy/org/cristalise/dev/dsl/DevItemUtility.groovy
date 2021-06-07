@@ -23,7 +23,6 @@ package org.cristalise.dev.dsl
 import static org.cristalise.kernel.collection.BuiltInCollections.*
 import static org.cristalise.kernel.process.resource.BuiltInResources.*
 
-import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.entity.agent.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
@@ -47,7 +46,7 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class DevItemUtility {
 
-    AgentProxy agent = null
+    static AgentProxy agent = null
 
     public String elemActDefFactoryName   = "/domain/desc/dev/ElementaryActivityDefFactory"
     public String compActDefFactoryName   = "/domain/desc/dev/CompositeActivityDefFactory"
@@ -69,7 +68,7 @@ class DevItemUtility {
      * @param expectedJobs
      */
     public static void checkJobs(ItemProxy item, AgentPath agent, List<Map<String, Object>> expectedJobs) {
-        def jobs = item.getJobList(agent)
+        def jobs = item.getJobs(agent)
 
         assert jobs.size() == expectedJobs.size()
 
@@ -113,8 +112,13 @@ class DevItemUtility {
      */
     public Job executeDoneJob(ItemProxy proxy, String actName, String outcomeXML) {
         def job = getDoneJob(proxy, actName)
-        job.setOutcome(outcomeXML)
-        agent.execute(job)
+
+        if (outcomeXML)            job.outcome = outcomeXML
+        else if (job.hasOutcome()) job.outcome = job.getOutcome() //this calls outcome initiator if defined
+
+        String resultOutcome = agent.execute(job)
+        if (job.hasOutcome()) assert resultOutcome
+
         return job
     }
 
@@ -127,10 +131,12 @@ class DevItemUtility {
     public Job executeDoneJob(ItemProxy proxy, String actName, Outcome outcome = null) {
         def job = getDoneJob(proxy, actName)
 
-        if(outcome)               job.outcome = outcome
-        else if(job.hasOutcome()) job.outcome = job.getOutcome() //this calls outcome initiator if defined
+        if (outcome)               job.outcome = outcome
+        else if (job.hasOutcome()) job.outcome = job.getOutcome() //this calls outcome initiator if defined
 
-        agent.execute(job)
+        String resultOutcome = agent.execute(job)
+        if (job.hasOutcome()) assert resultOutcome
+
         return job
     }
 

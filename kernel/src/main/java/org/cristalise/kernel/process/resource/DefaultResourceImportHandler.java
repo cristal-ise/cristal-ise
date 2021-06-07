@@ -282,7 +282,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             throws Exception
     {
         LookupManager lookupManager = Gateway.getLookupManager();
-        ItemProxy thisProxy = Gateway.getProxyManager().getProxy(path, transactionKey);
+        ItemProxy thisProxy = Gateway.getProxy(path, transactionKey);
 
         if (itemPath != null && !path.getItemPath().equals(itemPath)) {
             String error = "Resource "+type+"/"+itemName+" should have path "+itemPath+" but was found with path "+path.getItemPath();
@@ -380,7 +380,6 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
             // FIXME check if this could be a real error
         }
 
-        Gateway.getCorbaServer().createItem(itemPath, transactionKey);
         lookupManager.add(itemPath, transactionKey);
 
         CreateItemFromDescription.storeItem((AgentPath)SYSTEM_AGENT.getPath(transactionKey), itemPath, props, null, ca, null, null, transactionKey);
@@ -389,7 +388,7 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
         newDomPath.setItemPath(itemPath);
         lookupManager.add(newDomPath, transactionKey);
 
-        return Gateway.getProxyManager().getProxy(itemPath, transactionKey);
+        return Gateway.getProxy(itemPath, transactionKey);
     }
 
     /**

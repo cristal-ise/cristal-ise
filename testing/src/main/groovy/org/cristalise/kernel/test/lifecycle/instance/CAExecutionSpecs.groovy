@@ -18,16 +18,19 @@ import spock.lang.Specification
 
 class CAExecutionSpecs extends Specification implements CristalTestSetup {
 
-    WorkflowTestBuilder util
+    static WorkflowTestBuilder util
 
-    def setup() {
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, null, true)
+    def setupSpec() {
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true)
 
         util = new WorkflowTestBuilder()
     }
 
     def cleanup() {
         println Gateway.getMarshaller().marshall(util.wf)
+    }
+
+    def cleanupSpec() {
         cristalCleanup()
     }
 

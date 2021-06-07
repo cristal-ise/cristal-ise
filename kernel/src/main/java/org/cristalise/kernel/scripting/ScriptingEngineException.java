@@ -30,6 +30,7 @@ public class ScriptingEngineException extends java.lang.Exception {
      * Creates new <code>sciptingEngineException</code> without detail message.
      */
     public ScriptingEngineException() {
+        super();
     }
 
     /**

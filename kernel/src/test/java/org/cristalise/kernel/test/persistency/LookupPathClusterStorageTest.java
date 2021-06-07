@@ -31,18 +31,15 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.storage.MemoryOnlyClusterStorage;
 import org.junit.Before;
 import org.junit.Test;
 
 public class LookupPathClusterStorageTest {
 
-    String ior = "IOR:005858580000001549444C3A69646C746573742F746573743A312E3000585858"+
-                 "0000000100000000000000350001005800000006636F726261009B44000000214F52"+
-                 "424C696E6B3A3A636F7262613A33393734383A3A736B656C65746F6E202330";
-
     ItemPath storingItem = new ItemPath();
-    MemoryOnlyClusterStorage inMemoryCluster = new MemoryOnlyClusterStorage();
+    ClusterStorage inMemoryCluster = new MemoryOnlyClusterStorage();
 
     @Before
     public void setup() throws Exception {
@@ -51,7 +48,7 @@ public class LookupPathClusterStorageTest {
 
     @Test
     public void storeItemPath() throws Exception {
-        ItemPath item = new ItemPath(UUID.randomUUID(), ior);
+        ItemPath item = new ItemPath(UUID.randomUUID());
 
         inMemoryCluster.put(storingItem, item, null);
 
@@ -59,12 +56,11 @@ public class LookupPathClusterStorageTest {
 
         assertNotNull(itemPrime);
         assertEquals(item.getUUID(),      itemPrime.getUUID());
-        assertEquals(item.getIORString(), itemPrime.getIORString());
     }
 
     @Test
     public void storeAgentPath() throws Exception {
-        AgentPath agent = new AgentPath(UUID.randomUUID(), ior, "toto");
+        AgentPath agent = new AgentPath(UUID.randomUUID(), "toto");
 
         inMemoryCluster.put(storingItem, agent, null);
 
@@ -72,7 +68,6 @@ public class LookupPathClusterStorageTest {
 
         assertNotNull(agentPrime);
         assertEquals(agent.getUUID(),      agentPrime.getUUID());
-        assertEquals(agent.getIORString(), agentPrime.getIORString());
         assertEquals(agent.getAgentName(), agentPrime.getAgentName());
     }
 

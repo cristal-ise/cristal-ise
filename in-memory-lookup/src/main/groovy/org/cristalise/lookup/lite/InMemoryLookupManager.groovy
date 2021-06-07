@@ -159,11 +159,6 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
     }
 
     @Override
-    public void setIOR(ItemPath item, String ior, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated {
-        ((ItemPath)retrievePath(item.stringPath)).setIORString(ior)
-    }
-    
-    @Override
     public void setPermission(RolePath role, String permission, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         setPermissions(role, [permission], transactionKey)
     }

@@ -78,7 +78,7 @@ public class CollectionMemberPropertyPanel extends JPanel implements ActionListe
 		try {
 			ItemPath path = cm.getItemPath();
 			if (path == null) newMemberName = "No member";
-			else newMemberName = Gateway.getProxyManager().getProxy(path).getProperty("Name");
+			else newMemberName = Gateway.getProxy(path).getProperty("Name");
 		} catch (ObjectNotFoundException e) {
 			newMemberName = "Item or Item name property not found";
 		}

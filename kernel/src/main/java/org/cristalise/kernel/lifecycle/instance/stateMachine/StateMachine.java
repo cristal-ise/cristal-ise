@@ -302,7 +302,9 @@ public class StateMachine implements DescriptionObject {
             transition.getPerformingRole(act, agent);
             return transition.targetState;
         }
-        else throw new InvalidTransitionException("Transition '" + transition + "' not valid from state '" + currentState.getName() + "'");
+        else {
+            throw new InvalidTransitionException("Transition "+transition+" not valid from state "+currentState);
+        }
     }
 
     public boolean isCoherent() {

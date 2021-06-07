@@ -19,3 +19,5 @@ JOOQ.supportJdbcXmlType = false
 SimpleType.DefaultValues = 12:string
 
 Resource.moduleUseFileNameWithVersion = dev,integTest
+
+//Gateway.clusteredVertx = false

@@ -25,36 +25,20 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.Gateway;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Extends Path to enforce SystemKey structure and support UUID form
  */
-@Slf4j
 public class ItemPath extends Path {
-
-    protected String mIOR;
 
     public ItemPath() {
         setSysKey(UUID.randomUUID());
     }
 
-    public ItemPath(UUID uuid, String ior) {
-        setSysKey(uuid);
-        setIORString(ior);
-    }
-
     public ItemPath(UUID uuid) {
         setSysKey(uuid);
-    }
-
-    public ItemPath(SystemKey syskey) {
-        setSysKey(syskey);
     }
 
     public ItemPath(String[] path) throws InvalidItemPathException {
@@ -111,35 +95,6 @@ public class ItemPath extends Path {
         return this;
     }
 
-    @Override
-    public org.omg.CORBA.Object getIOR(TransactionKey transactionKey) {
-        if (mIOR == null) {
-            try {
-                mIOR = Gateway.getLookup().getIOR(this, transactionKey);
-            }
-            catch (ObjectNotFoundException ex) {
-                log.warn(ex.getMessage());
-                return null;
-            }
-        }
-
-        if (mIOR == null) return null;
-        else              return Gateway.getORB().string_to_object(mIOR);
-    }
-
-    @Override
-    public void setIOR(org.omg.CORBA.Object IOR) {
-        mIOR = Gateway.getORB().object_to_string(IOR);
-    }
-
-    public String getIORString() {
-        return mIOR;
-    }
-
-    public void setIORString(String ior) {
-        mIOR = ior;
-    }
-
     public byte[] getOID() {
         UUID uuid = getUUID();
 
@@ -154,19 +109,9 @@ public class ItemPath extends Path {
         setPathFromUUID(uuid);
     }
 
-    protected void setSysKey(SystemKey sysKey) {
-        setPathFromUUID(new UUID(sysKey.msb, sysKey.lsb));
-    }
-
     private void setPathFromUUID(UUID uuid) {
         mPath = new String[1];
         mPath[0] = uuid.toString();
-    }
-
-    @Override
-    public SystemKey getSystemKey() {
-        UUID uuid = getUUID();
-        return new SystemKey(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
     }
 
     @Override

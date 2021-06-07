@@ -13,16 +13,19 @@ import spock.lang.Specification
 
 class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
 
-    WorkflowTestBuilder wfBuilder
+    static WorkflowTestBuilder wfBuilder
 
-    def setup() {
+    def setupSpec() {
         //skips boostrap!!!
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, null, true)
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true)
         wfBuilder = new WorkflowTestBuilder()
     }
 
     def cleanup() {
         println Gateway.getMarshaller().marshall(wfBuilder.wf)
+    }
+    
+    def cleanupSpec() {
         cristalCleanup()
     }
 

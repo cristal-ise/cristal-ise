@@ -588,7 +588,7 @@ public class Dependency extends Collection<DependencyMember> {
             script.setInputParamValue("dependency", this);
 
             script.setInputParamValue("storage", Gateway.getStorage());
-            script.setInputParamValue("proxy", Gateway.getProxyManager());
+//            script.setInputParamValue("proxy", Gateway.getProxyManager());
             script.setInputParamValue("lookup", Gateway.getLookup());
 
             return script.evaluate(null, getProperties(), null, null);

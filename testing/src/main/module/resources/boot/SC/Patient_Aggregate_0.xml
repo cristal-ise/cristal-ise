@@ -29,7 +29,7 @@ else {
 def writer = new StringWriter()
 def xml    = new MarkupBuilder(writer)
 
-xml.AggregatedPatientData(InsuranceNumber: patientDetails.getAttribute("InsuranceNumber")) {
+xml.Patient(InsuranceNumber: patientDetails.getAttribute("InsuranceNumber")) {
     DateOfBirth(  patientDetails.getField("DateOfBirth") )
     Gender(       patientDetails.getField("Gender")      )
     Weight(       patientDetails.getField("Weight")      )
@@ -39,13 +39,11 @@ xml.AggregatedPatientData(InsuranceNumber: patientDetails.getAttribute("Insuranc
 
 if (binding.hasVariable('job')) {
     job.setOutcome(writer.toString())
+    log.debug('item:{} job outcome was set:{}', item, writer)
 }
 else {
-    def milisec = new Random().nextInt(6) * 100
-    log.info('item:{} sleeping:{} ms', item, milisec)
-    Thread.sleep(new Random().nextInt(6)*100)
     PatientXML = writer.toString()
-    log.info('item:{} returning', item)
+    log.debug('item:{} returning:{}', item, PatientXML)
 }
  ]]></script>
 </cristalscript>

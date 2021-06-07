@@ -33,8 +33,8 @@ import spock.lang.Specification
  */
 class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
 
     def 'Field can specify the item type it references using String'() {

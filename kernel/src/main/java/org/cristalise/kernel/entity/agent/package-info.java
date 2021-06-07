@@ -22,6 +22,13 @@
 /**
  * The implementation of Agents, and their Jobs.
  * 
+ * <p>The Agent is an extension of the Item that can execute Jobs, and in doing so
+ * change the state of Item workflows, submit data to them in the form of Outcomes
+ * and run any scripts associated with those activities. In this server object,
+ * none of this specific Agent work is performed - it all must be done using the
+ * client API. The server implementation only manages the Agent's data: its roles
+ * and persistent Jobs.
+ * 
  * <p>This package contains the classes for the implementation of
  * Agents on the CRISTAL server. They correspond to the Item implementations in
  * the parent package.

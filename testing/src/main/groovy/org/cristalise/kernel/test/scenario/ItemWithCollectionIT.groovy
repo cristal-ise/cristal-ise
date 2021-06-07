@@ -27,10 +27,9 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
 
     @Before
     public void before() {
-        super.before();
-
         serverItem = agent.getItem("/domain/servers/localhost")
         assert serverItem && serverItem.getName() == "localhost"
+        timeStamp = getNowString()
     }
 
     /**

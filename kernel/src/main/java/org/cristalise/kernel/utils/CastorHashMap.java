@@ -33,12 +33,9 @@ import org.cristalise.kernel.lifecycle.routingHelpers.DataHelperUtility;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * This subclass of HashMap can be marshalled and unmarshalled with Castor
  */
-@Slf4j
 public class CastorHashMap extends HashMap<String, Object> {
 
     private static final long serialVersionUID = -8756025533843275162L;
@@ -156,23 +153,6 @@ public class CastorHashMap extends HashMap<String, Object> {
         //FIXME: optimise code, this solution traverses twice the newProps
         for (KeyValuePair kvPair : newProps.getKeyValuePairs()) {
             setKeyValuePair(kvPair);
-        }
-    }
-    
-    /**
-     * @deprecated HashMap can be printed or use StringUtils.join()
-     * @param logLevel
-     */
-    @Deprecated
-    public void dump(int logLevel) {
-        if(log.isDebugEnabled()) {
-            StringBuffer sb = new StringBuffer();
-
-            sb.append("{ ");
-            for(Entry<String, Object> e : entrySet())  sb.append(e.getKey() + ":'" + e.getValue()+"',");
-            sb.append("}");
-
-            log.debug("CastorHashMap : {}", sb);
         }
     }
 }

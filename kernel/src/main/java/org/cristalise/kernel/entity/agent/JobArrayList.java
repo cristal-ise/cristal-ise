@@ -20,23 +20,20 @@
  */
 package org.cristalise.kernel.entity.agent;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.cristalise.kernel.utils.CastorArrayList;
 
+/**
+ * Wrapper class for caster marshaller to work (very likely not a problem anymore)
+ */
+public class JobArrayList extends CastorArrayList<Job> {
 
-public class JobArrayList extends CastorArrayList<Job>
-{
-
-    public JobArrayList()
-    {
+    public JobArrayList() {
         super();
     }
 
-    public JobArrayList(ArrayList<Job> aList)
-    {
+    public JobArrayList(List<Job> aList) {
         super(aList);
     }
-
-
 }
