@@ -84,7 +84,7 @@ public class Import extends PredefinedStep {
 
         ClusterStorageManager storage = Gateway.getStorage();
         History hist = getWf().getHistory();
-        Event event = hist.addEvent(agent, null, getCurrentAgentRole(), getName(), getPath(), getType(), schema,
+        Event event = hist.addEvent(agent, getCurrentAgentRole(), getName(), getPath(), getType(), schema,
                 getStateMachine(), transitionID, viewpoint, timestamp);
 
         try {

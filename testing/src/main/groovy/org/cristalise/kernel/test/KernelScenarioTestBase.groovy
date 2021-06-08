@@ -1,24 +1,13 @@
 package org.cristalise.kernel.test;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION
-
 import java.time.LocalDateTime
 
 import org.cristalise.dev.dsl.DevItemDSL
-import org.cristalise.dev.dsl.DevXMLUtility
-import org.cristalise.kernel.collection.BuiltInCollections
-import org.cristalise.kernel.collection.DependencyMember
-import org.cristalise.kernel.common.ObjectNotFoundException
-import org.cristalise.kernel.entity.proxy.ItemProxy
-import org.cristalise.kernel.lifecycle.instance.predefined.Erase
-import org.cristalise.kernel.persistency.ClusterType
-import org.cristalise.kernel.persistency.outcome.Outcome
-import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
-import org.cristalise.kernel.utils.LocalObjectLoader
 import org.junit.After
-import org.junit.Before
+import org.junit.AfterClass
+import org.junit.BeforeClass
 import org.mvel2.templates.CompiledTemplate
 import org.mvel2.templates.TemplateCompiler
 import org.mvel2.templates.TemplateRuntime
@@ -33,7 +22,7 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class KernelScenarioTestBase extends DevItemDSL {
 
-    String timeStamp = null
+    static String timeStamp = null
     String folder = "integTest"
 
     private static Map<String, CompiledTemplate> mvelExpressions = new HashMap<String, CompiledTemplate>();
@@ -69,23 +58,19 @@ class KernelScenarioTestBase extends DevItemDSL {
      * @param config
      * @param connect
      */
-    public void init(String config, String connect) {
-        String[] args = ['-logLevel', '8', '-config', config, '-connect', connect]
-
-        Properties props = AbstractMain.readC2KArgs(args)
-        Gateway.init(props)
-
+    public static void init(String config, String connect) {
+        Gateway.init(AbstractMain.readPropertyFiles(config, connect, null));
         timeStamp = getNowString()
         agent = Gateway.connect("user", "test")
     }
 
-    @Before
-    public void before() {
+    @BeforeClass
+    public static void before() {
         init('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
     }
 
-    @After
-    public void after() {
+    @AfterClass
+    public static void after() {
         Gateway.close()
     }
 }

@@ -37,8 +37,8 @@ import spock.lang.Specification
  */
 class SchemaBuilderListOfValuesSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def 'Field can specify listOfValues.scriptRef using String'() {
         expect:

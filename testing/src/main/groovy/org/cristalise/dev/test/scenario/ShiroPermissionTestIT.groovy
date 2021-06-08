@@ -43,8 +43,8 @@ class ShiroPermissionTestIT extends KernelScenarioTestBase {
         
         def dummyItemP = agent.getItem(dummyItem.getItemPath())
 
-        assert dummyItemP.getJobList(oper1.getItemPath(),  true).size() == 2;
-        assert dummyItemP.getJobList(clerk1.getItemPath(), true).size() == 0;
+        assert dummyItemP.getJobs(oper1.getItemPath(),  true).size() == 2;
+        assert dummyItemP.getJobs(clerk1.getItemPath(), true).size() == 0;
     }
 
     @Test
@@ -94,8 +94,8 @@ class ShiroPermissionTestIT extends KernelScenarioTestBase {
         assert !clerk1Job
         dummyItem.requestAction(oper1Job)
 
-        assert dummyItem.getJobList(oper1,  true).size() == 2;
-        assert dummyItem.getJobList(clerk1, true).size() == 2;
+        assert dummyItem.getJobs(oper1,  true).size() == 2;
+        assert dummyItem.getJobs(clerk1, true).size() == 2;
 
         oper1Job = dummyItem.getJobByName('left', oper1)
         assert oper1Job
@@ -105,7 +105,7 @@ class ShiroPermissionTestIT extends KernelScenarioTestBase {
         assert clerk1Job
         dummyItem.requestAction(clerk1Job)
 
-        assert dummyItem.getJobList(oper1,  true).size() == 2;
-        assert dummyItem.getJobList(clerk1, true).size() == 2;
+        assert dummyItem.getJobs(oper1,  true).size() == 2;
+        assert dummyItem.getJobs(clerk1, true).size() == 2;
     }
 }

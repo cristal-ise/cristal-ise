@@ -206,30 +206,6 @@ public interface LookupManager extends Lookup {
     public void setHasJobList(RolePath role, boolean hasJobList, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated;
 
     /**
-     * Set the IOR of the Item
-     * 
-     * @param item the Item to be updated
-     * @param ior the new ior
-     * @throws ObjectNotFoundException Item does not exists
-     * @throws ObjectCannotBeUpdated there was a probelm updating the ior
-     */
-    public default void setIOR(ItemPath item, String ior) throws ObjectNotFoundException, ObjectCannotBeUpdated {
-        setIOR(item, ior, null);
-    }
-
-    /**
-     * Set the IOR of the Item
-     * This method can be used in server side code or Script to find uncommitted changes during the active transaction.
-     * 
-     * @param item the Item to be updated
-     * @param ior the new ior
-     * @param transactionKey identifier of the active transaction
-     * @throws ObjectNotFoundException Item does not exists
-     * @throws ObjectCannotBeUpdated there was a probelm updating the ior
-     */
-    public void setIOR(ItemPath item, String ior, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated;
-
-    /**
      * Sets the permission of the given Role. Use blank string to clear the permissions
      * 
      * @param role the RolePath to change

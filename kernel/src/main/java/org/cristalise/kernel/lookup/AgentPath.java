@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
@@ -41,29 +40,20 @@ public class AgentPath extends ItemPath {
         super();
     }
 
-    public AgentPath(UUID uuid, String ior, String agentName) {
-        super(uuid, ior);
-        mAgentName = agentName;
-    }
-
-    public AgentPath(UUID uuid, String ior, String agentName, boolean isPwdTemporary) {
-        super(uuid, ior);
+    public AgentPath(UUID uuid, String agentName, boolean isPwdTemporary) {
+        super(uuid);
         mAgentName = agentName;
         mPasswordTemporary = isPwdTemporary;
     }
 
-    public AgentPath(UUID uuid) throws InvalidAgentPathException {
+    public AgentPath(UUID uuid) throws InvalidItemPathException {
         super(uuid);
 
         //This is commented so a AgentPath can be constructed without setting up Lookup
         //if (getAgentName() == null) throw new InvalidAgentPathException();
     }
 
-    public AgentPath(SystemKey syskey) throws InvalidAgentPathException {
-        this(new UUID(syskey.msb, syskey.lsb));
-    }
-
-    public AgentPath(ItemPath itemPath) throws InvalidAgentPathException {
+    public AgentPath(ItemPath itemPath) throws InvalidItemPathException {
         this(itemPath.getUUID());
     }
 

@@ -1,6 +1,20 @@
 <CompositeActivityDef Height="0" ID="-1" IsComposite="true" IsLayoutable="false" Name="Patient_Workflow" Width="0">
   <childrenGraphModel>
-    <GraphModelCastorData NextId="3" StartVertexId="0">
+    <GraphModelCastorData NextId="5" StartVertexId="0">
+      <ActivitySlotDef Height="60" ID="3" IsComposite="false" IsLayoutable="true" Name="Aggregate" Width="130">
+        <CentrePoint x="100" y="210"/>
+        <OutlinePoint x="35" y="180"/>
+        <OutlinePoint x="165" y="180"/>
+        <OutlinePoint x="165" y="240"/>
+        <OutlinePoint x="35" y="240"/>
+        <InEdgeId>4</InEdgeId>
+        <Properties>
+          <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+          <KeyValuePair Key="Name" String="Aggregate" isAbstract="false"/>
+          <KeyValuePair Key="Agent Role" String="UserCode" isAbstract="false"/>
+        </Properties>
+        <activityDef>Patient_Aggregate</activityDef>
+      </ActivitySlotDef>
       <ActivitySlotDef Height="60" ID="1" IsComposite="false" IsLayoutable="true" Name="SetUrinSample" Width="130">
         <CentrePoint x="100" y="130"/>
         <OutlinePoint x="35" y="100"/>
@@ -8,6 +22,7 @@
         <OutlinePoint x="165" y="160"/>
         <OutlinePoint x="35" y="160"/>
         <InEdgeId>2</InEdgeId>
+        <OutEdgeId>4</OutEdgeId>
         <Properties>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
           <KeyValuePair Key="Name" String="SetUrinSample" isAbstract="false"/>
@@ -27,6 +42,11 @@
         </Properties>
         <activityDef>Patient_SetDetails</activityDef>
       </ActivitySlotDef>
+      <NextDef ID="4" OriginVertexId="1" TerminusVertexId="3">
+        <OriginPoint x="100" y="130"/>
+        <TerminusPoint x="100" y="210"/>
+        <Properties/>
+      </NextDef>
       <NextDef ID="2" OriginVertexId="0" TerminusVertexId="1">
         <OriginPoint x="100" y="50"/>
         <TerminusPoint x="100" y="130"/>

@@ -45,12 +45,23 @@ def aggregatedSchema =  Schema("Patient", 0) {
 def aggregateScript =  Script("Patient_Aggregate", 0) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
     output('PatientXML', 'java.lang.String')
-    script('groovy', 'src/main/data/AggregatePatientData.groovy')
+    script('groovy', 'src/main/module/script/Patient_Aggregate.groovy')
+}
+
+def aggregateEA = Activity("Patient_Aggregate", 0) {
+    Property(OutcomeInit: "Empty")
+    Schema(aggregatedSchema)
+    Script(aggregateScript)
 }
 
 def patientWf = Workflow(name: "Patient_Workflow", version: 0, generate: true) {
-    ElemActDef('SetDetails', setDetailsEA)
-    ElemActDef('SetUrinSample', urinalysisEA)
+    Layout {
+        Act('SetDetails', setDetailsEA)
+        Act('SetUrinSample', urinalysisEA)
+        Act('Aggregate', aggregateEA) { //by default the DSL creates infinitive Loop
+            Property(AGENT_ROLE, 'UserCode')
+        }
+    }
 }
 
 Item(name: 'PatientFactory', version: 0, folder: '/integTest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {

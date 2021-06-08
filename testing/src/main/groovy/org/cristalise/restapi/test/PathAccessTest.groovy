@@ -46,7 +46,7 @@ class PathAccessTest extends RestapiTestBase {
                           },
                           {
                               "uuid": "00000000-0000-0000-0000-000000010410",
-                              "error": "IDL:org.cristalise.kernel/common/ObjectNotFoundException:1.0  Path does not exist:00000000-0000-0000-0000-000000010410"
+                              "error": "Path does not exist:00000000-0000-0000-0000-000000010410"
                           }]""".toString()
 
         assertJsonEquals(expected, aliasesResp.body.asString());

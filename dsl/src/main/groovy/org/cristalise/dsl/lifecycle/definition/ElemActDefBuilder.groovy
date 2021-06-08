@@ -38,16 +38,16 @@ class ElemActDefBuilder {
     }
 
     public static ActivityDef build(LinkedHashMap<String, Object> attrs, Closure cl) {
-        def delegate = new ElemActDefDelegate()
-        delegate.processClosure((String)attrs.name, (Integer)attrs.version, cl)
-        return delegate.elemActDef
+        def delegate = new ElemActDefDelegate((String)attrs.name, (Integer)attrs.version)
+        delegate.processClosure(cl)
+        return delegate.activityDef
     }
 
     public static List<ActivityDef> build(Map<String, Object> attrs, File file) {
         log.info("build(file) - module:{} name:{} version:{} file:{}", attrs.module, attrs.name, attrs.version, file.name)
 
         def parser = TabularGroovyParserBuilder.build(file, (String)attrs.name, 2)
-        def delegate = new ElemActDefDelegate()
-        return delegate.processTabularData((String)attrs.name, (Integer)attrs.version, parser)
+        def delegate = new ElemActDefDelegate((String)attrs.name, (Integer)attrs.version)
+        return delegate.processTabularData(parser)
     }
 }

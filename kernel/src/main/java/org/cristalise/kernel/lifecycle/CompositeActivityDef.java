@@ -34,12 +34,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
+import javax.xml.xpath.XPathExpressionException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.graph.model.GraphModel;
 import org.cristalise.kernel.graph.model.GraphPoint;
@@ -81,6 +82,12 @@ public class CompositeActivityDef extends ActivityDef {
         } // shouldn't happen with an empty one
 
         setIsComposite(true);
+    }
+
+    public CompositeActivityDef(String n, Integer v) {
+        this();
+        setName(n);
+        setVersion(v);
     }
 
     public ArrayList<ActivityDef> getRefChildActDef() {
@@ -152,6 +159,7 @@ public class CompositeActivityDef extends ActivityDef {
         return child;
     }
 
+    @Deprecated //use method using WfVertex.Types enum
     public WfVertexDef newChild(String Name, String Type, Integer version, GraphPoint location)
             throws ObjectNotFoundException, InvalidDataException
     {
@@ -180,11 +188,13 @@ public class CompositeActivityDef extends ActivityDef {
                 child.getProperties().put("Type", type.toString());
                 break;
             case Atomic:
+                ActivityDef eaDef = LocalObjectLoader.getElemActDef(name, version); 
+                child = addExistingActivityDef(eaDef.getActName(), eaDef, location);
+                wasAdded = true;
+                break;
             case Composite:
-                ActivityDef act = type.toString().equals("Atomic") ? 
-                        LocalObjectLoader.getElemActDef(name, version) : 
-                        LocalObjectLoader.getCompActDef(name, version);
-                child = addExistingActivityDef(act.getActName(), act, location);
+                ActivityDef caDef = LocalObjectLoader.getCompActDef(name, version);
+                child = addExistingActivityDef(caDef.getActName(), caDef, location);
                 wasAdded = true;
                 break;
             case LocalAtomic:
@@ -197,13 +207,12 @@ public class CompositeActivityDef extends ActivityDef {
                 throw new InvalidDataException("Unknown child type '" + type + "' for name:'"+name+"'");
         }
 
-        if(!wasAdded) addChild(child, location);
+        if (!wasAdded) addChild(child, location);
 
         log.debug("newChild() - Type:"+type + " ID:" + child.getID() + " added to ID:" + this.getID());
 
         return child;
     }
-
     /**
      * 
      * @return CompositeActivity
@@ -409,8 +418,25 @@ public class CompositeActivityDef extends ActivityDef {
 
     @Override
     public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
-        // rebuild the child refs in case any slots have been removed
-        setRefChildActDef(findRefActDefs(getChildrenGraphModel(), null));
+        export(imports, dir, shallow, true);
+    }
+
+    /**
+     * 
+     * @param imports
+     * @param dir
+     * @param shallow
+     * @param rebuild the child refs in case any slots have been removed. Use false if new actDefs declared in DSL
+     *                because LocalObjectLoader will not find them
+     * @throws InvalidDataException
+     * @throws ObjectNotFoundException
+     * @throws IOException
+     */
+    public void export(Writer imports, File dir, boolean shallow, boolean rebuild) throws InvalidDataException, ObjectNotFoundException, IOException {
+        if (rebuild) {
+            ArrayList<ActivityDef> rebuiltActDefList = findRefActDefs(getChildrenGraphModel(), null);
+            setRefChildActDef(rebuiltActDefList);
+        }
 
         // TODO: property include routing scripts in another dependency collection
 
@@ -433,31 +459,10 @@ public class CompositeActivityDef extends ActivityDef {
         String tc = COMP_ACT_DESC_RESOURCE.getTypeCode();
 
         try {
-            NodeList nodeList = null;
-            Outcome outcome = null;
             // export marshalled compAct
             String compactXML = Gateway.getMarshaller().marshall(this);
             if (Gateway.getProperties().getBoolean("Export.replaceActivitySlotDefUUIDWithName", false)) {
-                outcome = new Outcome(compactXML);
-                nodeList = outcome.getNodesByXPath("/CompositeActivityDef/childrenGraphModel/GraphModelCastorData/ActivitySlotDef/activityDef/text()");
-                for (int i = 0; i < nodeList.getLength(); i++) {
-                    try {
-                        String syskey = nodeList.item(i).getNodeValue();
-                        if (StringUtils.isNotBlank(syskey) && ItemPath.isUUID(syskey)) {
-                            ItemPath itemPath = Gateway.getLookup().getItemPath(syskey);
-                            ItemProxy itemProxy = Gateway.getProxyManager().getProxy(itemPath);
-                            nodeList.item(i).setNodeValue(itemProxy.getName());
-                        }
-                        else if (StringUtils.isNotBlank(syskey)) {
-                            log.debug("export(name:{}) - syskey:{} was not replaced - not null & not UUID", getActName(), syskey);
-                        }
-                    }
-                    catch(Exception e) {
-                        log.error("Cannot find item with UIID: "+nodeList.item(i).getNodeValue(), e);
-                        throw new ObjectNotFoundException("Cannot find item with UIID: "+nodeList.item(i).getNodeValue());
-                    }
-                }
-                compactXML = outcome.getData(true);
+                compactXML = replaceActivitySlotDefUUIDWithName(compactXML);
             }            
             FileStringUtility.string2File(new File(new File(dir, tc), getActName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml"), compactXML);
         }
@@ -474,5 +479,31 @@ public class CompositeActivityDef extends ActivityDef {
             }
             imports.write("</Workflow>\n");
         }
+    }
+
+    private String replaceActivitySlotDefUUIDWithName(String compactXML)
+            throws InvalidDataException, XPathExpressionException, ObjectNotFoundException
+    {
+        Outcome outcome = new Outcome(compactXML);
+        NodeList nodeList = outcome.getNodesByXPath("/CompositeActivityDef/childrenGraphModel/GraphModelCastorData/ActivitySlotDef/activityDef/text()");
+
+        for (int i = 0; i < nodeList.getLength(); i++) {
+            try {
+                String syskey = nodeList.item(i).getNodeValue();
+                if (StringUtils.isNotBlank(syskey) && ItemPath.isUUID(syskey)) {
+                    ItemPath itemPath = Gateway.getLookup().getItemPath(syskey);
+                    String itemName = Gateway.getProxy(itemPath).getName();
+                    nodeList.item(i).setNodeValue(itemName);
+                }
+                else if (StringUtils.isNotBlank(syskey)) {
+                    log.debug("replaceActivitySlotDefUUIDWithName(name:{}) - syskey:{} was not replaced - not null & neither UUID", getActName(), syskey);
+                }
+            }
+            catch(Exception e) {
+                log.error("Cannot find item with UIID: "+nodeList.item(i).getNodeValue(), e);
+                throw new ObjectNotFoundException("Cannot find item with UIID: "+nodeList.item(i).getNodeValue());
+            }
+        }
+        return outcome.getData(true);
     }
 }

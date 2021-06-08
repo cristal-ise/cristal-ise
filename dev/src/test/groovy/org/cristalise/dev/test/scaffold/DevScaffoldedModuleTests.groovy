@@ -67,13 +67,13 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void init() {
         //cristal in memory server has to be initialised only once
         if (!initialised) {
-            inMemoryServer(-1, props) //it is not static therefore cannot be called from @BeforeClass
+            inMemoryServer(props) //it is not static therefore cannot be called from @BeforeClass
             initialised = true
         }
 
         log.info '======================================================================================'
 
-        agent = Gateway.getProxyManager().getAgentProxy('devtest')
+        agent = Gateway.getAgentProxy('devtest')
         creator = new CRUDItemCreator(folder, ERASE, agent)
     }
 

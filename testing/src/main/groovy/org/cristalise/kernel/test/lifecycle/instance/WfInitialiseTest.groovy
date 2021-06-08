@@ -27,26 +27,26 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
+import spock.lang.Specification
+
 /**
  *
  */
-class WfInitialiseTest implements CristalTestSetup {
+class WfInitialiseTest extends Specification implements CristalTestSetup {
 
-    WorkflowTestBuilder wfBuilder
+    static WorkflowTestBuilder wfBuilder
 
-    @Before
-    public void setup() {
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8, null, true)
+    def setupSpec() {
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true)
         wfBuilder = new WorkflowTestBuilder()
     }
 
-    @After
-    public void cleanup() {
+    def cleanupSpec() {
         cristalCleanup()
     }
 
-    @Test
-    public void 'Starting AndSplit-in-AndSplit initialise all Activities inside'() {
+    def 'Starting AndSplit-in-AndSplit initialise all Activities inside'() {
+        given:
         wfBuilder.build {
             AndSplit {
                 B{ AndSplit {
@@ -59,15 +59,17 @@ class WfInitialiseTest implements CristalTestSetup {
         wfBuilder.checkActStatus("left1", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: false])
 
+        when:
         wfBuilder.initialise()
 
+        then:
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
         wfBuilder.checkActStatus("left1", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: true])
     }
 
-    @Test
-    public void 'Starting OrSplit-in-OrSplit initialise all Activities inside'() {
+    def 'Starting OrSplit-in-OrSplit initialise all Activities inside'() {
+        given:
         wfBuilder.build {
             OrSplit(javascript: '1') {
                 B { OrSplit(javascript: '1,2') {
@@ -80,15 +82,17 @@ class WfInitialiseTest implements CristalTestSetup {
         wfBuilder.checkActStatus("left1", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: false])
 
+        when:
         wfBuilder.initialise()
 
+        then:
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
         wfBuilder.checkActStatus("left1", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: true])
     }
 
-    @Test
-    public void 'Starting XOrSplit-in-XOrSplit initialise one branch inside'() {
+    def 'Starting XOrSplit-in-XOrSplit initialise one branch inside'() {
+        given:
         wfBuilder.build {
             XOrSplit(javascript: '1') {
                 B { XOrSplit(javascript: '1') {
@@ -101,15 +105,17 @@ class WfInitialiseTest implements CristalTestSetup {
         wfBuilder.checkActStatus("left1", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: false])
 
+        when:
         wfBuilder.initialise()
 
+        then:
         wfBuilder.checkActStatus("left",  [state: "Waiting", active: true])
         wfBuilder.checkActStatus("right", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("left1", [state: "Waiting", active: false])
     }
 
-    @Test
-    public void 'Starting Loop-in-Loop initialise the first Activity inside'() {
+    def 'Starting Loop-in-Loop initialise the first Activity inside'() {
+        given:
         wfBuilder.build {
             Loop {
                 Loop {
@@ -120,8 +126,10 @@ class WfInitialiseTest implements CristalTestSetup {
         wfBuilder.checkActStatus("first",  [state: "Waiting", active: false])
         wfBuilder.checkActStatus("second", [state: "Waiting", active: false])
 
+        when:
         wfBuilder.initialise()
 
+        then:
         wfBuilder.checkActStatus("first",  [state: "Waiting", active: true])
         wfBuilder.checkActStatus("second", [state: "Waiting", active: false])
     }

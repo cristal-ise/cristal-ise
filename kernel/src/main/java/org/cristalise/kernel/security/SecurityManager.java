@@ -130,9 +130,9 @@ public class SecurityManager {
             if (!auth.authenticate(agentName, agentPassword, resource)) throw new InvalidDataException("Login failed");
         }
 
-        // It can be invoked before ProxyManager and Lookup is initialised
-        if (isClient && Gateway.getProxyManager() != null) return Gateway.getProxyManager().getAgentProxy(agentName, transactionKey);
-        else                                               return null;
+        // It can be invoked before Lookup is initialised
+        if (isClient && Gateway.getLookup() != null) return Gateway.getAgentProxy(agentName, transactionKey);
+        else                                         return null;
     }
 
     /**

@@ -69,7 +69,7 @@
   <class name="org.cristalise.kernel.entity.agent.JobArrayList">
     <map-to xml="JobArrayList" />
     <field name="list" collection="arraylist" direct="true" type="org.cristalise.kernel.entity.agent.Job">
-      <bind-xml name="JobArrayList" node="element" />
+      <bind-xml name="Job" node="element" />
     </field>
   </class>
 </mapping>

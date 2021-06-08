@@ -32,7 +32,6 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>idl</module>
         <module>kernel</module>
         <module>jooqdb</module>
         <module>in-memory-lookup</module>
@@ -52,6 +51,7 @@
 
     <properties>
         <revision>6.0.0-SNAPSHOT</revision>
+        <vertx.version>4.0.3</vertx.version>
         <productionMode>false</productionMode>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -64,6 +64,7 @@
         <groovy.version>2.5.12</groovy.version>
         <groovy-eclipse-compiler.version>3.6.0-03</groovy-eclipse-compiler.version>
         <groovy-eclipse-batch.version>2.5.12-02</groovy-eclipse-batch.version>
+        <slf4j.version>1.7.26</slf4j.version>
     </properties>
 
     <description>Cristal-ise is a description-driven software platform originally developed to track the construction of
@@ -175,13 +176,14 @@
                         <header>HEADER.txt</header>
                         <excludes>
                             <exclude>src/main/resources/**</exclude>
+                            <exclude>src/main/data/**</exclude>
                             <exclude>src/test/resources/**</exclude>
                             <exclude>src/test/data/**</exclude>
                             <exclude>src/test/module/**</exclude>
                             <exclude>bin/**</exclude>
                             <exclude>build/**</exclude>
                             <exclude>.flattened-pom.xml</exclude>
-                            <exclude>**/LICENCE</exclude>
+                            <exclude>**/LICENSE</exclude>
                             <exclude>**/README</exclude>
                             <exclude>**/*.gpg.enc</exclude>
                             <exclude>**/*.example</exclude>
@@ -193,6 +195,13 @@
                             <idl>JAVADOC_STYLE</idl>
                         </mapping>
                     </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -336,6 +345,13 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>io.vertx</groupId>
+                <artifactId>vertx-stack-depchain</artifactId>
+                <version>${vertx.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.codehaus.castor</groupId>
                 <artifactId>castor-xml-schema</artifactId>
                 <version>1.4.1</version>
@@ -364,12 +380,17 @@
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
-                <version>1.7.26</version>
+                <version>${slf4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-simple</artifactId>
-                <version>1.7.26</version>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>jul-to-slf4j</artifactId>
+                <version>${slf4j.version}</version>
             </dependency>
             <dependency>
                 <groupId>ch.qos.logback</groupId>
@@ -396,7 +417,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>28.1-jre</version>
+                <version>29.0-jre</version>
             </dependency>
             <dependency>
                 <groupId>org.json</groupId>
@@ -407,6 +428,11 @@
                 <groupId>org.eclipse.jgit</groupId>
                 <artifactId>org.eclipse.jgit</artifactId>
                 <version>5.10.0.202012080955-r</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jfree</groupId>
+                <artifactId>jfreesvg</artifactId>
+                <version>3.3</version>
             </dependency>
             <!--                              -->
             <!-- common dependencies for test -->

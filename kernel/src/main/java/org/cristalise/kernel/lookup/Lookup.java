@@ -115,28 +115,6 @@ public interface Lookup {
     public ItemPath resolvePath(DomainPath domainPath, TransactionKey transactionKey) throws InvalidItemPathException, ObjectNotFoundException;
 
     /**
-     * Resolves the IOR to a CORBA Object (Item or Agent)
-     *
-     * @param path The path to be resolved
-     * @return The CORBA Object's IOR
-     * @throws ObjectNotFoundException When the Path doesn't exist, or doesn't have an IOR associated with it
-     */
-    public default String getIOR(Path path) throws ObjectNotFoundException {
-        return getIOR(path, null);
-    }
-
-    /**
-     * Resolves the IOR to a CORBA Object (Item or Agent)
-     * This method can be used in server side code or Script to find uncommitted changes during the active transaction.
-     *
-     * @param path The path to be resolved
-     * @param transactionKey identifier of the active transaction
-     * @return The CORBA Object's IOR
-     * @throws ObjectNotFoundException When the Path doesn't exist, or doesn't have an IOR associated with it
-     */
-    public String getIOR(Path path, TransactionKey transactionKey) throws ObjectNotFoundException;
-
-    /**
      * Checks if a particular Path exists in the directory
      * 
      * @param path The path to check

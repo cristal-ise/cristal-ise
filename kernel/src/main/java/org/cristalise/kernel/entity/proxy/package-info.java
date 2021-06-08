@@ -41,16 +41,6 @@
  * All object types have their own get methods, so there's no need to construct
  * their paths nor cast.</b>
  *
- * <li><b>Item object and directory change notification</b> - When a proxy
- * object is created, it notifies the CRISTAL server that its Item is located
- * on, and it notified of all additions, deletions and modifications of objects
- * within that Item so it can remain up-to-date. Client applications may use 
- * the {@link org.cristalise.kernel.entity.proxy.ProxyObserver} interface to be 
- * notified of changes, using {@link org.cristalise.kernel.entity.proxy.MemberSubscription} 
- * instances to set up push subscriptions to cluster contents. It also provides
- * a mechanism for subscribing to directory paths, so that domain tree browsers 
- * can implement asynchronous loading and update themselves when the tree changes.</li>
- * 
  * <li><b>Job querying</b> - Job objects may be retrieved directly from an 
  * ItemProxy, and may also be filtered by Activity name.</li>
  * 

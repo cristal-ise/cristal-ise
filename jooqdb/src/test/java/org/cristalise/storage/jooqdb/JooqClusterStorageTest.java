@@ -79,6 +79,7 @@ public class JooqClusterStorageTest extends JooqTestConfigurationBase {
 
         props.put("ClusterStorage", "org.cristalise.storage.jooqdb.JooqClusterStorage");
         props.put("BulkImport.rootDirectory", "src/test/data");
+        props.put("Gateway.clusteredVertx", false);
 
         setUpStorage(props);
 

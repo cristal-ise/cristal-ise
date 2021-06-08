@@ -30,72 +30,71 @@ import org.cristalise.kernel.persistency.TransactionKey;
 
 /**
  * @version $Revision: 1.19 $ $Date: 2005/09/29 10:18:31 $
- * @author  $Author: abranson $
+ * @author $Author: abranson $
  */
 
-public class LoopDef extends XOrSplitDef
-{
-	public boolean hasLoop = false;
-	public int isNext = 0;
+public class LoopDef extends XOrSplitDef {
+    public boolean hasLoop = false;
+    public int     isNext  = 0;
 
-	/**
-	 * @see java.lang.Object#Object()
-	 */
-	public LoopDef()
-	{
-		super();
-	}
+    /**
+     * @see java.lang.Object#Object()
+     */
+    public LoopDef() {
+        super();
+    }
 
-	/**
-	 * @see org.cristalise.kernel.lifecycle.WfVertexDef#loop()
-	 */
-	@Override
-	public boolean loop()
-	{
-		return true;
-	}
-
-	/**
-	 * @see org.cristalise.kernel.lifecycle.WfVertexDef#verify()
-	 */
-	@Override
-	public boolean verify()
-	{
-		if (!super.verify()) return false;
-		Vertex[] nexts = getOutGraphables();
-		Vertex[] anteVertices =
-			GraphTraversal.getTraversal(this.getParent().getChildrenGraphModel(), this, GraphTraversal.kUp, false);
-        int k = 0;
-        int l = 0;
-        Vertex[] brothers = getParent().getChildren();
-        for (Vertex brother : brothers)
-			if (brother instanceof LoopDef) l++;
-        for (Vertex next : nexts)
-			for (Vertex anteVertice : anteVertices)
-				if (next.equals(anteVertice))
-					k++;
-		if (k != 1 && !(l>1))
-		{
-            mErrors.add("bad number of pointing back nexts");
-			return false;
-		}
-//        if (nexts.length>2) {
-//            mErrors.add("you must only have 2 nexts");
-//            return false;
-//        }
-		return true;
-	}
-
+    /**
+     * @see org.cristalise.kernel.lifecycle.WfVertexDef#loop()
+     */
     @Override
-	public boolean isLoop() {
+    public boolean loop() {
         return true;
     }
 
-	@Override
-	public WfVertex instantiate(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
-		Loop newLoop = new Loop();
-		configureInstance(newLoop, transactionKey);
-		return newLoop;
-	}
+    /**
+     * @see org.cristalise.kernel.lifecycle.WfVertexDef#verify()
+     */
+    @Override
+    public boolean verify() {
+        if (!super.verify()) return false;
+        Vertex[] nexts = getOutGraphables();
+        Vertex[] anteVertices = GraphTraversal.getTraversal(this.getParent().getChildrenGraphModel(), this, GraphTraversal.kUp, false);
+        int k = 0;
+        int l = 0;
+        Vertex[] brothers = getParent().getChildren();
 
+        for (Vertex brother : brothers) {
+            if (brother instanceof LoopDef) l++;
+        }
+
+        for (Vertex next : nexts) {
+            for (Vertex anteVertice : anteVertices) {
+                if (next.equals(anteVertice)) k++;
+            }
+        }
+
+        if (k != 1 && !(l > 1)) {
+            mErrors.add("bad number of pointing back nexts");
+            return false;
+        }
+        
+        // if (nexts.length>2) {
+        // mErrors.add("you must only have 2 nexts");
+        // return false;
+        // }
+        return true;
+    }
+
+    @Override
+    public boolean isLoop() {
+        return true;
+    }
+
+    @Override
+    public WfVertex instantiate(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
+        Loop newLoop = new Loop();
+        configureInstance(newLoop, transactionKey);
+        return newLoop;
+    }
 }

@@ -83,9 +83,6 @@ public class JooqHistoryTest extends StorageTestBase {
         Assert.assertEquals(expected.getTransition(),           actual.getTransition());
         Assert.assertEquals(expected.getViewName(),             actual.getViewName());
 
-        if (expected.getDelegatePath() != null)
-            Assert.assertEquals(expected.getDelegatePath(), actual.getDelegatePath());
-
         compareTimestramps(actual.getTimeStamp(), expected.getTimeStamp());
     }
 
@@ -98,7 +95,6 @@ public class JooqHistoryTest extends StorageTestBase {
                 id,
                 new ItemPath(itemUUID), 
                 new AgentPath(new ItemPath(), "agent"),
-                null, 
                 "role", 
                 "stepName"+id, 
                 "stepaPath"+id,
@@ -119,7 +115,6 @@ public class JooqHistoryTest extends StorageTestBase {
                 id,
                 new ItemPath(itemUUID), 
                 new AgentPath(new ItemPath(), "agent"),
-                null, 
                 null, 
                 "stepName"+id, 
                 "stepaPath"+id,

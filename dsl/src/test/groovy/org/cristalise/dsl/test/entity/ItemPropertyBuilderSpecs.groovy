@@ -31,8 +31,8 @@ import spock.lang.Specification
  */
 class ItemPropertyBuilderSpecs extends Specification implements CristalTestSetup {
     
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def 'Mutable EntityProperty can be created from name only'() {
         when:
@@ -81,7 +81,7 @@ class ItemPropertyBuilderSpecs extends Specification implements CristalTestSetup
 
         then:
         InvalidDataException ex = thrown()
-        ex.message == "IDL:org.cristalise.kernel/common/InvalidDataException:1.0  Inmutable EntityProperty 'Type' must have valid value"
+        ex.message == "Inmutable EntityProperty 'Type' must have valid value"
     }
 
     def 'EntityProperty value is coerced to String'() {

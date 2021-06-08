@@ -21,6 +21,7 @@
 package org.cristalise.kernel.utils;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Wrapper for a root element to an ArrayList. Castor marshalls arraylists as multiple 
@@ -34,6 +35,11 @@ abstract public class CastorArrayList<E> {
     public CastorArrayList() {
         super();
         list = new ArrayList<E>();
+    }
+
+    public CastorArrayList(List<E> list) {
+        this();
+        this.list = new ArrayList<>(list);
     }
 
     @Override
@@ -54,10 +60,5 @@ abstract public class CastorArrayList<E> {
 
         if (list == null)  return other.list == null;
         else               return list.equals(other.list);
-    }
-
-    public CastorArrayList(ArrayList<E> list) {
-        this();
-        this.list = list;
     }
 }

@@ -24,9 +24,6 @@ import java.io.PrintStream;
 import java.sql.Timestamp;
 
 import org.cristalise.kernel.process.AbstractMain;
-import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.scripting.ScriptConsole;
-import org.cristalise.kernel.utils.server.SimpleTCPIPServer;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,8 +44,7 @@ public class Logger {
     /**
      * logging level 0 (only error & warning) => no logging ; 9 => maximum logging add ten to output time before each message
      */
-    private static int                 mLogLevel = 0;
-    static protected SimpleTCPIPServer mConsole  = null;
+    private static int mLogLevel = 0;
 
     /**
      * Prints the log message to the configured list of log streams. Uses SLF4J api and map the logLevel like this:
@@ -197,29 +193,6 @@ public class Logger {
      */
     public static void removeLogStream(PrintStream console) {
         log.warn("LogStreams are unsupported");
-    }
-
-    static public int initConsole(String id) {
-        int port = Gateway.getProperties().getInt(id + ".Console.port", 0);
-
-        if (port == 0) Logger.msg("No port defined for " + id + " console. Using any port.");
-
-        mConsole = new SimpleTCPIPServer(port, ScriptConsole.class, 5);
-        mConsole.startListening();
-        Gateway.getProperties().setProperty(id + ".Console.port", String.valueOf(mConsole.getPort()));
-        return mConsole.getPort();
-    }
-
-    static public int getConsolePort() {
-        if (mConsole != null) return mConsole.getPort();
-        else                  return -1;
-    }
-
-    static public void closeConsole() {
-        if (mConsole != null) {
-            mConsole.stopListening();
-            mConsole = null;
-        }
     }
 
     public static void removeAll() {

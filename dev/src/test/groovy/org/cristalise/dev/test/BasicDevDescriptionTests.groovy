@@ -47,32 +47,32 @@ class BasicDevDescriptionTests extends DevItemUtility implements CristalTestSetu
     static String folder = "devtest"
 
     static boolean initialised
-    
+
     @BeforeClass
     public static void setup() {
         initialised = false
         props.put('Resource.moduleUseFileNameWithVersion', 'dev,devtest')
         timeStamp = LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")
     }
-    
+
     @Before
     public void init() {
         //cristal in memory server has to be initialised only once
         if (!initialised) {
-            inMemoryServer(-1, props) //it is not static therefore cannot be called from @BeforeClass
+            inMemoryServer(props) //it is not static therefore cannot be called from @BeforeClass
             initialised = true
         }
 
         log.info '====================================================================================================='
     
-        agent = Gateway.getProxyManager().getAgentProxy('devtest')
+        agent = Gateway.getAgentProxy('devtest')
     }
-    
+
     @AfterClass
     public static void teardown() {
         Gateway.close()
     }
-    
+
     public static final String testDataRoot = "src/test/data";
 
     @Test

@@ -92,10 +92,31 @@ public enum ClusterType {
         return getName();
     }
 
+    /**
+     * Retrieves the value from the clusterName or null if no matching was found
+     * 
+     * @param name the clusterName
+     * @return the ClusterType or null
+     */
     public static ClusterType getValue(String name) {
         for (ClusterType type : ClusterType.values()) {
             if(type.getName().equals(name) || type.name().equals(name)) return type;
         }
         return null;
+    }
+
+    /**
+     * Retrieves the value from the given path or null if no matching was found
+     * 
+     * @param path slash separated string starting with the name of the ClusterType
+     * @return the ClusterType or null
+     */
+    public static ClusterType getFromPath(String path) {
+        path = (path.startsWith("/") && path.length() > 1) ? path.substring(1) : path;
+
+        int slashIdx = path.indexOf('/');
+        String clusterName = (slashIdx == -1) ? path : path.substring(0, slashIdx);
+
+        return getValue(clusterName);
     }
 }

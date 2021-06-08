@@ -40,7 +40,6 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.TraceableEntity;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
@@ -188,30 +187,21 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
     }
 
     /**
-     *
-     * @return
-     * @throws ObjectNotFoundException
-     * @throws CannotManageException
-     * @throws ObjectAlreadyExistsException
-     * @throws ObjectCannotBeUpdated
      */
-    private TraceableEntity getTraceableEntitiy(TransactionKey transactionKey)
+    private ItemPath getOrCreateItemPath(TransactionKey transactionKey)
             throws ObjectNotFoundException, CannotManageException, ObjectAlreadyExistsException, ObjectCannotBeUpdated
     {
-        TraceableEntity newItem;
         ItemPath ip = getItemPath(transactionKey);
 
         if (ip.exists(transactionKey)) {
-            log.info("getTraceableEntitiy() - Verifying module item "+domainPath+" at "+ip);
-            newItem = Gateway.getCorbaServer().getItem(ip, transactionKey);
+            log.info("getTraceableEntitiy() - Verifying module item {} at {}", ip, domainPath);
             isNewItem = false;
         }
         else {
-            log.info("getTraceableEntitiy() - Creating module item "+ip+" at "+domainPath);
-            newItem = Gateway.getCorbaServer().createItem(ip, transactionKey);
+            log.info("getTraceableEntitiy() - Creating module item {} at {}", ip, domainPath);
             Gateway.getLookupManager().add(ip, transactionKey);
         }
-        return newItem;
+        return ip;
     }
 
     /**
@@ -235,13 +225,11 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
         else
             isDOMPathExists = false;
 
-        getTraceableEntitiy(transactionKey);
-
         // (re)initialise the new item with properties, workflow and collections
         try {
             CreateItemFromDescription.storeItem(
                     agentPath, 
-                    getItemPath(transactionKey),
+                    getOrCreateItemPath(transactionKey),
                     createItemProperties(),
                     createCollections(transactionKey),
                     createCompositeActivity(transactionKey),
@@ -294,7 +282,7 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
 
             // write new view/outcome/event
             Event newEvent = hist.addEvent(
-                    agentPath, null, ADMIN_ROLE.getName(), "Import", "Import", "Import", schema, 
+                    agentPath, ADMIN_ROLE.getName(), "Import", "Import", "Import", schema, 
                     LocalObjectLoader.getStateMachine("PredefinedStep", 0, transactionKey), PredefinedStep.DONE, thisOutcome.viewname);
             newOutcome.setID(newEvent.getID());
             impView.setEventId(newEvent.getID());

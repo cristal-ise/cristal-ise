@@ -107,8 +107,7 @@ public class Script implements DescriptionObject {
     public static final String PARAMETER_LOCKER  = "transactionKey";
     public static final String PARAMETER_LOOKUP  = "lookup";
     public static final String PARAMETER_OUTPUT  = "output";
-    public static final String PARAMETER_ORB     = "orb";
-    public static final String PARAMETER_PROXY   = "proxy";
+    public static final String PARAMETER_VERTX   = "vertx";
     public static final String PARAMETER_STORAGE = "storage";
 
     public static final String SYSTEM_USER       = "system";
@@ -248,9 +247,8 @@ public class Script implements DescriptionObject {
 
         beans.put(PARAMETER_STORAGE, Gateway.getStorage());
         beans.put(PARAMETER_DB, Gateway.getStorage());
-        beans.put(PARAMETER_PROXY, Gateway.getProxyManager());
         beans.put(PARAMETER_LOOKUP, Gateway.getLookup());
-        beans.put(PARAMETER_ORB, Gateway.getORB());
+        beans.put(PARAMETER_VERTX, Gateway.getVertx());
         beans.put(PARAMETER_AGENT, agent);
         beans.put(PARAMETER_OUTPUT, out);
 
@@ -640,10 +638,11 @@ public class Script implements DescriptionObject {
     {
         try {
             //it is possible to execute a script outside of the context of an Item
-            ItemProxy item = itemPath == null ? null : Gateway.getProxyManager().getProxy(itemPath, transactionKey);
+            //on the other hand server side scripts are always executed with an Item context and transaction
+            ItemProxy item = itemPath == null ? null : Gateway.getProxy(itemPath, transactionKey);
 
             createEmptyContext();
-            
+
             if (actExecEnv) setActExecEnvironment(item, (AgentProxy)inputProps.get(PARAMETER_AGENT), (Job)inputProps.get(PARAMETER_JOB));
 
             for (String inputParamName: getAllInputParams().keySet()) {
@@ -652,16 +651,13 @@ public class Script implements DescriptionObject {
                 }
             }
 
-            //server side scripts are always executed with an Item context
-            if (item != null) item.setTransactionKey(transactionKey);
-
             if (getAllInputParams().containsKey(PARAMETER_ITEM) && getAllInputParams().get(PARAMETER_ITEM) != null) {
                 setInputParamValue(PARAMETER_ITEM, item, true);
             }
 
             //Set agent to be 'system' only if it was not set already
             if (getAllInputParams().containsKey(PARAMETER_AGENT) && getAllInputParams().get(PARAMETER_AGENT) != null) {
-                ItemProxy systemAgent = Gateway.getProxyManager().getProxy(Gateway.getLookup().getAgentPath(SYSTEM_USER, transactionKey), transactionKey);
+                ItemProxy systemAgent = Gateway.getProxy(Gateway.getLookup().getAgentPath(SYSTEM_USER, transactionKey), transactionKey);
                 setInputParamValue(PARAMETER_AGENT, systemAgent, false);
             }
 

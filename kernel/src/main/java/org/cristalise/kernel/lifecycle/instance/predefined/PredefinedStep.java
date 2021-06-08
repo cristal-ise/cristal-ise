@@ -298,7 +298,7 @@ public abstract class PredefinedStep extends Activity {
 
         History hist = new History(itemPath, transactionKey);
 
-        int eventID = hist.addEvent((AgentPath)SYSTEM_AGENT.getPath(transactionKey), null,
+        int eventID = hist.addEvent((AgentPath)SYSTEM_AGENT.getPath(transactionKey),
                 ADMIN_ROLE.getName(), "Bootstrap", "Bootstrap", "Bootstrap", newOutcome.getSchema(), 
                 LocalObjectLoader.getStateMachine("PredefinedStep", 0, transactionKey), PredefinedStep.DONE, version != null ? viewName : "last"
                 ).getID();
@@ -347,7 +347,7 @@ public abstract class PredefinedStep extends Activity {
     {
         log.info("request({}) - Type:{}", itemPath, getType());
         this.setActive(true);
-        return request(agent, agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, transactionKey);
+        return request(agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, transactionKey);
     }
 
     /**

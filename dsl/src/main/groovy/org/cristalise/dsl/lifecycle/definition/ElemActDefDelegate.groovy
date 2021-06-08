@@ -39,73 +39,75 @@ import org.cristalise.kernel.utils.LocalObjectLoader
 @CompileStatic
 class ElemActDefDelegate extends PropertyDelegate {
 
-    ActivityDef elemActDef
+    //can be instance of CompositeActivityDef as well
+    ActivityDef activityDef
 
-    public void processClosure(String name, int version, Closure cl) {
-        elemActDef = new ActivityDef()
-        elemActDef.name = name
-        elemActDef.version = version
+    public ElemActDefDelegate() {}
 
-        if(cl) {
+    public ElemActDefDelegate(String n, Integer v) {
+        activityDef = new ActivityDef(n, v)
+    }
+
+    public void processClosure(Closure cl) {
+        if (cl) {
             cl.delegate = this
             cl.resolveStrategy = Closure.DELEGATE_FIRST
             cl()
-    
+
             props.each { k, v ->
-                elemActDef.properties.put(k, v, props.getAbstract().contains(k))
+                activityDef.properties.put(k, v, props.getAbstract().contains(k))
             }
         }
     }
 
-    public List<ActivityDef> processTabularData(String name, Integer version, TabularGroovyParser parser) {
+    public List<ActivityDef> processTabularData(TabularGroovyParser parser) {
         def twb = new TabularActivityDefBuilder()
         def actDefs = twb.build(parser)
 
-        if (version != null) {
-            
-            actDefs.each { it.version = version }
+        if (activityDef.version != null) {
+            actDefs.each { it.version = activityDef.version }
         }
 
         return actDefs
     }
 
     def Schema(Schema s) {
-        elemActDef.setSchema(s)
+        activityDef.setSchema(s)
     }
 
     def Schema(String name, int ver = 0) {
-        elemActDef.setSchema(LocalObjectLoader.getSchema(name, ver))
+        activityDef.setSchema(LocalObjectLoader.getSchema(name, ver))
     }
 
     def Script(Script s) {
-        elemActDef.setScript(s)
+        activityDef.setScript(s)
     }
 
     def Script(String name, int ver = 0) {
-        elemActDef.setScript(LocalObjectLoader.getScript(name, ver))
+        activityDef.setScript(LocalObjectLoader.getScript(name, ver))
     }
 
     def Query(org.cristalise.kernel.querying.Query q) {
-        elemActDef.setQuery(q)
+        activityDef.setQuery(q)
     }
 
     def Query(String name, int ver = 0) {
-        elemActDef.setQuery(LocalObjectLoader.getQuery(name, ver))
+        activityDef.setQuery(LocalObjectLoader.getQuery(name, ver))
     }
 
     def StateMachine(StateMachine s) {
-        elemActDef.setStateMachine(s)
+        activityDef.setStateMachine(s)
     }
 
     def StateMachine(String name, int ver = 0) {
-        elemActDef.setStateMachine(LocalObjectLoader.getStateMachine(name, ver))
+        activityDef.setStateMachine(LocalObjectLoader.getStateMachine(name, ver))
     }
 
     def Agent(String a) {
-        elemActDef.setBuiltInProperty(AGENT_NAME, a)
+        activityDef.setBuiltInProperty(AGENT_NAME, a)
     }
 
     def Role(String r) {
-        elemActDef.setBuiltInProperty(AGENT_ROLE, r)
+        activityDef.setBuiltInProperty(AGENT_ROLE, r)
     }
 }

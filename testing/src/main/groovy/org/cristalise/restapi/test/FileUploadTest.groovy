@@ -59,9 +59,11 @@ class FileUploadTest extends RestapiTestBase {
         }
 
         def wf = CompositeActivityDef("EmployeeWorkflow-$timeStamp", folder) {
-            ElemActDef('UpdateProfile',  ea0)
-            ElemActDef('UpdateContract', ea1)
-            ElemActDef('UpdateListOfPublications', ea2)
+            Layout {
+                ElemActDef('UpdateProfile',  ea0)
+                ElemActDef('UpdateContract', ea1)
+                ElemActDef('UpdateListOfPublications', ea2)
+            }
         }
 
         def factory = DescriptionItem("EmployeeFactory-$timeStamp", folder) {

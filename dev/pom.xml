@@ -180,10 +180,7 @@
                 <version>1.8</version>
                 <configuration>
                     <repositoryLayout>flat</repositoryLayout>
-                    <configurationDirectory>conf</configurationDirectory>
-                    <copyConfigurationDirectory>true</copyConfigurationDirectory>
                     <useTimestampInSnapshotFileName>false</useTimestampInSnapshotFileName>
-                    <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
                     <assembleDirectory>${project.build.directory}/dist</assembleDirectory>
                     <showConsoleWindow>true</showConsoleWindow>
                     <repositoryName>lib</repositoryName>

@@ -20,17 +20,17 @@
  */
 package org.cristalise.trigger;
 
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.entity.proxy.MemberSubscription;
-import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.StandardClient;
@@ -44,13 +44,14 @@ import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
 import org.quartz.SimpleTrigger;
 
+import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  *
  */
 @Slf4j
-public class TriggerProcess extends StandardClient implements ProxyObserver<Job> {
+public class TriggerProcess extends StandardClient {
 
     private final ArrayList<String> transitions = new ArrayList<String>();
 
@@ -76,17 +77,37 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
     /**
      *
      * @throws SchedulerException Scheduler error
+     * @throws ObjectNotFoundException 
      */
-    public void initialise() throws SchedulerException {
+    public void initialise() throws SchedulerException, ObjectNotFoundException {
         SchedulerFactory schedFact = new org.quartz.impl.StdSchedulerFactory();
 
         quartzScheduler = schedFact.getScheduler();
         quartzScheduler.start();
 
-        log.debug("startScheduler() - Retrieving initial list of Jobs.");
-
         //Subscribe to changes and fetch exiting Jobs from JobList of Agent
-        agent.subscribe(new MemberSubscription<Job>(this, ClusterType.JOB.getName(), true));
+        Vertx vertx = Gateway.getVertx();
+        vertx.eventBus().localConsumer(agent.getPath().getUUID() + "/" + JOB, message -> {
+            String[] tokens = ((String) message.body()).split(":");
+            String jobId = tokens[0];
+
+            vertx.executeBlocking(promise -> {
+                try {
+                    if (tokens[1].equals("ADD")) add(agent.getJob(jobId));
+                    else                         remove(jobId);
+                }
+                catch (ObjectNotFoundException e) {
+                    log.error("", e);
+                }
+                promise.complete();
+            }, res -> {
+                //
+            });
+        });
+
+        Set<String> jobIds = agent.getJobList().keySet();
+        log.debug("initialise() - Retrieving #{} of Jobs.", jobIds.size());
+        for (String id: jobIds) add(agent.getJob(id));
     }
 
     /**
@@ -148,7 +169,6 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
     /**
      * Receives Job from the AgentProxy. Reactivates thread if sleeping.
      */
-    @Override
     public void add(Job currentJob) {
         String transName = currentJob.getTransition().getName();
         String jobID = Integer.toString(currentJob.getId());
@@ -174,20 +194,8 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
     }
 
     /**
-     * Job control messages, could be errors as well
-     */
-    @Override
-    public void control(String control, String msg) {
-        if (MemberSubscription.ERROR.equals(control)) {
-            log.error("Error in job subscription: "+msg);
-            //TODO: Execute activity in the Workflow of the Agent to store this error and probably remove Job from list
-        }
-    }
-
-    /**
      * Job removal notification from the AgentProxy.
      */
-    @Override
     public void remove(String id) {
         synchronized(quartzScheduler) {
             log.debug("remove() - id:"+id);
@@ -209,6 +217,8 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
             proc.login( Gateway.getProperties().getString("Trigger.agent", "triggerAgent"),
                     Gateway.getProperties().getString("Trigger.password"),
                     Gateway.getProperties().getString("AuthResource", "Cristal"));
+
+            StandardClient.createClientVerticles();
 
             proc.initialise();
 
@@ -232,13 +242,5 @@ public class TriggerProcess extends StandardClient implements ProxyObserver<Job>
 
             System.exit(1);
         }
-    }
-
-    public String getDesc() {
-        return("Trigger Process");
-    }
-
-    public static void shutdown() {
-        //        active = false;
     }
 }

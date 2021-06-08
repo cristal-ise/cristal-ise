@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN;
@@ -28,16 +29,21 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.Collection;
-import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.CannotManageException;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.InvalidTransitionException;
@@ -46,15 +52,17 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.Item;
-import org.cristalise.kernel.entity.ItemHelper;
+import org.cristalise.kernel.entity.ItemVerticle;
+import org.cristalise.kernel.entity.ItemVertxEBProxy;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobArrayList;
 import org.cristalise.kernel.events.Event;
-import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
+import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.WriteProperty;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
@@ -64,48 +72,47 @@ import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.BuiltInItemProperties;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
-import org.cristalise.kernel.utils.CastorXMLUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
+
+import com.google.errorprone.annotations.Immutable;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-
 /**
- * It is a wrapper for the connection and communication with Item.
- * It caches data loaded from the Item to reduce communication
+ * It is a wrapper for the connection and communication with Item. It relies on the
+ * ClusterStorage mechanism to rertieve and cache data.
  */
-@Slf4j
-public class ItemProxy
-{
-    protected Item                  mItem = null;
-    protected ItemPath              mItemPath;
-    protected org.omg.CORBA.Object  mIOR;
-
-    private final HashMap<MemberSubscription<?>, ProxyObserver<?>> mSubscriptions;
+@Slf4j @Immutable
+public class ItemProxy {
+    protected Item     mItem = null;
+    protected ItemPath mItemPath;
 
     /**
-     * Set Transaction key (a.k.a. transKey) when ItemProxy is used in server side scripting
+     * Set Transaction key (a.k.a. transKey/locker) when ItemProxy is used in server side scripting
      */
-    @Getter @Setter
+    @Getter
     protected TransactionKey transactionKey = null;
 
     /**
      *
-     * @param ior
      * @param itemPath
      */
-    protected ItemProxy( org.omg.CORBA.Object  ior, ItemPath itemPath) {
-        mIOR            = ior;
-        mItemPath       = itemPath;
-        mSubscriptions  = new HashMap<MemberSubscription<?>, ProxyObserver<?>>();
+    protected ItemProxy(ItemPath itemPath) {
+        this(itemPath, null);
+    }
+
+    protected ItemProxy(ItemPath itemPath, TransactionKey transKey) {
+        mItemPath  = itemPath;
+        transactionKey = transKey;
+    }
+
+    public Item getItem() {
+        if (mItem == null) mItem = new ItemVertxEBProxy(Gateway.getVertx(), ItemVerticle.ebAddress);
+
+        return mItem;
     }
 
     /**
@@ -114,128 +121,6 @@ public class ItemProxy
      */
     public ItemPath getPath() {
         return mItemPath;
-    }
-
-    /**
-     * Returns the CORBA Item this proxy is linked with
-     *
-     * @return the CORBA Item this proxy is linked with
-     * @throws ObjectNotFoundException there was a problem connecting with the Item
-     */
-    protected Item getItem() throws ObjectNotFoundException {
-        if (mItem == null) mItem = narrow();
-        return mItem;
-    }
-
-    /**
-     * Narrows the CORBA Item this proxy is linked with
-     *
-     * @return the CORBA Item this proxy is linked with
-     * @throws ObjectNotFoundException there was a problem connecting with the Item
-     */
-    public Item narrow() throws ObjectNotFoundException {
-        try {
-            return ItemHelper.narrow(mIOR);
-        }
-        catch (org.omg.CORBA.BAD_PARAM ex) {
-            throw new ObjectNotFoundException("CORBA Object was not an Item, or the server is down:" + ex.getMessage());
-        }
-    }
-
-    /**
-     * Initialise the new Item with instance data which was normally created from descriptions
-     *
-     * @param agentId the Agent who is creating the Item
-     * @param itemProps initial list of Properties of the Item
-     * @param workflow new Lifecycle of the Item
-     * @param colls the initial state of the Item's collections
-     *
-     * @throws AccessRightsException Agent does not have the rights to create an Item
-     * @throws InvalidDataException data was invalid
-     * @throws PersistencyException there was a database problem during Item initialisation
-     * @throws ObjectNotFoundException Object not found
-     * @throws MarshalException there was a problem converting those objects to XML
-     * @throws ValidationException XML was not valid
-     * @throws IOException IO errors
-     * @throws MappingException errors in XML marshall/unmarshall mapping
-     * @throws InvalidCollectionModification invalid Collection
-     */
-    @Deprecated
-    public void initialise(AgentPath agentId, 
-                           PropertyArrayList itemProps, 
-                           CompositeActivity workflow, 
-                           CollectionArrayList colls
-                           )
-             throws AccessRightsException,
-                    InvalidDataException,
-                    PersistencyException,
-                    ObjectNotFoundException,
-                    MarshalException,
-                    ValidationException,
-                    IOException,
-                    MappingException,
-                    InvalidCollectionModification
-    {
-        initialise(agentId, itemProps, workflow, colls, null, null);
-    }
-
-    /**
-     * Initialise the new Item with instance data which was normally created from descriptions
-     *
-     * @param agentId the Agent who is creating the Item
-     * @param itemProps initial list of Properties of the Item
-     * @param workflow new Lifecycle of the Item
-     * @param colls the initial state of the Item's collections
-     * @param viewpoint the provide viewpoint to be stored for the Outcome
-     * @param outcome the Outcome to be used (like the parameters of the class constructor)
-     *
-     * @throws AccessRightsException Agent does not have the rights to create an Item
-     * @throws InvalidDataException data was invalid
-     * @throws PersistencyException there was a database problem during Item initialisation
-     * @throws ObjectNotFoundException Object not found
-     * @throws MarshalException there was a problem converting those objects to XML
-     * @throws ValidationException XML was not valid
-     * @throws IOException IO errors
-     * @throws MappingException errors in XML marshall/unmarshall mapping
-     * @throws InvalidCollectionModification invalid Collection
-     */
-    @Deprecated
-    public void initialise(AgentPath agentId, 
-                           PropertyArrayList itemProps, 
-                           CompositeActivity workflow, 
-                           CollectionArrayList colls,
-                           Viewpoint viewpoint,
-                           Outcome outcome
-                           )
-            throws AccessRightsException,
-                    InvalidDataException,
-                    PersistencyException,
-                    ObjectNotFoundException,
-                    MarshalException,
-                    ValidationException,
-                    IOException,
-                    MappingException,
-                    InvalidCollectionModification
-    {
-        log.debug("initialise() - started");
-
-        CastorXMLUtility xml = Gateway.getMarshaller();
-        if (itemProps == null) throw new InvalidDataException("initialise() - No initial properties supplied");
-        String propString = xml.marshall(itemProps);
-
-        String wfString = "";
-        if (workflow != null) wfString = xml.marshall(workflow);
-
-        String collString = "";
-        if (colls != null) collString = xml.marshall(colls);
-
-        String viewpointString = "";
-        if (viewpoint != null) viewpointString = xml.marshall(viewpoint);
-
-        String outcomeString = "";
-        if (outcome != null) outcomeString = outcome.getData();
-
-        getItem().initialise(agentId.getSystemKey(), propString, wfString, collString, viewpointString, outcomeString);
     }
 
     /**
@@ -265,6 +150,63 @@ public class ItemProxy
     }
 
     /**
+     * 
+     * @param itemUuid
+     * @param agentUuid
+     * @param stepPath
+     * @param transitionID
+     * @param requestData
+     * @param fileName
+     * @param attachment
+     * @return
+     * @throws CriseVertxException
+     */
+    public String requestAction(
+            String     itemUuid,
+            String     agentUuid,
+            String     stepPath,
+            int        transitionID,
+            String     requestData,
+            String     fileName,
+            List<Byte> attachment
+        ) throws CriseVertxException
+    {
+        CompletableFuture<String> futureResult = new CompletableFuture<>();
+
+        log.debug("requestAction() - item:{} agent:{}", itemUuid, agentUuid);
+
+        getItem().requestAction(
+                itemUuid,
+                agentUuid,
+                stepPath,
+                transitionID,
+                requestData,
+                fileName,
+                attachment,
+                (result) -> {
+                    if (result.succeeded()) {
+                        String returnString = result.result();
+                        log.trace("requestAction() - return:{}", returnString);
+                        futureResult.complete(returnString);
+                    }
+                    else {
+                        futureResult.completeExceptionally(result.cause());
+                    }
+                });
+
+        try {
+            return futureResult.get(5, SECONDS);
+        }
+        catch (ExecutionException e) {
+            throw CriseVertxException.convertFutureException(e);
+        }
+        catch (InterruptedException | TimeoutException | CancellationException e) {
+            log.error("requestAction() - item:{} agent:{}", itemUuid, agentUuid, e);
+            throw new CannotManageException("Error while waiting for the requestAction() return value item:"+itemUuid+" agent:"+agentUuid+"", e);
+        }
+    }
+
+    /**
      * Executes the given Job
      *
      * @param thisJob the Job to be executed
@@ -277,15 +219,7 @@ public class ItemProxy
      * @throws ObjectAlreadyExistsException Object already exists
      * @throws InvalidCollectionModification Invalid collection
      */
-    public String requestAction( Job thisJob )
-            throws AccessRightsException,
-                   InvalidTransitionException,
-                   ObjectNotFoundException,
-                   InvalidDataException,
-                   PersistencyException,
-                   ObjectAlreadyExistsException,
-                   InvalidCollectionModification
-    {
+    public String requestAction(Job thisJob) throws CriseVertxException {
         if (thisJob.getAgentPath() == null) throw new InvalidDataException("No Agent specified.");
 
         String outcome = thisJob.getOutcomeString();
@@ -306,25 +240,14 @@ public class ItemProxy
 
         log.debug("requestAction() - executing job:{}", thisJob);
 
-        if (thisJob.getDelegatePath() == null) {
-            return getItem().requestAction (
-                    thisJob.getAgentPath().getSystemKey(), 
-                    thisJob.getStepPath(),
-                    thisJob.getTransition().getId(), 
-                    outcome,
-                    attachmentFileName,
-                    attachmentBinary);
-        }
-        else {
-            return getItem().delegatedAction(
-                    thisJob.getAgentPath().getSystemKey(), 
-                    thisJob.getDelegatePath().getSystemKey(),
-                    thisJob.getStepPath(), 
-                    thisJob.getTransition().getId(), 
-                    outcome, 
-                    attachmentFileName,
-                    attachmentBinary);
-        }
+        return requestAction(
+                mItemPath.toString(),
+                thisJob.getAgentPath().toString(),
+                thisJob.getStepPath(),
+                thisJob.getTransition().getId(),
+                outcome,
+                attachmentFileName,
+                Arrays.asList(ArrayUtils.toObject(attachmentBinary)));
     }
 
     /**
@@ -336,8 +259,8 @@ public class ItemProxy
      * @throws PersistencyException there was a database problems during this operations
      * @throws ObjectNotFoundException data was invalid
      */
-    public ArrayList<Job> getJobList(AgentPath agentPath) throws AccessRightsException, ObjectNotFoundException, PersistencyException {
-        return getJobList(agentPath, false);
+    public List<Job> getJobs(AgentPath agentPath) throws CriseVertxException {
+        return getJobs(agentPath, false);
     }
 
     /**
@@ -350,33 +273,68 @@ public class ItemProxy
      * @throws PersistencyException there was a database problems during this operations
      * @throws ObjectNotFoundException data was invalid
      */
-    private ArrayList<Job> getJobList(AgentPath agentPath, boolean filter)
-            throws AccessRightsException, ObjectNotFoundException, PersistencyException
-    {
-        JobArrayList thisJobList;
-        String jobs =  getItem().queryLifeCycle(agentPath.getSystemKey(), filter);
+    private List<Job> getJobs(AgentPath agentPath, boolean filter) throws CriseVertxException {
+        CompletableFuture<String> futureResult = new CompletableFuture<>();
+
+        log.debug("getJobList() - item:{} agent:{}", mItemPath, agentPath.getAgentName());
+
+        getItem().queryLifeCycle(mItemPath.toString(), agentPath.toString(), filter, (result) -> {
+            if (result.succeeded()) {
+                String returnString = result.result();
+                log.trace("getJobList() - handler return:{}", returnString);
+                futureResult.complete(returnString);
+            }
+            else {
+                log.error("getJobList() - handler error", result.cause());
+                futureResult.completeExceptionally(result.cause());
+            }
+        });
 
         try {
-            thisJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(jobs);
+            String jobs = futureResult.get(5, SECONDS);
+            try {
+                JobArrayList thisJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(jobs);
+                return thisJobList.list;
+            }
+            catch (Exception e) {
+                log.error("Cannot unmarshall the jobs", e);
+                throw new PersistencyException("Cannot unmarshall the jobs");
+            }
         }
-        catch (Exception e) {
-            log.error("Cannot unmarshall the jobs", e);
-            throw new PersistencyException("Cannot unmarshall the jobs");
+        catch (ExecutionException e) {
+            throw CriseVertxException.convertFutureException(e);
         }
-        return thisJobList.list;
+        catch (InterruptedException | TimeoutException | CancellationException e) {
+            log.error("getJobList() - item:{} agent:{}", mItemPath, agentPath, e);
+            throw new CannotManageException("Error while waiting for the getJobList() return value item:"+mItemPath+" agent:"+agentPath+"", e);
+        }
     }
 
     /**
      * Get the list of active Jobs of the Item that can be executed by the Agent
      *
-     * @param agent the Agent requesting the job
+     * @param agent requesting the job
      * @return list of Jobs
-     * @throws AccessRightsException Agent does not the rights to execute this operation
-     * @throws PersistencyException there was a database problems during this operations
-     * @throws ObjectNotFoundException data was invalid
      */
-    public ArrayList<Job> getJobList(AgentProxy agent) throws AccessRightsException, ObjectNotFoundException, PersistencyException {
-        return getJobList(agent.getPath(), true);
+    public List<Job> getJobs(AgentProxy agent) throws CriseVertxException {
+        return getJobs(agent.getPath(), true);
+    }
+
+    /**
+     * Get the list of active Jobs of the Item for the given Activity that can be executed by the Agent.
+     * 
+     * @param agent requesting the job
+     * @param stepPath of the Activity
+     * @return list of active Jobs of the Item for the given Activity that can be executed by the Agent
+     * @throws CriseVertxException
+     */
+    public List<Job> getJobs(AgentPath agent, String stepPath) throws CriseVertxException {
+        List<Job> resultJobs = new ArrayList<>();
+
+        for (Job job : getJobs(agent, true)) {
+            if (job.getStepPath().equals(stepPath)) resultJobs.add(job);
+        }
+        return resultJobs;
     }
 
     /**
@@ -388,9 +346,8 @@ public class ItemProxy
      * @throws ObjectNotFoundException
      * @throws PersistencyException
      */
-    private Job getJobByName(String actName, AgentPath agent) throws AccessRightsException, ObjectNotFoundException, PersistencyException {
-        ArrayList<Job> jobList = getJobList(agent, true);
-        for (Job job : jobList) {
+    private Job getJobByName(String actName, AgentPath agent) throws CriseVertxException {
+        for (Job job : getJobs(agent, true)) {
             if (job.getStepName().equals(actName) && job.getTransition().isFinishing())
                 return job;
         }
@@ -871,7 +828,7 @@ public class ItemProxy
      * @throws ObjectNotFoundException objects were not found
      * @throws PersistencyException Error loading the relevant objects
      */
-    public Job getJobByName(String actName, AgentProxy agent) throws AccessRightsException, ObjectNotFoundException,PersistencyException {
+    public Job getJobByName(String actName, AgentProxy agent) throws CriseVertxException {
         return getJobByName(actName, agent.getPath());
     }
 
@@ -886,7 +843,7 @@ public class ItemProxy
      * @throws ObjectNotFoundException objects were not found
      * @throws PersistencyException Error loading the relevant objects
      */
-    public Job getJobByTransitionName(String actName, String transName, AgentProxy agent) throws AccessRightsException, ObjectNotFoundException,PersistencyException {
+    public Job getJobByTransitionName(String actName, String transName, AgentProxy agent) throws CriseVertxException {
         return getJobByTransitionName(actName, transName, agent.getPath());
     }
 
@@ -901,25 +858,14 @@ public class ItemProxy
      * @throws ObjectNotFoundException objects were not found
      * @throws PersistencyException Error loading the relevant objects
      */
-    public Job getJobByTransitionName(String actName, String transName, AgentPath agentPath) throws AccessRightsException, ObjectNotFoundException,PersistencyException {
-        for (Job job : getJobList(agentPath, true)) {
+    public Job getJobByTransitionName(String actName, String transName, AgentPath agentPath) throws CriseVertxException {
+        for (Job job : getJobs(agentPath, true)) {
             if (job.getTransition().getName().equals(transName)) {
                 if ((actName.contains("/") && job.getStepPath().equals(actName)) || job.getStepName().equals(actName))
                     return job;
             }
         }
         return null;
-    }
-
-    /**
-     * If this is reaped, clear out the cache for it too.
-     */
-    @Override
-    protected void finalize() throws Throwable {
-        log.debug("finalize() - caches are reaped for item:{}", mItemPath);
-        Gateway.getStorage().clearCache(mItemPath, null);
-        Gateway.getProxyManager().removeProxy(mItemPath);
-        super.finalize();
     }
 
     /**
@@ -967,7 +913,7 @@ public class ItemProxy
         catch (ObjectNotFoundException e) {
             throw e;
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             log.error("queryData() - could not read data for path:{}/{}", mItemPath, path, e);
             return "<ERROR>"+e.getMessage()+"</ERROR>";
         }
@@ -1084,7 +1030,20 @@ public class ItemProxy
      * @throws ObjectNotFoundException the type did not result in a C2KLocalObject
      */
     public C2KLocalObject getObject(ClusterType type) throws ObjectNotFoundException {
-        return getObject(type.getName());
+        return getObject(type.getName(), null);
+    }
+
+    /**
+     * Retrieve the C2KLocalObject for the ClusterType. Actually it returns an instance of C2KLocalObjectMap
+     *
+     * @param type the ClusterTyoe
+     * @return the C2KLocalObjectMap representing all the Object in the ClusterType
+     * @throws ObjectNotFoundException the type did not result in a C2KLocalObject
+     */
+    public C2KLocalObject getObject(ClusterType type, TransactionKey transKey) throws ObjectNotFoundException {
+        C2KLocalObjectMap<?> c2kObjMap = (C2KLocalObjectMap<?>) getObject(type.getName(), transKey);
+        c2kObjMap.setTransactionKey(transKey);
+        return c2kObjMap;
     }
 
     /**
@@ -1301,6 +1260,28 @@ public class ItemProxy
     }
 
     /**
+     * Retrieves the History of the item.
+     * 
+     * @return the History object
+     * @throws ObjectNotFoundException there is no event for the given id
+     */
+    public History getHistory() throws ObjectNotFoundException {
+        return getHistory(null);
+    }
+
+    /**
+     * Retrieves the History of the item. This method can be used in server side Script to find uncommitted changes
+     * during the active transaction.
+     * 
+     * @param transKey the transaction key
+     * @return the History object
+     * @throws ObjectNotFoundException there is no event for the given id
+     */
+    public History getHistory(TransactionKey transKey) throws ObjectNotFoundException {
+        return (History) getObject(HISTORY, transKey == null ? transactionKey : transKey);
+    }
+
+    /**
      * Returns the so called Master Schema which can be used to construct master outcome.
      * 
      * @return the actual Schema
@@ -1394,64 +1375,6 @@ public class ItemProxy
         return LocalObjectLoader.getScript(scriptName, scriptVersion, transactionKey);
     }
 
-    //**************************************************************************
-    // Subscription methods
-    //**************************************************************************/
-
-
-    public void subscribe(MemberSubscription<?> newSub) {
-        newSub.setSubject(this);
-        synchronized (this){
-            mSubscriptions.put( newSub, newSub.getObserver() );
-        }
-        new Thread(newSub).start();
-        log.debug("subscribe() - {} for {}", newSub.getObserver().getClass().getName(), newSub.interest);
-    }
-
-    public void unsubscribe(ProxyObserver<?> observer) {
-        synchronized (this){
-            for (Iterator<MemberSubscription<?>> e = mSubscriptions.keySet().iterator(); e.hasNext();) {
-                MemberSubscription<?> thisSub = e.next();
-                if (mSubscriptions.get( thisSub ) == observer) {
-                    e.remove();
-                    log.debug("unsubscribed() - {}", observer.getClass().getName());
-                }
-            }
-        }
-    }
-
-    public void dumpSubscriptions(int logLevel) {
-        log.debug("Subscriptions to proxy {}", mItemPath);
-
-        synchronized(this) {
-            for (MemberSubscription<?> element : mSubscriptions.keySet()) {
-                ProxyObserver<?> obs = element.getObserver();
-
-                if (obs != null) log.debug("    {} subscribed to {}", element.getObserver().getClass().getName(), element.interest);
-                else             log.debug("    Phantom subscription to {}", element.interest);
-            }
-        }
-    }
-
-    public void notify(ProxyMessage message) {
-        log.trace("Received change notification for {} on {}", message.getPath(), mItemPath);
-
-        synchronized (this){
-            if (Gateway.getProxyServer() == null || !message.getServer().equals(Gateway.getProxyServer().getServerName())) {
-                Gateway.getStorage().clearCache(mItemPath, message.getPath());
-            }
-            for (Iterator<MemberSubscription<?>> e = mSubscriptions.keySet().iterator(); e.hasNext();) {
-                MemberSubscription<?> newSub = e.next();
-                if (newSub.getObserver() == null) { // phantom
-                    log.trace("removing phantom subscription to {}", newSub.interest);
-                    e.remove();
-                }
-                else
-                    newSub.update(message.getPath(), message.isState());
-            }
-        }
-    }
-    
     @Override
     public String toString() {
         if (log.isTraceEnabled()) {
