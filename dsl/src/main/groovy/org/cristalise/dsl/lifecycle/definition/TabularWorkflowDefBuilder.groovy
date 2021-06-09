@@ -18,6 +18,7 @@ class TabularWorkflowDefBuilder {
             switch (record['layout']['class']) {
                 case 'activity': convertToActivity(record); break;
                 case 'loop': convertToLoop(record); break;
+                case 'end': convertToLoop(record); break;
                 default:
                     throw new InvalidDataException('Uncovered class value:' + record['layout']['class'])
             }

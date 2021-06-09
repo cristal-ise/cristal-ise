@@ -37,7 +37,7 @@ class ElemActDefBuilder {
         return build([module: "", name: name, version: version] as LinkedHashMap, cl)
     }
 
-    public static ActivityDef build(LinkedHashMap<String, Object> attrs, Closure cl) {
+    public static ActivityDef build(Map<String, Object> attrs, Closure cl) {
         def delegate = new ElemActDefDelegate((String)attrs.name, (Integer)attrs.version)
         delegate.processClosure(cl)
         return delegate.activityDef
