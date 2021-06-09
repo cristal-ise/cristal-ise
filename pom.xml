@@ -434,6 +434,11 @@
                 <artifactId>jfreesvg</artifactId>
                 <version>3.3</version>
             </dependency>
+            <dependency>
+                <groupId>mysql</groupId>
+                <artifactId>mysql-connector-java</artifactId>
+                <version>8.0.25</version>
+            </dependency>
             <!--                              -->
             <!-- common dependencies for test -->
             <!--                              -->
