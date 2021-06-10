@@ -37,7 +37,7 @@ import groovy.util.logging.Slf4j
 class CompActDefBuilder {
 
     public static CompositeActivityDef build(String name, int version, @DelegatesTo(CompActDefDelegate) Closure cl) {
-        return build([module: "", name: name, version: version] as LinkedHashMap, cl)
+        return build([module: '', name: name, version: version] as LinkedHashMap, cl)
     }
 
     public static CompositeActivityDef build(Map<String, Object> attrs, @DelegatesTo(CompActDefDelegate) Closure cl) {

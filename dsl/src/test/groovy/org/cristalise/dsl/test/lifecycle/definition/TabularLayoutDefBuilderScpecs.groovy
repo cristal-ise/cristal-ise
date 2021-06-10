@@ -30,7 +30,7 @@ import spock.lang.Specification
 /**
  *
  */
-class TabularWorkflowDefBuilderScpecs extends Specification implements CristalTestSetup {
+class TabularLayoutDefBuilderScpecs extends Specification implements CristalTestSetup {
     
     def setup()   {}
     def cleanup() { cristalCleanup() }

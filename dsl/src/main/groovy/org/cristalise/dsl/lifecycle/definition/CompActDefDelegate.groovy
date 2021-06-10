@@ -49,49 +49,11 @@ class CompActDefDelegate extends ElemActDefDelegate {
         activityDef = new CompositeActivityDef(n, v)
     }
 
-//    public Map<String, WfVertexDef> processClosure(String name, int version, Closure cl) {
-//        compActDef = new CompositeActivityDef()
-//        compActDef.name = name
-//        compActDef.version = version
-//
-//        return processClosure(compActDef, cl)
-//    }
-
-//    public void processClosure(CompositeActivityDef caDef, Closure cl) {
-//        assert caDef
-//
-//        compActDef = caDef
-//
-//        if (cl) {
-//            cl.delegate = this
-//            cl.resolveStrategy = Closure.DELEGATE_FIRST
-//            cl()
-//
-//            props.each { k, v ->
-//                compActDef.properties.put(k, v, props.getAbstract().contains(k))
-//            }
-//        }
-//    }
-
     @Override
     public List<ActivityDef> processTabularData(TabularGroovyParser parser) {
-        def twb = new TabularWorkflowDefBuilder()
-        buildCompActDef(twb.build(parser))
+        def layoutBuilder = new TabularLayoutDefBuilder()
+        //buildCompActDef(layoutBuilder.build(parser))
         return null
-    }
-
-    public String buildCompActDef(Layout layout) {
-        layout.children.eachWithIndex {element, idx ->
-            if (element instanceof LayoutActivity) {
-                def activity = (LayoutActivity)element
-                // cannot use LocalObjectLoader.getElemActDef(activity.activityName, activity.activityVersion)
-                def actDef = new ActivityDef()
-                actDef.name = activity.activityReference
-                actDef.version = activity.activityVersion
-
-//                addActDefToSequence(activity.name, actDef)
-            }
-        }
     }
 
     def ElemActDef(String actName, int actVer, Closure cl = null) {
