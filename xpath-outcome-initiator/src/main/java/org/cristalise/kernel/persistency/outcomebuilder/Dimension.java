@@ -276,7 +276,7 @@ public class Dimension extends OutcomeStructure {
             }
         }
         else
-            throw new UnsupportedOperationException("Dimension cannot process TABS yet");
+            throw new UnsupportedOperationException("Dimension cannot process '"+mode+"' yet");
     }
 
     /**

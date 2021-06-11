@@ -20,8 +20,14 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import static org.exolab.castor.xml.schema.Facet.ENUMERATION;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
 import org.exolab.castor.types.AnyNode;
@@ -36,47 +42,63 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ComboField extends StringField {
 
-    ListOfValues vals;
-    String selected;
+    ListOfValues lov = null;
+    List<String> selecteds = new ArrayList<>();
+    boolean isMultiple = false;
 
-    // when values are defined in schema enumeration, check the values against that list
-    boolean strictValueHandling;
-
-    public ComboField(SimpleType type, AnyNode listNode) {
+    public ComboField(SimpleType type, AnyNode listNode, boolean multiple) {
         super();
         contentType = type;
-        strictValueHandling = listNode == null;
-        vals = new ListOfValues(type, listNode);
+
+        if (contentType.hasFacet(ENUMERATION) || listNode != null) {
+            lov = new ListOfValues(type, listNode);
+        }
+
+        //TODO: perhaps this case it should be covered by a new Field class, i.e. ChipsField
+        // if (lov == null && !multiple) throw new RuntimeException("");
+
+        isMultiple = multiple;
         javaType = OutcomeStructure.getJavaClass(type.getTypeCode());
     }
 
     @Override
     public String getDefaultValue() {
-        if (vals.getDefaultKey() != null) return vals.get(vals.getDefaultKey()).toString();
-        else                              return "";
+        if (lov == null) return "";
+
+        if (lov.getDefaultKey() != null) return lov.get(lov.getDefaultKey()).toString();
+        else                             return "";
     }
 
     public void setDefaultValue(String defaultVal) {
-        vals.setDefaultValue(defaultVal);
+        if (lov != null) lov.setDefaultValue(defaultVal);
     }
 
     @Override
     public String getText() {
-        if (strictValueHandling) return selected != null ? vals.get(selected).toString() : "";
-        else                     return selected;
+        return StringUtils.join(selecteds, ",");
+    }
+    
+    protected void setSelected(String value) {
+        if (isMultiple || selecteds.size() == 0) {
+            selecteds.add(value);
+        }
+        else {
+            selecteds.set(0, value);
+        }
     }
 
     @Override
     public void setText(String text) {
-        if (strictValueHandling) {
-            if (vals.containsValue(text)) {
-                selected = vals.findKey(text);
+        if (lov != null && lov.strictValueHandling) {
+            if (lov.containsValue(text)) {
+                setSelected(lov.findKey(text));
             }
             else
                 log.error("Illegal value for ComboField name:'"+getName()+"' value:'"+text+"'");
         }
-        else
-            selected = text;
+        else {
+            setSelected(text);
+        }
     }
 
     @Override
@@ -99,18 +121,18 @@ public class ComboField extends StringField {
     private JSONArray getNgDynamicFormsOptions() {
         JSONArray options = new JSONArray();
 
-        if (vals.size() != 0) {
+        if (lov != null && lov.size() != 0) {
             JSONObject emptyOption = new JSONObject();
             emptyOption.put("label", "Select value");
 
             options.put(emptyOption);
 
-            for (String key: vals.orderedKeys) {
-                if (vals.get(key) != null) {
+            for (String key: lov.orderedKeys) {
+                if (lov.get(key) != null) {
                     JSONObject option = new JSONObject();
 
                     option.put("label", key);
-                    option.put("value", vals.get(key));
+                    option.put("value", lov.get(key));
 
                     options.put(option);
                 }
@@ -122,7 +144,9 @@ public class ComboField extends StringField {
 
     @Override
     public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
-        vals.createLOV(inputs);
+        if (lov == null) return null;
+
+        lov.createLOV(inputs);
 
         JSONObject select = getCommonFieldsNgDynamicForms();
 
@@ -133,7 +157,7 @@ public class ComboField extends StringField {
 
             JSONObject additional = getAdditionalConfigNgDynamicForms(select);
  
-            if (vals.editable) {
+            if (lov.editable) {
                 additional.put("editable", true);
             }
 
@@ -146,5 +170,10 @@ public class ComboField extends StringField {
         }
 
         return select;
+    }
+
+    @Override
+    public void setValue(Object value) throws InvalidOutcomeException {
+        super.setValue(value);
     }
 }

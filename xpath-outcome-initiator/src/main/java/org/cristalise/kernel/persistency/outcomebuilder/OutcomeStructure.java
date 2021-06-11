@@ -132,7 +132,7 @@ public abstract class OutcomeStructure {
     }
 
     /**
-     * Adds the child element az the correct position using the expected sequence of elements (subStructureOrder)
+     * Adds the child element at the correct position using the expected sequence of elements (subStructureOrder)
      * 
      * @param name the name of the elements to be added
      * @param newElement the new xml element to be added
@@ -180,16 +180,14 @@ public abstract class OutcomeStructure {
 
         if (model.getMaxOccurs() == 0) return null;
 
-        // if more than one can occur - dimension
-        if (model.getMaxOccurs() > 1 || model.getMaxOccurs() == Particle.UNBOUNDED) // || model.getMinOccurs() == 0
-            return new Dimension(model);
-
-        // must have a type from now on
         if (elementType == null)
-            throw new StructuralException("Element " + model.getName() + " is elementary yet has no type.");
+            throw new StructuralException("Element " + model.getName() + " has no type!?");
 
-        // simple types will be fields
+        // simple types will be fields even if more than one can occur. Also only complex types can have attributes.
         if (elementType instanceof SimpleType) return new Field(model);
+
+        // if more than one can occur - dimension
+        if (isMultiple(model)) return new Dimension(model);
 
         // otherwise is a complex type
         try {
@@ -407,6 +405,10 @@ public abstract class OutcomeStructure {
 
     public boolean isOptional() {
         return model.getMinOccurs() == 0;
+    }
+
+    public static boolean isMultiple(ElementDecl aModel) {
+        return aModel.getMaxOccurs() > 1 || aModel.getMaxOccurs() == Particle.UNBOUNDED;
     }
 
     public OutcomeStructure find(String[] names) {

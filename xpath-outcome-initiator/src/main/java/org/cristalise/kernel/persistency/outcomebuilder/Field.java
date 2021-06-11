@@ -33,14 +33,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+@Slf4j @Accessors(prefix = "my") @Getter
 public class Field extends OutcomeStructure {
 
     StringField   myFieldInstance = null;
     AttributeList myAttributes;
-    Text          textNode;
 
     public Field(ElementDecl model) {
         super(model);
@@ -49,9 +50,6 @@ public class Field extends OutcomeStructure {
         myAttributes = new AttributeList(model);
 
         log.debug("name:"+model.getName()+" optional:" + isOptional());
-        
-        // skipping optional fields
-        //if (isOptional()) return;
 
         try {
             myFieldInstance = StringField.getField(model);
@@ -63,13 +61,25 @@ public class Field extends OutcomeStructure {
         }
     }
 
-    public AttributeList getAttributes() {
-        return myAttributes;
-    }
-
     @Override
     public void addStructure(OutcomeStructure newElement) throws OutcomeBuilderException {
         throw new StructuralException("Field "+model.getName()+" cannot have child structures");
+    }
+
+    private Text getInitalisedTextNode(Element newElement, Document parentDoc) throws OutcomeBuilderException {
+        try {
+            Text textNode = null;
+            if (newElement.hasChildNodes())
+                textNode = (Text)newElement.getFirstChild();
+            else {
+                textNode = parentDoc.createTextNode(getDefaultValue());
+                newElement.appendChild(textNode);
+            }
+            return textNode;
+        }
+        catch (ClassCastException ex) {
+            throw new StructuralException("First child node of Field " + this.getName() + " was not Text: "+newElement.getFirstChild().getNodeType());
+        }
     }
 
     @Override
@@ -79,27 +89,22 @@ public class Field extends OutcomeStructure {
         // Set attributes first
         myAttributes.addInstance(newElement, parentDoc);
 
-        if (this.myElement != null) throw new CardinalException("Field '"+this.getName()+"' cannot repeat");
+        if (this.myElement != null) {
+            if (!isMultiple(model)) throw new CardinalException("Field '"+this.getName()+"' cannot repeat");
 
-        this.myElement = newElement;
+            //set the value in the myFieldInstance which has to be a ComboField
+            myFieldInstance.setData(getInitalisedTextNode(newElement, parentDoc));
+        }
+        else {
+            this.myElement = newElement;
 
-        try {
             if (myFieldInstance == null) {
+                // should this be an error instead????
                 log.warn("addInstance() - Field '"+newElement.getTagName()+"' should be empty. Discarding contents.");
             }
             else {
-                if (newElement.hasChildNodes())
-                    textNode = (Text)newElement.getFirstChild();
-                else {
-                    textNode = parentDoc.createTextNode(getDefaultValue());
-                    newElement.appendChild(textNode);
-                }
-
-                myFieldInstance.setData(textNode);
+                myFieldInstance.setData(getInitalisedTextNode(newElement, parentDoc));
             }
-        }
-        catch (ClassCastException ex) {
-            throw new StructuralException("First child node of Field " + this.getName() + " was not Text: "+newElement.getFirstChild().getNodeType());
         }
     }
 
@@ -193,7 +198,7 @@ public class Field extends OutcomeStructure {
         if (myFieldInstance != null) {
             // populate
             String defaultVal = getDefaultValue();
-            textNode = rootDocument.createTextNode(defaultVal);
+            Text textNode = rootDocument.createTextNode(defaultVal);
             myElement.appendChild(textNode);
             myFieldInstance.setData(textNode);
         }

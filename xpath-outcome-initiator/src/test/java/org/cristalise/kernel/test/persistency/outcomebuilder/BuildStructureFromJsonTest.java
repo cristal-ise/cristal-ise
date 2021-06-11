@@ -20,48 +20,66 @@
  */
 package org.cristalise.kernel.test.persistency.outcomebuilder;
 
+import static net.javacrumbs.jsonunit.JsonAssert.assertJsonEquals;
+
+import java.io.File;
+
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
-import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 import org.json.XML;
 import org.junit.Before;
 import org.junit.Test;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class BuildStructureFromJsonTest extends XMLUtils {
 
     String dir = "src/test/data/outcomeBuilder";
 
     @Before
     public void setUp() throws Exception {
-        Logger.addLogStream(System.out, 8);
     }
 
+    /**
+     * Read JSON file to create a new XML using OutcomeBuilder which was initialized with a Schema
+     */
     private void checkJson2XmlOutcome(String type, String postfix) throws Exception {
-        JSONObject actualJson = new JSONObject(getJSON(dir, type+postfix));
         String expected = getXML(dir, type+postfix);
+        JSONObject actualJson = new JSONObject(getJSON(dir, type+postfix));
 
-        Logger.msg(2, "Actual json:%s", actualJson.toString());
+        log.info("Actual json:\n{}", actualJson.toString(2));
         OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
         builder.addJsonInstance(actualJson);
 
-        Logger.msg(2, "Expected xml:%s", expected);
-        Logger.msg(2, "Actual xml:%s", builder.getXml(false));
+        log.info("Expected xml:\n{}", expected);
+        log.info("Actual xml:\n{}", builder.getXml(false));
 
         assert compareXML(expected, builder.getXml());
     }
 
-    private void checkXml2Json2XmlOutcome(String type, String postFix) throws Exception {
-        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
-        String expected = getXML(dir, type+postFix);
+    /**
+     * Read expected XML file and convert to JSON to create a new XML using OutcomeBuilder which was initialized with a Schema
+     */
+    private void checkXml2Json2XmlOutcome(String type, String postfix) throws Exception {
+        String expected = getXML(dir, type+postfix);
         JSONObject actualJson = XML.toJSONObject(expected);
 
-        Logger.msg(2, "Actual json:%s", actualJson.toString());
+        log.info("Actual json:\n{}", actualJson.toString(2));
+
+        // tests if the XML.toJSONObject() produces the expected JSON
+        if (new File(dir, type+postfix+".json").exists()) {
+            JSONObject expectedJson = new JSONObject(getJSON(dir, type+postfix));
+            assertJsonEquals(expectedJson, actualJson);
+        }
+
+        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
         builder.addJsonInstance(actualJson);;
 
-        Logger.msg(2, "Expected xml:%s", expected);
-        Logger.msg(2, "Actual xml:%s", builder.getXml());
+        log.info("Expected xml:\n{}", expected);
+        log.info("Actual xml:\n{}", builder.getXml());
 
         assert compareXML(expected, builder.getXml());
     }
@@ -83,11 +101,11 @@ public class BuildStructureFromJsonTest extends XMLUtils {
 
         JSONObject actualJson = new JSONObject(getJSON(dir, "IntegerFieldOptional"));
 
-        Logger.msg(2, "Actual json:%s", actualJson.toString());
+        log.info("Actual json:{}", actualJson.toString());
         builder.addJsonInstance(actualJson);;
 
-        Logger.msg(2, "Expected xml:%s", expected);
-        Logger.msg(2, "Actual xml:%s", builder.getXml());
+        log.info("Expected xml:{}", expected);
+        log.info("Actual xml:{}", builder.getXml());
 
         assert compareXML(expected, builder.getXml());
     }
@@ -114,7 +132,7 @@ public class BuildStructureFromJsonTest extends XMLUtils {
 
     @Test
     public void employee_ComplexType_sequence() throws Exception {
-        checkJson2XmlOutcome("Employee", "");
+        checkXml2Json2XmlOutcome("Employee", "");
     }
 
     @Test
