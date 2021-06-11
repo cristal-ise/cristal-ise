@@ -72,9 +72,17 @@ module common
 
 
     /**************************************************************************
-    * The given agent is not permitted to perform the requested action.
+    * The given agent is not authenticated
     **************************************************************************/
     exception AccessRightsException
+    {
+    };
+
+
+    /**************************************************************************
+    * The given agent is not permitted to perform the requested action
+    **************************************************************************/
+    exception AccessDeniedException
     {
     };
 

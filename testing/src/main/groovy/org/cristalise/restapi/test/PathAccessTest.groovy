@@ -8,6 +8,7 @@ import org.junit.Test
 import groovy.transform.CompileStatic
 import io.restassured.http.ContentType
 import io.restassured.response.Response
+import javax.ws.rs.core.Response;
 
 @CompileStatic
 class PathAccessTest extends RestapiTestBase {
@@ -26,7 +27,7 @@ class PathAccessTest extends RestapiTestBase {
                 .get(apiUri+"/domain/aliases")
             .then()
                 //.cookie('cauth') //response cookie is added when 30s is passed between the cookie creation and the request
-                .statusCode(STATUS_OK)
+                .statusCode(Response.Status.OK)
                 .extract().response()
 
         def expected ="""[{
