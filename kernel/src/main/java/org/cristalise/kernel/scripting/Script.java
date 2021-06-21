@@ -337,7 +337,7 @@ public class Script implements DescriptionObject {
      * @param scriptXML
      * @throws ScriptParsingException - when script is invalid
      */
-    private void parseScriptXML(String scriptXML) throws ScriptParsingException, ParameterException {
+    private synchronized void parseScriptXML(String scriptXML) throws ScriptParsingException, ParameterException {
         if (StringUtils.isBlank(scriptXML)) {
             log.warn("parseScriptXML - scriptXML was NULL!" );
             return;
