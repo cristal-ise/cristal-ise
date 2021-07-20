@@ -47,7 +47,11 @@ class KernelXMLUtility {
 
         if(!params.jobList) { params.jobList = 'false'}
 
-        xml.Role(name:params.name, jobList:params.jobList);
+        xml.Role(name:params.name, jobList:params.jobList) {
+            params.permissions.each {perm ->
+                Permission(perm)
+            }
+        }
 
         return writer.toString()
     }

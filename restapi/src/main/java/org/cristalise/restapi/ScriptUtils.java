@@ -28,14 +28,21 @@ import java.util.concurrent.Semaphore;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.AccessDeniedException;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
+import org.cristalise.kernel.security.SecurityManager;
+import org.cristalise.kernel.security.SecurityManager.BuiltInAction;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.json.JSONObject;
@@ -84,7 +91,7 @@ public class ScriptUtils extends ItemUtils {
             String              actPath,
             String              inputJson,
             Map<String, Object> additionalInputs)
-                throws ObjectNotFoundException, UnsupportedOperationException, InvalidDataException
+                throws ObjectNotFoundException, UnsupportedOperationException, InvalidDataException, AccessRightsException, AccessDeniedException
     {
         if (scriptVersion == null) {
             if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
@@ -100,6 +107,19 @@ public class ScriptUtils extends ItemUtils {
             try {
                 Script script = LocalObjectLoader.getScript(scriptName, scriptVersion);
 
+                SecurityManager secMan = Gateway.getSecurityManager();
+                if (secMan.isShiroEnabled()) {
+                    AgentProxy agentProxy = (AgentProxy)additionalInputs.get(Script.PARAMETER_AGENT);
+                    if (null == agentProxy) {
+                        throw new AccessRightsException("Input parameter '" + Script.PARAMETER_AGENT + "' was not specified");
+                    }
+                    AgentPath agentPath = agentProxy.getPath();
+                    if (!secMan.checkPermissions(agentPath, BuiltInAction.ACTION_EXECUTE, script.getItemPath(), null)) {
+                        if (log.isTraceEnabled()) for (RolePath role: agentPath.getRoles()) log.error(role.dump());
+                        throw new AccessDeniedException("'" + agentPath.getAgentName() + "' is NOT permitted to " + BuiltInAction.ACTION_EXECUTE + " script: " + script.getName());
+                    }
+                }
+
                 JSONObject json =  new JSONObject(inputJson == null ? "{}" : URLDecoder.decode(inputJson, "UTF-8"));
 
                 CastorHashMap inputs = new CastorHashMap();
@@ -113,7 +133,7 @@ public class ScriptUtils extends ItemUtils {
 
                 return returnScriptResult(item, null, script, inputs, produceJSON(headers.getAcceptableMediaTypes()));
             }
-            catch ( UnsupportedOperationException e ) {
+            catch (UnsupportedOperationException | AccessRightsException | AccessDeniedException e) {
                 throw e;
             }
             catch (Exception e) {
