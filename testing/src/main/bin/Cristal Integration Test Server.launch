@@ -14,7 +14,7 @@
 <stringAttribute key="org.eclipse.jdt.launching.JRE_CONTAINER" value="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
 <stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="org.cristalise.kernel.process.StandardServer"/>
 <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-logLevel 8 -config src/main/bin/server.conf -connect src/main/bin/integTest.clc"/>
-<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="testing"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="cristalise-testing"/>
 <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.m2e.launchconfig.sourcepathProvider"/>
 <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx256m"/>
 </launchConfiguration>

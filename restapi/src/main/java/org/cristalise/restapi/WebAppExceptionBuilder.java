@@ -96,6 +96,9 @@ public class WebAppExceptionBuilder {
         else if (ex instanceof AccessRightsException) {
             this.status = Response.Status.UNAUTHORIZED;
         }
+        else if (ex instanceof AccessDeniedException) {
+            this.status = Response.Status.FORBIDDEN;
+        }
         else if (ex instanceof ObjectNotFoundException) {
             this.status = Response.Status.NOT_FOUND;
         }
