@@ -51,7 +51,7 @@ class CompActDefDelegate extends ElemActDefDelegate {
 
     @Override
     public List<ActivityDef> processTabularData(TabularGroovyParser parser) {
-        def layoutBuilder = new TabularLayoutDefBuilder()
+        def layoutBuilder = new TabularLayoutDefBuilder((CompositeActivityDef)activityDef)
         //buildCompActDef(layoutBuilder.build(parser))
         return null
     }

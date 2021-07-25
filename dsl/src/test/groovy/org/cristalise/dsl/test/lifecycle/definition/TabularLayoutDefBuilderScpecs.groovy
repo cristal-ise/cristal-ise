@@ -44,7 +44,7 @@ class TabularLayoutDefBuilderScpecs extends Specification implements CristalTest
         then:
         caDef.name == 'TestItem_Workflow'
         caDef.version == 0
-        caDef.childrenGraphModel.vertices.length == 3
+        caDef.childrenGraphModel.vertices.length == 8
         caDef.childrenGraphModel.startVertex.name == "First"
     }
 }
