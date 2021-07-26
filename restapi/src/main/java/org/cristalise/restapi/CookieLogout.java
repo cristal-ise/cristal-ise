@@ -55,7 +55,7 @@ public class CookieLogout extends RestHandler   {
 
         log.debug("agent:'{}' reason:'{}'", ap.getAgentName(), reason);
 
-            AgentProxy agent = Gateway.getProxyManager().getAgentProxy(ap);
+            AgentProxy agent = Gateway.getAgentProxy(ap);
 
             if      ("timeout".equals(reason))     agent.execute(agent, LoginTimeout.class);
             else if ("windowClose".equals(reason)) agent.execute(agent, ForcedLogout.class);

@@ -29,8 +29,6 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.CorbaServer;
-import org.cristalise.kernel.entity.agent.ActiveEntity;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
@@ -118,16 +116,10 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
      * @throws ObjectCannotBeUpdated
      * @throws ObjectAlreadyExistsException
      */
-    protected ActiveEntity createAgentAddRoles(AgentPath newAgentPath, String[] roles, String pwd, TransactionKey transactionKey) 
+    protected void createAgentAddRoles(AgentPath newAgentPath, String[] roles, String pwd, TransactionKey transactionKey) 
             throws CannotManageException, ObjectCannotBeUpdated, ObjectAlreadyExistsException
     {
         log.info("createAgentAddRoles() - Creating Agent {}", newAgentPath.getAgentName(transactionKey));
-        
-        CorbaServer factory = Gateway.getCorbaServer();
-
-        if (factory == null) throw new CannotManageException("This process cannot create new Items");
-
-        ActiveEntity newAgent = factory.createAgent(newAgentPath, transactionKey);
         Gateway.getLookupManager().add(newAgentPath, transactionKey);
 
         try {
@@ -146,7 +138,5 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
 
             throw new CannotManageException(e.getMessage());
         }
-
-        return newAgent;
     }
 }

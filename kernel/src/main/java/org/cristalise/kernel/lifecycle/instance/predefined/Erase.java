@@ -29,7 +29,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
@@ -101,7 +101,7 @@ public class Erase extends PredefinedStep {
                 }
             }
         }
-        catch (InvalidAgentPathException e) {
+        catch (InvalidItemPathException e) {
             //this is actually never happens, new AgentPath(item) deos not throw InvalidAgentPathException
             //but the exception is needed for 'backward compability'
         }

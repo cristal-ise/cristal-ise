@@ -20,6 +20,9 @@
  */
 package org.cristalise.lookup.ldap;
 
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
+
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -231,44 +234,6 @@ public class LDAPLookup implements LookupManager {
         }
     }
 
-    /**
-     * Attempts to resolve the CORBA object for a Path, either directly or through an alias.
-     *
-     * @param path
-     *            the path to resolve
-     * @return the CORBA object
-     * @throws ObjectNotFoundException
-     *             When the path does not exist
-     */
-
-    @Override
-    public String getIOR(Path path, TransactionKey transactionKey) throws ObjectNotFoundException {
-        return resolveObject(getFullDN(path), transactionKey);
-    }
-
-    /**
-     * Attempts to resolve the CORBA object from the IOR attribute of a DN, either directly or through an alias
-     *
-     * @param dn
-     *            The String dn
-     * @throws ObjectNotFoundException
-     *             when the dn or aliased dn does not exist
-     */
-    private String resolveObject(String dn, TransactionKey transactionKey) throws ObjectNotFoundException {
-        Logger.msg(8, "LDAPLookup.resolveObject(" + dn + ")");
-        LDAPEntry anEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), dn, LDAPSearchConstraints.DEREF_NEVER);
-        if (anEntry != null) {
-            try {
-                return LDAPLookupUtils.getFirstAttributeValue(anEntry, "ior");
-            }
-            catch (ObjectNotFoundException ex) {
-                return resolveObject(LDAPLookupUtils.getFirstAttributeValue(anEntry, "aliasedObjectName"), transactionKey);
-            }
-        }
-        else
-            throw new ObjectNotFoundException("LDAPLookup.resolveObject() LDAP node " + dn + " is not in LDAP or has no IOR.");
-    }
-
     @Override
     public ItemPath resolvePath(DomainPath domPath, TransactionKey transactionKey) throws InvalidItemPathException, ObjectNotFoundException {
         LDAPEntry domEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(domPath), LDAPSearchConstraints.DEREF_ALWAYS);
@@ -281,13 +246,11 @@ public class LDAPLookup implements LookupManager {
         ItemPath referencedPath = new ItemPath(entityKey);
 
         if (objClass.equals("cristalagent")) return new AgentPath(referencedPath);
-        else
-            return referencedPath;
+        else                                 return referencedPath;
     }
 
     @Override
-    public void add(Path path, TransactionKey transactionKey)
-            throws ObjectCannotBeUpdated, ObjectAlreadyExistsException {
+    public void add(Path path, TransactionKey transactionKey) throws ObjectCannotBeUpdated, ObjectAlreadyExistsException {
         try {
             checkLDAPContext(path);
             LDAPAttributeSet attrSet = createAttributeSet(path);
@@ -296,7 +259,7 @@ public class LDAPLookup implements LookupManager {
 
             // FIXME: Check if this is correct to call in the Lookup implementation
             if (path instanceof DomainPath)
-                Gateway.getProxyServer().sendProxyEvent(new ProxyMessage(null, path.toString(), ProxyMessage.ADDED));
+                Gateway.sendProxyEvent(new ProxyMessage(null, path.toString(), ADD));
         }
         catch (LDAPException ex) {
             if (ex.getResultCode() == LDAPException.ENTRY_ALREADY_EXISTS)
@@ -318,8 +281,7 @@ public class LDAPLookup implements LookupManager {
             throw new ObjectCannotBeUpdated("Cannot delete Path '" + path.getStringPath() + "' - LDAPException:" + ex.getLDAPErrorMessage());
         }
         if (path instanceof DomainPath) {
-            // FIXME: Check if this is correct to call in the Lookup implementation
-            Gateway.getProxyServer().sendProxyEvent(new ProxyMessage(null, path.toString(), ProxyMessage.DELETED));
+            Gateway.sendProxyEvent(new ProxyMessage(null, path.toString(), DELETE));
         }
     }
 
@@ -474,13 +436,12 @@ public class LDAPLookup implements LookupManager {
     }
 
     /**
-     * converts an LDAPentry to a Path object Note that the search producing the entry should have retrieved the attrs 'ior' and
+     * converts an LDAPentry to a Path object Note that the search producing the entry should have retrieved
      * 'uniquemember' @throws ObjectNotFoundException @throws ObjectNotFoundException @throws
      */
     protected Path nodeToPath(LDAPEntry entry) throws InvalidItemPathException, ObjectNotFoundException {
         String dn = entry.getDN();
         ItemPath entityKey;
-        org.omg.CORBA.Object ior;
 
         // extract syskey
         try {
@@ -492,15 +453,6 @@ public class LDAPLookup implements LookupManager {
         }
         catch (InvalidItemPathException ex) {
             entityKey = null;
-        }
-
-        // extract IOR
-        try {
-            String stringIOR = LDAPLookupUtils.getFirstAttributeValue(entry, "ior");
-            ior = Gateway.getORB().string_to_object(stringIOR);
-        }
-        catch (ObjectNotFoundException ex) {
-            ior = null;
         }
 
         /* Find the right path class */
@@ -534,8 +486,6 @@ public class LDAPLookup implements LookupManager {
             throw new ObjectNotFoundException("Unrecognised LDAP entry. Not a cristal entry '" + entry + "'");
         }
 
-        // set IOR if we have one
-        if (ior != null) thisPath.setIOR(ior);
         return thisPath;
     }
 
@@ -600,8 +550,6 @@ public class LDAPLookup implements LookupManager {
         else if (path instanceof ItemPath) {
             ItemPath itemPath = (ItemPath) path;
             attrs.add(new LDAPAttribute("cn", itemPath.getUUID().toString()));
-            if (itemPath.getIOR() != null)
-                attrs.add(new LDAPAttribute("ior", Gateway.getORB().object_to_string(itemPath.getIOR())));
 
             if (path instanceof AgentPath) {
                 AgentPath agentPath = (AgentPath) path;
@@ -830,11 +778,6 @@ public class LDAPLookup implements LookupManager {
     public String getAgentName(AgentPath agentPath, TransactionKey transactionKey) throws ObjectNotFoundException {
         LDAPEntry agentEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(agentPath));
         return LDAPLookupUtils.getFirstAttributeValue(agentEntry, "uid");
-    }
-
-    @Override
-    public void setIOR(ItemPath item, String ior, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated {
-        throw new ObjectCannotBeUpdated("UNIMPLEMENTED");
     }
 
     @Override

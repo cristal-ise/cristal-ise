@@ -1,0 +1,1037 @@
+<application xmlns="http://wadl.dev.java.net/2009/02">
+  <doc xmlns:jersey="http://jersey.java.net/" jersey:generatedBy="Jersey: 2.26 2017-09-05 11:50:34" />
+  <doc xmlns:jersey="http://jersey.java.net/"
+    jersey:hint="This is simplified WADL with user and core resources only. To get full WADL with extended resources use the query parameter detail. Link: http://localhost:8081/application.wadl?detail=true" />
+  <grammars />
+  <resources base="http://localhost:8081/">
+    <resource path="/item/{uuid}/workflow">
+      <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+      <method id="getWorkflow" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="gantt" style="query" type="xs:string" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="text/xml" />
+          <representation mediaType="application/xml" />
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/item/{uuid}/viewpoint">
+      <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+      <method id="getSchemas" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="{schema}/{viewName}/history">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="schema" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="viewName" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getAllEventsForView" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{schema}/{viewName}/history/{event}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="schema" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="viewName" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="event" style="template" type="xs:int" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getOutcomeForEvent" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{schema}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="schema" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getViewNames" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{schema}/{viewName}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="schema" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="viewName" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="queryJSONData" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+        <method id="queryXMLData" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{schema}/{viewName}/history/{event}/event">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="schema" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="viewName" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="event" style="template" type="xs:int" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getOutcomeEvent" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{schema}/{viewName}/event">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="schema" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="viewName" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getViewEvent" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="/item/{uuid}/history">
+      <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+      <method id="listEvents" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="start" style="query" type="xs:int" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="batch" style="query" type="xs:int" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="descending" style="query" type="xs:boolean" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="{eventId}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="eventId" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getEvent" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{eventId}/data">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="eventId" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getEventOutcome" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="auth">
+      <method id="login" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="user" style="query" type="xs:string" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="pass" style="query" type="xs:string" />
+        </request>
+        <response>
+          <representation mediaType="text/plain" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/item/{uuid}/attachment">
+      <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+      <method id="getOutcomeSchemas" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="{schema}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="schema" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getOutcomeVersions" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{schema}/{version}/{event}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="schema" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="event" style="template" type="xs:int" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:int" />
+        <method id="queryBinaryData" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="inline" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/octet-stream" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{schema}/{version}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="schema" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:int" />
+        <method id="getOutcomeEvents" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="/elementaryActDesc">
+      <method id="listAllElementaryActDescs" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="start" style="query" type="xs:int" default="0" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="batch" style="query" type="xs:int" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="{name}/{version}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:int" />
+        <method id="getElementaryActDesc" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{name}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <method id="listElementaryActDescVersions" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="/compositeActDesc">
+      <method id="listAllCompositeActDescs" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="start" style="query" type="xs:int" default="0" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="batch" style="query" type="xs:int" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="{name}/{version}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:int" />
+        <method id="getCompositeActDesc" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{name}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <method id="listCompositeActDescVersions" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="/domain">
+      <method id="queryPath" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="start" style="query" type="xs:int" default="0" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="batch" style="query" type="xs:int" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="search" style="query" type="xs:string" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="{path: .*}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="path" style="template" type="xs:string" />
+        <method id="queryPath" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="start" style="query" type="xs:int"
+              default="0" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="batch" style="query" type="xs:int" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="search" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="login">
+      <method id="login" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="user" style="query" type="xs:string" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="pass" style="query" type="xs:string" />
+        </request>
+        <response>
+          <representation mediaType="text/xml" />
+          <representation mediaType="application/xml" />
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <method id="postLogin" name="POST">
+        <request>
+          <representation mediaType="text/plain" />
+          <representation mediaType="text/xml" />
+          <representation mediaType="application/xml" />
+          <representation mediaType="application/json" />
+        </request>
+        <response>
+          <representation mediaType="text/xml" />
+          <representation mediaType="application/xml" />
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/item/{uuid}/collection">
+      <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+      <method id="getCollections" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="{name}/formTemplate">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getCollectionUpdateFormTemplate" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{name}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getLastCollection" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{name}/version">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getCollectionVersions" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="*/*" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{name}/version/{version}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:string" />
+        <method id="getCollectionVersion" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="*/*" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="/role">
+      <method id="listRoles" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="{role}/summary">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="role" style="template" type="xs:string" />
+        <method id="getRoleSummary" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{path: .*}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="path" style="template" type="xs:string" />
+        <method id="listRoles" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="/">
+      <method id="listResourceRoots" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/script">
+      <method id="listAllScripts" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="start" style="query" type="xs:int" default="0" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="batch" style="query" type="xs:int" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="{name}/{version}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:int" />
+        <method id="getScript" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="scriptResult">
+        <method id="getScriptResultPost" name="POST">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="script" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="query" type="xs:int" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+        <method id="getScriptResult" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="script" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="query" type="xs:int" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="inputs" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{name}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <method id="listScriptVersions" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="logout">
+      <method id="logout" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="reason" style="query" type="xs:string" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="text/xml" />
+          <representation mediaType="application/xml" />
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+    </resource>
+    <resource path="/schema">
+      <method id="listAllSchemas" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="start" style="query" type="xs:int" default="0" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="batch" style="query" type="xs:int" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="{name}/{version}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:int" />
+        <method id="getSchema" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{name}/{version}/viewTemplate">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:int" />
+        <method id="getSchemaViewTemplate" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{name}/{version}/formTemplate">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:int" />
+        <method id="getSchemaFormTemplate" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{name}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <method id="listSchemaVersions" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="/item/{uuid}">
+      <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+      <method id="getItemSummary" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="name">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getName" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/plain" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{activityPath: .*}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="activityPath" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="requestTransition" name="POST">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="transition" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+            <representation mediaType="text/plain" />
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{binaryUploadPath: .*}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="binaryUploadPath" style="template"
+          type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="requestBinaryTransition" name="POST">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="transition" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+            <representation mediaType="multipart/form-data" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="scriptResult">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getScriptResultPost" name="POST">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="script" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="query" type="xs:int" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="activityPath" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+            <representation mediaType="text/plain" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+        <method id="getScriptResult" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="script" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="query" type="xs:int" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="activityPath" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="inputs" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="job/formTemplate/{activityPath: .*}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="activityPath" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getJobFormTemplate" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="transition" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="aliases">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getAliases" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="master">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getMasterOutcome" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="schema" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="schemaVersion" style="query" type="xs:int" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="script" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="scriptVersion" style="query" type="xs:int" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="queryResult">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getQueryResult" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="query" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="query" type="xs:int" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="job">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getJobs" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="agent" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="activityName" style="query" type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="transitionName" style="query"
+              type="xs:string" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="/stateMachine">
+      <method id="listAllStateMachines" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="start" style="query" type="xs:int" default="0" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="batch" style="query" type="xs:int" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="{name}/{version}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:int" />
+        <method id="getStateMachine" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{name}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <method id="listStateMachineVersions" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="/agent/{uuid}">
+      <resource path="roles">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getRoles" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="job">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="listJobs" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="start" style="query" type="xs:int"
+              default="0" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="batch" style="query" type="xs:int" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="descending" style="query" type="xs:boolean" />
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="job/{jobId}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="jobId" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getJob" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="/query">
+      <method id="listAllQueries" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="start" style="query" type="xs:int" default="0" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="batch" style="query" type="xs:int" />
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="{name}/{version}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:int" />
+        <method id="getQuery" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{name}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <method id="listQueryVersions" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="/item/{uuid}/property">
+      <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+      <method id="listProperties" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="{name}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getProperty" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/plain" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{name}/details">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="name" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getPropertyDetails" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+    <resource path="/item/{uuid}/outcome">
+      <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+      <method id="getOutcomeSchemas" name="GET">
+        <request>
+          <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+            path="cauth" />
+        </request>
+        <response>
+          <representation mediaType="application/json" />
+        </response>
+      </method>
+      <resource path="{schema}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="schema" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <method id="getOutcomeVersions" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{schema}/{version}/{event}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="schema" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="event" style="template" type="xs:int" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:int" />
+        <method id="queryJSONData" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+        <method id="queryXMLData" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="text/plain" />
+            <representation mediaType="text/xml" />
+            <representation mediaType="application/xml" />
+          </response>
+        </method>
+      </resource>
+      <resource path="{schema}/{version}">
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="schema" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="uuid" style="template" type="xs:string" />
+        <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="version" style="template" type="xs:int" />
+        <method id="getOutcomeEvents" name="GET">
+          <request>
+            <param xmlns:xs="http://www.w3.org/2001/XMLSchema" name="Cookie" style="header" type="xs:string"
+              path="cauth" />
+          </request>
+          <response>
+            <representation mediaType="application/json" />
+          </response>
+        </method>
+      </resource>
+    </resource>
+  </resources>
+</application>

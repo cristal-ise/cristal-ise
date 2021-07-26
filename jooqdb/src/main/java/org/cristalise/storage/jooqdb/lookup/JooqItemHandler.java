@@ -55,7 +55,6 @@ public class JooqItemHandler {
     static final Table<?> ITEM_TABLE = table(name("ITEM"));
 
     static final Field<UUID>    UUID                  = field(name("UUID"),                  UUID.class);
-    static final Field<String > IOR                   = field(name("IOR"),                   String.class);
     static final Field<Boolean> IS_AGENT              = field(name("IS_AGENT"),              Boolean.class);
     static final Field<Boolean> IS_PASSWORD_TEMPORARY = field(name("IS_PASSWORD_TEMPORARY"), Boolean.class);
     static final Field<String>  PASSWORD              = field(name("PASSWORD"),              String.class);
@@ -63,7 +62,6 @@ public class JooqItemHandler {
     public void createTables(DSLContext context) throws PersistencyException {
         context.createTableIfNotExists(ITEM_TABLE)
         .column(UUID,                  JooqHandler.UUID_TYPE    .nullable(false))
-        .column(IOR,                   JooqHandler.IOR_TYPE     .nullable(true))
         .column(IS_AGENT,              SQLDataType.BOOLEAN      .nullable(false))
         .column(IS_PASSWORD_TEMPORARY, SQLDataType.BOOLEAN      .nullable(true))
         .column(PASSWORD,              JooqHandler.PASSWORD_TYPE.nullable(true))
@@ -86,20 +84,11 @@ public class JooqItemHandler {
         return update.where(UUID.equal(agent.getUUID())).execute();
     }
 
-    public int updateIOR(DSLContext context, ItemPath item, String ior) throws PersistencyException {
-        return context
-                .update(ITEM_TABLE)
-                .set(IOR, ior)
-                .where(UUID.equal(item.getUUID()))
-                .execute();
-    }
-
     public int update(DSLContext context, ItemPath path) throws PersistencyException {
         boolean isAgent = path instanceof AgentPath;
 
         return context
                 .update(ITEM_TABLE)
-                .set(IOR,      path.getIORString())
                 .set(IS_AGENT, isAgent)
                 .where(UUID.equal(path.getUUID()))
                 .execute();
@@ -114,9 +103,8 @@ public class JooqItemHandler {
 
     public int insert(DSLContext context, AgentPath agentPath, JooqItemPropertyHandler properties) throws PersistencyException {
         InsertSetMoreStep<?> insert = context.insertInto(ITEM_TABLE)
-                                             .set(UUID,                  agentPath.getUUID())
-                                             .set(IOR,                   agentPath.getIORString())
-                                             .set(IS_AGENT,              true);
+                                             .set(UUID,     agentPath.getUUID())
+                                             .set(IS_AGENT, true);
 
         if (Gateway.getProperties().getBoolean("JOOQ.TemporaryPwdFieldImplemented", true)) 
             insert.set(IS_PASSWORD_TEMPORARY, agentPath.isPasswordTemporary());
@@ -138,7 +126,6 @@ public class JooqItemHandler {
         return context
                 .insertInto(ITEM_TABLE)
                 .set(UUID,     path.getUUID())
-                .set(IOR,      path.getIORString())
                 .set(IS_AGENT, false)
                 .execute();
     }
@@ -174,8 +161,7 @@ public class JooqItemHandler {
             else                                              uuid = record.get(UUID);
 
             //Reading IS_AGENT boolean is done this way because of a bug in jooq supporting MySQL: check issue #23
-            boolean isAgent   = record.get(IS_AGENT.getName(), Boolean.class);
-            String  ior       = record.get(IOR);
+            boolean isAgent = record.get(IS_AGENT.getName(), Boolean.class);
 
             Boolean isTempPwd = false;
             
@@ -201,10 +187,10 @@ public class JooqItemHandler {
                 if (name == null) {
                     return null;
                 }
-                return new AgentPath(uuid, ior, name, isTempPwd != null ? isTempPwd : false);
+                return new AgentPath(uuid, name, isTempPwd != null ? isTempPwd : false);
             }
             else
-                return new ItemPath(uuid, ior);
+                return new ItemPath(uuid);
         }
         return null;
     }

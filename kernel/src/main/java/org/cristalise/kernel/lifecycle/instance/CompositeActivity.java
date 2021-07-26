@@ -47,7 +47,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 
@@ -256,7 +256,7 @@ public class CompositeActivity extends Activity {
 
         if (autoStart != null) {
             try {
-                request(agent, null, itemPath, autoStart.getId(), null, "", null, transactionKey);
+                request(agent, itemPath, autoStart.getId(), null, "", null, transactionKey);
             }
             catch (RuntimeException e) {
                 throw e;
@@ -292,8 +292,8 @@ public class CompositeActivity extends Activity {
                 }
             }
             catch (ObjectNotFoundException e) {
-                log.error("", e);
-                throw new InvalidDataException("Problem calculating possible transitions for agent "+agent.toString());
+                log.error("runNext() - Problem calculating possible transitions for agent:{}", agent, e);
+                throw new InvalidDataException("Problem calculating possible transitions for agent "+agent.toString(), e);
             }
 
             if (trans == null) { // current agent can't proceed
@@ -302,7 +302,7 @@ public class CompositeActivity extends Activity {
                 return;
             }
             else {
-                // automatically execute the next outcome if it doesn't require an outcome.
+                // automatically execute the next transition if it doesn't require an outcome.
                 if (trans.hasOutcome(getProperties()) || trans.hasScript(getProperties())) {
                     log.info("Composite activity '"+getName()+"' has script or schema defined. Cannot proceed automatically.");
                     setActive(true);
@@ -310,14 +310,14 @@ public class CompositeActivity extends Activity {
                 }
 
                 try {
-                    request(agent, null, itemPath, trans.getId(), null, "", null, transactionKey);
-                    if (!trans.isFinishing()) // don't run next if we didn't finish
-                        return;
+                    request(agent, itemPath, trans.getId(), /*requestData*/null, "", /*attachment*/null, transactionKey);
+                    // don't run next if we didn't finish
+                    if (!trans.isFinishing()) return;
                 }
                 catch (Exception e) {
-                    log.error("", e);
+                    log.error("runNext() - Problem completing CompAct:{}", getName(), e);
                     setActive(true);
-                    throw new InvalidDataException("Problem completing composite activity: "+e.getMessage());
+                    throw new InvalidDataException("Problem completing CompAct:"+getName(), e);
                 }
             }
         }
@@ -329,7 +329,7 @@ public class CompositeActivity extends Activity {
      */
     @Override
     public ArrayList<Job> calculateJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
-            throws InvalidAgentPathException, ObjectNotFoundException, InvalidDataException
+            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException
     {
         ArrayList<Job> jobs = new ArrayList<Job>();
         boolean childActive = false;
@@ -350,7 +350,7 @@ public class CompositeActivity extends Activity {
 
     @Override
     public ArrayList<Job> calculateAllJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
-            throws InvalidAgentPathException, ObjectNotFoundException, InvalidDataException
+            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException
     {
         ArrayList<Job> jobs = new ArrayList<Job>();
 
@@ -424,7 +424,7 @@ public class CompositeActivity extends Activity {
     }
 
     @Override
-    public String request(AgentPath agent, AgentPath delegator, ItemPath itemPath, int transitionID, String requestData, String attachmentType, byte[] attachment, TransactionKey transactionKey)
+    public String request(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, String attachmentType, byte[] attachment, TransactionKey transactionKey)
             throws AccessRightsException, InvalidTransitionException, InvalidDataException, ObjectNotFoundException, PersistencyException,
             ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification
     {
@@ -452,7 +452,7 @@ public class CompositeActivity extends Activity {
         boolean initChldren = sm.getState(state).equals(sm.getInitialState()) || trans.reinitializes();
 
         // execute request() first to create the correct order of events
-        String  result = super.request(agent, delegator, itemPath, transitionID, requestData, attachmentType, attachment, transactionKey);
+        String  result = super.request(agent, itemPath, transitionID, requestData, attachmentType, attachment, transactionKey);
 
         // init children if needed. 
         if (initChldren) {

@@ -33,8 +33,8 @@ import spock.lang.Specification
  */
 class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def xlsxFile = 'src/test/data/ExcelSchemaBuilderField.xlsx'
 

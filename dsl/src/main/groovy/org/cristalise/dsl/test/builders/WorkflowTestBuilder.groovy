@@ -24,6 +24,7 @@ import java.awt.image.BufferedImage
 
 import javax.imageio.ImageIO
 
+import org.cristalise.dsl.lifecycle.instance.CompActDelegate
 import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.graph.model.DirectedEdge
@@ -36,6 +37,7 @@ import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.TransactionKey
 import org.cristalise.kernel.persistency.outcome.Outcome
+import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 
 import groovy.transform.CompileStatic
@@ -64,7 +66,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
         itemPath  = new ItemPath()
         agentPath = new AgentPath(new ItemPath(), "WorkflowTestBuilder")
 
-        if(Gateway.getCorbaServer() != null) {
+        if (AbstractMain.isServer) {
             Gateway.getLookupManager().add(itemPath)
             Gateway.getLookupManager().add(agentPath)
         }
@@ -242,7 +244,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
 
         TransactionKey tk = new TransactionKey('WorkflowTestBuilder')
         Gateway.getStorage().begin(tk)
-        wf.requestAction(agentPath, null, act.path, itemPath, transID, requestData, "", "".bytes, tk)
+        wf.requestAction(agentPath, act.path, itemPath, transID, requestData, "", "".bytes, tk)
         Gateway.getStorage().commit(tk)
     }
 
@@ -259,7 +261,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param cl
      * @return
      */
-    public Workflow buildAndInitWf(Closure cl) {
+    public Workflow buildAndInitWf(@DelegatesTo(CompActDelegate) Closure cl) {
         super.build(cl)
         initialise()
         return wf

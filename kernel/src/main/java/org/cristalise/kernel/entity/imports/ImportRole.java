@@ -118,7 +118,7 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
 
         ir.setName(rp.getName());
         ir.jobList = rp.hasJobList();
-        ir.permissions = (ArrayList<String>) rp.getPermissionsList();
+        ir.permissions = new ArrayList<String>(rp.getPermissionsList());
 
         return ir;
     }

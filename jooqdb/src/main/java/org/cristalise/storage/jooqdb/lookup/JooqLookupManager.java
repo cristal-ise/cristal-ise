@@ -20,6 +20,8 @@
  */
 package org.cristalise.storage.jooqdb.lookup;
 
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
 import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.WILDCARD_MATCH;
 import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.retrieveContext;
 import static org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler.ITEM_PROPERTY_TABLE;
@@ -45,6 +47,7 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.proxy.ProxyMessage;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -195,6 +198,10 @@ public class JooqLookupManager implements LookupManager {
             if (rows == 0) throw new ObjectCannotBeUpdated("JOOQLookupManager must insert some records:"+rows);
             else           log.debug("add() - path:"+newPath+" rows inserted:"+rows);
 
+            if (newPath instanceof DomainPath) {
+                Gateway.sendProxyEvent(new ProxyMessage(null, newPath.toString(), ADD));
+            }
+
             JooqDataSourceHandler.logConnectionCount("JooqLookupManager.add()", context);
         }
         catch (PersistencyException e) {
@@ -228,6 +235,10 @@ public class JooqLookupManager implements LookupManager {
 
             if (rows == 0) throw new ObjectCannotBeUpdated("JOOQLookupManager must delete some records:"+rows);
             else           log.debug("delete() - path:"+path+" rows deleted:"+rows);
+
+            if (path instanceof DomainPath) {
+                Gateway.sendProxyEvent(new ProxyMessage(null, path.toString(), DELETE));
+            }
         }
         catch (PersistencyException e) {
             log.error("delete()", e);
@@ -249,16 +260,6 @@ public class JooqLookupManager implements LookupManager {
         catch (PersistencyException e) {
             log.error("getItemPath()", e);
             throw new InvalidItemPathException(e.getMessage());
-        }
-    }
-
-    @Override
-    public String getIOR(Path path, TransactionKey transactionKey) throws ObjectNotFoundException {
-        try {
-            return getItemPath(path.getStringPath(), transactionKey).getIORString();
-        }
-        catch (InvalidItemPathException e) {
-            throw new ObjectNotFoundException(e.getMessage());
         }
     }
 
@@ -537,11 +538,10 @@ public class JooqLookupManager implements LookupManager {
 
         try {
             DSLContext context = retrieveContext(transactionKey);
-            RolePath finalRole = roles.fetch(context, role); // retreive the joblist
+            RolePath finalRole = roles.fetch(context, role);
             int rows = roles.insert(context, finalRole, agent);
             if (rows != 1) throw new ObjectCannotBeUpdated("Updated rows must be 1 but it was '"+rows+"'");
-
-        }
+       }
         catch (Exception e) {
             log.error("addRole()", e);
             throw new ObjectCannotBeUpdated(e.getMessage());
@@ -593,7 +593,6 @@ public class JooqLookupManager implements LookupManager {
 
         select.addSelect(
                 field(name("item", "UUID"), UUID.class),
-                JooqItemHandler.IOR,
                 JooqItemHandler.IS_AGENT,
                 JooqItemPropertyHandler.VALUE.as("Name"));
 
@@ -739,22 +738,6 @@ public class JooqLookupManager implements LookupManager {
             log.error("searchAliases()", e);
         }
         return new PagedResult();
-    }
-
-    @Override
-    public void setIOR(ItemPath item, String ior, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated {
-        if (!exists(item, transactionKey)) throw new ObjectNotFoundException("Item:"+item);
-
-        item.setIORString(ior);
-
-        try {
-            DSLContext context = retrieveContext(transactionKey);
-            items.updateIOR(context, item, ior);
-        }
-        catch (Exception e) {
-            log.error("setIOR()", e);
-            throw new ObjectCannotBeUpdated("Item:" + item + " error:" + e.getMessage());
-        }
     }
 
     @Override

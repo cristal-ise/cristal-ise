@@ -36,13 +36,10 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.entity.proxy.MemberSubscription;
-import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
@@ -196,7 +193,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
             if (thisDefEntry != null) {
                 log.trace("get() - key:{}_{} found in cache.", name, version);
-                return thisDefEntry.def;
+                return thisDefEntry.descObject;
             }
 
             ItemPath defItemPath = findItem(name, transactionKey);
@@ -208,20 +205,20 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
                 if (thisDefEntry != null) {
                     log.trace("get() - key:{}_{} found in cache.", defUuid, version);
-                    return thisDefEntry.def;
+                    return thisDefEntry.descObject;
                 }
             }
 
             log.trace("get() - key:{}_{} not found in cache. Loading from database.", name, version);
 
-            ItemProxy defItemProxy = Gateway.getProxyManager().getProxy(defItemPath, transactionKey);
+            ItemProxy defItemProxy = Gateway.getProxy(defItemPath, transactionKey);
             if (name.equals(defUuid)) {
                 String itemName = defItemProxy.getName(transactionKey);
                 if (itemName != null) name = itemName;
             }
 
             D thisDef = loadObject(name, version, defItemProxy, transactionKey);
-            addToCache(name, version, defUuid, defItemProxy, thisDef);
+            addToCache(name, version, defUuid, thisDef);
 
             return thisDef;
         }
@@ -243,11 +240,11 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         }
     }
 
-    private void addToCache(String name, int version, String defUuid, ItemProxy defItemProxy, D thisDef) {
+    private void addToCache(String name, int version, String defUuid, D thisDef) {
         log.trace("addToCache() - key1:{}_{} and key2:{}_{}", name, version, defUuid, version);
 
         // DO NOT add this to the synchronized block because it can create deadlock. check issue: #447
-        CacheEntry<D> entry = new CacheEntry<>(thisDef, defItemProxy, this);
+        CacheEntry<D> entry = new CacheEntry<>(thisDef, this);
         synchronized (cache) {
             cache.put(defUuid + "_" + version, entry);
             cache.put(name + "_" + version, entry);
@@ -285,45 +282,22 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         }
     }
 
-    public class CacheEntry<E extends DescriptionObject> implements ProxyObserver<Viewpoint> {
+    public class CacheEntry<E extends DescriptionObject> {
         public String                    id;
         public String                    idName;
-        public ItemProxy                 proxy;
-        public E                         def;
+        public E                         descObject;
         public DescriptionObjectCache<E> parent;
 
-        public CacheEntry(E def, ItemProxy proxy, DescriptionObjectCache<E> parent) {
+        public CacheEntry(E def, DescriptionObjectCache<E> parent) {
             this.id = def.getItemID() + "_" + def.getVersion();
             this.idName = def.getName() + "_" + def.getVersion();
-            this.def = def;
+            this.descObject = def;
             this.parent = parent;
-            this.proxy = proxy;
-            proxy.subscribe(new MemberSubscription<Viewpoint>(this, ClusterType.VIEWPOINT.getName(), false));
-        }
-
-        @Override
-        public void finalize() {
-            parent.removeObject(id, idName);
-            proxy.unsubscribe(this);
-        }
-
-        @Override
-        public void add(Viewpoint contents) {
-            parent.removeObject(id, idName);
-        }
-
-        @Override
-        public void remove(String oldId) {
-            parent.removeObject(id, idName);
         }
 
         @Override
         public String toString() {
             return "Cache entry: " + id;
-        }
-
-        @Override
-        public void control(String control, String msg) {
         }
     }
 }

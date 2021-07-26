@@ -33,7 +33,6 @@ import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.entity.TraceableEntity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
@@ -148,7 +147,7 @@ public class TransferItem {
         }
 
         // create item
-        TraceableEntity newItem = Gateway.getCorbaServer().createItem(itemPath, transactionKey);
+//        TraceableEntity newItem = Gateway.getCorbaServer().createItem(itemPath, transactionKey);
         Gateway.getLookupManager().add(itemPath, transactionKey);
 
         PropertyArrayList props = new PropertyArrayList();
@@ -164,11 +163,11 @@ public class TransferItem {
         if (wf == null) throw new Exception("No workflow found in import for " + itemPath);
 
         // init item
-        newItem.initialise(importAgentId.getSystemKey(),
-                           Gateway.getMarshaller().marshall(props),
-                           Gateway.getMarshaller().marshall(wf.search("workflow/domain")),
-                           Gateway.getMarshaller().marshall(colls),
-                           "", "");
+//        newItem.initialise(importAgentId,
+//                           Gateway.getMarshaller().marshall(props),
+//                           Gateway.getMarshaller().marshall(wf.search("workflow/domain")),
+//                           Gateway.getMarshaller().marshall(colls),
+//                           "", "");
 
         // store objects
         importByType(ClusterType.HISTORY, objects, transactionKey);

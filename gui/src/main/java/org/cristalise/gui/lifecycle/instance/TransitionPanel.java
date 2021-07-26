@@ -207,7 +207,6 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
                                   mItem.getPath(),
                                   actSM.getTransition(transition),
                                   MainFrame.userAgent.getPath(),
-                                  null,
                                   "Admin");
             Executor selectedExecutor = (Executor)executors.getSelectedItem();
             selectedExecutor.execute(thisJob, status);

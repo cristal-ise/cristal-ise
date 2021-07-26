@@ -83,6 +83,12 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
         setIsLayoutable(false);
     }
 
+    public ActivityDef(String n, Integer v) {
+        this();
+        setName(n);
+        setVersion(v);
+    }
+
     @Override
     public void setNamespace(String ns) {
         setBuiltInProperty(NAMESPACE, ns);

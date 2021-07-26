@@ -46,7 +46,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AggregationMember extends GraphableVertex implements CollectionMember {
 
     private ItemPath    mItemPath   = null;
-    private ItemProxy   mItem       = null;
     private Aggregation mCollection = null;
     private String      mClassProps = null;
     private String      mItemName   = null;
@@ -119,23 +118,18 @@ public class AggregationMember extends GraphableVertex implements CollectionMemb
         }
 
         mItemPath = itemPath;
-        mItem       = null;
         mItemName   = null;
     }
 
     @Override
     public void clearItem() {
         mItemPath   = null;
-        mItem       = null;
         mItemName   = null;
     }
 
     @Override
     public ItemProxy resolveItem(TransactionKey transactionKey) throws ObjectNotFoundException {
-        if (mItem == null && mItemPath != null) {
-            mItem = Gateway.getProxyManager().getProxy(mItemPath, transactionKey);
-        }
-        return mItem;
+        return Gateway.getProxy(mItemPath, transactionKey);
     }
 
     public String getItemName() {

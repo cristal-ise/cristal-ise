@@ -23,7 +23,6 @@ package org.cristalise.kernel.persistency;
 import java.util.ArrayList;
 
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.auth.Authenticator;
@@ -299,4 +298,8 @@ public abstract class ClusterStorage {
     public abstract void abort(TransactionKey transactionKey) throws PersistencyException;
 
 
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

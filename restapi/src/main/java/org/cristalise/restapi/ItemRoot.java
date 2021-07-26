@@ -353,7 +353,7 @@ public class ItemRoot extends ItemUtils {
                 else                                        job = item.getJobByName(activityName, agent);
             }
             else
-                jobList = item.getJobList(agent);
+                jobList = item.getJobs(agent);
         }
         catch (Exception e) {
             throw new WebAppExceptionBuilder("Error loading joblist", e, null, cookie).build();
@@ -403,7 +403,7 @@ public class ItemRoot extends ItemUtils {
 
             log.debug("requestTransition() outcome:'{}' contentType:'{}'", outcome, contentType);
 
-            AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
+            AgentProxy agent = Gateway.getAgentProxy(getAgentPath(authCookie));
             String executeResult;
 
             if (actPath.startsWith(PREDEFINED_PATH)) {
@@ -448,7 +448,7 @@ public class ItemRoot extends ItemUtils {
         String outcome = null;
 
         try {
-            AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
+            AgentProxy agent = Gateway.getAgentProxy(getAgentPath(authCookie));
             String executeResult;
 
             FormDataBodyPart outcomeBodyPart = body.getField("outcome");
@@ -523,7 +523,7 @@ public class ItemRoot extends ItemUtils {
             }
             else {
                 transition = extractAndCheckTransitionName(transition, uri);
-                AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
+                AgentProxy agent = Gateway.getAgentProxy(getAgentPath(authCookie));
 
                 Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
 

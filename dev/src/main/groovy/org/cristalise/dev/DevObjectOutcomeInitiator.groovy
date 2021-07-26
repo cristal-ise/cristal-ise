@@ -72,7 +72,7 @@ public class DevObjectOutcomeInitiator implements OutcomeInitiator {
             DomainPath factoryPath = new DomainPath("/desc/dev/" + res.getSchemaName() + "Factory");
 
             try {
-                ItemProxy factory = Gateway.getProxyManager().getProxy(factoryPath);
+                ItemProxy factory = Gateway.getProxy(factoryPath);
                 Viewpoint newInstance = factory.getViewpoint(res.getSchemaName(), "last");
                 return newInstance.getOutcome().getData();
             }

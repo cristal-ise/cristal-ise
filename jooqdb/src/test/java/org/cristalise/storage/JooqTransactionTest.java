@@ -51,6 +51,7 @@ public class JooqTransactionTest extends JooqTestConfigurationBase {
         props.put("ClusterStorage", "org.cristalise.storage.jooqdb.JooqClusterStorage");
         props.put("Lookup",         "org.cristalise.storage.jooqdb.lookup.JooqLookupManager");
         props.put(AbstractMain.MAIN_ARG_SKIPBOOTSTRAP, true);
+        props.put("Gateway.clusteredVertx", false);
 
         setUpStorage(props);
         props.remove(JooqDataSourceHandler.JOOQ_AUTOCOMMIT);

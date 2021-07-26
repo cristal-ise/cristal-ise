@@ -20,6 +20,7 @@
  */
 package org.cristalise.dsl.module
 
+import static org.cristalise.dsl.lifecycle.definition.CompActDefBuilder.generateWorkflowSVG
 import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE
 
 import org.codehaus.groovy.control.CompilerConfiguration
@@ -51,6 +52,7 @@ import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
+import org.cristalise.kernel.lifecycle.renderer.LifecycleRenderer
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.module.Module
@@ -75,6 +77,8 @@ import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.FileStringUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
+import org.jfree.graphics2d.svg.SVGGraphics2D
+import org.jfree.graphics2d.svg.SVGUtils
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -237,6 +241,12 @@ class ModuleDelegate implements BindingConvention {
         return eaDef
     }
 
+    /**
+     * 
+     * @param name
+     * @param version
+     * @return
+     */
     public CompositeActivityDef Workflow(String name, Integer version) {
         def caDef = LocalObjectLoader.getCompActDef(name, version)
         addCompositeActivityDef(caDef)
@@ -264,11 +274,21 @@ class ModuleDelegate implements BindingConvention {
         def caDef = CompActDefBuilder.build((String)args.name, (Integer)args.version, cl)
 
         if (args?.generate) {
-            DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
-            if (generateResourceXml) caDef.export(null, resourceBootDir, true)
+            if (generateResourceXml) {
+                DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
+                //do not rebuild during export, because LocalObjectLoader will not find new actDefs declared in DSL
+                caDef.export(null, resourceBootDir, true, false)
+                generateWorkflowSVG('target', caDef)
+            }
         }
         else {
-            assert new File(new File(resourceBootDir, 'CA'), ""+args.name + (args.version == null ? "" : "_" + args.version) + ".xml").exists()
+            // since the workflow was not generated the XML file must exist
+            File caDir = new File(resourceBootDir, 'CA')
+            assert caDir.exists(), "Directory '$caDir' must exists"
+
+            String caFileName = ""+args.name + (args.version == null ? "" : "_" + args.version) + ".xml"
+            File caXmlFile = new File(caDir, caFileName)
+            assert caXmlFile.exists(), "File '$caXmlFile' must exists"
         }
 
         addCompositeActivityDef(caDef)
@@ -289,6 +309,13 @@ class ModuleDelegate implements BindingConvention {
         )
     }
 
+    /**
+     * 
+     * @param name
+     * @param version
+     * @param cl
+     * @return
+     */
     public PropertyDescriptionList PropertyDescriptionList(String name, Integer version, @DelegatesTo(PropertyDescriptionDelegate) Closure cl) {
         def propDescList = PropertyDescriptionBuilder.build(newModule.ns, name, version, cl)
         if (generateResourceXml) propDescList.export(null, resourceBootDir, true)
@@ -529,7 +556,7 @@ class ModuleDelegate implements BindingConvention {
         if (caDef.refChildActDef) {
             caDef.refChildActDef.each {
                 ActivityDef act = ActivityDef.cast(it)
-                moduleWf.activities.add(new ModuleDescRef(act.name, act.itemID, act.version))
+                moduleWf.activities.add(new ModuleDescRef(act.name, null/*act.itemID*/, act.version))
             }
         }
 
