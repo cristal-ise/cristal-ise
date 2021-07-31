@@ -20,18 +20,18 @@
  */
 package org.cristalise.dev.test.dsl.item
 
-import static org.cristalise.dev.dsl.item.DevDependency.Cardinality.*
-import static org.cristalise.dev.dsl.item.DevDependency.Type.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 
-import org.cristalise.dev.dsl.item.DevAgent
-import org.cristalise.dev.dsl.item.DevItemDelegate
+import org.cristalise.dev.dsl.item.CRUDAgent
+import org.cristalise.dev.dsl.item.CRUDItemDelegate
 import org.junit.Test
 
-class DevItemDelegateTest {
+class CRUDItemDelegateTest {
 
     @Test
     public void devItem_ListOfFields() {
-        def itemD = new DevItemDelegate()
+        def itemD = new CRUDItemDelegate()
         def devItem = itemD.processClosure() {
             Item(name: 'Car') {
                 field(name: 'RegistrationPlate', type: 'string')
@@ -49,8 +49,8 @@ class DevItemDelegateTest {
 
     @Test
     public void devAgent_ListOfFields() {
-        def itemD = new DevItemDelegate()
-        def devAgent = (DevAgent) itemD.processClosure() {
+        def itemD = new CRUDItemDelegate()
+        def devAgent = (CRUDAgent) itemD.processClosure() {
             Agent(name: 'ClubMember') {
                 field(name: 'Email', type: 'string')
                 field(name: 'DateOfBirth', type: 'date')
@@ -67,7 +67,7 @@ class DevItemDelegateTest {
 
     @Test
     public void devItem_Dependency() {
-        def itemD = new DevItemDelegate()
+        def itemD = new CRUDItemDelegate()
         def devItem = itemD.processClosure() {
             Item(name: 'ClubMember') {
                 dependency(to: 'Car', type: 'Bidirectional', cardinality: OneToMany)

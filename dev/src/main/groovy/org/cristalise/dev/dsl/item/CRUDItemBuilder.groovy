@@ -18,36 +18,22 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dev.test.dsl.item
+package org.cristalise.dev.dsl.item
 
-import static org.junit.Assert.*
-
-import org.cristalise.dev.dsl.item.DevItemBuilder
 import org.cristalise.kernel.entity.imports.ImportItem
-import org.cristalise.kernel.test.utils.CristalTestSetup
-import org.junit.Test
 
-import spock.lang.Specification
+import groovy.transform.CompileStatic
 
-class DevItemBuilderSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { /*inMemorySetup()*/  }
-    def cleanup() { /*cristalCleanup()*/ }
-    
+@CompileStatic
+class CRUDItemBuilder {
+    public static ImportItem build(@DelegatesTo(CRUDItemDelegate) Closure cl) {
+        return build([:], cl)
+    }
 
-    def 'CRUDBuilder create Item with CRUD Workflows and Master Schema'() {
-        when:
-        def crudImportItem = DevItemBuilder.build() {
-            Item('Car') {
-                field(name: 'RegistrationPlate', type: 'string')
-            }
-        }
-
-        then:
-        crudImportItem
-        crudImportItem.dependencyList
-        //check MasterSchema
-        //check Workflows : Car_Workflow, Car_DomainWorkflow, Car_CrudWorkflow
+    public static ImportItem build(Map<String, Object> attrs, @DelegatesTo(CRUDItemDelegate) Closure cl) {
+        def itemD = new CRUDItemDelegate(attrs)
+        return itemD.buildImportItem(itemD.processClosure(cl))
     }
 
 }

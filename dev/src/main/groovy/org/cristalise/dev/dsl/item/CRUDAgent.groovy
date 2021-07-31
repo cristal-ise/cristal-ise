@@ -18,36 +18,18 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dev.dsl.module
+package org.cristalise.dev.dsl.item
 
-import org.cristalise.dev.dsl.utils.DevChildPropertySetter
-import org.cristalise.dev.dsl.utils.DevClassNameResolver
-import org.cristalise.dev.dsl.utils.DevNewInstanceResolver
-import org.cristalise.dev.dsl.utils.DevRelationNameResolver
-import org.cristalise.dev.dsl.utils.ObjectGraphBuilderFactory
-import org.cristalise.kernel.process.module.Module
+import org.cristalise.dsl.persistency.outcome.Struct
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 
-@Slf4j @CompileStatic
-class DevModuleDelegate {
-
-    public DevModuleDelegate(Map<String, Object> args) {
-        log.debug 'constructor() - args:{}', args
-    }
-
-    public DevModule processClosure(@DelegatesTo(DevModule) Closure cl) {
-        assert cl
-
-        cl.delegate = ObjectGraphBuilderFactory.create()
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-
-        return (DevModule) cl()
-    }
-
-    public Module buildImportItem(DevModule devItem) {
-        return null
-    }
+@CompileStatic
+class CRUDAgent extends CRUDItem {
     
+    public CRUDAgent() {} //required for ObjectGraphBuilder
+
+    public CRUDAgent(String n) {
+        name = n
+    }
 }

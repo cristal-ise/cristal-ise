@@ -20,45 +20,41 @@
  */
 package org.cristalise.dev.dsl.item
 
-import static org.cristalise.dev.dsl.item.DevDependency.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 
-import org.cristalise.dsl.persistency.outcome.Field
-import org.cristalise.dsl.persistency.outcome.Struct
+import org.cristalise.kernel.collection.Collection.Cardinality
+import org.cristalise.kernel.collection.Collection.Type
+import org.atteo.evo.inflector.English
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 
-@CompileStatic @Slf4j
-class DevItem extends Struct {
+@CompileStatic
+class CRUDDependency {
+    String      name
+    String      from
+    String      to
+    Type        type
+    Cardinality cardinality
 
-    List<DevDependency> dependencies = []
-
-    //required for ObjectGraphBuilder
-    public DevItem() {
-        log.debug('constructor()')
+    public void setType(String t) {
+        type = Type.valueOf(t)
     }
 
-    public DevItem(String n) {
-        log.debug('constructor() - name:{}', n)
-        name = n
+    public void setCardinality(String c) {
+        cardinality = Cardinality.valueOf(c)
     }
     
-    public void addDependency(DevDependency d) {
-        d.from = name
-        dependencies.add(d)
+    public String getName() {
+        if (!name) name = English.plural(to)
+        return name
     }
 
     public String getPlantUml() {
-        def model = new StringBuffer("class $name {\n")
-        fields.each { String name, Field field ->
-            model.append("  ${field.name} : ${field.type}\n")
-        }
-        model.append('}\n')
+        String fromMany = cardinality == ManyToMany || cardinality == ManyToOne ? '"*" ' : ''
+        String toMany   = cardinality == ManyToMany || cardinality == OneToMany ? ' "*"' : ''
+        String toArrow  = type == Unidirectional ? '">"' : ''
 
-        dependencies.each { dependency ->
-            model.append(dependency.getPlantUml())
-        }
-
-        return model.toString()
+        return "${from} ${fromMany}--${toArrow}${toMany} ${to}\n".toString()
     }
 }

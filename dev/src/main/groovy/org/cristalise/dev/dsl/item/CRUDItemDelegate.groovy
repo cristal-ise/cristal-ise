@@ -18,35 +18,32 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dev.dsl.utils
+package org.cristalise.dev.dsl.item
+
+import org.cristalise.dev.dsl.utils.ObjectGraphBuilderFactory
+import org.cristalise.kernel.entity.imports.ImportItem
 
 import groovy.transform.CompileStatic
-import groovy.util.ObjectGraphBuilder.ClassNameResolver
 import groovy.util.logging.Slf4j
 
-
-/**
- * Resolves the Class from name used by ObjectGraphBuilder
- */
 @Slf4j @CompileStatic
-class DevClassNameResolver implements ClassNameResolver {
+class CRUDItemDelegate {
 
-    @Override
-    public String resolveClassname(String className) {
-        if ('Item' == className) {
-            return 'org.cristalise.dev.dsl.item.CRUDItem'
-        }
-        else if ('Agent' == className) {
-            return 'org.cristalise.dev.dsl.item.CRUDAgent'
-        }
-        else if ('devDependency' == className || 'dependency' == className) {
-            return 'org.cristalise.dev.dsl.item.CRUDDependency'
-        }
-        else if ('Module' == className) {
-            return 'org.cristalise.dev.dsl.module.CRUDModule'
-        }
-        else {
-            return 'org.cristalise.dsl.persistency.outcome.' + className.substring(0, 1).toUpperCase() + className.substring(1)
-        }
+    public CRUDItemDelegate(Map<String, Object> args) {
+        log.debug 'constructor() - args:{}', args
     }
+
+    public CRUDItem processClosure(@DelegatesTo(CRUDItem)Closure cl) {
+        assert cl
+
+        cl.delegate = ObjectGraphBuilderFactory.create()
+        cl.resolveStrategy = Closure.DELEGATE_FIRST
+
+        return (CRUDItem) cl()
+    }
+
+    public ImportItem buildImportItem(CRUDItem devItem) {
+        return null
+    }
+    
 }

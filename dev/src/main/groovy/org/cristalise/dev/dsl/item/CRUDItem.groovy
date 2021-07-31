@@ -20,30 +20,43 @@
  */
 package org.cristalise.dev.dsl.item
 
-import org.cristalise.dev.dsl.utils.ObjectGraphBuilderFactory
-import org.cristalise.kernel.entity.imports.ImportItem
+import org.cristalise.dsl.persistency.outcome.Field
+import org.cristalise.dsl.persistency.outcome.Struct
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
-@Slf4j @CompileStatic
-class DevItemDelegate {
+@CompileStatic @Slf4j
+class CRUDItem extends Struct {
 
-    public DevItemDelegate(Map<String, Object> args) {
-        log.debug 'constructor() - args:{}', args
+    List<CRUDDependency> dependencies = []
+
+    //required for ObjectGraphBuilder
+    public CRUDItem() {
+        log.debug('constructor()')
     }
 
-    public DevItem processClosure(@DelegatesTo(DevItem)Closure cl) {
-        assert cl
-
-        cl.delegate = ObjectGraphBuilderFactory.create()
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-
-        return (DevItem) cl()
-    }
-
-    public ImportItem buildImportItem(DevItem devItem) {
-        return null
+    public CRUDItem(String n) {
+        log.debug('constructor() - name:{}', n)
+        name = n
     }
     
+    public void addDependency(CRUDDependency d) {
+        d.from = name
+        dependencies.add(d)
+    }
+
+    public String getPlantUml() {
+        def model = new StringBuffer("class $name {\n")
+        fields.each { String name, Field field ->
+            model.append("  ${field.name} : ${field.type}\n")
+        }
+        model.append('}\n')
+
+        dependencies.each { dependency ->
+            model.append(dependency.getPlantUml())
+        }
+
+        return model.toString()
+    }
 }

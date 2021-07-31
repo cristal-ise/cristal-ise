@@ -20,18 +20,18 @@
  */
 package org.cristalise.dev.test.dsl.module
 
-import static org.cristalise.dev.dsl.item.DevDependency.Cardinality.*
-import static org.cristalise.dev.dsl.item.DevDependency.Type.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 
-import org.cristalise.dev.dsl.module.DevModuleDelegate
+import org.cristalise.dev.dsl.module.CRUDModuleDelegate
 import org.junit.Test
 
-class DevModuleDelegateTest {
+class CRUDModuleDelegateTest {
 
     @Test
     public void devModule_Dependency() {
-        def moduleD = new DevModuleDelegate()
-        def devModule = moduleD.processClosure() {
+        def moduleD = new CRUDModuleDelegate()
+        def crudModule = moduleD.processClosure() {
             //System.setProperty('line.separator', '\n')
     
             Module(namespace: 'test') {
@@ -42,15 +42,15 @@ class DevModuleDelegateTest {
                 Item(name: 'ClubMember') {
                     field(name: 'Email')
 
-                    dependency(to: 'Car', type: 'Bidirectional', cardinality: OneToMany)
+                    dependency(to: 'Car', type: Bidirectional, cardinality: OneToMany)
                 }
             }
         }
 
-        assert devModule
-        assert devModule.namespace == 'test'
-        assert devModule.items.size() == 2
-        assert devModule.getPlantUml() ==
+        assert crudModule
+        assert crudModule.namespace == 'test'
+        assert crudModule.items.size() == 2
+        assert crudModule.getPlantUml() ==
 """@startuml
 class Car {
   RegistrationPlate : xs:string

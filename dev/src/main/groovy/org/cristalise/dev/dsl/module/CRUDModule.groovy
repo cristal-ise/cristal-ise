@@ -20,21 +20,21 @@
  */
 package org.cristalise.dev.dsl.module
 
-import org.cristalise.dev.dsl.item.DevItem
+import org.cristalise.dev.dsl.item.CRUDItem
 
 import groovy.transform.CompileStatic
 
 @CompileStatic
-class DevModule {
+class CRUDModule {
 
     String name
     String namespace
 
-    List<DevItem> items = []
+    List<CRUDItem> items = []
 
     public String getPlantUml() {
         def model = new StringBuffer('@startuml\n')
-        items.each { DevItem item ->
+        items.each { CRUDItem item ->
             model.append(item.getPlantUml())
         }
         return model.append('@enduml\n').toString()
