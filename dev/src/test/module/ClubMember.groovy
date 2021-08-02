@@ -10,11 +10,22 @@ def states = ['ACTIVE', 'INACTIVE']
  * ClubMember Item
  */
 
-def xlsxFile = new File(moduleDir+'/ClubMember.xslx')
+Schema('ClubMember', 0) {
+    struct(name:' ClubMember', documentation: 'ClubMember aggregated data') {
+        field(name: 'Name',        type: 'string')
+        field(name: 'State',       type: 'string', values: states)
+        field(name: 'Description', type: 'string')
+    }
+}
 
-Schema('ClubMember', 0, xlsxFile)
-Schema('ClubMember_Details', 0, xlsxFile)
+Schema('ClubMember_Details', 0) {
+    struct(name: 'ClubMember_Details') {
 
+        field(name: 'Name', type: 'string')
+
+        field(name: 'Description', type: 'string')
+    }
+}
 
 
 Activity('ClubMember_Update', 0) {

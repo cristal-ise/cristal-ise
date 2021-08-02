@@ -176,11 +176,12 @@ class CRUDGenerator {
 
         def generator = new CRUDGenerator(rootDir: rootDir)
 
-        items.split(',').each { item ->
-            log.info('genererateTypes() - generating item:{}', item)
+        items.split(',').each { itemType ->
+            def item = new CRUDItem(itemType.trim())
+            log.info('genererateTypes() - generating item:{}', item.name)
 
             Map<String, Object> inputs = [
-                item:           item.trim(),
+                item:           item,
                 version:        0,
                 moduleNs:       ns,
                 useConstructor: false,
@@ -201,13 +202,13 @@ class CRUDGenerator {
             log.info('genererateTypes() - generating item:{}', item.name)
 
             def inputs = [
-                item:           item.name.trim(),
+                item:           item,
                 version:        0,
                 moduleNs:       crudModule.namespace,
                 useConstructor: false,
                 isAgent:        false,
                 generatedName:  false,
-                inputFile:      item.name+'.xslx'
+                inputFile:      null
             ]
 
             generateCRUDItem(inputs as Map)

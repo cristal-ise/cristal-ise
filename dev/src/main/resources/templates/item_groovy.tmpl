@@ -7,25 +7,25 @@ import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
 def states = ['ACTIVE', 'INACTIVE']
 
 /**
- * @{item} Item
+ * @{item.name} Item
  */
 @if{inputFile != null}
 def xlsxFile = new File(moduleDir+'/@{inputFile}')
 
-Schema('@{item}', 0, xlsxFile)
-Schema('@{item}_Details', 0, xlsxFile)
+Schema('@{item.name}', 0, xlsxFile)
+Schema('@{item.name}_Details', 0, xlsxFile)
 
 @else{}
-Schema('@{item}', @{version}) {
-    struct(name:' @{item}', documentation: '@{item} aggregated data') {
+Schema('@{item.name}', @{version}) {
+    struct(name:' @{item.name}', documentation: '@{item.name} aggregated data') {
         field(name: 'Name',        type: 'string')
         field(name: 'State',       type: 'string', values: states)
         field(name: 'Description', type: 'string')
     }
 }
 
-Schema('@{item}_Details', @{version}) {
-    struct(name: '@{item}_Details') {
+Schema('@{item.name}_Details', @{version}) {
+    struct(name: '@{item.name}_Details') {
 @if{generatedName}
         field(name: 'Name', type: 'string') { dynamicForms (disabled: true, label: 'ID') }
 @else{}
@@ -36,25 +36,25 @@ Schema('@{item}_Details', @{version}) {
 }
 @end{}
 
-Activity('@{item}_Update', @{version}) {
+Activity('@{item.name}_Update', @{version}) {
     Property('OutcomeInit': 'Empty')
     Schema(@{itemVar}_Details_Schema)
     //Script('CrudEntity_ChangeName', @{version})
 }
 
-Script('@{item}_Aggregate', @{version}) {
+Script('@{item.name}_Aggregate', @{version}) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    output('@{item}XML', 'java.lang.String')
-    script('groovy', moduleDir+'/script/@{item}_Aggregate.groovy')
+    output('@{item.name}XML', 'java.lang.String')
+    script('groovy', moduleDir+'/script/@{item.name}_Aggregate.groovy')
 }
 
-Script('@{item}_QueryList', @{version}) {
+Script('@{item.name}_QueryList', @{version}) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    output('@{item}Map', 'java.util.Map')
-    script('groovy', moduleDir+'/script/@{item}_QueryList.groovy')
+    output('@{item.name}Map', 'java.util.Map')
+    script('groovy', moduleDir+'/script/@{item.name}_QueryList.groovy')
 }
 
-Activity('@{item}_Aggregate', @{version}) {
+Activity('@{item.name}_Aggregate', @{version}) {
     Property('OutcomeInit': 'Empty')
     Property('Agent Role': 'UserCode')
 
@@ -62,20 +62,20 @@ Activity('@{item}_Aggregate', @{version}) {
     Script(@{itemVar}_Aggregate_Script)
 }
 
-Workflow('@{item}_Workflow', @{version}) {
+Workflow('@{item.name}_Workflow', @{version}) {
     ElemActDef(@{itemVar}_Update_ActivityDef)
     CompActDef('CrudState_Manage', @{version})
 }
 
-PropertyDescriptionList('@{item}', @{version}) {
+PropertyDescriptionList('@{item.name}', @{version}) {
     PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: '@{item}')
+    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: '@{item.name}')
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
-Item(name: '@{item}Factory', version: @{version}, folder: '/@{moduleNs}', workflow: 'CrudFactory_Workflow', workflowVer: @{version}) {
+Item(name: '@{item.name}Factory', version: @{version}, folder: '/@{moduleNs}', workflow: 'CrudFactory_Workflow', workflowVer: @{version}) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': '/@{moduleNs}/@{item}s')
+    InmutableProperty('Root': '/@{moduleNs}/@{item.name}s')
 @if{generatedName}
     InmutableProperty('IDPrefix': '@{idPrefix}')
     Property('LeftPadSize': '@{leftPadSize}')
@@ -93,10 +93,10 @@ Item(name: '@{item}Factory', version: @{version}, folder: '/@{moduleNs}', workfl
         }
     }
 @else{}
-    InmutableProperty('UpdateSchema': '@{item}_Details:@{version}')
+    InmutableProperty('UpdateSchema': '@{item.name}_Details:@{version}')
 @end{}
 
-    Outcome(schema: 'PropertyDescription', version: '@{version}', viewname: 'last', path: 'boot/property/@{item}_@{version}.xml')
+    Outcome(schema: 'PropertyDescription', version: '@{version}', viewname: 'last', path: 'boot/property/@{item.name}_@{version}.xml')
 
     Dependency(WORKFLOW) {
         Member(itemPath: @{itemVar}_Workflow_CompositeActivityDef) {

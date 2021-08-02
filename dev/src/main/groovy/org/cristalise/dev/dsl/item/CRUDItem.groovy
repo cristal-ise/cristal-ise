@@ -59,4 +59,9 @@ class CRUDItem extends Struct {
 
         return model.toString()
     }
+    
+    @Override
+    public String toString() {
+        return name
+    }
 }
