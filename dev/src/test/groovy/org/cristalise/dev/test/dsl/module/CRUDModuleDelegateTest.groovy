@@ -33,7 +33,7 @@ class CRUDModuleDelegateTest {
         def moduleD = new CRUDModuleDelegate()
         def crudModule = moduleD.processClosure() {
             //System.setProperty('line.separator', '\n')
-    
+
             Module(namespace: 'test') {
                 Item(name: 'Car') {
                     field(name: 'RegistrationPlate')

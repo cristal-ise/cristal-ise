@@ -74,7 +74,7 @@ public class OutcomeUtils {
     }
 
     /**
-     * Checks if the input object has the field and a valied value (i.e. not null)
+     * Checks if the input object has the field and a valid value (i.e. not null)
      * 
      * @param input  either JSONObject, Outcome or Map
      * @param key the field to check

@@ -51,7 +51,7 @@ class CRUDGeneratorTest {
     } 
 
     @Test
-    void generateCRUDItemTest()throws Exception {
+    void generateCRUDItemTest() throws Exception {
         def generator = new CRUDGenerator(
             rootDir:         'src/test',
             resourceRootDir: 'src/test/resources/org/cristalise/devtest/resources/',
@@ -69,7 +69,7 @@ class CRUDGeneratorTest {
             moduleFiles:    ['TestItem.groovy']
         ]
 
-        generator.generate(inputs)
+        generator.generateCRUDItem(inputs)
 
         inputs.with {
             item = 'TestItemExcel'
@@ -77,7 +77,7 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestItemExcel.groovy')
         }
 
-        generator.generate(inputs)
+        generator.generateCRUDItem(inputs)
 
         inputs.with {
             inputFile = null
@@ -86,7 +86,7 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestItemUseConstructor.groovy')
         }
 
-        generator.generate(inputs)
+        generator.generateCRUDItem(inputs)
 
         inputs.with {
             item = 'TestAgentUseConstructor'
@@ -94,7 +94,7 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestAgentUseConstructor.groovy')
         }
 
-        generator.generate(inputs)
+        generator.generateCRUDItem(inputs)
 
         inputs.with {
             item = 'TestAgent'
@@ -102,7 +102,7 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestAgent.groovy')
         }
 
-        generator.generate(inputs, false)
+        generator.generateCRUDItem(inputs, false)
 
         inputs.with {
             item = 'TestItemGeneratedName'
@@ -111,7 +111,7 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestItemGeneratedName.groovy')
         }
 
-        generator.generate(inputs)
+        generator.generateCRUDItem(inputs)
 
         inputs.with {
             moduleName     = 'DEV Scaffold Test module'
@@ -122,7 +122,7 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestItemUseConstructorGeneratedName.groovy')
         }
 
-        generator.generate(inputs, true)
+        generator.generateCRUDItem(inputs, true)
 
         assert getCheckGitStatus()
 
@@ -137,5 +137,12 @@ class CRUDGeneratorTest {
         script.run()
 
         assert getCheckGitStatus()
+    }
+
+    @Test
+    void generateCRUDModule() throws Exception {
+        def generator  = new CRUDGenerator(rootDir: 'src/test')
+
+        generator.genererateCRUDModule(new File('src/test/data/CRUDTestModule.groovy').text)
     }
 }

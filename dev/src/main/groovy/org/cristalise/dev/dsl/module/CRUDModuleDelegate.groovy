@@ -20,12 +20,8 @@
  */
 package org.cristalise.dev.dsl.module
 
-import org.cristalise.dev.dsl.utils.DevChildPropertySetter
-import org.cristalise.dev.dsl.utils.DevClassNameResolver
-import org.cristalise.dev.dsl.utils.DevNewInstanceResolver
-import org.cristalise.dev.dsl.utils.DevRelationNameResolver
+import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dev.dsl.utils.ObjectGraphBuilderFactory
-import org.cristalise.kernel.process.module.Module
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -37,7 +33,18 @@ class CRUDModuleDelegate {
         log.debug 'constructor() - args:{}', args
     }
 
-    public CRUDModule processClosure(@DelegatesTo(CRUDModule) Closure cl) {
+    public CRUDModule processText(String scriptText) {
+        CompilerConfiguration cc = new CompilerConfiguration()
+        cc.setScriptBaseClass(DelegatingScript.class.getName())
+
+        GroovyShell shell = new GroovyShell(this.class.classLoader, new Binding(), cc)
+        DelegatingScript script = (DelegatingScript) shell.parse(scriptText)
+
+        script.setDelegate(ObjectGraphBuilderFactory.create())
+        return (CRUDModule) script.run()
+    }
+
+    public CRUDModule processClosure(Closure cl) {
         assert cl
 
         cl.delegate = ObjectGraphBuilderFactory.create()
@@ -45,9 +52,4 @@ class CRUDModuleDelegate {
 
         return (CRUDModule) cl()
     }
-
-    public Module buildImportItem(CRUDModule devItem) {
-        return null
-    }
-    
 }

@@ -21,6 +21,8 @@
 package org.cristalise.dev.scaffold
 
 import org.apache.commons.lang3.StringUtils
+import org.cristalise.dev.dsl.item.CRUDItem
+import org.cristalise.dev.dsl.module.CRUDModuleDelegate
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.utils.FileStringUtility
@@ -29,6 +31,7 @@ import org.mvel2.templates.TemplateCompiler
 import org.mvel2.templates.TemplateRuntime
 
 import groovy.cli.commons.CliBuilder
+import groovy.cli.commons.OptionAccessor
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -75,8 +78,8 @@ class CRUDGenerator {
      * @param inputs the inputs to the MVEL2 templates
      * @param itemSpecificFactoryWf whether generate an Item specific Factory workflow or not
      */
-    public void generate(Map<String, Object> inputs) {
-        generate(inputs, false)
+    public void generateCRUDItem(Map<String, Object> inputs) {
+        generateCRUDItem(inputs, false)
     }
 
     /**
@@ -86,7 +89,7 @@ class CRUDGenerator {
      * @param generateModule whether the Module.groovy file should be generated or not
      * @param itemSpecificFactoryWf whether generate an Item specific Factory workflow or not
      */
-    public void generate(Map<String, Object> inputs, boolean generateModule) {
+    public void generateCRUDItem(Map<String, Object> inputs, boolean generateModule) {
         assert inputs
 
         //String prefix = BindingConvention.variablePrefix -- DOES NOT WORK!??!?
@@ -152,37 +155,7 @@ class CRUDGenerator {
     }
 
     @CompileDynamic
-    public static void main(String[] args) {
-        def cli = new CliBuilder(usage: 'CrudGenerator -[rtnh] [excelfile]')
-        cli.width = 100
-
-        cli.with {
-            h longOpt: 'help', 'Show usage information'
-            r longOpt: 'rootDir',   args: 1, argName: 'root',  'Root directory'
-            t longOpt: 'itemTypes', args: 1, argName: 'types', 'Comma separated list of Item types'
-            n longOpt: 'moduleNs',  args: 1, argName: 'ns',    'Module namespace'
-            a longOpt: 'agent',                                'Generated Item(s) is an Agent'
-        }
-
-        def options = cli.parse(args)
-
-        // Show usage text when error or -h or --help option is used.
-        if (!args || !options || options.h) {
-            cli.usage(); return
-        }
-
-        if (!options.r) {
-            println "Please provide the root directory"
-            cli.usage()
-            return
-        }
-
-        if (!options.t) {
-            println "Please provide the comma separated list of Item types (i.e. Site, Product)"
-            cli.usage()
-            return
-        }
-
+    private static void genererateTypes(CliBuilder cli, OptionAccessor options) {
         if (!options.n) {
             println "Please provide the namespace (i.e. limsdemo)"
             cli.usage()
@@ -204,7 +177,7 @@ class CRUDGenerator {
         def generator = new CRUDGenerator(rootDir: rootDir)
 
         items.split(',').each { item ->
-            log.info('main() - generating item:{}', item)
+            log.info('genererateTypes() - generating item:{}', item)
 
             Map<String, Object> inputs = [
                 item:           item.trim(),
@@ -216,7 +189,81 @@ class CRUDGenerator {
                 inputFile:      inputFile
             ]
 
-            generator.generate(inputs)
+            generator.generateCRUDItem(inputs)
         }
+    }
+
+    public void genererateCRUDModule(String scriptText) {
+        def crudModule = new CRUDModuleDelegate(null).processText(scriptText)
+        assert crudModule
+
+        crudModule.items.each { CRUDItem item ->
+            log.info('genererateTypes() - generating item:{}', item.name)
+
+            def inputs = [
+                item:           item.name.trim(),
+                version:        0,
+                moduleNs:       crudModule.namespace,
+                useConstructor: false,
+                isAgent:        false,
+                generatedName:  false,
+                inputFile:      item.name+'.xslx'
+            ]
+
+            generateCRUDItem(inputs as Map)
+        }
+    }
+
+    @CompileDynamic
+    public static void main(String[] args) {
+        def cli = new CliBuilder(usage: 'CrudGenerator -[rtnh] [excelfile]')
+        cli.width = 100
+
+        cli.with {
+            h longOpt: 'help', 'Show usage information'
+            r longOpt: 'rootDir',    args: 1, argName: 'root',  'Root directory'
+            t longOpt: 'itemTypes',  args: 1, argName: 'types', 'Comma separated list of Item types (e.g. Site, Product)'
+            m longOpt: 'moduleFile', args: 1, argName: 'file',  'Files containing the definition of crud Items'
+            n longOpt: 'moduleNs',   args: 1, argName: 'ns',    'Module namespace'
+            a longOpt: 'agent',                                 'Generated Item(s) is an Agent'
+        }
+
+        def options = cli.parse(args)
+
+        // Show usage text when error or -h or --help option is used.
+        if (!args || !options || options.h) {
+            cli.usage(); return
+        }
+
+        if (!options.r) {
+            println "Please provide the root directory"
+            cli.usage()
+            return
+        }
+
+        if (options.t && options.m) {
+            println "Please provide either itemTypes or moduleFile"
+            cli.usage()
+            return
+        }
+
+        if (options.t) {
+            genererateTypes(cli, options)
+        }
+        else if (options.m) {
+            def rootDir    = (String)options.r
+            def moduleFile = (String)options.m
+            def scriptText = new File(moduleFile).text
+    
+            def generator  = new CRUDGenerator(rootDir: rootDir)
+
+            generator.genererateCRUDModule(scriptText)
+        }
+        else {
+            println "Please provide itemTypes or moduleFile"
+            cli.usage()
+            return
+        }
+
     }
 }
