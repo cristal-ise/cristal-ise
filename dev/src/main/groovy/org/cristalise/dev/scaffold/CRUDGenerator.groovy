@@ -194,7 +194,7 @@ class CRUDGenerator {
         }
     }
 
-    public void genererateCRUDModule(String scriptText) {
+    public void generateCRUDModule(String scriptText) {
         def crudModule = new CRUDModuleDelegate(null).processText(scriptText)
         assert crudModule
 
@@ -258,7 +258,7 @@ class CRUDGenerator {
     
             def generator  = new CRUDGenerator(rootDir: rootDir)
 
-            generator.genererateCRUDModule(scriptText)
+            generator.generateCRUDModule(scriptText)
         }
         else {
             println "Please provide itemTypes or moduleFile"

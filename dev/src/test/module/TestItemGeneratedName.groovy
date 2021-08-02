@@ -12,9 +12,11 @@ def states = ['ACTIVE', 'INACTIVE']
 
 Schema('TestItemGeneratedName', 0) {
     struct(name:' TestItemGeneratedName', documentation: 'TestItemGeneratedName aggregated data') {
-        field(name: 'Name',        type: 'string')
-        field(name: 'State',       type: 'string', values: states)
+        field(name: 'Name',  type: 'string')
+        field(name: 'State', type: 'string', values: states)
+      
         field(name: 'Description', type: 'string')
+      
     }
 }
 
@@ -23,7 +25,9 @@ Schema('TestItemGeneratedName_Details', 0) {
 
         field(name: 'Name', type: 'string') { dynamicForms (disabled: true, label: 'ID') }
 
+      
         field(name: 'Description', type: 'string')
+      
     }
 }
 
@@ -31,7 +35,7 @@ Schema('TestItemGeneratedName_Details', 0) {
 Activity('TestItemGeneratedName_Update', 0) {
     Property('OutcomeInit': 'Empty')
     Schema($testItemGeneratedName_Details_Schema)
-    //Script('CrudEntity_ChangeName', 0)
+    Script('CrudEntity_ChangeName', 0)
 }
 
 Script('TestItemGeneratedName_Aggregate', 0) {

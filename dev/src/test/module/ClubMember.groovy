@@ -12,9 +12,11 @@ def states = ['ACTIVE', 'INACTIVE']
 
 Schema('ClubMember', 0) {
     struct(name:' ClubMember', documentation: 'ClubMember aggregated data') {
-        field(name: 'Name',        type: 'string')
-        field(name: 'State',       type: 'string', values: states)
-        field(name: 'Description', type: 'string')
+        field(name: 'Name',  type: 'string')
+        field(name: 'State', type: 'string', values: states)
+      
+        field(name: 'Email',  type: 'string')
+      
     }
 }
 
@@ -23,7 +25,9 @@ Schema('ClubMember_Details', 0) {
 
         field(name: 'Name', type: 'string')
 
-        field(name: 'Description', type: 'string')
+      
+        field(name: 'Email',  type: 'string')
+      
     }
 }
 
@@ -31,7 +35,7 @@ Schema('ClubMember_Details', 0) {
 Activity('ClubMember_Update', 0) {
     Property('OutcomeInit': 'Empty')
     Schema($clubMember_Details_Schema)
-    //Script('CrudEntity_ChangeName', 0)
+    Script('CrudEntity_ChangeName', 0)
 }
 
 Script('ClubMember_Aggregate', 0) {

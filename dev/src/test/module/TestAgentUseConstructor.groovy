@@ -12,9 +12,11 @@ def states = ['ACTIVE', 'INACTIVE']
 
 Schema('TestAgentUseConstructor', 0) {
     struct(name:' TestAgentUseConstructor', documentation: 'TestAgentUseConstructor aggregated data') {
-        field(name: 'Name',        type: 'string')
-        field(name: 'State',       type: 'string', values: states)
+        field(name: 'Name',  type: 'string')
+        field(name: 'State', type: 'string', values: states)
+      
         field(name: 'Description', type: 'string')
+      
     }
 }
 
@@ -23,7 +25,9 @@ Schema('TestAgentUseConstructor_Details', 0) {
 
         field(name: 'Name', type: 'string')
 
+      
         field(name: 'Description', type: 'string')
+      
     }
 }
 
@@ -31,7 +35,7 @@ Schema('TestAgentUseConstructor_Details', 0) {
 Activity('TestAgentUseConstructor_Update', 0) {
     Property('OutcomeInit': 'Empty')
     Schema($testAgentUseConstructor_Details_Schema)
-    //Script('CrudEntity_ChangeName', 0)
+    Script('CrudEntity_ChangeName', 0)
 }
 
 Script('TestAgentUseConstructor_Aggregate', 0) {

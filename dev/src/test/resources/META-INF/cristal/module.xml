@@ -11,6 +11,7 @@
     <SchemaResource name="TestItem_Details" version="0"/>
     <Activity name="TestItem_Update" version="0">
       <Schema name="TestItem_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
     </Activity>
     <ScriptResource name="TestItem_Aggregate" version="0"/>
     <ScriptResource name="TestItem_QueryList" version="0"/>
@@ -29,6 +30,7 @@
     <ScriptResource name="TestItemExcel_DetailsAgeUpdateExpression" version="0"/>
     <Activity name="TestItemExcel_Update" version="0">
       <Schema name="TestItemExcel_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
     </Activity>
     <ScriptResource name="TestItemExcel_Aggregate" version="0"/>
     <ScriptResource name="TestItemExcel_QueryList" version="0"/>
@@ -46,6 +48,7 @@
     <SchemaResource name="TestItemUseConstructor_Details" version="0"/>
     <Activity name="TestItemUseConstructor_Update" version="0">
       <Schema name="TestItemUseConstructor_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
     </Activity>
     <ScriptResource name="TestItemUseConstructor_Aggregate" version="0"/>
     <ScriptResource name="TestItemUseConstructor_QueryList" version="0"/>
@@ -63,6 +66,7 @@
     <SchemaResource name="TestAgentUseConstructor_Details" version="0"/>
     <Activity name="TestAgentUseConstructor_Update" version="0">
       <Schema name="TestAgentUseConstructor_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
     </Activity>
     <ScriptResource name="TestAgentUseConstructor_Aggregate" version="0"/>
     <ScriptResource name="TestAgentUseConstructor_QueryList" version="0"/>
@@ -80,6 +84,7 @@
     <SchemaResource name="TestAgent_Details" version="0"/>
     <Activity name="TestAgent_Update" version="0">
       <Schema name="TestAgent_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
     </Activity>
     <ScriptResource name="TestAgent_Aggregate" version="0"/>
     <ScriptResource name="TestAgent_QueryList" version="0"/>
@@ -97,6 +102,7 @@
     <SchemaResource name="TestItemGeneratedName_Details" version="0"/>
     <Activity name="TestItemGeneratedName_Update" version="0">
       <Schema name="TestItemGeneratedName_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
     </Activity>
     <ScriptResource name="TestItemGeneratedName_Aggregate" version="0"/>
     <ScriptResource name="TestItemGeneratedName_QueryList" version="0"/>
@@ -114,6 +120,7 @@
     <SchemaResource name="TestItemUseConstructorGeneratedName_Details" version="0"/>
     <Activity name="TestItemUseConstructorGeneratedName_Update" version="0">
       <Schema name="TestItemUseConstructorGeneratedName_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
     </Activity>
     <ScriptResource name="TestItemUseConstructorGeneratedName_Aggregate" version="0"/>
     <ScriptResource name="TestItemUseConstructorGeneratedName_QueryList" version="0"/>

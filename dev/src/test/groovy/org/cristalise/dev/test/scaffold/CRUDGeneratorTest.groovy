@@ -103,7 +103,7 @@ class CRUDGeneratorTest {
             ((List)moduleFiles).add('TestAgent.groovy')
         }
 
-        generator.generateCRUDItem(inputs, false)
+        generator.generateCRUDItem(inputs)
 
         inputs.with {
             item = new CRUDItem('TestItemGeneratedName')
@@ -144,6 +144,6 @@ class CRUDGeneratorTest {
     void generateCRUDModule() throws Exception {
         def generator  = new CRUDGenerator(rootDir: 'src/test')
 
-        generator.genererateCRUDModule(new File('src/test/data/CRUDTestModule.groovy').text)
+        generator.generateCRUDModule(new File('src/test/data/CRUDTestModule.groovy').text)
     }
 }

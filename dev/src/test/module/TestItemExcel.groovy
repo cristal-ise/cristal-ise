@@ -20,7 +20,7 @@ Schema('TestItemExcel_Details', 0, xlsxFile)
 Activity('TestItemExcel_Update', 0) {
     Property('OutcomeInit': 'Empty')
     Schema($testItemExcel_Details_Schema)
-    //Script('CrudEntity_ChangeName', 0)
+    Script('CrudEntity_ChangeName', 0)
 }
 
 Script('TestItemExcel_Aggregate', 0) {
