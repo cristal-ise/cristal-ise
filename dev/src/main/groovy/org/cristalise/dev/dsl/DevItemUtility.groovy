@@ -68,7 +68,7 @@ class DevItemUtility {
      * @param expectedJobs
      */
     public static void checkJobs(ItemProxy item, AgentPath agent, List<Map<String, Object>> expectedJobs) {
-        def jobs = item.getJobs(agent)
+        List<Job> jobs = item.getJobs(agent)
 
         assert jobs.size() == expectedJobs.size()
 

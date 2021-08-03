@@ -43,12 +43,20 @@ class CRUDDependency {
      */
     Boolean originator = true
 
+    public void setType(Type t) {
+        type = t
+    }
+
     public void setType(String t) {
         type = Type.valueOf(t)
     }
 
     public void setCardinality(String c) {
-        cardinality = Cardinality.valueOf(c)
+        
+    }
+
+    public void setCardinality(Cardinality c) {
+        cardinality = c
     }
 
     public String getName() {
