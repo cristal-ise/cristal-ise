@@ -20,16 +20,9 @@
  */
 package org.cristalise.dev.dsl.item
 
-import org.cristalise.dsl.persistency.outcome.Struct
-
 import groovy.transform.CompileStatic
 
 @CompileStatic
 class CRUDAgent extends CRUDItem {
-    
-    public CRUDAgent() {} //required for ObjectGraphBuilder
-
-    public CRUDAgent(String n) {
-        name = n
-    }
+    List<String> roles
 }

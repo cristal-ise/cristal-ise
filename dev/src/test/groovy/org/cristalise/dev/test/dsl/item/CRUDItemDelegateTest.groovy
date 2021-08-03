@@ -76,9 +76,9 @@ class CRUDItemDelegateTest {
 
         assert devItem
         assert devItem.name == 'ClubMember'
-        assert devItem.dependencies[0]
-        assert devItem.dependencies[0].name == 'Cars'
-        assert devItem.dependencies[0].type == Bidirectional
-        assert devItem.dependencies[0].cardinality == OneToMany
+        assert devItem.dependencies['Cars']
+        assert devItem.dependencies['Cars'].name == 'Cars'
+        assert devItem.dependencies['Cars'].type == Bidirectional
+        assert devItem.dependencies['Cars'].cardinality == OneToMany
     }
 }

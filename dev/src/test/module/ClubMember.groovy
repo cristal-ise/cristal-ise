@@ -1,7 +1,11 @@
+import static org.apache.commons.lang3.StringUtils.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 // this is defined in CrudState.groovy of the dev module
 def states = ['ACTIVE', 'INACTIVE']
@@ -99,4 +103,17 @@ Item(name: 'ClubMemberFactory', version: 0, folder: '/test', workflow: 'CrudFact
             Property('Version': 0)
         }
     }
+
+  
+    DependencyDescription('Cars') {
+        Properties {
+            Property((DEPENDENCY_CARDINALITY): OneToMany)
+            Property((DEPENDENCY_TYPE): Bidirectional)
+            Property((DEPENDENCY_TO): 'Car')
+        }
+        
+        Member($car_PropertyDescriptionList)
+    }
+  
+
 }

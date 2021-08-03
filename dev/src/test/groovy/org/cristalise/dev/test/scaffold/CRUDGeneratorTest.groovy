@@ -60,7 +60,7 @@ class CRUDGeneratorTest {
         )
 
         Map<String, Object> inputs = [
-            item:           new CRUDItem('TestItem'),
+            item:           new CRUDItem(name: 'TestItem'),
             version:        0,
             moduleNs:       'devtest',
             useConstructor: false,
@@ -73,7 +73,7 @@ class CRUDGeneratorTest {
         generator.generateCRUDItem(inputs)
 
         inputs.with {
-            item = new CRUDItem('TestItemExcel')
+            item = new CRUDItem(name: 'TestItemExcel')
             inputFile = 'TestItemExcel.xlsx'
             ((List)moduleFiles).add('TestItemExcel.groovy')
         }
@@ -82,7 +82,7 @@ class CRUDGeneratorTest {
 
         inputs.with {
             inputFile = null
-            item = new CRUDItem('TestItemUseConstructor')
+            item = new CRUDItem(name: 'TestItemUseConstructor')
             useConstructor = true
             ((List)moduleFiles).add('TestItemUseConstructor.groovy')
         }
@@ -90,7 +90,7 @@ class CRUDGeneratorTest {
         generator.generateCRUDItem(inputs)
 
         inputs.with {
-            item = new CRUDItem('TestAgentUseConstructor')
+            item = new CRUDItem(name: 'TestAgentUseConstructor')
             isAgent = true
             ((List)moduleFiles).add('TestAgentUseConstructor.groovy')
         }
@@ -98,7 +98,7 @@ class CRUDGeneratorTest {
         generator.generateCRUDItem(inputs)
 
         inputs.with {
-            item = new CRUDItem('TestAgent')
+            item = new CRUDItem(name: 'TestAgent')
             useConstructor = false
             ((List)moduleFiles).add('TestAgent.groovy')
         }
@@ -106,7 +106,7 @@ class CRUDGeneratorTest {
         generator.generateCRUDItem(inputs)
 
         inputs.with {
-            item = new CRUDItem('TestItemGeneratedName')
+            item = new CRUDItem(name: 'TestItemGeneratedName')
             isAgent = false
             generatedName = true
             ((List)moduleFiles).add('TestItemGeneratedName.groovy')
@@ -117,7 +117,7 @@ class CRUDGeneratorTest {
         inputs.with {
             moduleName     = 'DEV Scaffold Test module'
             resourceURL    = 'org/cristalise/devtest/resources/'
-            item           = new CRUDItem('TestItemUseConstructorGeneratedName')
+            item           = new CRUDItem(name: 'TestItemUseConstructorGeneratedName')
             useConstructor = true
 
             ((List)moduleFiles).add('TestItemUseConstructorGeneratedName.groovy')
@@ -143,7 +143,8 @@ class CRUDGeneratorTest {
     @Test
     void generateCRUDModule() throws Exception {
         def generator  = new CRUDGenerator(rootDir: 'src/test')
+        def scriptText = new File('src/test/data/CRUDTestModule.groovy').text
 
-        generator.generateCRUDModule(new File('src/test/data/CRUDTestModule.groovy').text)
+        generator.generateCRUDModule(scriptText)
     }
 }

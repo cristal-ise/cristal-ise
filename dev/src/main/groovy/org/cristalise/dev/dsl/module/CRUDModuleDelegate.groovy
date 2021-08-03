@@ -40,8 +40,12 @@ class CRUDModuleDelegate {
         GroovyShell shell = new GroovyShell(this.class.classLoader, new Binding(), cc)
         DelegatingScript script = (DelegatingScript) shell.parse(scriptText)
 
-        script.setDelegate(ObjectGraphBuilderFactory.create())
-        return (CRUDModule) script.run()
+        script.delegate = ObjectGraphBuilderFactory.create()
+
+        def crudModule = (CRUDModule) script.run()
+        crudModule.createBidirectionalDependencies()
+
+        return crudModule
     }
 
     public CRUDModule processClosure(Closure cl) {
@@ -50,6 +54,9 @@ class CRUDModuleDelegate {
         cl.delegate = ObjectGraphBuilderFactory.create()
         cl.resolveStrategy = Closure.DELEGATE_FIRST
 
-        return (CRUDModule) cl()
+        def crudModule = (CRUDModule) cl()
+        crudModule.createBidirectionalDependencies()
+
+        return crudModule
     }
 }

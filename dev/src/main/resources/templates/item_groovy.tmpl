@@ -1,7 +1,11 @@
+import static org.apache.commons.lang3.StringUtils.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 // this is defined in CrudState.groovy of the dev module
 def states = ['ACTIVE', 'INACTIVE']
@@ -123,4 +127,17 @@ Item(name: '@{item.name}Factory', version: @{version}, folder: '/@{moduleNs}', w
             Property('Version': @{version})
         }
     }
+@if{item.dependencies != null && item.dependencies.size() != 0}
+  @foreach{dependency : item.dependencies.values()}
+    DependencyDescription('@{dependency.name}') {
+        Properties {
+            Property((DEPENDENCY_CARDINALITY): @{dependency.cardinality})
+            Property((DEPENDENCY_TYPE): @{dependency.type})
+            Property((DEPENDENCY_TO): '@{dependency.to}')
+        }
+        @code{to = org.apache.commons.lang3.StringUtils.uncapitalize(dependency.to)}
+        Member(@{prefix}@{to}_PropertyDescriptionList)
+    }
+  @end{}
+@end{}
 }

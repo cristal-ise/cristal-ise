@@ -50,6 +50,34 @@ class CRUDModuleDelegateTest {
         assert crudModule
         assert crudModule.namespace == 'test'
         assert crudModule.items.size() == 2
+        assert crudModule.orderOfElements == ['Car', 'ClubMember']
+
+        def clubMember = crudModule.items['ClubMember']
+        assert clubMember
+        def clubMemberCars = clubMember.dependencies['Cars']
+        assert clubMemberCars
+
+        assert clubMember.name == 'ClubMember'
+        assert clubMemberCars.name == 'Cars'
+        assert clubMemberCars.from == 'ClubMember'
+        assert clubMemberCars.to == 'Car'
+        assert clubMemberCars.type == Bidirectional
+        assert clubMemberCars.cardinality == OneToMany
+        assert clubMemberCars.originator == true
+
+        def car = crudModule.items['Car']
+        assert car
+        def carClubMembers = car.dependencies['ClubMembers']
+        assert carClubMembers
+
+        assert car.name == 'Car'
+        assert carClubMembers.name == 'ClubMembers'
+        assert carClubMembers.from == 'Car'
+        assert carClubMembers.to == 'ClubMember'
+        assert carClubMembers.type == Bidirectional
+        assert carClubMembers.cardinality == ManyToOne
+        assert carClubMembers.originator == false
+
         assert crudModule.getPlantUml() ==
 """@startuml
 class Car {

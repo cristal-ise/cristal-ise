@@ -96,6 +96,7 @@ class CRUDGenerator {
         String prefix = Gateway.getProperties().getString('DSL.Module.BindingConvention.variablePrefix', '$')
 
         inputs.rootDir = rootDir
+        inputs.prefix = prefix
         inputs.itemVar = prefix + StringUtils.uncapitalize(inputs.item as String)
         inputs.resourceRootDir = resourceRootDir
         if (moduleXmlDir) inputs.moduleXmlDir = moduleXmlDir
@@ -157,7 +158,7 @@ class CRUDGenerator {
     @CompileDynamic
     private static void genererateTypes(CliBuilder cli, OptionAccessor options) {
         if (!options.n) {
-            println "Please provide the namespace (i.e. limsdemo)"
+            println "Please provide the namespace (e.g. integTest)"
             cli.usage()
             return
         }
@@ -198,8 +199,8 @@ class CRUDGenerator {
         def crudModule = new CRUDModuleDelegate(null).processText(scriptText)
         assert crudModule
 
-        crudModule.items.each { CRUDItem item ->
-            log.info('genererateTypes() - generating item:{}', item.name)
+        crudModule.items.values().each { def item ->
+            log.info('generateCRUDModule() - generating item:{}', item.name)
 
             def inputs = [
                 item:           item,

@@ -20,6 +20,8 @@
  */
 package org.cristalise.dev.dsl.module
 
+import static org.cristalise.kernel.collection.Collection.Type.*
+
 import org.cristalise.dev.dsl.item.CRUDItem
 
 import groovy.transform.CompileStatic
@@ -30,11 +32,28 @@ class CRUDModule {
     String name
     String namespace
 
-    List<CRUDItem> items = []
+    List<String> orderOfElements = []
+    Map<String, CRUDItem> items = [:]
+
+    /**
+     * Create Dependency in the CRUDItem of the other end of the relationship
+     */
+    public void createBidirectionalDependencies() {
+        orderOfElements.each { itemType ->
+            def item = items[itemType]
+
+            item.dependencies.values().each { dependency ->
+                if (dependency.originator && dependency.type == Bidirectional ) {
+                    def itemTo = items[dependency.to]
+                    itemTo.addBidirectionalDependency(dependency)
+                }
+            }
+        }
+    }
 
     public String getPlantUml() {
         def model = new StringBuffer('@startuml\n')
-        items.each { CRUDItem item ->
+        items.values().each { CRUDItem item ->
             model.append(item.getPlantUml())
         }
         return model.append('@enduml\n').toString()

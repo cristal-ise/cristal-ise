@@ -23,9 +23,9 @@ package org.cristalise.dev.dsl.item
 import static org.cristalise.kernel.collection.Collection.Cardinality.*
 import static org.cristalise.kernel.collection.Collection.Type.*
 
+import org.atteo.evo.inflector.English
 import org.cristalise.kernel.collection.Collection.Cardinality
 import org.cristalise.kernel.collection.Collection.Type
-import org.atteo.evo.inflector.English
 
 import groovy.transform.CompileStatic
 
@@ -37,6 +37,12 @@ class CRUDDependency {
     Type        type
     Cardinality cardinality
 
+    /**
+     * Specifies if this Dependency instance originates the relationship which means 
+     * the Item containing this Dependency has the CrudDependency_Manage workflow
+     */
+    Boolean originator = true
+
     public void setType(String t) {
         type = Type.valueOf(t)
     }
@@ -44,7 +50,7 @@ class CRUDDependency {
     public void setCardinality(String c) {
         cardinality = Cardinality.valueOf(c)
     }
-    
+
     public String getName() {
         if (!name) name = English.plural(to)
         return name

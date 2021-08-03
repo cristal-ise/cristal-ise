@@ -22,7 +22,6 @@ package org.cristalise.dev.dsl.utils
 
 import org.codehaus.groovy.runtime.InvokerHelper
 
-import groovy.transform.CompileStatic
 import groovy.util.ObjectGraphBuilder.ChildPropertySetter
 import groovy.util.logging.Slf4j
 
@@ -38,10 +37,6 @@ class DevChildPropertySetter implements ChildPropertySetter {
         if (property != null) {
             if (Collection.class.isAssignableFrom(property.getClass())) {
                 ((Collection) property).add(child);
-
-                if (parentName == 'Item' && propertyName == 'dependencies') {
-                    child.from = parent.name
-                }
             }
             else if (Map.class.isAssignableFrom(property.getClass())) {
                 ((Map) property).put(child.name, child);
@@ -50,6 +45,10 @@ class DevChildPropertySetter implements ChildPropertySetter {
             }
             else  {
                 InvokerHelper.setProperty(parent, propertyName, child);
+            }
+
+            if (parentName == 'Item' && propertyName == 'dependencies') {
+                child.from = parent.name
             }
         }
         else {

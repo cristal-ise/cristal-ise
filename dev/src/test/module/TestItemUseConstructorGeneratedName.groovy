@@ -1,7 +1,11 @@
+import static org.apache.commons.lang3.StringUtils.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 // this is defined in CrudState.groovy of the dev module
 def states = ['ACTIVE', 'INACTIVE']
@@ -106,4 +110,5 @@ Item(name: 'TestItemUseConstructorGeneratedNameFactory', version: 0, folder: '/d
             Property('Version': 0)
         }
     }
+
 }

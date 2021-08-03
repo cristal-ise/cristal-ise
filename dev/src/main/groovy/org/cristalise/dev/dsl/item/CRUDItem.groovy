@@ -20,6 +20,9 @@
  */
 package org.cristalise.dev.dsl.item
 
+import static org.cristalise.kernel.collection.Collection.Type.*
+
+import org.atteo.evo.inflector.English
 import org.cristalise.dsl.persistency.outcome.Field
 import org.cristalise.dsl.persistency.outcome.Struct
 
@@ -29,21 +32,28 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class CRUDItem extends Struct {
 
-    List<CRUDDependency> dependencies = []
+    List<String> orderOfElements = []
+    Map<String, CRUDDependency> dependencies = [:]
 
-    //required for ObjectGraphBuilder
-    public CRUDItem() {
-        log.debug('constructor()')
-    }
+    public void addBidirectionalDependency(CRUDDependency d) {
+        if (dependencies.containsKey(d.name)) {
+            log.debug('addBidirectionalDependency(item:{}) - already exists:{}', name, d.name)
+        }
+        else {
+            log.debug('addBiderectionalDependency(item:{}) - adding:{}', name, d.name)
 
-    public CRUDItem(String n) {
-        log.debug('constructor() - name:{}', n)
-        name = n
-    }
-    
-    public void addDependency(CRUDDependency d) {
-        d.from = name
-        dependencies.add(d)
+            def newDep = new CRUDDependency(
+                name: English.plural(d.from),
+                from: d.to,
+                to: d.from,
+                type: Bidirectional,
+                cardinality: d.cardinality.reverse(),
+                originator: false
+            )
+
+            dependencies.put(newDep.name, newDep)
+            orderOfElements << newDep.name
+        }
     }
 
     public String getPlantUml() {
@@ -53,13 +63,13 @@ class CRUDItem extends Struct {
         }
         model.append('}\n')
 
-        dependencies.each { dependency ->
-            model.append(dependency.getPlantUml())
+        dependencies.values().each { dependency ->
+            if (dependency.originator) model.append(dependency.getPlantUml())
         }
 
         return model.toString()
     }
-    
+
     @Override
     public String toString() {
         return name
