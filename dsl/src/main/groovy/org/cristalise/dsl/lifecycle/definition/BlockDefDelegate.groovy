@@ -81,6 +81,9 @@ class BlockDefDelegate extends PropertyDelegate {
     def Loop(Map<String, Object> props = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
         def loopD =  new LoopDefDelegate(compActDef, lastSlotDef, props)
         loopD.processClosure(cl)
+
+        lastSlotDef = loopD.joinDefLast
+
         return loopD.loopDef
     }
 

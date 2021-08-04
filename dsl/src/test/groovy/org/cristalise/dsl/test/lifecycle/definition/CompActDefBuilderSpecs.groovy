@@ -117,6 +117,7 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         CompActDefBuilder.generateWorkflowSVG('target', caDef)
 
         then:
+        caDef.verify()
         caDef.name == 'WfDef-EA'
         caDef.childrenGraphModel.startVertex.name == 'EA'
         caDef.childrenGraphModel.vertices.length == 1
@@ -154,6 +155,7 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         }
 
         then:
+        caDef.verify()
         caDef.name == 'CADef-Sequence'
         caDef.version == 0
         caDef.childrenGraphModel.vertices.length == 3
@@ -179,6 +181,7 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         }
 
         then:
+        caDef.verify()
         caDef.name == 'CADef-AEProps'
         caDef.version == 0
         caDef.childrenGraphModel.vertices.length == 1
@@ -204,6 +207,7 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         def loopDef = caDef.getChildren().find { it instanceof LoopDef }
 
         then:
+        caDef.verify()
         caDef.name == 'CADef-StartLoop'
         caDef.version == 0
         caDef.childrenGraphModel.vertices.length == 4
@@ -235,22 +239,26 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         }
 
         def loopDef = caDef.getChildren().find { it instanceof LoopDef }
+        def lastDef = caDef.getChildren().find { it.name == 'last'}
 
         then:
+        caDef.verify()
         caDef.name == 'CADef-IncludeLoop'
         caDef.version == 0
         caDef.childrenGraphModel.vertices.length == 6
         caDef.childrenGraphModel.startVertex.name == "first"
+        ((GraphableVertex)(caDef.childrenGraphModel.startVertex)).getOutGraphables().collect { it.class.simpleName } == ['JoinDef']
 
         loopDef
-        loopDef.properties.RoutingExpr == 'true'
-        loopDef.getOutGraphables().size() == 2
         loopDef.getOutGraphables().findAll { GraphableVertex v ->
             v.getBuiltInProperty(PAIRING_ID) == loopDef.getBuiltInProperty(PAIRING_ID) }.size() == 1
-        loopDef.getOutEdges().size() == 2
 
-        loopDef.getInGraphables().size() == 1
-        loopDef.getInEdges().size() == 1
+        loopDef.getOutGraphables().collect { it.class.simpleName } == ['JoinDef', 'JoinDef']
+        loopDef.getInGraphables().collect { it.name } == ['looping']
+
+        lastDef
+        lastDef.getInGraphables().collect { it.class.simpleName } == ['JoinDef']
+        lastDef.getOutGraphables().size() == 0
     }
 
     def 'LoopDef can define RoutingScript'() {
@@ -266,6 +274,7 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         def loopDef = caDef.getChildren().find { it instanceof LoopDef }
 
         then:
+        caDef.verify()
         caDef.name == 'CADef-Loop-RoutingScript'
         caDef.version == 0
         caDef.childrenGraphModel.vertices.length == 3
@@ -293,6 +302,7 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         def joinDef = caDef.getChildren().find { it instanceof JoinDef }
 
         then:
+        caDef.verify()
         caDef.name == 'CADef-StartAndSplit'
         caDef.version == 0
         caDef.childrenGraphModel.vertices.length == 4
@@ -339,6 +349,7 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         def joinDef = caDef.getChildren().find { it instanceof JoinDef }
 
         then:
+        caDef.verify()
         caDef.name == 'CADef-IncludeAndSplit'
         caDef.version == 0
         caDef.childrenGraphModel.vertices.length == 7
