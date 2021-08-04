@@ -37,70 +37,48 @@ import org.cristalise.kernel.lifecycle.WfVertexDef
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
-@CompileStatic
-class LoopDefDelegate extends BlockDefDelegate {
+@CompileStatic @Slf4j
+class AndSplitDefDelegate extends BlockDefDelegate {
 
-    LoopDef loopDef
-    JoinDef joinDefFirst
-    JoinDef joinDefLast
+    AndSplitDef andSplitDef
+    JoinDef     joinDef
 
-    public LoopDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef, Map<String, Object> initialProps) {
+    public AndSplitDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef, Map<String, Object> initialProps) {
         super(parent, originSlotDef)
 
-        loopDef      = (LoopDef) compActDef.newChild("", Types.LoopSplit, 0, new GraphPoint())
-        joinDefFirst = (JoinDef) compActDef.newChild("", Types.Join, 0, new GraphPoint())
-        joinDefLast  = (JoinDef) compActDef.newChild("", Types.Join, 0, new GraphPoint())
+        andSplitDef = (AndSplitDef) compActDef.newChild("", Types.AndSplit, 0, new GraphPoint())
+        joinDef     = (JoinDef)     compActDef.newChild("", Types.Join, 0, new GraphPoint())
 
-        String pairingId = "Loop${loopDef.getID()}";
-        setPairingId(pairingId, loopDef, joinDefFirst)
-
-        setInitialProperties(initialProps)
+        String pairingId = "AndSplit${andSplitDef.getID()}"
+        setPairingId(pairingId, andSplitDef, joinDef)
     }
 
     public void processClosure(Closure cl) {
         assert cl, "Split only works with a valid Closure"
 
-        addAsNext(joinDefFirst)
+        addAsNext(andSplitDef)
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
 
-        addAsNext(loopDef) // sets loop input to the lastSlotDef
-        def nextLast = addAsNext(joinDefLast) // sets loop output to the joinDefLast
-        def nextFirst = compActDef.addNextDef(loopDef, joinDefFirst) // sets loop output to the joinDefFirst
-
-        nextFirst.setBuiltInProperty(ALIAS, 'true')
-        nextLast.setBuiltInProperty(ALIAS, 'false')
+        lastSlotDef = joinDef
 
         props.each { k, v ->
-            loopDef.properties.put(k, v, props.getAbstract().contains(k))
+            andSplitDef.properties.put(k, v, props.getAbstract().contains(k))
         }
     }
 
-    protected void setInitialProperties(Map<String, Object> initialProps) {
-        if(initialProps?.javascript) {
-            setRoutingScript((String)"javascript:\"${initialProps.javascript}\";", null);
-            initialProps.remove('javascript')
-        }
-        else if(initialProps?.groovy) {
-            setRoutingScript((String)"groovy:\"${initialProps.groovy}\";", null);
-            initialProps.remove('groovy')
-        }
-        else {
-            setRoutingExpr('true')
-        }
+    def Block(@DelegatesTo(BlockDefDelegate) Closure cl) {
+        def blockD =  new BlockDefDelegate(compActDef, andSplitDef)
+        blockD.processClosure(cl)
 
-        if (initialProps) initialProps.each { k, v -> props.put(k, v, false) }
-    }
+        //link to end of the current Block with the Join of the AndSplit
+        log.debug('Block() - linking lastSlotDef:{} to join:{}', blockD.lastSlotDef, joinDef)
+        compActDef.addNextDef(blockD.lastSlotDef, joinDef)
 
-    protected void setRoutingExpr(String exp) {
-        loopDef.setBuiltInProperty(ROUTING_EXPR, exp)
-    }
-
-    protected void setRoutingScript(String name, Integer version) {
-        loopDef.setBuiltInProperty(ROUTING_SCRIPT_NAME,    name);
-        loopDef.setBuiltInProperty(ROUTING_SCRIPT_VERSION, version)
+        return blockD.lastSlotDef
     }
 }

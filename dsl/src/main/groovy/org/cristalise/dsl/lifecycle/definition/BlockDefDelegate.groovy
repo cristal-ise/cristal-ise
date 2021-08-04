@@ -20,6 +20,8 @@
  */
 package org.cristalise.dsl.lifecycle.definition
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID
+
 import org.cristalise.dsl.property.PropertyDelegate
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.graph.model.GraphableVertex
@@ -32,10 +34,11 @@ import org.cristalise.kernel.lifecycle.WfVertexDef;
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 
-@CompileStatic
-abstract class BlockDefDelegate extends PropertyDelegate {
+@CompileStatic @Slf4j
+class BlockDefDelegate extends PropertyDelegate {
 
     public WfVertexDef lastSlotDef = null
     public CompositeActivityDef compActDef
@@ -45,7 +48,17 @@ abstract class BlockDefDelegate extends PropertyDelegate {
         lastSlotDef = originSlotDef
     }
 
-    public NextDef addAsNext(WfVertexDef newSlotDef) {
+    public void processClosure(Closure cl) {
+        assert cl, "Block only works with a valid Closure"
+
+        cl.delegate = this
+        cl.resolveStrategy = Closure.DELEGATE_FIRST
+        cl()
+    }
+
+    protected NextDef addAsNext(WfVertexDef newSlotDef) {
+        log.debug('addAsNext() - newSlotDef:{} lastSlotDef:{}', newSlotDef, lastSlotDef)
+
         NextDef nextDef = null
         if(lastSlotDef) nextDef = compActDef.addNextDef(lastSlotDef, newSlotDef)
         else            compActDef.getChildrenGraphModel().setStartVertexId(newSlotDef.ID)
@@ -55,20 +68,18 @@ abstract class BlockDefDelegate extends PropertyDelegate {
         return nextDef
     }
 
-    public ActivitySlotDef addActDefAsNext(String actName, ActivityDef actDef) {
+    protected ActivitySlotDef addActDefAsNext(String actName, ActivityDef actDef) {
         def newSlotDef = compActDef.addExistingActivityDef(actName, actDef, new GraphPoint())
         addAsNext(newSlotDef)
         return newSlotDef
     }
 
-    def Loop(Map<String, Object> props, @DelegatesTo(LoopDefDelegate) Closure cl) {
-        def loopD =  new LoopDefDelegate(compActDef, lastSlotDef, props)
-        loopD.processClosure(cl)
-        return loopD.loopDef
+    protected void setPairingId(id, GraphableVertex...vertices) {
+        for (v in vertices) v.setBuiltInProperty(PAIRING_ID, id)
     }
 
-    def Loop(@DelegatesTo(LoopDefDelegate) Closure cl) {
-        def loopD =  new LoopDefDelegate(compActDef, lastSlotDef, null)
+    def Loop(Map<String, Object> props = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
+        def loopD =  new LoopDefDelegate(compActDef, lastSlotDef, props)
         loopD.processClosure(cl)
         return loopD.loopDef
     }
@@ -108,5 +119,14 @@ abstract class BlockDefDelegate extends PropertyDelegate {
     // Alias of method Act(...)
     def CompActDef(String actName, CompositeActivityDef actDef, @DelegatesTo(PropertyDelegate) Closure cl = null) {
         return Act(actName, actDef, cl)
+    }
+
+    def AndSplit(Map<String, Object> props = null, @DelegatesTo(AndSplitDefDelegate) Closure cl) {
+        def andD =  new AndSplitDefDelegate(compActDef, lastSlotDef, props)
+        andD.processClosure(cl)
+
+        lastSlotDef = andD.lastSlotDef
+
+        return andD.andSplitDef
     }
 }
