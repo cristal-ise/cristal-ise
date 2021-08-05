@@ -414,7 +414,7 @@ public class CompositeActivityDef extends ActivityDef {
             }
         }
 
-        log.debug("verify() - errors:{}", getErrors());
+        if (err) log.info("verify() - errors:{}", getErrors());
 
         return err;
     }

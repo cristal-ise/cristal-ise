@@ -367,4 +367,31 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         joinDef.getInGraphables().collect {it.name} == ['left2','right']
         joinDef.getOutGraphables().collect {it.name} == ['last']
     }
+
+    def 'CompositeActivityDef can define AndSplit with Loops'() {
+        when:
+        def left  = new ActivityDef('left',  0)
+        def right = new ActivityDef('right', 0)
+
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-AndSplitWithLoops', version: 0) {
+            Layout {
+                AndSplit {
+                    Loop { Act(left)  }
+                    Loop { Act(right) }
+                }
+            }
+        }
+
+        def andSplitDef = (AndSplitDef) caDef.childrenGraphModel.startVertex
+
+        then:
+        caDef.verify()
+        caDef.name == 'CADef-AndSplitWithLoops'
+        caDef.version == 0
+        caDef.childrenGraphModel.vertices.length == 10
+        caDef.childrenGraphModel.startVertex.class.simpleName == 'AndSplitDef'
+
+        andSplitDef.getInGraphables().size() == 0
+        andSplitDef.getOutGraphables().collect { it.class.simpleName } == ['JoinDef', 'JoinDef']
+    }
 }

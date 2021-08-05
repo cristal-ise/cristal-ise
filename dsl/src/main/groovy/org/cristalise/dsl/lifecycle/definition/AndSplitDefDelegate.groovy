@@ -81,4 +81,16 @@ class AndSplitDefDelegate extends BlockDefDelegate {
 
         return blockD.lastSlotDef
     }
+
+    def Loop(@DelegatesTo(LoopDefDelegate) Closure cl) {
+        def loopD =  new LoopDefDelegate(compActDef, andSplitDef, null)
+        loopD.processClosure(cl)
+
+        //link to end of the current Block with the Join of the AndSplit
+        log.debug('Loops() - linking lastSlotDef:{} to join:{}', loopD.lastSlotDef, joinDef)
+        compActDef.addNextDef(loopD.lastSlotDef, joinDef)
+
+        return loopD.lastSlotDef
+    }
+
 }
