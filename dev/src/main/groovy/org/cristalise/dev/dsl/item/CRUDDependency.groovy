@@ -28,8 +28,9 @@ import org.cristalise.kernel.collection.Collection.Cardinality
 import org.cristalise.kernel.collection.Collection.Type
 
 import groovy.transform.CompileStatic
+import groovy.transform.MapConstructor
 
-@CompileStatic
+@CompileStatic @MapConstructor
 class CRUDDependency {
     String      name
     String      from
@@ -52,7 +53,7 @@ class CRUDDependency {
     }
 
     public void setCardinality(String c) {
-        
+        cardinality = Cardinality.valueOf(c)
     }
 
     public void setCardinality(Cardinality c) {
