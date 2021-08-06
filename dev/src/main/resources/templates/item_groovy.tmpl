@@ -74,6 +74,10 @@ Activity('@{item.name}_Aggregate', @{version}) {
     Script(@{itemVar}_Aggregate_Script)
 }
 
+@foreach{currentDependency : item.dependencies.values()}
+@if{currentDependency.originator}@includeNamed{'item_dependencies_groovy.tmpl'}@end{}
+@end{}
+
 Workflow('@{item.name}_Workflow', @{version}) {
     ElemActDef(@{itemVar}_Update_ActivityDef)
     CompActDef('CrudState_Manage', @{version})

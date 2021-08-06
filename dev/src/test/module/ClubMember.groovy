@@ -62,6 +62,10 @@ Activity('ClubMember_Aggregate', 0) {
     Script($clubMember_Aggregate_Script)
 }
 
+
+
+
+
 Workflow('ClubMember_Workflow', 0) {
     ElemActDef($clubMember_Update_ActivityDef)
     CompActDef('CrudState_Manage', 0)
@@ -73,9 +77,9 @@ PropertyDescriptionList('ClubMember', 0) {
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
-Item(name: 'ClubMemberFactory', version: 0, folder: '/test', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
+Item(name: 'ClubMemberFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': '/test/ClubMembers')
+    InmutableProperty('Root': '/devtest/ClubMembers')
 
 
 

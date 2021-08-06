@@ -1,4 +1,4 @@
-Module(namespace: 'test') {
+Module(namespace: 'devtest') {
     Item(name: 'Car') {
         field(name: 'RegistrationPlate')
     }

@@ -26,8 +26,12 @@ import org.cristalise.dev.dsl.module.CRUDModuleDelegate
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.utils.FileStringUtility
+import org.mvel2.integration.VariableResolverFactory
+import org.mvel2.integration.impl.MapVariableResolverFactory
 import org.mvel2.templates.CompiledTemplate
+import org.mvel2.templates.SimpleTemplateRegistry
 import org.mvel2.templates.TemplateCompiler
+import org.mvel2.templates.TemplateRegistry
 import org.mvel2.templates.TemplateRuntime
 
 import groovy.cli.commons.CliBuilder
@@ -55,8 +59,19 @@ import groovy.util.logging.Slf4j
  */
 @CompileStatic @Slf4j
 class CRUDGenerator {
-    
+
+    static List<String> templates = [
+        'item_aggregate_groovy.tmpl',
+        'item_dependencies_groovy.tmpl',
+        'item_groovy.tmpl',
+        'item_queryList_groovy.tmpl',
+        'item_workflow_xml.tmpl',
+        'module_groovy.tmpl'
+    ]
+
     static final String templateRoot = '/org/cristalise/dev/resources/templates/'
+
+    TemplateRegistry templateRegistry = new SimpleTemplateRegistry()
 
     String rootDir
     String resourceRootDir
@@ -70,26 +85,16 @@ class CRUDGenerator {
         moduleXmlDir    = args?.moduleXmlDir
 
         if (!resourceRootDir) resourceRootDir = "${rootDir}/resources"
+
+        templates.each { templName ->
+            String templStr = FileStringUtility.url2String(this.getClass().getResource(templateRoot + templName))
+            CompiledTemplate expr = TemplateCompiler.compileTemplate(templStr);
+            if (expr) templateRegistry.addNamedTemplate(templName, expr)
+            else      log.error('ctor() -could not compile tmeplate:{}', templName)
+        }
     }
 
-    /**
-     * Trigger the generation of the DSL files. It is based on MVEL2 templating. Module.groovy is not generated.
-     * 
-     * @param inputs the inputs to the MVEL2 templates
-     * @param itemSpecificFactoryWf whether generate an Item specific Factory workflow or not
-     */
-    public void generateCRUDItem(Map<String, Object> inputs) {
-        generateCRUDItem(inputs, false)
-    }
-
-    /**
-     * Trigger the generation of the DSL files. It is based on MVEL2 templating.
-     * 
-     * @param inputs the inputs to the MVEL2 templates
-     * @param generateModule whether the Module.groovy file should be generated or not
-     * @param itemSpecificFactoryWf whether generate an Item specific Factory workflow or not
-     */
-    public void generateCRUDItem(Map<String, Object> inputs, boolean generateModule) {
+    private setInputs(Map inputs) {
         assert inputs
 
         //String prefix = BindingConvention.variablePrefix -- DOES NOT WORK!??!?
@@ -100,6 +105,22 @@ class CRUDGenerator {
         inputs.itemVar = prefix + StringUtils.uncapitalize(inputs.item as String)
         inputs.resourceRootDir = resourceRootDir
         if (moduleXmlDir) inputs.moduleXmlDir = moduleXmlDir
+    }
+
+    /**
+     * Trigger the generation of the DSL files. It is based on MVEL2 templating. Module.groovy is not generated.
+     * 
+     * @param inputs the inputs to the MVEL2 templates
+     */
+    public void generateItemDSL(Map<String, Object> inputs) {
+        setInputs(inputs)
+
+        assert inputs['item'], "Specify input called 'item'"
+
+        if (inputs['generatedName']) {
+            if (!inputs['idPrefix'])    inputs['idPrefix'] = 'ID'
+            if (!inputs['leftPadSize']) inputs['leftPadSize'] = '6'
+        }
 
         new FileTreeBuilder(new File(resourceRootDir)).dir('boot') {
             for (def res : BuiltInResources.values()) {
@@ -111,17 +132,22 @@ class CRUDGenerator {
         def scriptDir   = new File("${rootDir}/module/script")
         def workflowDir = new File("${resourceRootDir}/boot/CA")
 
-        checkAndSetInputs(inputs)
-
         generateDSL(new File(moduleDir,   "${inputs.item}.groovy"),           'item_groovy.tmpl',           inputs)
         generateDSL(new File(scriptDir,   "${inputs.item}_Aggregate.groovy"), 'item_aggregate_groovy.tmpl', inputs)
         generateDSL(new File(scriptDir,   "${inputs.item}_QueryList.groovy"), 'item_queryList_groovy.tmpl', inputs)
         generateDSL(new File(workflowDir, "${inputs.item}_Workflow_0.xml"),   'item_workflow_xml.tmpl',     inputs)
-
-        if (generateModule) generateModuleFiles(inputs, moduleDir)
     }
 
-    private generateModuleFiles(Map<String, Object> inputs, File moduleDir) {
+    /**
+     * 
+     * @param inputs
+     * @return
+     */
+    public generateModuleDSL(Map<String, Object> inputs) {
+        setInputs(inputs)
+
+        def moduleDir = new File("${rootDir}/module")
+
         if (!inputs['moduleFiles']) {
             inputs['moduleFiles'] = []
 
@@ -133,15 +159,6 @@ class CRUDGenerator {
         generateDSL(new File(moduleDir, 'Module.groovy'), 'module_groovy.tmpl', inputs)
     }
 
-    private void checkAndSetInputs(Map inputs) {
-        assert inputs['item'], "Specify input called 'item'"
-
-        if(inputs['generatedName']) {
-            if (!inputs['idPrefix'])    inputs['idPrefix'] = 'ID'
-            if (!inputs['leftPadSize']) inputs['leftPadSize'] = '6'
-        }
-    }
-
     /**
      * Generates and saves a single DSL file
      * 
@@ -150,9 +167,8 @@ class CRUDGenerator {
      * @param vars the inputs needed for the generation
      */
     private void generateDSL(File file, String templName, Map vars) {
-        String templ = FileStringUtility.url2String(this.getClass().getResource(templateRoot + templName))
-        CompiledTemplate expr = TemplateCompiler.compileTemplate(templ);
-        file.write((String) TemplateRuntime.execute(expr, vars))
+        CompiledTemplate expr = templateRegistry.getNamedTemplate(templName)
+        file.write((String)TemplateRuntime.execute(expr, null, new MapVariableResolverFactory(vars), templateRegistry))
     }
 
     @CompileDynamic
@@ -191,7 +207,7 @@ class CRUDGenerator {
                 inputFile:      inputFile
             ]
 
-            generator.generateCRUDItem(inputs)
+            generator.generateItemDSL(inputs)
         }
     }
 
@@ -212,7 +228,7 @@ class CRUDGenerator {
                 inputFile:      null
             ]
 
-            generateCRUDItem(inputs as Map)
+            generateItemDSL(inputs as Map)
         }
     }
 

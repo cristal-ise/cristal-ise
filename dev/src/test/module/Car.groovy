@@ -62,6 +62,10 @@ Activity('Car_Aggregate', 0) {
     Script($car_Aggregate_Script)
 }
 
+
+
+
+
 Workflow('Car_Workflow', 0) {
     ElemActDef($car_Update_ActivityDef)
     CompActDef('CrudState_Manage', 0)
@@ -73,9 +77,9 @@ PropertyDescriptionList('Car', 0) {
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
 
-Item(name: 'CarFactory', version: 0, folder: '/test', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
+Item(name: 'CarFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': '/test/Cars')
+    InmutableProperty('Root': '/devtest/Cars')
 
 
 
