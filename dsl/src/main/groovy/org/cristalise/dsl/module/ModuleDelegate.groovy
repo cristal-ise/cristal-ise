@@ -271,7 +271,7 @@ class ModuleDelegate implements BindingConvention {
      * @return
      */
     public CompositeActivityDef Workflow(Map args, @DelegatesTo(CompActDefDelegate) Closure cl) {
-        def caDef = CompActDefBuilder.build((String)args.name, (Integer)args.version, cl)
+        def caDef = CompActDefBuilder.build(args, cl)
 
         if (args?.generate) {
             if (generateResourceXml) {

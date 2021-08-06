@@ -41,7 +41,7 @@ class CompActDefBuilder {
     public static CompositeActivityDef build(Map<String, Object> attrs, @DelegatesTo(CompActDefDelegate) Closure cl) {
         def delegate = new CompActDefDelegate((String)attrs.name, (Integer)attrs.version)
         delegate.processClosure(cl)
-        if (delegate.generate) attrs.generate = true
+        if (delegate.generate) attrs['generate'] = true
         return (CompositeActivityDef) delegate.activityDef
     }
 
