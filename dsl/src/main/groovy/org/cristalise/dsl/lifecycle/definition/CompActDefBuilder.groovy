@@ -41,15 +41,10 @@ class CompActDefBuilder {
     public static CompositeActivityDef build(Map<String, Object> attrs, @DelegatesTo(CompActDefDelegate) Closure cl) {
         def delegate = new CompActDefDelegate((String)attrs.name, (Integer)attrs.version)
         delegate.processClosure(cl)
+        if (delegate.generate) attrs.generate = true
         return (CompositeActivityDef) delegate.activityDef
     }
 
-//    public static CompositeActivityDef build(CompositeActivityDef caDef,  @DelegatesTo(CompActDefDelegate) Closure cl) {
-//        def delegate = new CompActDefDelegate()
-//        delegate.processClosure(caDef, cl)
-//        return caDef
-//    }
-    
     /**
      *
      * @param caDef
