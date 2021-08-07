@@ -47,7 +47,6 @@ import groovy.util.logging.Slf4j
  * - ${root}/module/${item}.groovy
  * - ${root}/module/script/${item}_Aggregate.groovy
  * - ${root}/module/script/${item}_QueryList.groovy
- * - ${root}/${resourceRoot}/CA/${item}_Workflow_0,xml
  * - ${root}/module/Module.groovy (optional)
  * </pre>
  * 
@@ -65,7 +64,6 @@ class CRUDGenerator {
         'item_dependencies_groovy.tmpl',
         'item_groovy.tmpl',
         'item_queryList_groovy.tmpl',
-        'item_workflow_xml.tmpl',
         'module_groovy.tmpl'
     ]
 
@@ -132,12 +130,10 @@ class CRUDGenerator {
 
         def moduleDir   = new File("${rootDir}/module")
         def scriptDir   = new File("${rootDir}/module/script")
-        def workflowDir = new File("${resourceRootDir}/boot/CA")
 
         generateDSL(new File(moduleDir,   "${inputs.item}.groovy"),           'item_groovy.tmpl',           inputs)
         generateDSL(new File(scriptDir,   "${inputs.item}_Aggregate.groovy"), 'item_aggregate_groovy.tmpl', inputs)
         generateDSL(new File(scriptDir,   "${inputs.item}_QueryList.groovy"), 'item_queryList_groovy.tmpl', inputs)
-        generateDSL(new File(workflowDir, "${inputs.item}_Workflow_0.xml"),   'item_workflow_xml.tmpl',     inputs)
     }
 
     /**
@@ -284,6 +280,5 @@ class CRUDGenerator {
             cli.usage()
             return
         }
-
     }
 }

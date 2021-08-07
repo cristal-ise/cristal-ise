@@ -169,6 +169,14 @@ class CRUDGeneratorTest {
     }
 
     @Test
+    void generateCRUDModule() throws Exception {
+        def generator  = new CRUDGenerator(rootDir: 'src/test')
+        def scriptText = new File('src/test/data/CRUDTestModule.groovy').text
+
+        generator.generateCRUDModule(scriptText)
+    }
+
+    @Test
     void generateModule() throws Exception {
         Map<String, Object> inputs = [
             moduleName:  'DEV Scaffold Test module',
@@ -180,7 +188,7 @@ class CRUDGeneratorTest {
 
         generator.generateModuleDSL(inputs)
 
-//        assert getCheckGitStatus()
+        assert getCheckGitStatus()
 
         CompilerConfiguration cc = new CompilerConfiguration()
         cc.setScriptBaseClass(DelegatingScript.class.getName())
@@ -192,14 +200,6 @@ class CRUDGeneratorTest {
         script.setDelegate(this)
         script.run()
 
-//        assert getCheckGitStatus()
-    }
-
-    @Test
-    void generateCRUDModule() throws Exception {
-        def generator  = new CRUDGenerator(rootDir: 'src/test')
-        def scriptText = new File('src/test/data/CRUDTestModule.groovy').text
-
-        generator.generateCRUDModule(scriptText)
+        assert getCheckGitStatus()
     }
 }
