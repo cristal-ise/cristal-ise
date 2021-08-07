@@ -405,20 +405,20 @@ public class CompositeActivityDef extends ActivityDef {
 
     @Override
     public boolean verify() {
-        boolean err = super.verify();
+        boolean isCorrect = super.verify();
         GraphableVertex[] vChildren = getChildren();
-        
+
         for (int i = 0; i < vChildren.length; i++) {
             WfVertexDef wfvChild = (WfVertexDef) vChildren[i];
             if (!(wfvChild.verify())) {
                 mErrors.add(wfvChild.getName() + ": " + wfvChild.getErrors());
-                err = false;
+                isCorrect = false;
             }
         }
 
-        if (err) log.info("verify() - errors:{}", getErrors());
+        if (!isCorrect) log.error("verify() - errors:{}", getErrors());
 
-        return err;
+        return isCorrect;
     }
 
     @Override
