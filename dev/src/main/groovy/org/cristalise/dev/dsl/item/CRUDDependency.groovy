@@ -33,14 +33,14 @@ import groovy.transform.MapConstructor
 @CompileStatic @MapConstructor
 class CRUDDependency {
     String      name
-    String      from
+    String      from 
     String      to
     Type        type
     Cardinality cardinality
 
     /**
      * Specifies if this Dependency instance originates the relationship which means 
-     * the Item containing this Dependency has the CrudDependency_Manage workflow
+     * the Item containing this Dependency has the workflow to manage the it
      */
     Boolean originator = true
 
@@ -59,12 +59,28 @@ class CRUDDependency {
     public void setCardinality(Cardinality c) {
         cardinality = c
     }
-
+//
     public String getName() {
-        if (!name) name = English.plural(to)
+        if (!name) {
+            if (cardinality == ManyToMany || cardinality == OneToMany) {
+                name = English.plural(to)
+            }
+            else {
+                name = to
+            }
+        }
         return name
     }
 
+    public String getNameInTo() {
+        if (cardinality == ManyToMany || cardinality == ManyToOne) {
+            return English.plural(from)
+        }
+        else {
+            return from
+        }
+    }
+        
     public String getPlantUml() {
         String fromMany = cardinality == ManyToMany || cardinality == ManyToOne ? '"*" ' : ''
         String toMany   = cardinality == ManyToMany || cardinality == OneToMany ? ' "*"' : ''

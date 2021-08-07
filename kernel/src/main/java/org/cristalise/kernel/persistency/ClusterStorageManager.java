@@ -378,7 +378,7 @@ public class ClusterStorageManager {
 
         //No result was found after reading the list of ClusterStorages
         if (result == null) {
-            throw new ObjectNotFoundException("Path "+itemPath+"/"+path+" not found");
+            throw new ObjectNotFoundException("Path "+itemPath.getItemName()+"/"+path+" not found");
         }
 
         return result;

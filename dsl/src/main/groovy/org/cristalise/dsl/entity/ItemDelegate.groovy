@@ -133,7 +133,7 @@ class ItemDelegate extends PropertyDelegate {
         DependencyDescription(coll.getName(), cl)
     }
 
-    public void DependencyDescription(String name, Closure cl) {
+    public void DependencyDescription(String name,  @DelegatesTo(DependencyDelegate) Closure cl) {
         Dependency(newItem.namespace, name, true, cl)
     }
 

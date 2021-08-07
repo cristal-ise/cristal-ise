@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter
 
 import org.cristalise.dev.dsl.DevItemDSL
 import org.cristalise.dev.scaffold.CRUDItemCreator
+import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
@@ -251,9 +252,27 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
             "/$folder/CarFactory")
 
         def clubMember = creator.createItemWithUpdateAndCheck(
-            Name: "Car-$timeStamp",
+            Name: "ClubMember-$timeStamp",
             Email: 'mate@people.hu',
             "/$folder/ClubMemberFactory")
 
+        def addCarJob = clubMember.getJobByName('AddCar', agent)
+
+        assert addCarJob, "Cannot get Job for Activity 'AddCar' of Item '$clubMember.name'"
+
+        clubMember.getCollection('Cars')
+        car.getCollection('ClubMember')
+
+        addCarJob.getOutcome().setField("MemberName", "Car-$timeStamp",)
+        agent.execute(addCarJob)
+
+        def clubMemberCars = (Dependency)clubMember.getCollection('Cars')
+        def carClubMember  = (Dependency)car.getCollection('ClubMember')
+
+        assert clubMemberCars.members.list.size() == 1
+        assert clubMemberCars.getMember(0).itemPath == car.path
+        
+        assert carClubMember.members.list.size() == 1
+        assert carClubMember.getMember(0).itemPath == clubMember.path
     }
 }

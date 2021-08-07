@@ -43,7 +43,6 @@ class CRUDItem extends Struct {
             log.debug('addBiderectionalDependency(item:{}) - adding:{}', name, d.name)
 
             def newDep = new CRUDDependency(
-                name: English.plural(d.from),
                 from: d.to,
                 to: d.from,
                 type: Bidirectional,

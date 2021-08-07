@@ -27,18 +27,18 @@
     </DependencyMember>
     <CollectionProperties/>
   </Dependency>
-  <Dependency classProps="" isDescription="true" name="ClubMembers">
+  <Dependency classProps="" isDescription="true" name="ClubMember">
     <DependencyMember itemPath="/desc/PropertyDesc/devtest/ClubMember">
       <MemberProperties>
-        <KeyValuePair Key="DependencyType" isAbstract="false"/>
-        <KeyValuePair Key="DependencyTo" String="ClubMember" isAbstract="false"/>
-        <KeyValuePair Key="DependencyCardinality" isAbstract="false"/>
+        <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+        <KeyValuePair Key="DependencyTo" String="Cars" isAbstract="false"/>
+        <KeyValuePair Key="DependencyCardinality" String="ManyToOne" isAbstract="false"/>
       </MemberProperties>
     </DependencyMember>
     <CollectionProperties>
-      <KeyValuePair Key="DependencyTo" String="ClubMember" isAbstract="false"/>
-      <KeyValuePair Key="DependencyCardinality" isAbstract="false"/>
-      <KeyValuePair Key="DependencyType" isAbstract="false"/>
+      <KeyValuePair Key="DependencyTo" String="Cars" isAbstract="false"/>
+      <KeyValuePair Key="DependencyCardinality" String="ManyToOne" isAbstract="false"/>
+      <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
     </CollectionProperties>
   </Dependency>
 </Item>

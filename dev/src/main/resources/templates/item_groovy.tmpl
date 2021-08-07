@@ -145,9 +145,9 @@ Item(name: '@{item.name}Factory', version: @{version}, folder: '/@{moduleNs}', w
   @foreach{dependency : item.dependencies.values()}
     DependencyDescription('@{dependency.name}') {
         Properties {
-            Property((DEPENDENCY_CARDINALITY): @{dependency.cardinality})
-            Property((DEPENDENCY_TYPE): @{dependency.type})
-            Property((DEPENDENCY_TO): '@{dependency.to}')
+            Property((DEPENDENCY_CARDINALITY): @{dependency.cardinality}.toString())
+            Property((DEPENDENCY_TYPE): @{dependency.type}.toString())
+            Property((DEPENDENCY_TO): '@{dependency.nameInTo}')
         }
         @code{to = org.apache.commons.lang3.StringUtils.uncapitalize(dependency.to)}
         Member(@{prefix}@{to}_PropertyDescriptionList)

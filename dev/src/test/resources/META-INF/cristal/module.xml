@@ -46,8 +46,10 @@
       <Script name="ClubMember_Aggregate" version="0"/>
     </Activity>
     <SchemaResource name="ClubMember_Car" version="0"/>
+    <ScriptResource name="ClubMember_AddCar" version="0"/>
     <Activity name="ClubMember_AddCar" version="0">
       <Schema name="ClubMember_Car" version="0"/>
+      <Script name="ClubMember_AddCar" version="0"/>
     </Activity>
     <Activity name="ClubMember_RemoveCar" version="0">
       <Schema name="ClubMember_Car" version="0"/>

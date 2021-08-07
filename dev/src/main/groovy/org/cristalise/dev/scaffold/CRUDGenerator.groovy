@@ -60,6 +60,7 @@ import groovy.util.logging.Slf4j
 class CRUDGenerator {
 
     static List<String> templates = [
+        'item_addMember_groovy.tmpl',
         'item_aggregate_groovy.tmpl',
         'item_dependencies_groovy.tmpl',
         'item_groovy.tmpl',
@@ -116,6 +117,7 @@ class CRUDGenerator {
         setInputs(inputs)
 
         assert inputs['item'], "Specify input called 'item'"
+        def item = (CRUDItem) inputs['item']
 
         if (inputs['generatedName']) {
             if (!inputs['idPrefix'])    inputs['idPrefix'] = 'ID'
@@ -128,12 +130,20 @@ class CRUDGenerator {
             }
         }
 
-        def moduleDir   = new File("${rootDir}/module")
-        def scriptDir   = new File("${rootDir}/module/script")
+        def moduleDir = new File("${rootDir}/module")
+        def scriptDir = new File("${rootDir}/module/script")
 
-        generateDSL(new File(moduleDir,   "${inputs.item}.groovy"),           'item_groovy.tmpl',           inputs)
-        generateDSL(new File(scriptDir,   "${inputs.item}_Aggregate.groovy"), 'item_aggregate_groovy.tmpl', inputs)
-        generateDSL(new File(scriptDir,   "${inputs.item}_QueryList.groovy"), 'item_queryList_groovy.tmpl', inputs)
+        generateDSL(new File(moduleDir, "${item.name}.groovy"),           'item_groovy.tmpl',           inputs)
+        generateDSL(new File(scriptDir, "${item.name}_Aggregate.groovy"), 'item_aggregate_groovy.tmpl', inputs)
+        generateDSL(new File(scriptDir, "${item.name}_QueryList.groovy"), 'item_queryList_groovy.tmpl', inputs)
+
+        item.dependencies.each { name, dependency ->
+            if (dependency.originator) {
+                def scriptFile = new File(scriptDir, "${item.name}_Add${dependency.to}.groovy")
+                inputs['currentDependency'] = dependency
+                generateDSL(scriptFile, 'item_addMember_groovy.tmpl', inputs)
+            }
+        }
     }
 
     /**

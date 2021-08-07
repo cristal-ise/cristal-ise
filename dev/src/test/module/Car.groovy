@@ -113,11 +113,11 @@ Item(name: 'CarFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_
     }
 
   
-    DependencyDescription('ClubMembers') {
+    DependencyDescription('ClubMember') {
         Properties {
-            Property((DEPENDENCY_CARDINALITY): ManyToOne)
-            Property((DEPENDENCY_TYPE): Bidirectional)
-            Property((DEPENDENCY_TO): 'ClubMember')
+            Property((DEPENDENCY_CARDINALITY): ManyToOne.toString())
+            Property((DEPENDENCY_TYPE): Bidirectional.toString())
+            Property((DEPENDENCY_TO): 'Cars')
         }
         
         Member($clubMember_PropertyDescriptionList)

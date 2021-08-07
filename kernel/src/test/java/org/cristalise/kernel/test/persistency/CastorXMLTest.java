@@ -21,12 +21,14 @@
 package org.cristalise.kernel.test.persistency;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.cristalise.kernel.collection.Collection.Type.Bidirectional;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_TYPE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
 import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
@@ -40,6 +42,7 @@ import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobArrayList;
 import org.cristalise.kernel.entity.imports.ImportAgent;
+import org.cristalise.kernel.entity.imports.ImportDependency;
 import org.cristalise.kernel.entity.imports.ImportItem;
 import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.graph.model.GraphPoint;
@@ -387,6 +390,12 @@ public class CastorXMLTest {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
 
         ImportItem item = new ImportItem("name", "initialPath", new ItemPath(), "wf");
+        ImportDependency id = new ImportDependency("Cars");
+        id.props.put("Integer", new Integer(10), false);
+        id.props.put("Boolean", new Boolean(false), false);
+        id.props.put(DEPENDENCY_TYPE.toString(), Bidirectional.toString(), false);
+        item.getDependencyList().add(id);
+
         ImportItem itemPrime = (ImportItem) marshaller.unmarshall(marshaller.marshall(item));
 
         assertReflectionEquals(item, itemPrime);

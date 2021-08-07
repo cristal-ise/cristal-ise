@@ -183,6 +183,7 @@ public class AddMembersToCollection extends PredefinedStep {
      */
     private Dependency addCurrentDependencyUpdate(ItemPath currentItem, Outcome inputOutcome) throws InvalidDataException {
         Node dependencyNode = null;
+
         try {
             //The outcome must contain the serialized Dependency
             dependencyNode = inputOutcome.getNodeByXPath("//Dependency");
@@ -190,6 +191,10 @@ public class AddMembersToCollection extends PredefinedStep {
             if (dependencyNode != null) {
                 String dependencyString = Outcome.serialize(dependencyNode, false);
                 getAutoUpdates().put(currentItem, dependencyString);
+
+                if (log.isTraceEnabled()) {
+                    log.trace("addCurrentDependencyUpdate() - currentItem:{} outcom:{}", currentItem.getItemName(), dependencyString);
+                }
 
                 return (Dependency) Gateway.getMarshaller().unmarshall(dependencyString);
             }
@@ -221,7 +226,14 @@ public class AddMembersToCollection extends PredefinedStep {
 
             try {
                 toDep.addMember(currentItem, inputMember.getProperties(), inputMember.getClassProps(), null);
-                getAutoUpdates().put(inputMember.getItemPath(), Gateway.getMarshaller().marshall(toDep));
+
+                String dependencyString = Gateway.getMarshaller().marshall(toDep);
+
+                if (log.isTraceEnabled()) {
+                    log.trace("addToDependencyUpdates() - toItem:{} outcome:{}", inputMember.getItemPath().getItemName(), dependencyString);
+                }
+
+                getAutoUpdates().put(inputMember.getItemPath(), dependencyString);
             }
             catch (MarshalException | ValidationException | IOException | MappingException e) {
                 log.error("computeUpdates()", e);

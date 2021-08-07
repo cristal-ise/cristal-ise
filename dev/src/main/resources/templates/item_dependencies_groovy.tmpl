@@ -10,6 +10,11 @@ Schema('@{item.name}_@{currentDependency.to}', @{version}) {
     }
 }
 
+Script('@{item.name}_Add@{currentDependency.to}', 0) {
+    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+    script('groovy', moduleDir+'/script/@{item.name}_Add@{currentDependency.to}.groovy')
+}
+
 Activity('@{item.name}_Add@{currentDependency.to}', @{version}) {
     Property((PREDEFINED_STEP): 'AddMembersToCollection')
     Property((DEPENDENCY_NAME): '@{currentDependency.name}')
@@ -18,6 +23,7 @@ Activity('@{item.name}_Add@{currentDependency.to}', @{version}) {
     Property((OUTCOME_INIT): 'Empty')
 
     Schema(@{itemVar}_@{currentDependency.to}_Schema)
+    Script(@{itemVar}_Add@{currentDependency.to}_Script)
 }
 
 Activity('@{item.name}_Remove@{currentDependency.to}', @{version}) {

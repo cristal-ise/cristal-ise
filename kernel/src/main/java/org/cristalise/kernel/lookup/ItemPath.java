@@ -20,18 +20,24 @@
  */
 package org.cristalise.kernel.lookup;
 
+import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.property.PropertyUtility;
 
 /**
  * Extends Path to enforce SystemKey structure and support UUID form
  */
 public class ItemPath extends Path {
+    
+    String itemName;
 
     public ItemPath() {
         setSysKey(UUID.randomUUID());
@@ -133,5 +139,17 @@ public class ItemPath extends Path {
         if (entityKey.startsWith("/entity/")) entityKey = entityKey.substring(8);
 
         return entityKey.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+    }
+
+    public String getItemName() {
+        return getItemName(null);
+    }
+
+    public String getItemName(TransactionKey transactionKey) {
+        if (StringUtils.isBlank(itemName)) {
+            itemName = PropertyUtility.getPropertyValue(this, NAME, "", transactionKey);
+        }
+
+        return itemName;
     }
 }

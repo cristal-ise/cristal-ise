@@ -76,6 +76,11 @@ Schema('ClubMember_Car', 0) {
     }
 }
 
+Script('ClubMember_AddCar', 0) {
+    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+    script('groovy', moduleDir+'/script/ClubMember_AddCar.groovy')
+}
+
 Activity('ClubMember_AddCar', 0) {
     Property((PREDEFINED_STEP): 'AddMembersToCollection')
     Property((DEPENDENCY_NAME): 'Cars')
@@ -84,6 +89,7 @@ Activity('ClubMember_AddCar', 0) {
     Property((OUTCOME_INIT): 'Empty')
 
     Schema($clubMember_Car_Schema)
+    Script($clubMember_AddCar_Script)
 }
 
 Activity('ClubMember_RemoveCar', 0) {
@@ -155,9 +161,9 @@ Item(name: 'ClubMemberFactory', version: 0, folder: '/devtest', workflow: 'CrudF
   
     DependencyDescription('Cars') {
         Properties {
-            Property((DEPENDENCY_CARDINALITY): OneToMany)
-            Property((DEPENDENCY_TYPE): Bidirectional)
-            Property((DEPENDENCY_TO): 'Car')
+            Property((DEPENDENCY_CARDINALITY): OneToMany.toString())
+            Property((DEPENDENCY_TYPE): Bidirectional.toString())
+            Property((DEPENDENCY_TO): 'ClubMember')
         }
         
         Member($car_PropertyDescriptionList)
