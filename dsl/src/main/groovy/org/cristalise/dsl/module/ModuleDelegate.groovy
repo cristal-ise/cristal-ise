@@ -280,6 +280,8 @@ class ModuleDelegate implements BindingConvention {
                 caDef.export(null, resourceBootDir, true, false)
                 generateWorkflowSVG('target', caDef)
             }
+
+            assert caDef.verify(), args
         }
         else {
             // since the workflow was not generated the XML file must exist
