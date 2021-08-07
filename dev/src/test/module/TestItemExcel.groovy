@@ -22,7 +22,8 @@ Schema('TestItemExcel_Details', 0, xlsxFile)
 
 
 Activity('TestItemExcel_Update', 0) {
-    Property('OutcomeInit': 'Empty')
+    Property((OUTCOME_INIT): 'Empty')
+
     Schema($testItemExcel_Details_Schema)
     Script('CrudEntity_ChangeName', 0)
 }
@@ -40,8 +41,8 @@ Script('TestItemExcel_QueryList', 0) {
 }
 
 Activity('TestItemExcel_Aggregate', 0) {
-    Property('OutcomeInit': 'Empty')
-    Property('Agent Role': 'UserCode')
+    Property((OUTCOME_INIT): 'Empty')
+    Property((AGENT_ROLE): 'UserCode')
 
     Schema($testItemExcel_Schema)
     Script($testItemExcel_Aggregate_Script)
@@ -52,7 +53,7 @@ Activity('TestItemExcel_Aggregate', 0) {
 Workflow('TestItemExcel_Workflow', 0) {
     Layout {
         AndSplit {
-            Loop  { Act($testItemExcel_Update_ActivityDef)  }
+            LoopInfinitive { Act('Update', $testItemExcel_Update_ActivityDef)  }
             Block { CompActDef('CrudState_Manage', 0) }
 
         }

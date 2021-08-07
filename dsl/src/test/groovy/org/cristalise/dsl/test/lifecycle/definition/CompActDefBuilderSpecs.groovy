@@ -172,7 +172,7 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
     
         caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-AEProps', version: 0) {
             Layout {
-                Act(ea1) {
+                Act('ea1', ea1) {
                     Property(AGENT_ROLE, 'UserCode')
                     Property(stringVal: '1')
                     Property(intVal: 0, booleanVal: true)
@@ -185,9 +185,9 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         caDef.name == 'CADef-AEProps'
         caDef.version == 0
         caDef.childrenGraphModel.vertices.length == 1
-        caDef.childrenGraphModel.startVertex.name == "EA1"
-        //def ea1Slot = (GraphableVertex) caDef.childrenGraphModel.vertices.find { it.name == "EA1" }
-        def ea1Slot = (GraphableVertex) caDef.search('EA1')
+        caDef.childrenGraphModel.startVertex.name == "ea1"
+        def ea1Slot = (GraphableVertex) caDef.search('ea1')
+        ea1Slot.getBuiltInProperty(NAME) == 'ea1'
         ea1Slot.getBuiltInProperty(AGENT_ROLE) == 'UserCode'
         ea1Slot.getProperties().get('stringVal') == '1'
         ea1Slot.getProperties().get('booleanVal') == true
@@ -263,10 +263,12 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'LoopDef can define RoutingScript'() {
         when:
+        def looping = new ActivityDef('looping', 0)
         caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-Loop-RoutingScript', version: 0) {
             Layout {
                 Loop(javascript: true) {
                     Property(toto: 123)
+                    Act(looping)
                 }
             }
         }
@@ -277,20 +279,22 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         caDef.verify()
         caDef.name == 'CADef-Loop-RoutingScript'
         caDef.version == 0
-        caDef.childrenGraphModel.vertices.length == 3
+        caDef.childrenGraphModel.vertices.length == 4
 
         loopDef
-        loopDef.properties.RoutingScriptName == 'javascript:"true";'
+        loopDef.properties.RoutingScriptName == 'javascript:true;'
         loopDef.properties.RoutingScriptVersion == null;
         loopDef.properties.toto == 123
     }
 
     def 'LoopDef can by Infinitive'() {
         when:
+        def looping = new ActivityDef('looping', 0)
         caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-Loop-Infinitive', version: 0) {
             Layout {
                 LoopInfinitive() {
                     Property(toto: 123)
+                    Act(looping)
                 }
             }
         }
@@ -301,10 +305,10 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         caDef.verify()
         caDef.name == 'CADef-Loop-Infinitive'
         caDef.version == 0
-        caDef.childrenGraphModel.vertices.length == 3
+        caDef.childrenGraphModel.vertices.length == 4
 
         loopDef
-        loopDef.properties.RoutingScriptName == 'groovy:"true";'
+        loopDef.properties.RoutingScriptName == 'groovy:true;'
         loopDef.properties.RoutingScriptVersion == null;
         loopDef.properties.toto == 123
     }
@@ -395,14 +399,17 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
 
     def 'CompositeActivityDef can define AndSplit with Loops'() {
         when:
-        def left  = new ActivityDef('left',  0)
-        def right = new ActivityDef('right', 0)
+        def left   = new ActivityDef('left',  0)
+        def middle = new ActivityDef('middle', 0)
+        def right  = new ActivityDef('right', 0)
 
         caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-AndSplitWithLoops', version: 0) {
             Layout {
                 AndSplit {
-                    Loop { Act(left)  }
-                    Loop { Act(right) }
+                    LoopInfinitive { Act('Left', left)  }
+                    Block { Act('Middle', middle) }
+                    Loop { Act('Right', right) }
+                    Block { CompActDef('ManageItemDesc', 0) }
                 }
             }
         }
@@ -413,10 +420,10 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
         caDef.verify()
         caDef.name == 'CADef-AndSplitWithLoops'
         caDef.version == 0
-        caDef.childrenGraphModel.vertices.length == 10
+        caDef.childrenGraphModel.vertices.length == 12
         caDef.childrenGraphModel.startVertex.class.simpleName == 'AndSplitDef'
 
         andSplitDef.getInGraphables().size() == 0
-        andSplitDef.getOutGraphables().collect { it.class.simpleName } == ['JoinDef', 'JoinDef']
+        andSplitDef.getOutGraphables().collect { it.class.simpleName } == ['JoinDef', 'ActivitySlotDef', 'JoinDef', 'ActivitySlotDef']
     }
 }

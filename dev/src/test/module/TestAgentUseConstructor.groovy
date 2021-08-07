@@ -37,7 +37,8 @@ Schema('TestAgentUseConstructor_Details', 0) {
 
 
 Activity('TestAgentUseConstructor_Update', 0) {
-    Property('OutcomeInit': 'Empty')
+    Property((OUTCOME_INIT): 'Empty')
+
     Schema($testAgentUseConstructor_Details_Schema)
     Script('CrudEntity_ChangeName', 0)
 }
@@ -55,8 +56,8 @@ Script('TestAgentUseConstructor_QueryList', 0) {
 }
 
 Activity('TestAgentUseConstructor_Aggregate', 0) {
-    Property('OutcomeInit': 'Empty')
-    Property('Agent Role': 'UserCode')
+    Property((OUTCOME_INIT): 'Empty')
+    Property((AGENT_ROLE): 'UserCode')
 
     Schema($testAgentUseConstructor_Schema)
     Script($testAgentUseConstructor_Aggregate_Script)
@@ -67,7 +68,7 @@ Activity('TestAgentUseConstructor_Aggregate', 0) {
 Workflow('TestAgentUseConstructor_Workflow', 0) {
     Layout {
         AndSplit {
-            Loop  { Act($testAgentUseConstructor_Update_ActivityDef)  }
+            LoopInfinitive { Act('Update', $testAgentUseConstructor_Update_ActivityDef)  }
             Block { CompActDef('CrudState_Manage', 0) }
 
         }

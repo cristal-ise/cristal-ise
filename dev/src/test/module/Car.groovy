@@ -37,7 +37,8 @@ Schema('Car_Details', 0) {
 
 
 Activity('Car_Update', 0) {
-    Property('OutcomeInit': 'Empty')
+    Property((OUTCOME_INIT): 'Empty')
+
     Schema($car_Details_Schema)
     Script('CrudEntity_ChangeName', 0)
 }
@@ -55,8 +56,8 @@ Script('Car_QueryList', 0) {
 }
 
 Activity('Car_Aggregate', 0) {
-    Property('OutcomeInit': 'Empty')
-    Property('Agent Role': 'UserCode')
+    Property((OUTCOME_INIT): 'Empty')
+    Property((AGENT_ROLE): 'UserCode')
 
     Schema($car_Schema)
     Script($car_Aggregate_Script)
@@ -69,7 +70,7 @@ Activity('Car_Aggregate', 0) {
 Workflow('Car_Workflow', 0) {
     Layout {
         AndSplit {
-            Loop  { Act($car_Update_ActivityDef)  }
+            LoopInfinitive { Act('Update', $car_Update_ActivityDef)  }
             Block { CompActDef('CrudState_Manage', 0) }
 
 

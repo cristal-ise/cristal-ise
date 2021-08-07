@@ -81,11 +81,11 @@ class LoopDefDelegate extends BlockDefDelegate {
 
     protected void setInitialProperties(Map<String, Object> initialProps) {
         if(initialProps?.javascript) {
-            setRoutingScript((String)"javascript:\"${initialProps.javascript}\";", null);
+            setRoutingScript((String)"javascript:${initialProps.javascript};", null);
             initialProps.remove('javascript')
         }
         else if(initialProps?.groovy) {
-            setRoutingScript((String)"groovy:\"${initialProps.groovy}\";", null);
+            setRoutingScript((String)"groovy:${initialProps.groovy};", null);
             initialProps.remove('groovy')
         }
         else {

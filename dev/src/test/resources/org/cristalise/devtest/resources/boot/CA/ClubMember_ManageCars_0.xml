@@ -1,7 +1,7 @@
 <CompositeActivityDef Height="0" ID="-1" IsComposite="true" IsLayoutable="false" Name="ClubMember_ManageCars" Width="0">
   <childrenGraphModel>
     <GraphModelCastorData NextId="22" StartVertexId="0">
-      <ActivitySlotDef Height="60" ID="16" IsComposite="false" IsLayoutable="true" Name="ClubMember_RemoveCar" Width="130">
+      <ActivitySlotDef Height="60" ID="16" IsComposite="false" IsLayoutable="true" Name="RemoveCar" Width="130">
         <CentrePoint x="280" y="210"/>
         <OutlinePoint x="215" y="180"/>
         <OutlinePoint x="345" y="180"/>
@@ -11,11 +11,11 @@
         <OutEdgeId>18</OutEdgeId>
         <Properties>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
-          <KeyValuePair Key="Name" String="ClubMember_RemoveCar" isAbstract="false"/>
+          <KeyValuePair Key="Name" String="RemoveCar" isAbstract="false"/>
         </Properties>
         <activityDef>ClubMember_RemoveCar</activityDef>
       </ActivitySlotDef>
-      <ActivitySlotDef Height="60" ID="6" IsComposite="false" IsLayoutable="true" Name="ClubMember_AddCar" Width="130">
+      <ActivitySlotDef Height="60" ID="6" IsComposite="false" IsLayoutable="true" Name="AddCar" Width="130">
         <CentrePoint x="100" y="210"/>
         <OutlinePoint x="35" y="180"/>
         <OutlinePoint x="165" y="180"/>
@@ -25,7 +25,7 @@
         <OutEdgeId>8</OutEdgeId>
         <Properties>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
-          <KeyValuePair Key="Name" String="ClubMember_AddCar" isAbstract="false"/>
+          <KeyValuePair Key="Name" String="AddCar" isAbstract="false"/>
         </Properties>
         <activityDef>ClubMember_AddCar</activityDef>
       </ActivitySlotDef>

@@ -49,7 +49,8 @@ Schema('@{item.name}_Details', @{version}) {
 @end{}
 
 Activity('@{item.name}_Update', @{version}) {
-    Property('OutcomeInit': 'Empty')
+    Property((OUTCOME_INIT): 'Empty')
+
     Schema(@{itemVar}_Details_Schema)
     Script('CrudEntity_ChangeName', @{version})
 }
@@ -67,8 +68,8 @@ Script('@{item.name}_QueryList', @{version}) {
 }
 
 Activity('@{item.name}_Aggregate', @{version}) {
-    Property('OutcomeInit': 'Empty')
-    Property('Agent Role': 'UserCode')
+    Property((OUTCOME_INIT): 'Empty')
+    Property((AGENT_ROLE): 'UserCode')
 
     Schema(@{itemVar}_Schema)
     Script(@{itemVar}_Aggregate_Script)
@@ -81,7 +82,7 @@ Activity('@{item.name}_Aggregate', @{version}) {
 Workflow('@{item.name}_Workflow', @{version}) {
     Layout {
         AndSplit {
-            Loop  { Act(@{itemVar}_Update_ActivityDef)  }
+            LoopInfinitive { Act('Update', @{itemVar}_Update_ActivityDef)  }
             Block { CompActDef('CrudState_Manage', 0) }
 @foreach{currentDependency : item.dependencies.values()}
 @if{currentDependency.originator}            Block { Act(@{itemVar}_Manage@{currentDependency.name}_CompositeActivityDef) }@end{}

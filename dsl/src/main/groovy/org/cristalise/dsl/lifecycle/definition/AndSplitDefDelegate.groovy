@@ -82,12 +82,19 @@ class AndSplitDefDelegate extends BlockDefDelegate {
         return blockD.lastSlotDef
     }
 
-    def Loop(@DelegatesTo(LoopDefDelegate) Closure cl) {
+    @Override
+    def LoopInfinitive(@DelegatesTo(LoopDefDelegate) Closure cl) {
+        // This shall add the conditions to make the infinitive
+        return Loop([groovy: true] as Map, cl)
+    }
+
+    @Override
+    def Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
         def loopD =  new LoopDefDelegate(compActDef, andSplitDef, null)
         loopD.processClosure(cl)
 
         //link to end of the current Block with the Join of the AndSplit
-        log.debug('Loops() - linking lastSlotDef:{} to join:{}', loopD.lastSlotDef, joinDef)
+        log.debug('Loop() - linking lastSlotDef:{} to join:{}', loopD.lastSlotDef, joinDef)
         compActDef.addNextDef(loopD.lastSlotDef, joinDef)
 
         return loopD.lastSlotDef

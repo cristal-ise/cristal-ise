@@ -98,6 +98,8 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         agent.getItem('/devtest/TestItemGeneratedNameFactory')
         agent.getItem('/devtest/TestItemUseConstructorFactory')
         agent.getItem('/devtest/TestItemUseConstructorGeneratedNameFactory')
+        agent.getItem('/devtest/CarFactory')
+        agent.getItem('/devtest/ClubMemberFactory')
     }
 
     @Test
@@ -239,5 +241,19 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         result = (Map)script.evaluate(inputs)
         expected = '<TestItemExcel_Details><Age>2</Age></TestItemExcel_Details>'
         assert KernelXMLUtility.compareXML(expected, (String)result.TestItemExcel_DetailsXml)
+    }
+
+    @Test
+    public void 'Create Car and ClubMember and AddCar to ClubMember'() {
+        def car = creator.createItemWithUpdateAndCheck(
+            Name: "Car-$timeStamp",
+            RegistrationPlate: 'IG 94-11',
+            "/$folder/CarFactory")
+
+        def clubMember = creator.createItemWithUpdateAndCheck(
+            Name: "Car-$timeStamp",
+            Email: 'mate@people.hu',
+            "/$folder/ClubMemberFactory")
+
     }
 }

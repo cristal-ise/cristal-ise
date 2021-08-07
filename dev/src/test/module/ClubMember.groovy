@@ -37,7 +37,8 @@ Schema('ClubMember_Details', 0) {
 
 
 Activity('ClubMember_Update', 0) {
-    Property('OutcomeInit': 'Empty')
+    Property((OUTCOME_INIT): 'Empty')
+
     Schema($clubMember_Details_Schema)
     Script('CrudEntity_ChangeName', 0)
 }
@@ -55,8 +56,8 @@ Script('ClubMember_QueryList', 0) {
 }
 
 Activity('ClubMember_Aggregate', 0) {
-    Property('OutcomeInit': 'Empty')
-    Property('Agent Role': 'UserCode')
+    Property((OUTCOME_INIT): 'Empty')
+    Property((AGENT_ROLE): 'UserCode')
 
     Schema($clubMember_Schema)
     Script($clubMember_Aggregate_Script)
@@ -76,11 +77,11 @@ Schema('ClubMember_Car', 0) {
 }
 
 Activity('ClubMember_AddCar', 0) {
-    Property((OUTCOME_INIT): 'Empty')
     Property((PREDEFINED_STEP): 'AddMembersToCollection')
     Property((DEPENDENCY_NAME): 'Cars')
     Property((DEPENDENCY_TO): 'Car')
     Property((DEPENDENCY_TYPE): 'Bidirectional')
+    Property((OUTCOME_INIT): 'Empty')
 
     Schema($clubMember_Car_Schema)
 }
@@ -90,6 +91,7 @@ Activity('ClubMember_RemoveCar', 0) {
     Property((DEPENDENCY_NAME): 'Cars')
     Property((DEPENDENCY_TO): 'Car')
     Property((DEPENDENCY_TYPE): 'Bidirectional')
+    Property((OUTCOME_INIT): 'Empty')
 
     Schema($clubMember_Car_Schema)
 }
@@ -97,8 +99,8 @@ Activity('ClubMember_RemoveCar', 0) {
 Workflow(name: 'ClubMember_ManageCars', version: 0) {
     Layout {
         AndSplit {
-            Loop { Act($clubMember_AddCar_ActivityDef)  }
-            Loop { Act($clubMember_RemoveCar_ActivityDef)  }
+            LoopInfinitive { Act('AddCar', $clubMember_AddCar_ActivityDef) }
+            LoopInfinitive { Act('RemoveCar', $clubMember_RemoveCar_ActivityDef) }
         }
     }
 }
@@ -108,7 +110,7 @@ Workflow(name: 'ClubMember_ManageCars', version: 0) {
 Workflow('ClubMember_Workflow', 0) {
     Layout {
         AndSplit {
-            Loop  { Act($clubMember_Update_ActivityDef)  }
+            LoopInfinitive { Act('Update', $clubMember_Update_ActivityDef)  }
             Block { CompActDef('CrudState_Manage', 0) }
 
             Block { Act($clubMember_ManageCars_CompositeActivityDef) }
