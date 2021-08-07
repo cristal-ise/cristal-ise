@@ -23,15 +23,14 @@ package org.cristalise.dsl.lifecycle.definition
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID
 
 import org.cristalise.dsl.property.PropertyDelegate
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.graph.model.GraphableVertex
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.ActivitySlotDef
-import org.cristalise.kernel.lifecycle.AndSplitDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.NextDef
 import org.cristalise.kernel.lifecycle.WfVertexDef;
-import org.cristalise.kernel.lifecycle.instance.WfVertex
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -78,8 +77,24 @@ class BlockDefDelegate extends PropertyDelegate {
         for (v in vertices) v.setBuiltInProperty(PAIRING_ID, id)
     }
 
-    def Loop(Map<String, Object> props = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
-        def loopD =  new LoopDefDelegate(compActDef, lastSlotDef, props)
+    def LoopInfinitive(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
+        if (initialProps && (initialProps.javascript || initialProps.groovy)) {
+            throw new InvalidDataException("Initial property 'javascript' or 'groovy' is already set");
+        }
+        // This shall add the conditions to make the infinitive
+        if (!initialProps) initialProps = [:]
+        initialProps.groovy = true
+
+        def loopD =  new LoopDefDelegate(compActDef, lastSlotDef, initialProps)
+        loopD.processClosure(cl)
+
+        lastSlotDef = loopD.joinDefLast
+
+        return loopD.loopDef
+    }
+
+    def Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
+        def loopD =  new LoopDefDelegate(compActDef, lastSlotDef, initialProps)
         loopD.processClosure(cl)
 
         lastSlotDef = loopD.joinDefLast

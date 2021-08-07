@@ -281,6 +281,31 @@ class CompActDefBuilderSpecs extends Specification implements CristalTestSetup {
 
         loopDef
         loopDef.properties.RoutingScriptName == 'javascript:"true";'
+        loopDef.properties.RoutingScriptVersion == null;
+        loopDef.properties.toto == 123
+    }
+
+    def 'LoopDef can by Infinitive'() {
+        when:
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-Loop-Infinitive', version: 0) {
+            Layout {
+                LoopInfinitive() {
+                    Property(toto: 123)
+                }
+            }
+        }
+
+        def loopDef = caDef.getChildren().find { it instanceof LoopDef }
+
+        then:
+        caDef.verify()
+        caDef.name == 'CADef-Loop-Infinitive'
+        caDef.version == 0
+        caDef.childrenGraphModel.vertices.length == 3
+
+        loopDef
+        loopDef.properties.RoutingScriptName == 'groovy:"true";'
+        loopDef.properties.RoutingScriptVersion == null;
         loopDef.properties.toto == 123
     }
 
