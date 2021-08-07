@@ -7,6 +7,95 @@
   <ResourceURL>org/cristalise/devtest/resources/</ResourceURL>
   <Imports>
     <AgentResource name="devtest" version="0"/>
+    <PropertyDescriptionResource name="Car" version="0"/>
+    <PropertyDescriptionResource name="ClubMember" version="0"/>
+    <PropertyDescriptionResource name="TestAgent" version="0"/>
+    <PropertyDescriptionResource name="TestAgentUseConstructor" version="0"/>
+    <PropertyDescriptionResource name="TestItem" version="0"/>
+    <PropertyDescriptionResource name="TestItemExcel" version="0"/>
+    <PropertyDescriptionResource name="TestItemGeneratedName" version="0"/>
+    <PropertyDescriptionResource name="TestItemUseConstructor" version="0"/>
+    <PropertyDescriptionResource name="TestItemUseConstructorGeneratedName" version="0"/>
+    <SchemaResource name="Car" version="0"/>
+    <SchemaResource name="Car_Details" version="0"/>
+    <Activity name="Car_Update" version="0">
+      <Schema name="Car_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
+    </Activity>
+    <ScriptResource name="Car_Aggregate" version="0"/>
+    <ScriptResource name="Car_QueryList" version="0"/>
+    <Activity name="Car_Aggregate" version="0">
+      <Schema name="Car" version="0"/>
+      <Script name="Car_Aggregate" version="0"/>
+    </Activity>
+    <Workflow name="Car_Workflow" version="0">
+      <Activity name="Car_Update" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
+    </Workflow>
+    <ItemResource name="CarFactory" version="0"/>
+    <SchemaResource name="ClubMember" version="0"/>
+    <SchemaResource name="ClubMember_Details" version="0"/>
+    <Activity name="ClubMember_Update" version="0">
+      <Schema name="ClubMember_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
+    </Activity>
+    <ScriptResource name="ClubMember_Aggregate" version="0"/>
+    <ScriptResource name="ClubMember_QueryList" version="0"/>
+    <Activity name="ClubMember_Aggregate" version="0">
+      <Schema name="ClubMember" version="0"/>
+      <Script name="ClubMember_Aggregate" version="0"/>
+    </Activity>
+    <SchemaResource name="ClubMember_Car" version="0"/>
+    <Activity name="ClubMember_AddCar" version="0">
+      <Schema name="ClubMember_Car" version="0"/>
+    </Activity>
+    <Activity name="ClubMember_RemoveCar" version="0">
+      <Schema name="ClubMember_Car" version="0"/>
+    </Activity>
+    <Workflow name="ClubMember_ManageCars" version="0">
+      <Activity name="ClubMember_AddCar" version="0"/>
+      <Activity name="ClubMember_RemoveCar" version="0"/>
+    </Workflow>
+    <Workflow name="ClubMember_Workflow" version="0">
+      <Activity name="ClubMember_Update" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
+      <Activity name="ClubMember_ManageCars" version="0"/>
+    </Workflow>
+    <ItemResource name="ClubMemberFactory" version="0"/>
+    <SchemaResource name="TestAgent" version="0"/>
+    <SchemaResource name="TestAgent_Details" version="0"/>
+    <Activity name="TestAgent_Update" version="0">
+      <Schema name="TestAgent_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
+    </Activity>
+    <ScriptResource name="TestAgent_Aggregate" version="0"/>
+    <ScriptResource name="TestAgent_QueryList" version="0"/>
+    <Activity name="TestAgent_Aggregate" version="0">
+      <Schema name="TestAgent" version="0"/>
+      <Script name="TestAgent_Aggregate" version="0"/>
+    </Activity>
+    <Workflow name="TestAgent_Workflow" version="0">
+      <Activity name="TestAgent_Update" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
+    </Workflow>
+    <ItemResource name="TestAgentFactory" version="0"/>
+    <SchemaResource name="TestAgentUseConstructor" version="0"/>
+    <SchemaResource name="TestAgentUseConstructor_Details" version="0"/>
+    <Activity name="TestAgentUseConstructor_Update" version="0">
+      <Schema name="TestAgentUseConstructor_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
+    </Activity>
+    <ScriptResource name="TestAgentUseConstructor_Aggregate" version="0"/>
+    <ScriptResource name="TestAgentUseConstructor_QueryList" version="0"/>
+    <Activity name="TestAgentUseConstructor_Aggregate" version="0">
+      <Schema name="TestAgentUseConstructor" version="0"/>
+      <Script name="TestAgentUseConstructor_Aggregate" version="0"/>
+    </Activity>
+    <Workflow name="TestAgentUseConstructor_Workflow" version="0">
+      <Activity name="TestAgentUseConstructor_Update" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
+    </Workflow>
+    <ItemResource name="TestAgentUseConstructorFactory" version="0"/>
     <SchemaResource name="TestItem" version="0"/>
     <SchemaResource name="TestItem_Details" version="0"/>
     <Activity name="TestItem_Update" version="0">
@@ -23,7 +112,6 @@
       <Activity name="TestItem_Update" version="0"/>
       <Activity name="CrudState_Manage" version="0"/>
     </Workflow>
-    <PropertyDescriptionResource name="TestItem" version="0"/>
     <ItemResource name="TestItemFactory" version="0"/>
     <SchemaResource name="TestItemExcel" version="0"/>
     <SchemaResource name="TestItemExcel_Details" version="0"/>
@@ -42,62 +130,7 @@
       <Activity name="TestItemExcel_Update" version="0"/>
       <Activity name="CrudState_Manage" version="0"/>
     </Workflow>
-    <PropertyDescriptionResource name="TestItemExcel" version="0"/>
     <ItemResource name="TestItemExcelFactory" version="0"/>
-    <SchemaResource name="TestItemUseConstructor" version="0"/>
-    <SchemaResource name="TestItemUseConstructor_Details" version="0"/>
-    <Activity name="TestItemUseConstructor_Update" version="0">
-      <Schema name="TestItemUseConstructor_Details" version="0"/>
-      <Script name="CrudEntity_ChangeName" version="0"/>
-    </Activity>
-    <ScriptResource name="TestItemUseConstructor_Aggregate" version="0"/>
-    <ScriptResource name="TestItemUseConstructor_QueryList" version="0"/>
-    <Activity name="TestItemUseConstructor_Aggregate" version="0">
-      <Schema name="TestItemUseConstructor" version="0"/>
-      <Script name="TestItemUseConstructor_Aggregate" version="0"/>
-    </Activity>
-    <Workflow name="TestItemUseConstructor_Workflow" version="0">
-      <Activity name="TestItemUseConstructor_Update" version="0"/>
-      <Activity name="CrudState_Manage" version="0"/>
-    </Workflow>
-    <PropertyDescriptionResource name="TestItemUseConstructor" version="0"/>
-    <ItemResource name="TestItemUseConstructorFactory" version="0"/>
-    <SchemaResource name="TestAgentUseConstructor" version="0"/>
-    <SchemaResource name="TestAgentUseConstructor_Details" version="0"/>
-    <Activity name="TestAgentUseConstructor_Update" version="0">
-      <Schema name="TestAgentUseConstructor_Details" version="0"/>
-      <Script name="CrudEntity_ChangeName" version="0"/>
-    </Activity>
-    <ScriptResource name="TestAgentUseConstructor_Aggregate" version="0"/>
-    <ScriptResource name="TestAgentUseConstructor_QueryList" version="0"/>
-    <Activity name="TestAgentUseConstructor_Aggregate" version="0">
-      <Schema name="TestAgentUseConstructor" version="0"/>
-      <Script name="TestAgentUseConstructor_Aggregate" version="0"/>
-    </Activity>
-    <Workflow name="TestAgentUseConstructor_Workflow" version="0">
-      <Activity name="TestAgentUseConstructor_Update" version="0"/>
-      <Activity name="CrudState_Manage" version="0"/>
-    </Workflow>
-    <PropertyDescriptionResource name="TestAgentUseConstructor" version="0"/>
-    <ItemResource name="TestAgentUseConstructorFactory" version="0"/>
-    <SchemaResource name="TestAgent" version="0"/>
-    <SchemaResource name="TestAgent_Details" version="0"/>
-    <Activity name="TestAgent_Update" version="0">
-      <Schema name="TestAgent_Details" version="0"/>
-      <Script name="CrudEntity_ChangeName" version="0"/>
-    </Activity>
-    <ScriptResource name="TestAgent_Aggregate" version="0"/>
-    <ScriptResource name="TestAgent_QueryList" version="0"/>
-    <Activity name="TestAgent_Aggregate" version="0">
-      <Schema name="TestAgent" version="0"/>
-      <Script name="TestAgent_Aggregate" version="0"/>
-    </Activity>
-    <Workflow name="TestAgent_Workflow" version="0">
-      <Activity name="TestAgent_Update" version="0"/>
-      <Activity name="CrudState_Manage" version="0"/>
-    </Workflow>
-    <PropertyDescriptionResource name="TestAgent" version="0"/>
-    <ItemResource name="TestAgentFactory" version="0"/>
     <SchemaResource name="TestItemGeneratedName" version="0"/>
     <SchemaResource name="TestItemGeneratedName_Details" version="0"/>
     <Activity name="TestItemGeneratedName_Update" version="0">
@@ -114,8 +147,24 @@
       <Activity name="TestItemGeneratedName_Update" version="0"/>
       <Activity name="CrudState_Manage" version="0"/>
     </Workflow>
-    <PropertyDescriptionResource name="TestItemGeneratedName" version="0"/>
     <ItemResource name="TestItemGeneratedNameFactory" version="0"/>
+    <SchemaResource name="TestItemUseConstructor" version="0"/>
+    <SchemaResource name="TestItemUseConstructor_Details" version="0"/>
+    <Activity name="TestItemUseConstructor_Update" version="0">
+      <Schema name="TestItemUseConstructor_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
+    </Activity>
+    <ScriptResource name="TestItemUseConstructor_Aggregate" version="0"/>
+    <ScriptResource name="TestItemUseConstructor_QueryList" version="0"/>
+    <Activity name="TestItemUseConstructor_Aggregate" version="0">
+      <Schema name="TestItemUseConstructor" version="0"/>
+      <Script name="TestItemUseConstructor_Aggregate" version="0"/>
+    </Activity>
+    <Workflow name="TestItemUseConstructor_Workflow" version="0">
+      <Activity name="TestItemUseConstructor_Update" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
+    </Workflow>
+    <ItemResource name="TestItemUseConstructorFactory" version="0"/>
     <SchemaResource name="TestItemUseConstructorGeneratedName" version="0"/>
     <SchemaResource name="TestItemUseConstructorGeneratedName_Details" version="0"/>
     <Activity name="TestItemUseConstructorGeneratedName_Update" version="0">
@@ -132,7 +181,6 @@
       <Activity name="TestItemUseConstructorGeneratedName_Update" version="0"/>
       <Activity name="CrudState_Manage" version="0"/>
     </Workflow>
-    <PropertyDescriptionResource name="TestItemUseConstructorGeneratedName" version="0"/>
     <ItemResource name="TestItemUseConstructorGeneratedNameFactory" version="0"/>
   </Imports>
 </CristalModule>

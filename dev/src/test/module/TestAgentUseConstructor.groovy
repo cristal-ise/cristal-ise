@@ -62,15 +62,16 @@ Activity('TestAgentUseConstructor_Aggregate', 0) {
     Script($testAgentUseConstructor_Aggregate_Script)
 }
 
-Workflow('TestAgentUseConstructor_Workflow', 0) {
-    ElemActDef($testAgentUseConstructor_Update_ActivityDef)
-    CompActDef('CrudState_Manage', 0)
-}
 
-PropertyDescriptionList('TestAgentUseConstructor', 0) {
-    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestAgentUseConstructor')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
+
+Workflow('TestAgentUseConstructor_Workflow', 0) {
+    Layout {
+        AndSplit {
+            Loop  { Act($testAgentUseConstructor_Update_ActivityDef)  }
+            Block { CompActDef('CrudState_Manage', 0) }
+
+        }
+    }
 }
 
 

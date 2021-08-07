@@ -79,15 +79,24 @@ Activity('@{item.name}_Aggregate', @{version}) {
 @end{}
 
 Workflow('@{item.name}_Workflow', @{version}) {
-    ElemActDef(@{itemVar}_Update_ActivityDef)
-    CompActDef('CrudState_Manage', @{version})
+    Layout {
+        AndSplit {
+            Loop  { Act(@{itemVar}_Update_ActivityDef)  }
+            Block { CompActDef('CrudState_Manage', 0) }
+@foreach{currentDependency : item.dependencies.values()}
+@if{currentDependency.originator}            Block { Act(@{itemVar}_Manage@{currentDependency.name}_CompositeActivityDef) }@end{}
+@end{}
+        }
+    }
 }
 
+@if{generateProperty}
 PropertyDescriptionList('@{item.name}', @{version}) {
     PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
     PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: '@{item.name}')
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
+@end{}
 
 Item(name: '@{item.name}Factory', version: @{version}, folder: '/@{moduleNs}', workflow: 'CrudFactory_Workflow', workflowVer: @{version}) {
     InmutableProperty('Type': 'Factory')

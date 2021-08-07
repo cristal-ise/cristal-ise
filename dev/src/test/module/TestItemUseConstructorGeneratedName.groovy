@@ -62,15 +62,16 @@ Activity('TestItemUseConstructorGeneratedName_Aggregate', 0) {
     Script($testItemUseConstructorGeneratedName_Aggregate_Script)
 }
 
-Workflow('TestItemUseConstructorGeneratedName_Workflow', 0) {
-    ElemActDef($testItemUseConstructorGeneratedName_Update_ActivityDef)
-    CompActDef('CrudState_Manage', 0)
-}
 
-PropertyDescriptionList('TestItemUseConstructorGeneratedName', 0) {
-    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestItemUseConstructorGeneratedName')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
+
+Workflow('TestItemUseConstructorGeneratedName_Workflow', 0) {
+    Layout {
+        AndSplit {
+            Loop  { Act($testItemUseConstructorGeneratedName_Update_ActivityDef)  }
+            Block { CompActDef('CrudState_Manage', 0) }
+
+        }
+    }
 }
 
 

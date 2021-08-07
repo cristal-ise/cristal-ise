@@ -62,15 +62,16 @@ Activity('TestItemUseConstructor_Aggregate', 0) {
     Script($testItemUseConstructor_Aggregate_Script)
 }
 
-Workflow('TestItemUseConstructor_Workflow', 0) {
-    ElemActDef($testItemUseConstructor_Update_ActivityDef)
-    CompActDef('CrudState_Manage', 0)
-}
 
-PropertyDescriptionList('TestItemUseConstructor', 0) {
-    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestItemUseConstructor')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
+
+Workflow('TestItemUseConstructor_Workflow', 0) {
+    Layout {
+        AndSplit {
+            Loop  { Act($testItemUseConstructor_Update_ActivityDef)  }
+            Block { CompActDef('CrudState_Manage', 0) }
+
+        }
+    }
 }
 
 

@@ -63,19 +63,61 @@ Activity('ClubMember_Aggregate', 0) {
 }
 
 
+Schema('ClubMember_Car', 0) {
+    struct(name: 'ClubMember_Car', useSequence: true) {
+        field(name: 'MemberName', type: 'string') {
+            dynamicForms (label: 'Car')
+        }
+        struct(name: 'AddMembersToCollection', useSequence: true) {
+            dynamicForms (hidden: true)
+            anyField()
+        }
+    }
+}
+
+Activity('ClubMember_AddCar', 0) {
+    Property((OUTCOME_INIT): 'Empty')
+    Property((PREDEFINED_STEP): 'AddMembersToCollection')
+    Property((DEPENDENCY_NAME): 'Cars')
+    Property((DEPENDENCY_TO): 'Car')
+    Property((DEPENDENCY_TYPE): 'Bidirectional')
+
+    Schema($clubMember_Car_Schema)
+}
+
+Activity('ClubMember_RemoveCar', 0) {
+    Property((PREDEFINED_STEP): 'RemoveSlotFromCollection')
+    Property((DEPENDENCY_NAME): 'Cars')
+    Property((DEPENDENCY_TO): 'Car')
+    Property((DEPENDENCY_TYPE): 'Bidirectional')
+
+    Schema($clubMember_Car_Schema)
+}
+
+Workflow(name: 'ClubMember_ManageCars', version: 0) {
+    Layout {
+        AndSplit {
+            Loop { Act($clubMember_AddCar_ActivityDef)  }
+            Loop { Act($clubMember_RemoveCar_ActivityDef)  }
+        }
+    }
+}
 
 
 
 Workflow('ClubMember_Workflow', 0) {
-    ElemActDef($clubMember_Update_ActivityDef)
-    CompActDef('CrudState_Manage', 0)
+    Layout {
+        AndSplit {
+            Loop  { Act($clubMember_Update_ActivityDef)  }
+            Block { CompActDef('CrudState_Manage', 0) }
+
+            Block { Act($clubMember_ManageCars_CompositeActivityDef) }
+
+        }
+    }
 }
 
-PropertyDescriptionList('ClubMember', 0) {
-    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'ClubMember')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-}
+
 
 Item(name: 'ClubMemberFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')

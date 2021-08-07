@@ -105,6 +105,8 @@ class CRUDGenerator {
         inputs.itemVar = prefix + StringUtils.uncapitalize(inputs.item as String)
         inputs.resourceRootDir = resourceRootDir
         if (moduleXmlDir) inputs.moduleXmlDir = moduleXmlDir
+
+        if (!inputs.containsKey('generateProperty')) inputs.generateProperty = false
     }
 
     /**

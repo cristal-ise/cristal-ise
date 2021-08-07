@@ -1,7 +1,7 @@
-<CompositeActivityDef Height="0" ID="-1" IsComposite="true" IsLayoutable="false" Name="TestItemExcel_Workflow" Width="0">
+<CompositeActivityDef Height="0" ID="-1" IsComposite="true" IsLayoutable="false" Name="Car_Workflow" Width="0">
   <childrenGraphModel>
     <GraphModelCastorData NextId="14" StartVertexId="0">
-      <ActivitySlotDef Height="60" ID="6" IsComposite="false" IsLayoutable="true" Name="TestItemExcel_Update" Width="130">
+      <ActivitySlotDef Height="60" ID="6" IsComposite="false" IsLayoutable="true" Name="Car_Update" Width="130">
         <CentrePoint x="100" y="210"/>
         <OutlinePoint x="35" y="180"/>
         <OutlinePoint x="165" y="180"/>
@@ -11,9 +11,9 @@
         <OutEdgeId>8</OutEdgeId>
         <Properties>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
-          <KeyValuePair Key="Name" String="TestItemExcel_Update" isAbstract="false"/>
+          <KeyValuePair Key="Name" String="Car_Update" isAbstract="false"/>
         </Properties>
-        <activityDef>TestItemExcel_Update</activityDef>
+        <activityDef>Car_Update</activityDef>
       </ActivitySlotDef>
       <JoinDef Height="24" ID="4" IsComposite="false" IsLayoutable="true" Name="" Width="60">
         <CentrePoint x="100" y="370"/>

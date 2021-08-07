@@ -47,15 +47,16 @@ Activity('TestItemExcel_Aggregate', 0) {
     Script($testItemExcel_Aggregate_Script)
 }
 
-Workflow('TestItemExcel_Workflow', 0) {
-    ElemActDef($testItemExcel_Update_ActivityDef)
-    CompActDef('CrudState_Manage', 0)
-}
 
-PropertyDescriptionList('TestItemExcel', 0) {
-    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestItemExcel')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
+
+Workflow('TestItemExcel_Workflow', 0) {
+    Layout {
+        AndSplit {
+            Loop  { Act($testItemExcel_Update_ActivityDef)  }
+            Block { CompActDef('CrudState_Manage', 0) }
+
+        }
+    }
 }
 
 

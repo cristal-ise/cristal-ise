@@ -1,0 +1,39 @@
+Schema('@{item.name}_@{currentDependency.to}', @{version}) {
+    struct(name: '@{item.name}_@{currentDependency.to}', useSequence: true) {
+        field(name: 'MemberName', type: 'string') {
+            dynamicForms (label: '@{currentDependency.to}')
+        }
+        struct(name: 'AddMembersToCollection', useSequence: true) {
+            dynamicForms (hidden: true)
+            anyField()
+        }
+    }
+}
+
+Activity('@{item.name}_Add@{currentDependency.to}', @{version}) {
+    Property((OUTCOME_INIT): 'Empty')
+    Property((PREDEFINED_STEP): 'AddMembersToCollection')
+    Property((DEPENDENCY_NAME): '@{currentDependency.name}')
+    Property((DEPENDENCY_TO): '@{currentDependency.to}')
+    Property((DEPENDENCY_TYPE): '@{currentDependency.type}')
+
+    Schema(@{itemVar}_@{currentDependency.to}_Schema)
+}
+
+Activity('@{item.name}_Remove@{currentDependency.to}', @{version}) {
+    Property((PREDEFINED_STEP): 'RemoveSlotFromCollection')
+    Property((DEPENDENCY_NAME): '@{currentDependency.name}')
+    Property((DEPENDENCY_TO): '@{currentDependency.to}')
+    Property((DEPENDENCY_TYPE): '@{currentDependency.type}')
+
+    Schema(@{itemVar}_@{currentDependency.to}_Schema)
+}
+
+Workflow(name: '@{item.name}_Manage@{currentDependency.name}', version: 0) {
+    Layout {
+        AndSplit {
+            Loop { Act(@{itemVar}_Add@{currentDependency.to}_ActivityDef)  }
+            Loop { Act(@{itemVar}_Remove@{currentDependency.to}_ActivityDef)  }
+        }
+    }
+}
