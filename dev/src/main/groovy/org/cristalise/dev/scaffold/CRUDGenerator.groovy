@@ -162,6 +162,7 @@ class CRUDGenerator {
             moduleDir.eachFileMatch(~/.*.groovy/) { file ->
                 if (file.name != 'Module.groovy') ((List)inputs['moduleFiles']).add(file.name)
             }
+            ((List)inputs['moduleFiles']).sort()
         }
 
         generateDSL(new File(moduleDir, 'Module.groovy'), 'module_groovy.tmpl', inputs)
