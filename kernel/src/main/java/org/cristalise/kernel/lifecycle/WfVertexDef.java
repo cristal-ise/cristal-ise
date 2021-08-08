@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.lifecycle;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import java.util.Vector;
 
 import org.cristalise.kernel.common.InvalidDataException;
@@ -107,5 +109,10 @@ public abstract class WfVertexDef extends GraphableVertex {
         }
         loopTested = false;
         return loop2;
+    }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName()+"("+(isNotBlank(getName()) ? "name:"+getName() : "id:"+getID())+")";
     }
 }

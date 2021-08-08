@@ -175,7 +175,16 @@ class Attribute {
     public boolean isRequired() {
         return required;
     }
-    
+
+    /**
+     * Remove the 'xs:' prefix from the type string if exists
+     * @return type string without the 'xs:' prefix
+     */
+    public String getDslType() {
+        if (type.startsWith('xs:')) return type.substring(3)
+        else                        return type
+    }
+
     public Class<?> getJavaType() {
         switch(type) {
             case 'xs:string':   return String.class;

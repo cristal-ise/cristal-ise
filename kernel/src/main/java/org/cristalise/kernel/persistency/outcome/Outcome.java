@@ -295,15 +295,27 @@ public class Outcome implements C2KLocalObject {
     }
 
     /**
-     * Evaluates the given XPath expression thread-safely and efficiently
+     * Evaluates the given XPath expression thread-safely and efficiently. It starts fromt he root Node.
      *
-     * @param xpathExpr the XPath exporession
+     * @param xpathExpr the XPath expression
      * @return the result of the evaluated expression
      * @throws XPathExpressionException  If expression cannot be compiled.
      */
     public Object evaluateXpath(String xpathExpr, QName returnType) throws XPathExpressionException {
+        return evaluateXpath(mDOM, xpathExpr, returnType);
+    }
+
+    /**
+     * Evaluates the given XPath expression thread-safely and efficiently
+     *
+     * @param startNode the starting Node
+     * @param xpathExpr the XPath expression
+     * @return the result of the evaluated expression
+     * @throws XPathExpressionException  If expression cannot be compiled.
+     */
+    public Object evaluateXpath(Node startNode, String xpathExpr, QName returnType) throws XPathExpressionException {
         XPath xpath = XPATH_FACTORY.get().newXPath();
-        return xpath.compile(xpathExpr).evaluate(mDOM, returnType);
+        return xpath.compile(xpathExpr).evaluate(startNode, returnType);
     }
 
     /**

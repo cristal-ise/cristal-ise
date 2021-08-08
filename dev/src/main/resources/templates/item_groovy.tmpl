@@ -1,81 +1,107 @@
+import static org.apache.commons.lang3.StringUtils.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 // this is defined in CrudState.groovy of the dev module
 def states = ['ACTIVE', 'INACTIVE']
 
 /**
- * @{item} Item
+ * @{item.name} Item
  */
 @if{inputFile != null}
 def xlsxFile = new File(moduleDir+'/@{inputFile}')
 
-Schema('@{item}', 0, xlsxFile)
-Schema('@{item}_Details', 0, xlsxFile)
+Schema('@{item.name}', 0, xlsxFile)
+Schema('@{item.name}_Details', 0, xlsxFile)
 
 @else{}
-Schema('@{item}', @{version}) {
-    struct(name:' @{item}', documentation: '@{item} aggregated data') {
-        field(name: 'Name',        type: 'string')
-        field(name: 'State',       type: 'string', values: states)
+Schema('@{item.name}', @{version}) {
+    struct(name:' @{item.name}', documentation: '@{item.name} aggregated data') {
+        field(name: 'Name',  type: 'string')
+        field(name: 'State', type: 'string', values: states)
+      @if{item.fields != null && item.fields.size() != 0}
+        @foreach{field : item.fields.values()}field(name: '@{field.name}',  type: '@{field.dslType}')@end{'\n'}
+      @else{}
         field(name: 'Description', type: 'string')
+      @end{}
     }
 }
 
-Schema('@{item}_Details', @{version}) {
-    struct(name: '@{item}_Details') {
+Schema('@{item.name}_Details', @{version}) {
+    struct(name: '@{item.name}_Details') {
 @if{generatedName}
         field(name: 'Name', type: 'string') { dynamicForms (disabled: true, label: 'ID') }
 @else{}
         field(name: 'Name', type: 'string')
 @end{}
+      @if{item.fields != null && item.fields.size() != 0}
+        @foreach{field : item.fields.values()}field(name: '@{field.name}',  type: '@{field.dslType}')@end{'\n'}
+      @else{}
         field(name: 'Description', type: 'string')
+      @end{}
     }
 }
 @end{}
 
-Activity('@{item}_Update', @{version}) {
-    Property('OutcomeInit': 'Empty')
+Activity('@{item.name}_Update', @{version}) {
+    Property((OUTCOME_INIT): 'Empty')
+
     Schema(@{itemVar}_Details_Schema)
-    //Script('CrudEntity_ChangeName', @{version})
+    Script('CrudEntity_ChangeName', @{version})
 }
 
-Script('@{item}_Aggregate', @{version}) {
+Script('@{item.name}_Aggregate', @{version}) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    output('@{item}XML', 'java.lang.String')
-    script('groovy', moduleDir+'/script/@{item}_Aggregate.groovy')
+    output('@{item.name}XML', 'java.lang.String')
+    script('groovy', moduleDir+'/script/@{item.name}_Aggregate.groovy')
 }
 
-Script('@{item}_QueryList', @{version}) {
+Script('@{item.name}_QueryList', @{version}) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    output('@{item}Map', 'java.util.Map')
-    script('groovy', moduleDir+'/script/@{item}_QueryList.groovy')
+    output('@{item.name}Map', 'java.util.Map')
+    script('groovy', moduleDir+'/script/@{item.name}_QueryList.groovy')
 }
 
-Activity('@{item}_Aggregate', @{version}) {
-    Property('OutcomeInit': 'Empty')
-    Property('Agent Role': 'UserCode')
+Activity('@{item.name}_Aggregate', @{version}) {
+    Property((OUTCOME_INIT): 'Empty')
+    Property((AGENT_ROLE): 'UserCode')
 
     Schema(@{itemVar}_Schema)
     Script(@{itemVar}_Aggregate_Script)
 }
 
-Workflow('@{item}_Workflow', @{version}) {
-    ElemActDef(@{itemVar}_Update_ActivityDef)
-    CompActDef('CrudState_Manage', @{version})
+@foreach{currentDependency : item.dependencies.values()}
+@if{currentDependency.originator}@includeNamed{'item_dependencies_groovy.tmpl'}@end{}
+@end{}
+
+Workflow('@{item.name}_Workflow', @{version}) {
+    Layout {
+        AndSplit {
+            LoopInfinitive { Act('Update', @{itemVar}_Update_ActivityDef)  }
+            Block { CompActDef('CrudState_Manage', 0) }
+@foreach{currentDependency : item.dependencies.values()}
+@if{currentDependency.originator}            Block { Act(@{itemVar}_Manage@{currentDependency.name}_CompositeActivityDef) }@end{}
+@end{}
+        }
+    }
 }
 
-PropertyDescriptionList('@{item}', @{version}) {
+@if{generateProperty}
+PropertyDescriptionList('@{item.name}', @{version}) {
     PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: '@{item}')
+    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: '@{item.name}')
     PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
 }
+@end{}
 
-Item(name: '@{item}Factory', version: @{version}, folder: '/@{moduleNs}', workflow: 'CrudFactory_Workflow', workflowVer: @{version}) {
+Item(name: '@{item.name}Factory', version: @{version}, folder: '/@{moduleNs}', workflow: 'CrudFactory_Workflow', workflowVer: @{version}) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': '/@{moduleNs}/@{item}s')
+    InmutableProperty('Root': '/@{moduleNs}/@{item.name}s')
 @if{generatedName}
     InmutableProperty('IDPrefix': '@{idPrefix}')
     Property('LeftPadSize': '@{leftPadSize}')
@@ -93,10 +119,10 @@ Item(name: '@{item}Factory', version: @{version}, folder: '/@{moduleNs}', workfl
         }
     }
 @else{}
-    InmutableProperty('UpdateSchema': '@{item}_Details:@{version}')
+    InmutableProperty('UpdateSchema': '@{item.name}_Details:@{version}')
 @end{}
 
-    Outcome(schema: 'PropertyDescription', version: '@{version}', viewname: 'last', path: 'boot/property/@{item}_@{version}.xml')
+    Outcome(schema: 'PropertyDescription', version: '@{version}', viewname: 'last', path: 'boot/property/@{item.name}_@{version}.xml')
 
     Dependency(WORKFLOW) {
         Member(itemPath: @{itemVar}_Workflow_CompositeActivityDef) {
@@ -115,4 +141,17 @@ Item(name: '@{item}Factory', version: @{version}, folder: '/@{moduleNs}', workfl
             Property('Version': @{version})
         }
     }
+@if{item.dependencies != null && item.dependencies.size() != 0}
+  @foreach{dependency : item.dependencies.values()}
+    DependencyDescription('@{dependency.name}') {
+        Properties {
+            Property((DEPENDENCY_CARDINALITY): @{dependency.cardinality}.toString())
+            Property((DEPENDENCY_TYPE): @{dependency.type}.toString())
+            Property((DEPENDENCY_TO): '@{dependency.nameInTo}')
+        }
+        @code{to = org.apache.commons.lang3.StringUtils.uncapitalize(dependency.to)}
+        Member(@{prefix}@{to}_PropertyDescriptionList)
+    }
+  @end{}
+@end{}
 }

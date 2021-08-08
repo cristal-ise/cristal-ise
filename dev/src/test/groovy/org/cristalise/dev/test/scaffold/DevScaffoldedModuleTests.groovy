@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter
 
 import org.cristalise.dev.dsl.DevItemDSL
 import org.cristalise.dev.scaffold.CRUDItemCreator
+import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
@@ -98,6 +99,8 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         agent.getItem('/devtest/TestItemGeneratedNameFactory')
         agent.getItem('/devtest/TestItemUseConstructorFactory')
         agent.getItem('/devtest/TestItemUseConstructorGeneratedNameFactory')
+        agent.getItem('/devtest/CarFactory')
+        agent.getItem('/devtest/ClubMemberFactory')
     }
 
     @Test
@@ -239,5 +242,37 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         result = (Map)script.evaluate(inputs)
         expected = '<TestItemExcel_Details><Age>2</Age></TestItemExcel_Details>'
         assert KernelXMLUtility.compareXML(expected, (String)result.TestItemExcel_DetailsXml)
+    }
+
+    @Test
+    public void 'Create Car and ClubMember and AddCar to ClubMember'() {
+        def car = creator.createItemWithUpdateAndCheck(
+            Name: "Car-$timeStamp",
+            RegistrationPlate: 'IG 94-11',
+            "/$folder/CarFactory")
+
+        def clubMember = creator.createItemWithUpdateAndCheck(
+            Name: "ClubMember-$timeStamp",
+            Email: 'mate@people.hu',
+            "/$folder/ClubMemberFactory")
+
+        def addCarJob = clubMember.getJobByName('AddCar', agent)
+
+        assert addCarJob, "Cannot get Job for Activity 'AddCar' of Item '$clubMember.name'"
+
+        clubMember.getCollection('Cars')
+        car.getCollection('ClubMember')
+
+        addCarJob.getOutcome().setField("MemberName", "Car-$timeStamp",)
+        agent.execute(addCarJob)
+
+        def clubMemberCars = (Dependency)clubMember.getCollection('Cars')
+        def carClubMember  = (Dependency)car.getCollection('ClubMember')
+
+        assert clubMemberCars.members.list.size() == 1
+        assert clubMemberCars.getMember(0).itemPath == car.path
+        
+        assert carClubMember.members.list.size() == 1
+        assert carClubMember.getMember(0).itemPath == clubMember.path
     }
 }

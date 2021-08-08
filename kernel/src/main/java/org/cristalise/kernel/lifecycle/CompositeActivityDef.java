@@ -34,6 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 
+import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +59,7 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import lombok.extern.slf4j.Slf4j;
@@ -403,17 +405,20 @@ public class CompositeActivityDef extends ActivityDef {
 
     @Override
     public boolean verify() {
-        boolean err = super.verify();
+        boolean isCorrect = super.verify();
         GraphableVertex[] vChildren = getChildren();
-        
+
         for (int i = 0; i < vChildren.length; i++) {
             WfVertexDef wfvChild = (WfVertexDef) vChildren[i];
             if (!(wfvChild.verify())) {
                 mErrors.add(wfvChild.getName() + ": " + wfvChild.getErrors());
-                err = false;
+                isCorrect = false;
             }
         }
-        return err;
+
+        if (!isCorrect) log.error("verify() - errors:{}", getErrors());
+
+        return isCorrect;
     }
 
     @Override
@@ -460,7 +465,7 @@ public class CompositeActivityDef extends ActivityDef {
 
         try {
             // export marshalled compAct
-            String compactXML = Gateway.getMarshaller().marshall(this);
+            String compactXML = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
             if (Gateway.getProperties().getBoolean("Export.replaceActivitySlotDefUUIDWithName", false)) {
                 compactXML = replaceActivitySlotDefUUIDWithName(compactXML);
             }            
@@ -485,23 +490,37 @@ public class CompositeActivityDef extends ActivityDef {
             throws InvalidDataException, XPathExpressionException, ObjectNotFoundException
     {
         Outcome outcome = new Outcome(compactXML);
-        NodeList nodeList = outcome.getNodesByXPath("/CompositeActivityDef/childrenGraphModel/GraphModelCastorData/ActivitySlotDef/activityDef/text()");
+        NodeList nodeList = outcome.getNodesByXPath("/CompositeActivityDef/childrenGraphModel/GraphModelCastorData/ActivitySlotDef");
 
         for (int i = 0; i < nodeList.getLength(); i++) {
+            Node activityDefNode = ((Node)outcome.evaluateXpath(nodeList.item(i), "activityDef/text()", XPathConstants.NODE));
+            String syskey = activityDefNode.getNodeValue();
             try {
-                String syskey = nodeList.item(i).getNodeValue();
                 if (StringUtils.isNotBlank(syskey) && ItemPath.isUUID(syskey)) {
                     ItemPath itemPath = Gateway.getLookup().getItemPath(syskey);
                     String itemName = Gateway.getProxy(itemPath).getName();
-                    nodeList.item(i).setNodeValue(itemName);
+                    activityDefNode.setNodeValue(itemName);
+                    log.debug("replaceActivitySlotDefUUIDWithName(name:{}) - replaced UIID:{} with name:{}", getActName(), syskey, itemName);
                 }
                 else if (StringUtils.isNotBlank(syskey)) {
-                    log.debug("replaceActivitySlotDefUUIDWithName(name:{}) - syskey:{} was not replaced - not null & neither UUID", getActName(), syskey);
+                    log.debug("replaceActivitySlotDefUUIDWithName(name:{}) - UIID:{} was not replaced - not null & neither UUID", getActName(), syskey);
                 }
             }
             catch(Exception e) {
-                log.error("Cannot find item with UIID: "+nodeList.item(i).getNodeValue(), e);
-                throw new ObjectNotFoundException("Cannot find item with UIID: "+nodeList.item(i).getNodeValue());
+                String itemName = ((Node) outcome.evaluateXpath(
+                        nodeList.item(i), "Properties/KeyValuePair[@Key='Name']", XPathConstants.NODE)
+                    )
+                    .getAttributes().getNamedItem("String").getNodeValue();
+
+                //Name property of ActivitySlotDef should be equal with the Name of the ActivityDescription Item
+                if (itemName.contains("_")) {
+                    activityDefNode.setNodeValue(itemName);
+                    log.debug("replaceActivitySlotDefUUIDWithName(name:{}) - replaced UIID:{} with name:{}", getActName(), syskey, itemName);
+                }
+                else {
+                    log.error("replaceActivitySlotDefUUIDWithName() - Cannot find item with UIID:{} with Name property={}", syskey, itemName, e);
+                    throw new ObjectNotFoundException("Cannot find item with UIID: "+nodeList.item(i).getNodeValue());
+                }
             }
         }
         return outcome.getData(true);

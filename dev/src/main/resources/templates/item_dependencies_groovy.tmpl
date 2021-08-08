@@ -1,0 +1,46 @@
+Schema('@{item.name}_@{currentDependency.to}', @{version}) {
+    struct(name: '@{item.name}_@{currentDependency.to}', useSequence: true) {
+        field(name: 'MemberName', type: 'string') {
+            dynamicForms (label: '@{currentDependency.to}')
+        }
+        struct(name: 'AddMembersToCollection', useSequence: true) {
+            dynamicForms (hidden: true)
+            anyField()
+        }
+    }
+}
+
+Script('@{item.name}_Add@{currentDependency.to}', 0) {
+    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+    script('groovy', moduleDir+'/script/@{item.name}_Add@{currentDependency.to}.groovy')
+}
+
+Activity('@{item.name}_Add@{currentDependency.to}', @{version}) {
+    Property((PREDEFINED_STEP): 'AddMembersToCollection')
+    Property((DEPENDENCY_NAME): '@{currentDependency.name}')
+    Property((DEPENDENCY_TO): '@{currentDependency.to}')
+    Property((DEPENDENCY_TYPE): '@{currentDependency.type}')
+    Property((OUTCOME_INIT): 'Empty')
+
+    Schema(@{itemVar}_@{currentDependency.to}_Schema)
+    Script(@{itemVar}_Add@{currentDependency.to}_Script)
+}
+
+Activity('@{item.name}_Remove@{currentDependency.to}', @{version}) {
+    Property((PREDEFINED_STEP): 'RemoveSlotFromCollection')
+    Property((DEPENDENCY_NAME): '@{currentDependency.name}')
+    Property((DEPENDENCY_TO): '@{currentDependency.to}')
+    Property((DEPENDENCY_TYPE): '@{currentDependency.type}')
+    Property((OUTCOME_INIT): 'Empty')
+
+    Schema(@{itemVar}_@{currentDependency.to}_Schema)
+}
+
+Workflow(name: '@{item.name}_Manage@{currentDependency.name}', version: 0) {
+    Layout {
+        AndSplit {
+            LoopInfinitive { Act('Add@{currentDependency.to}', @{itemVar}_Add@{currentDependency.to}_ActivityDef) }
+            LoopInfinitive { Act('Remove@{currentDependency.to}', @{itemVar}_Remove@{currentDependency.to}_ActivityDef) }
+        }
+    }
+}

@@ -1,8 +1,4 @@
-Name=Cristal Test In Memory Server
-
-ItemServer.name=localhost
-ItemServer.iiop=1498
-ItemServer.Proxy.port=1499
+Name=Cristal DevTest In Memory Server
 
 Authenticator = org.cristalise.lookup.lite.InMemoryAuthManager
 Lookup        = org.cristalise.storage.InMemoryPropertyClusterStorage
@@ -16,3 +12,4 @@ JOOQ.autoCommit = true
 Gateway.clusteredVertx = false
 
 Resource.moduleUseFileNameWithVersion = dev,devtest
+Export.replaceActivitySlotDefUUIDWithName = true

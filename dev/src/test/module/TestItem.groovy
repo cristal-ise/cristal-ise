@@ -1,7 +1,11 @@
+import static org.apache.commons.lang3.StringUtils.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 // this is defined in CrudState.groovy of the dev module
 def states = ['ACTIVE', 'INACTIVE']
@@ -12,9 +16,11 @@ def states = ['ACTIVE', 'INACTIVE']
 
 Schema('TestItem', 0) {
     struct(name:' TestItem', documentation: 'TestItem aggregated data') {
-        field(name: 'Name',        type: 'string')
-        field(name: 'State',       type: 'string', values: states)
+        field(name: 'Name',  type: 'string')
+        field(name: 'State', type: 'string', values: states)
+      
         field(name: 'Description', type: 'string')
+      
     }
 }
 
@@ -23,15 +29,18 @@ Schema('TestItem_Details', 0) {
 
         field(name: 'Name', type: 'string')
 
+      
         field(name: 'Description', type: 'string')
+      
     }
 }
 
 
 Activity('TestItem_Update', 0) {
-    Property('OutcomeInit': 'Empty')
+    Property((OUTCOME_INIT): 'Empty')
+
     Schema($testItem_Details_Schema)
-    //Script('CrudEntity_ChangeName', 0)
+    Script('CrudEntity_ChangeName', 0)
 }
 
 Script('TestItem_Aggregate', 0) {
@@ -47,23 +56,26 @@ Script('TestItem_QueryList', 0) {
 }
 
 Activity('TestItem_Aggregate', 0) {
-    Property('OutcomeInit': 'Empty')
-    Property('Agent Role': 'UserCode')
+    Property((OUTCOME_INIT): 'Empty')
+    Property((AGENT_ROLE): 'UserCode')
 
     Schema($testItem_Schema)
     Script($testItem_Aggregate_Script)
 }
 
+
+
 Workflow('TestItem_Workflow', 0) {
-    ElemActDef($testItem_Update_ActivityDef)
-    CompActDef('CrudState_Manage', 0)
+    Layout {
+        AndSplit {
+            LoopInfinitive { Act('Update', $testItem_Update_ActivityDef)  }
+            Block { CompActDef('CrudState_Manage', 0) }
+
+        }
+    }
 }
 
-PropertyDescriptionList('TestItem', 0) {
-    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestItem')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-}
+
 
 Item(name: 'TestItemFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
@@ -95,4 +107,5 @@ Item(name: 'TestItemFactory', version: 0, folder: '/devtest', workflow: 'CrudFac
             Property('Version': 0)
         }
     }
+
 }

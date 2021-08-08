@@ -35,6 +35,8 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.utils.CastorHashMap;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Collections are Item local objects that reference other Items.
  * 
@@ -59,9 +61,31 @@ import org.cristalise.kernel.utils.CastorHashMap;
  * <p>
  * Collections are managed through predefined steps.
  */
+@Slf4j
 abstract public class Collection<E extends CollectionMember> implements C2KLocalObject {
     public enum Type {Bidirectional, Unidirectional}
-    public enum Cardinality {OneToMany, ManyToOne, OneToOne, ManyToMany}
+    public enum Cardinality {
+        OneToMany, ManyToOne, OneToOne, ManyToMany;
+
+        public Cardinality reverse() {
+            switch (this) {
+                case OneToOne:
+                case ManyToMany:
+                    return this;
+
+                case OneToMany:
+                    return ManyToOne;
+
+                case ManyToOne:
+                    return OneToMany;
+
+                default:
+                    log.warn("reverse() - unrecognised value:{}", this);
+                    break;
+            }
+            return null;
+        }
+    }
 
     private int                       mCounter = -1;   // Contains next available Member ID
     protected CollectionMemberList<E> mMembers = new CollectionMemberList<E>();
