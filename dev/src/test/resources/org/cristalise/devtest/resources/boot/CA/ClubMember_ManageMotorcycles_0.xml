@@ -1,7 +1,7 @@
-<CompositeActivityDef Height="0" ID="-1" IsComposite="true" IsLayoutable="false" Name="ClubMember_ManageCars" Width="0">
+<CompositeActivityDef Height="0" ID="-1" IsComposite="true" IsLayoutable="false" Name="ClubMember_ManageMotorcycles" Width="0">
   <childrenGraphModel>
     <GraphModelCastorData NextId="22" StartVertexId="0">
-      <ActivitySlotDef Height="60" ID="16" IsComposite="false" IsLayoutable="true" Name="RemoveFromCars" Width="130">
+      <ActivitySlotDef Height="60" ID="16" IsComposite="false" IsLayoutable="true" Name="RemoveFromMotorcycles" Width="130">
         <CentrePoint x="280" y="210"/>
         <OutlinePoint x="215" y="180"/>
         <OutlinePoint x="345" y="180"/>
@@ -11,11 +11,11 @@
         <OutEdgeId>18</OutEdgeId>
         <Properties>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
-          <KeyValuePair Key="Name" String="RemoveFromCars" isAbstract="false"/>
+          <KeyValuePair Key="Name" String="RemoveFromMotorcycles" isAbstract="false"/>
         </Properties>
-        <activityDef>ClubMember_RemoveFromCars</activityDef>
+        <activityDef>ClubMember_RemoveFromMotorcycles</activityDef>
       </ActivitySlotDef>
-      <ActivitySlotDef Height="60" ID="6" IsComposite="false" IsLayoutable="true" Name="AddToCars" Width="130">
+      <ActivitySlotDef Height="60" ID="6" IsComposite="false" IsLayoutable="true" Name="AddToMotorcycles" Width="130">
         <CentrePoint x="100" y="210"/>
         <OutlinePoint x="35" y="180"/>
         <OutlinePoint x="165" y="180"/>
@@ -25,9 +25,9 @@
         <OutEdgeId>8</OutEdgeId>
         <Properties>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
-          <KeyValuePair Key="Name" String="AddToCars" isAbstract="false"/>
+          <KeyValuePair Key="Name" String="AddToMotorcycles" isAbstract="false"/>
         </Properties>
-        <activityDef>ClubMember_AddToCars</activityDef>
+        <activityDef>ClubMember_AddToMotorcycles</activityDef>
       </ActivitySlotDef>
       <JoinDef Height="24" ID="14" IsComposite="false" IsLayoutable="true" Name="" Width="60">
         <CentrePoint x="280" y="370"/>

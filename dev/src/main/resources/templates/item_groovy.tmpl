@@ -22,13 +22,13 @@ Schema('@{item.name}_Details', 0, xlsxFile)
 @else{}
 Schema('@{item.name}', @{version}) {
     struct(name:' @{item.name}', documentation: '@{item.name} aggregated data') {
-        field(name: 'Name',  type: 'string')
+        field(name: 'Name', type: 'string')
         field(name: 'State', type: 'string', values: states)
-      @if{item.fields != null && item.fields.size() != 0}
-        @foreach{field : item.fields.values()}field(name: '@{field.name}',  type: '@{field.dslType}')@end{'\n'}
-      @else{}
+@if{item.fields != null && item.fields.size() != 0}
+@foreach{field : item.fields.values()}        field(name: '@{field.name}', type: '@{field.dslType}')@end{'\n'}
+@else{}
         field(name: 'Description', type: 'string')
-      @end{}
+@end{}
     }
 }
 
@@ -39,11 +39,11 @@ Schema('@{item.name}_Details', @{version}) {
 @else{}
         field(name: 'Name', type: 'string')
 @end{}
-      @if{item.fields != null && item.fields.size() != 0}
-        @foreach{field : item.fields.values()}field(name: '@{field.name}',  type: '@{field.dslType}')@end{'\n'}
-      @else{}
+@if{item.fields != null && item.fields.size() != 0}
+@foreach{field : item.fields.values()}        field(name: '@{field.name}',  type: '@{field.dslType}')@end{'\n'}
+@else{}
         field(name: 'Description', type: 'string')
-      @end{}
+@end{}
     }
 }
 @end{}

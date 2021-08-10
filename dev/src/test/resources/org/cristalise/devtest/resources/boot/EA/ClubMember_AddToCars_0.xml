@@ -1,4 +1,4 @@
-<ActivityDef Height="0" ID="-1" IsComposite="false" IsLayoutable="false" Name="ClubMember_RemoveCar" Width="0">
+<ActivityDef Height="0" ID="-1" IsComposite="false" IsLayoutable="false" Name="ClubMember_AddToCars" Width="0">
   <Properties>
     <KeyValuePair Boolean="false" Key="Breakpoint" isAbstract="false"/>
     <KeyValuePair Key="OutcomeInit" String="Empty" isAbstract="false"/>
@@ -9,7 +9,7 @@
     <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
     <KeyValuePair Key="Agent Name" String="" isAbstract="false"/>
     <KeyValuePair Key="StateMachineName" String="Default" isAbstract="false"/>
-    <KeyValuePair Key="PredefinedStep" String="RemoveSlotFromCollection" isAbstract="false"/>
+    <KeyValuePair Key="PredefinedStep" String="AddMembersToCollection" isAbstract="false"/>
     <KeyValuePair Key="Agent Role" String="" isAbstract="false"/>
     <KeyValuePair Key="DependencyName" String="Cars" isAbstract="false"/>
   </Properties>

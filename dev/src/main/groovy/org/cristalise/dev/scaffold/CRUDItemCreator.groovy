@@ -141,7 +141,7 @@ class CRUDItemCreator extends StandardClient {
             def field = (Field)builder.findChildStructure((String)fieldName)
             StringBuffer newValue = new StringBuffer()
 
-            String referencedItemType = field.getAppInfoNodeElementValue('reference', 'itemType')
+            String referencedItemType = field?.getAppInfoNodeElementValue('reference', 'itemType')
 
             if (referencedItemType) {
                 Boolean isMultiple = field.getAppInfoNodeElementValue('dynamicForms', 'multiple') as Boolean

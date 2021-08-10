@@ -31,6 +31,9 @@ class CRUDModule {
 
     String name
     String namespace
+    String resourceURL
+
+    boolean generateDSL = false
 
     List<String> orderOfElements = []
     Map<String, CRUDItem> items = [:]

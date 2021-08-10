@@ -212,7 +212,7 @@ public class Dependency extends Collection<DependencyMember> {
             throw new InvalidCollectionModification("Cannot add empty slot to Dependency collection");
 
         if (contains(itemPath))
-            throw new ObjectAlreadyExistsException("Item "+itemPath+" already exists in Dependency:"+getName());
+            throw new ObjectAlreadyExistsException("Item "+itemPath.getItemName()+" already exists in Dependency:"+this);
 
         // create member object
         DependencyMember depMember = new DependencyMember();
@@ -618,7 +618,10 @@ public class Dependency extends Collection<DependencyMember> {
     public String toString() {
         Type type = getType();
         Cardinality cardinality = getCardinality();
-        return "Dependency("+getName() + (cardinality != null ? " "+cardinality : "") + (type != null ? " "+type : "") + ")";
+        return "Dependency(" + getName()
+                + (cardinality != null ? " " + cardinality : "") 
+                + (type        != null ? " " + type : "")
+                + " size:" + getMembers().list.size() + ")";
     }
 
 }

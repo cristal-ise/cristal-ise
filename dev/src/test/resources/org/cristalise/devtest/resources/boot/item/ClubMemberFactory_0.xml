@@ -41,4 +41,18 @@
       <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
     </CollectionProperties>
   </Dependency>
+  <Dependency classProps="" isDescription="true" name="Motorcycles">
+    <DependencyMember itemPath="/desc/PropertyDesc/devtest/Motorcycle">
+      <MemberProperties>
+        <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+        <KeyValuePair Key="DependencyTo" String="ClubMember" isAbstract="false"/>
+        <KeyValuePair Key="DependencyCardinality" String="OneToMany" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties>
+      <KeyValuePair Key="DependencyTo" String="ClubMember" isAbstract="false"/>
+      <KeyValuePair Key="DependencyCardinality" String="OneToMany" isAbstract="false"/>
+      <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+    </CollectionProperties>
+  </Dependency>
 </Item>

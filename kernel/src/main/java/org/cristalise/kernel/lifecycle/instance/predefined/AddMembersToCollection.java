@@ -99,7 +99,7 @@ public class AddMembersToCollection extends PredefinedStep {
                         else if (inputDependendy.getMembers().list.size() != 1)   errorMsg = "Cannot add more than one member";
 
                         if (errorMsg != null) {
-                            errorMsg = errorMsg + " - " + currentDependency + " of " + item;
+                            errorMsg = errorMsg + " - " + currentDependency + " of " + item.getItemName(transactionKey);
                             log.error("runActivityLogic() - {}", errorMsg);
                             throw new InvalidCollectionModification(errorMsg);
                         }

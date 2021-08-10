@@ -51,20 +51,27 @@ import groovy.util.logging.Slf4j
  * </pre>
  * 
  * Inputs could be like these using the groovy map literal:
- * 
  * <pre>
- * [rootDir: 'src/test', moduleName: 'Test Module', moduleNs: 'testns', moduleVersion: 0, item: 'TestItem', useConstructor: false]
+ * [
+ *   rootDir: 'src/test',
+ *   moduleName: 'Test Module',
+ *   moduleNs: 'testns',
+ *   moduleVersion: 0,
+ *   item: crudItem,
+ *   useConstructor: false
+ * ]
  * </pre>
  */
 @CompileStatic @Slf4j
 class CRUDGenerator {
 
     static List<String> templates = [
-        'item_addMember_groovy.tmpl',
+        'item_addToDependency_groovy.tmpl',
         'item_aggregate_groovy.tmpl',
         'item_dependencies_groovy.tmpl',
         'item_groovy.tmpl',
         'item_queryList_groovy.tmpl',
+        'item_removeFromDependency_groovy.tmpl',
         'module_groovy.tmpl'
     ]
 
@@ -86,10 +93,13 @@ class CRUDGenerator {
         if (!resourceRootDir) resourceRootDir = "${rootDir}/resources"
 
         templates.each { templName ->
+            log.debug('compiling MVEL template:{}', templName)
+
             String templStr = FileStringUtility.url2String(this.getClass().getResource(templateRoot + templName))
             CompiledTemplate expr = TemplateCompiler.compileTemplate(templStr);
+
             if (expr) templateRegistry.addNamedTemplate(templName, expr)
-            else      log.error('ctor() -could not compile tmeplate:{}', templName)
+            else      log.error('ctor() -could not compile MVEL template:{}', templName)
         }
     }
 
@@ -101,7 +111,7 @@ class CRUDGenerator {
 
         inputs.rootDir = rootDir
         inputs.prefix = prefix
-        inputs.itemVar = prefix + StringUtils.uncapitalize(inputs.item as String)
+        if (inputs.item) inputs.itemVar = prefix + StringUtils.uncapitalize(inputs.item as String)
         inputs.resourceRootDir = resourceRootDir
         if (moduleXmlDir) inputs.moduleXmlDir = moduleXmlDir
 
@@ -139,9 +149,11 @@ class CRUDGenerator {
 
         item.dependencies.each { name, dependency ->
             if (dependency.originator) {
-                def scriptFile = new File(scriptDir, "${item.name}_Add${dependency.to}.groovy")
                 inputs['currentDependency'] = dependency
-                generateDSL(scriptFile, 'item_addMember_groovy.tmpl', inputs)
+                def scriptFile = new File(scriptDir, "${item.name}_AddTo${dependency.name}.groovy")
+                generateDSL(scriptFile, 'item_addToDependency_groovy.tmpl', inputs)
+                scriptFile = new File(scriptDir, "${item.name}_RemoveFrom${dependency.name}.groovy")
+                generateDSL(scriptFile, 'item_removeFromDependency_groovy.tmpl', inputs)
             }
         }
     }
@@ -164,6 +176,8 @@ class CRUDGenerator {
             }
             ((List)inputs['moduleFiles']).sort()
         }
+
+        log.info('generateModuleDSL() - files:{}', inputs['moduleFiles'])
 
         generateDSL(new File(moduleDir, 'Module.groovy'), 'module_groovy.tmpl', inputs)
     }
@@ -238,6 +252,19 @@ class CRUDGenerator {
             ]
 
             generateItemDSL(inputs as Map)
+        }
+
+        if (crudModule.generateDSL) {
+            def inputs = [
+                moduleName:   crudModule.name,
+                version:      0,
+                resourceURL:  crudModule.resourceURL,
+                moduleNs:     crudModule.namespace,
+                inputFile:    null,
+                moduleXmlDir: null
+            ]
+
+            generateModuleDSL(inputs)
         }
     }
 

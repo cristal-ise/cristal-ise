@@ -1,0 +1,16 @@
+<ActivityDef Height="0" ID="-1" IsComposite="false" IsLayoutable="false" Name="ClubMember_AddToMotorcycles" Width="0">
+  <Properties>
+    <KeyValuePair Boolean="false" Key="Breakpoint" isAbstract="false"/>
+    <KeyValuePair Key="OutcomeInit" String="Empty" isAbstract="false"/>
+    <KeyValuePair Key="StateMachineVersion" String="0" isAbstract="false"/>
+    <KeyValuePair Key="Description" String="" isAbstract="false"/>
+    <KeyValuePair Key="DependencyTo" String="Motorcycle" isAbstract="false"/>
+    <KeyValuePair Key="Viewpoint" String="" isAbstract="false"/>
+    <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+    <KeyValuePair Key="Agent Name" String="" isAbstract="false"/>
+    <KeyValuePair Key="StateMachineName" String="Default" isAbstract="false"/>
+    <KeyValuePair Key="PredefinedStep" String="AddMembersToCollection" isAbstract="false"/>
+    <KeyValuePair Key="Agent Role" String="" isAbstract="false"/>
+    <KeyValuePair Key="DependencyName" String="Motorcycles" isAbstract="false"/>
+  </Properties>
+</ActivityDef>

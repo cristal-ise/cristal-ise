@@ -16,11 +16,11 @@ def states = ['ACTIVE', 'INACTIVE']
 
 Schema('TestItemGeneratedName', 0) {
     struct(name:' TestItemGeneratedName', documentation: 'TestItemGeneratedName aggregated data') {
-        field(name: 'Name',  type: 'string')
+        field(name: 'Name', type: 'string')
         field(name: 'State', type: 'string', values: states)
-      
+
         field(name: 'Description', type: 'string')
-      
+
     }
 }
 
@@ -29,9 +29,9 @@ Schema('TestItemGeneratedName_Details', 0) {
 
         field(name: 'Name', type: 'string') { dynamicForms (disabled: true, label: 'ID') }
 
-      
+
         field(name: 'Description', type: 'string')
-      
+
     }
 }
 

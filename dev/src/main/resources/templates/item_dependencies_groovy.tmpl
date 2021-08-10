@@ -1,4 +1,4 @@
-Schema('@{item.name}_@{currentDependency.to}', @{version}) {
+Schema('@{item.name}_@{currentDependency.name}', @{version}) {
     struct(name: '@{item.name}_@{currentDependency.to}', useSequence: true) {
         field(name: 'MemberName', type: 'string') {
             dynamicForms (label: '@{currentDependency.to}')
@@ -10,37 +10,43 @@ Schema('@{item.name}_@{currentDependency.to}', @{version}) {
     }
 }
 
-Script('@{item.name}_Add@{currentDependency.to}', 0) {
+Script('@{item.name}_AddTo@{currentDependency.name}', @{version}) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    script('groovy', moduleDir+'/script/@{item.name}_Add@{currentDependency.to}.groovy')
+    script('groovy', moduleDir+'/script/@{item.name}_AddTo@{currentDependency.name}.groovy')
 }
 
-Activity('@{item.name}_Add@{currentDependency.to}', @{version}) {
+Activity('@{item.name}_AddTo@{currentDependency.name}', @{version}) {
     Property((PREDEFINED_STEP): 'AddMembersToCollection')
     Property((DEPENDENCY_NAME): '@{currentDependency.name}')
     Property((DEPENDENCY_TO): '@{currentDependency.to}')
     Property((DEPENDENCY_TYPE): '@{currentDependency.type}')
     Property((OUTCOME_INIT): 'Empty')
 
-    Schema(@{itemVar}_@{currentDependency.to}_Schema)
-    Script(@{itemVar}_Add@{currentDependency.to}_Script)
+    Schema(@{itemVar}_@{currentDependency.name}_Schema)
+    Script(@{itemVar}_AddTo@{currentDependency.name}_Script)
 }
 
-Activity('@{item.name}_Remove@{currentDependency.to}', @{version}) {
+Script('@{item.name}_RemoveFrom@{currentDependency.name}', @{version}) {
+    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+    script('groovy', moduleDir+'/script/@{item.name}_RemoveFrom@{currentDependency.name}.groovy')
+}
+
+Activity('@{item.name}_RemoveFrom@{currentDependency.name}', @{version}) {
     Property((PREDEFINED_STEP): 'RemoveSlotFromCollection')
     Property((DEPENDENCY_NAME): '@{currentDependency.name}')
     Property((DEPENDENCY_TO): '@{currentDependency.to}')
     Property((DEPENDENCY_TYPE): '@{currentDependency.type}')
     Property((OUTCOME_INIT): 'Empty')
 
-    Schema(@{itemVar}_@{currentDependency.to}_Schema)
+    Schema(@{itemVar}_@{currentDependency.name}_Schema)
+    Script(@{itemVar}_RemoveFrom@{currentDependency.name}_Script)
 }
 
-Workflow(name: '@{item.name}_Manage@{currentDependency.name}', version: 0) {
+Workflow(name: '@{item.name}_Manage@{currentDependency.name}', version: @{version}) {
     Layout {
         AndSplit {
-            LoopInfinitive { Act('Add@{currentDependency.to}', @{itemVar}_Add@{currentDependency.to}_ActivityDef) }
-            LoopInfinitive { Act('Remove@{currentDependency.to}', @{itemVar}_Remove@{currentDependency.to}_ActivityDef) }
+            LoopInfinitive { Act('AddTo@{currentDependency.name}', @{itemVar}_AddTo@{currentDependency.name}_ActivityDef) }
+            LoopInfinitive { Act('RemoveFrom@{currentDependency.name}', @{itemVar}_RemoveFrom@{currentDependency.name}_ActivityDef) }
         }
     }
 }
