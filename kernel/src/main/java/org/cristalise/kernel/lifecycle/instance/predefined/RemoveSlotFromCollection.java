@@ -36,9 +36,10 @@ import org.cristalise.kernel.utils.CastorHashMap;
 
 /**
  * {@value #description} - Params: 0 - collection name, 1 - slot id
+ * @deprecated use {@link RemoveMembersToCollection}
  */
 public class RemoveSlotFromCollection extends PredefinedStepCollectionBase {
-    
+
     public static final String description = "Removes the given slot from the collection";
 
     public RemoveSlotFromCollection() {

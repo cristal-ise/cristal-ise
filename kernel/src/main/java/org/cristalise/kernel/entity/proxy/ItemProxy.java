@@ -83,7 +83,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * It is a wrapper for the connection and communication with Item. It relies on the
- * ClusterStorage mechanism to rertieve and cache data.
+ * ClusterStorage mechanism to retrieve and to cache data, i.e. it does not do any cashing itself.
  */
 @Slf4j @Immutable
 public class ItemProxy {
