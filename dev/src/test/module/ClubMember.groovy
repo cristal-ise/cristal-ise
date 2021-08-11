@@ -64,6 +64,7 @@ Activity('ClubMember_Aggregate', 0) {
 }
 
 
+
 Schema('ClubMember_Cars', 0) {
     struct(name: 'ClubMember_Car', useSequence: true) {
         field(name: 'MemberName', type: 'string') {
@@ -111,11 +112,18 @@ Activity('ClubMember_RemoveFromCars', 0) {
 Workflow(name: 'ClubMember_ManageCars', version: 0) {
     Layout {
         AndSplit {
-            LoopInfinitive { Act('AddToCars', $clubMember_AddToCars_ActivityDef) }
-            LoopInfinitive { Act('RemoveFromCars', $clubMember_RemoveFromCars_ActivityDef) }
+            LoopInfinitive {
+                Act('AddToCars', $clubMember_AddToCars_ActivityDef)
+            }
+            LoopInfinitive {
+
+                Act('RemoveFromCars', $clubMember_RemoveFromCars_ActivityDef)
+
+            }
         }
     }
 }
+
 
 
 Schema('ClubMember_Motorcycles', 0) {
@@ -165,8 +173,14 @@ Activity('ClubMember_RemoveFromMotorcycles', 0) {
 Workflow(name: 'ClubMember_ManageMotorcycles', version: 0) {
     Layout {
         AndSplit {
-            LoopInfinitive { Act('AddToMotorcycles', $clubMember_AddToMotorcycles_ActivityDef) }
-            LoopInfinitive { Act('RemoveFromMotorcycles', $clubMember_RemoveFromMotorcycles_ActivityDef) }
+            LoopInfinitive {
+                Act('AddToMotorcycles', $clubMember_AddToMotorcycles_ActivityDef)
+            }
+            LoopInfinitive {
+
+                Act('RemoveFromMotorcycles', $clubMember_RemoveFromMotorcycles_ActivityDef)
+
+            }
         }
     }
 }

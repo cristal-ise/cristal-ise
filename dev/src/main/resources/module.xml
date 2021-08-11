@@ -32,6 +32,12 @@
       <Activity name="CrudState_Activate" version="0"/>
       <Activity name="CrudState_Deactivate" version="0"/>
     </Workflow>
+    <SchemaResource name="CrudEntity_Dependecy" version="0"/>
+    <ScriptResource name="CrudEntity_ChangeDependecy" version="0"/>
+    <Activity name="CrudEntity_ChangeDependecy" version="0">
+      <Schema name="CrudEntity_Dependecy" version="0"/>
+      <Script name="CrudEntity_ChangeDependecy" version="0"/>
+    </Activity>
     <SchemaResource name="CrudFactory_NewInstanceDetails" version="0"/>
     <ScriptResource name="CrudFactory_InstantiateItem" version="0"/>
     <ScriptResource name="CrudEntity_ChangeName" version="0"/>

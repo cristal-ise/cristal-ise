@@ -52,7 +52,7 @@ else if (newName != currentName) {
     params[0] = currentName
     params[1] = newName
 
-    agent.execute(item, ChangeName.getClass(), params)
+    agent.execute(item, ChangeName.class, params)
 }
 else
     log.warn 'New name is equal to the current one. Nothing done!'

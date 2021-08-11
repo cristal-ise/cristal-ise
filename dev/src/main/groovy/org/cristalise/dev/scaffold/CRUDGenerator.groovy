@@ -116,6 +116,7 @@ class CRUDGenerator {
         if (moduleXmlDir) inputs.moduleXmlDir = moduleXmlDir
 
         if (!inputs.containsKey('generateProperty')) inputs.generateProperty = false
+        if (!inputs.containsKey('useCrudDependency')) inputs.useCrudDependency = false
     }
 
     /**
