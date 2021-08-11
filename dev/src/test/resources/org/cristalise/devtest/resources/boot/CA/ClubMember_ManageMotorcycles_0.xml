@@ -10,10 +10,16 @@
         <InEdgeId>17</InEdgeId>
         <OutEdgeId>18</OutEdgeId>
         <Properties>
+          <KeyValuePair Key="DependencyTo" String="Motorcycle" isAbstract="false"/>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+          <KeyValuePair Key="ActivityDefName" String="CrudEntity_ChangeDependecy" isAbstract="false"/>
+          <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+          <KeyValuePair Key="PredefinedStep" String="RemoveSlotFromCollection" isAbstract="false"/>
           <KeyValuePair Key="Name" String="RemoveFromMotorcycles" isAbstract="false"/>
+          <KeyValuePair Key="DependencyName" String="Motorcycles" isAbstract="false"/>
+          <KeyValuePair Key="ModuleNameSpace" String="devtest" isAbstract="false"/>
         </Properties>
-        <activityDef>ClubMember_RemoveFromMotorcycles</activityDef>
+        <activityDef>CrudEntity_ChangeDependecy</activityDef>
       </ActivitySlotDef>
       <ActivitySlotDef Height="60" ID="6" IsComposite="false" IsLayoutable="true" Name="AddToMotorcycles" Width="130">
         <CentrePoint x="100" y="210"/>
@@ -24,10 +30,16 @@
         <InEdgeId>7</InEdgeId>
         <OutEdgeId>8</OutEdgeId>
         <Properties>
+          <KeyValuePair Key="DependencyTo" String="Motorcycle" isAbstract="false"/>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+          <KeyValuePair Key="ActivityDefName" String="CrudEntity_ChangeDependecy" isAbstract="false"/>
+          <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+          <KeyValuePair Key="PredefinedStep" String="AddMembersToCollection" isAbstract="false"/>
           <KeyValuePair Key="Name" String="AddToMotorcycles" isAbstract="false"/>
+          <KeyValuePair Key="DependencyName" String="Motorcycles" isAbstract="false"/>
+          <KeyValuePair Key="ModuleNameSpace" String="devtest" isAbstract="false"/>
         </Properties>
-        <activityDef>ClubMember_AddToMotorcycles</activityDef>
+        <activityDef>CrudEntity_ChangeDependecy</activityDef>
       </ActivitySlotDef>
       <JoinDef Height="24" ID="14" IsComposite="false" IsLayoutable="true" Name="" Width="60">
         <CentrePoint x="280" y="370"/>

@@ -1,59 +1,6 @@
-@if{!currentDependency.useCrudDependency}
-Schema('@{item.name}_@{currentDependency.name}', @{version}) {
-    struct(name: '@{item.name}_@{currentDependency.to}', useSequence: true) {
-        field(name: 'MemberName', type: 'string') {
-            dynamicForms (label: '@{currentDependency.to}')
-        }
-        struct(name: 'AddMembersToCollection', useSequence: true) {
-            dynamicForms (hidden: true)
-            anyField()
-        }
-    }
-}
-
-Script('@{item.name}_AddTo@{currentDependency.name}', @{version}) {
-    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    script('groovy', moduleDir+'/script/@{item.name}_AddTo@{currentDependency.name}.groovy')
-}
-
-Activity('@{item.name}_AddTo@{currentDependency.name}', @{version}) {
-    Property((PREDEFINED_STEP): 'AddMembersToCollection')
-    Property((DEPENDENCY_NAME): '@{currentDependency.name}')
-    Property((DEPENDENCY_TO): '@{currentDependency.to}')
-    Property((DEPENDENCY_TYPE): '@{currentDependency.type}')
-    Property((OUTCOME_INIT): 'Empty')
-
-    Schema(@{itemVar}_@{currentDependency.name}_Schema)
-    Script(@{itemVar}_AddTo@{currentDependency.name}_Script)
-}
-
-Script('@{item.name}_RemoveFrom@{currentDependency.name}', @{version}) {
-    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    script('groovy', moduleDir+'/script/@{item.name}_RemoveFrom@{currentDependency.name}.groovy')
-}
-
-Activity('@{item.name}_RemoveFrom@{currentDependency.name}', @{version}) {
-    Property((PREDEFINED_STEP): 'RemoveSlotFromCollection')
-    Property((DEPENDENCY_NAME): '@{currentDependency.name}')
-    Property((DEPENDENCY_TO): '@{currentDependency.to}')
-    Property((DEPENDENCY_TYPE): '@{currentDependency.type}')
-    Property((OUTCOME_INIT): 'Empty')
-
-    Schema(@{itemVar}_@{currentDependency.name}_Schema)
-    Script(@{itemVar}_RemoveFrom@{currentDependency.name}_Script)
-}
-@end{}
 Workflow(name: '@{item.name}_Manage@{currentDependency.name}', version: @{version}) {
     Layout {
         AndSplit {
-@if{!currentDependency.useCrudDependency}
-            LoopInfinitive {
-                Act('AddTo@{currentDependency.name}', @{itemVar}_AddTo@{currentDependency.name}_ActivityDef)
-            }
-            LoopInfinitive {
-                Act('RemoveFrom@{currentDependency.name}', @{itemVar}_RemoveFrom@{currentDependency.name}_ActivityDef)
-            }
-@else{}
             LoopInfinitive {
                 ElemActDef('AddTo@{currentDependency.name}', 'CrudEntity_ChangeDependecy', @{version}) {
                     Property((PREDEFINED_STEP): 'AddMembersToCollection')
@@ -74,7 +21,6 @@ Workflow(name: '@{item.name}_Manage@{currentDependency.name}', version: @{versio
                     Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
                 }
             }
-@end{}
         }
     }
 }

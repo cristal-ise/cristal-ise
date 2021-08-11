@@ -64,11 +64,9 @@ Activity('ClubMember_Aggregate', 0) {
 }
 
 
-
 Workflow(name: 'ClubMember_ManageCars', version: 0) {
     Layout {
         AndSplit {
-
             LoopInfinitive {
                 ElemActDef('AddToCars', 'CrudEntity_ChangeDependecy', 0) {
                     Property((PREDEFINED_STEP): 'AddMembersToCollection')
@@ -89,68 +87,34 @@ Workflow(name: 'ClubMember_ManageCars', version: 0) {
                     Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
                 }
             }
-
         }
     }
 }
 
-
-
-Schema('ClubMember_Motorcycles', 0) {
-    struct(name: 'ClubMember_Motorcycle', useSequence: true) {
-        field(name: 'MemberName', type: 'string') {
-            dynamicForms (label: 'Motorcycle')
-        }
-        struct(name: 'AddMembersToCollection', useSequence: true) {
-            dynamicForms (hidden: true)
-            anyField()
-        }
-    }
-}
-
-Script('ClubMember_AddToMotorcycles', 0) {
-    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    script('groovy', moduleDir+'/script/ClubMember_AddToMotorcycles.groovy')
-}
-
-Activity('ClubMember_AddToMotorcycles', 0) {
-    Property((PREDEFINED_STEP): 'AddMembersToCollection')
-    Property((DEPENDENCY_NAME): 'Motorcycles')
-    Property((DEPENDENCY_TO): 'Motorcycle')
-    Property((DEPENDENCY_TYPE): 'Bidirectional')
-    Property((OUTCOME_INIT): 'Empty')
-
-    Schema($clubMember_Motorcycles_Schema)
-    Script($clubMember_AddToMotorcycles_Script)
-}
-
-Script('ClubMember_RemoveFromMotorcycles', 0) {
-    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    script('groovy', moduleDir+'/script/ClubMember_RemoveFromMotorcycles.groovy')
-}
-
-Activity('ClubMember_RemoveFromMotorcycles', 0) {
-    Property((PREDEFINED_STEP): 'RemoveSlotFromCollection')
-    Property((DEPENDENCY_NAME): 'Motorcycles')
-    Property((DEPENDENCY_TO): 'Motorcycle')
-    Property((DEPENDENCY_TYPE): 'Bidirectional')
-    Property((OUTCOME_INIT): 'Empty')
-
-    Schema($clubMember_Motorcycles_Schema)
-    Script($clubMember_RemoveFromMotorcycles_Script)
-}
 
 Workflow(name: 'ClubMember_ManageMotorcycles', version: 0) {
     Layout {
         AndSplit {
-
             LoopInfinitive {
-                Act('AddToMotorcycles', $clubMember_AddToMotorcycles_ActivityDef)
+                ElemActDef('AddToMotorcycles', 'CrudEntity_ChangeDependecy', 0) {
+                    Property((PREDEFINED_STEP): 'AddMembersToCollection')
+                    Property((DEPENDENCY_NAME): 'Motorcycles')
+                    Property((DEPENDENCY_TO): 'Motorcycle')
+                    Property((DEPENDENCY_TYPE): 'Bidirectional')
+                    Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
+                    Property(ModuleNameSpace: 'devtest')
+                }
             }
             LoopInfinitive {
-                Act('RemoveFromMotorcycles', $clubMember_RemoveFromMotorcycles_ActivityDef)
+                ElemActDef('RemoveFromMotorcycles', 'CrudEntity_ChangeDependecy', 0) {
+                    Property((PREDEFINED_STEP): 'RemoveSlotFromCollection')
+                    Property((DEPENDENCY_NAME): 'Motorcycles')
+                    Property((DEPENDENCY_TO): 'Motorcycle')
+                    Property((DEPENDENCY_TYPE): 'Bidirectional')
+                    Property(ModuleNameSpace: 'devtest')
+                    Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
+                }
             }
-
         }
     }
 }
