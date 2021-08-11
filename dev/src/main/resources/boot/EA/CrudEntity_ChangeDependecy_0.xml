@@ -9,7 +9,7 @@
     <KeyValuePair Key="DependencyType" String="TO BE OVERRIDDEN" isAbstract="false"/>
     <KeyValuePair Key="Agent Name" String="" isAbstract="false"/>
     <KeyValuePair Key="StateMachineName" String="Default" isAbstract="false"/>
-    <KeyValuePair Key="PredefinedStep" String="AddMembersToCollection" isAbstract="false"/>
+    <KeyValuePair Key="PredefinedStep" String="TO BE OVERRIDDEN" isAbstract="false"/>
     <KeyValuePair Key="Agent Role" String="" isAbstract="false"/>
     <KeyValuePair Key="DependencyName" String="TO BE OVERRIDDEN" isAbstract="false"/>
   </Properties>

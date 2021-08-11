@@ -46,20 +46,8 @@
       <Schema name="ClubMember" version="0"/>
       <Script name="ClubMember_Aggregate" version="0"/>
     </Activity>
-    <SchemaResource name="ClubMember_Cars" version="0"/>
-    <ScriptResource name="ClubMember_AddToCars" version="0"/>
-    <Activity name="ClubMember_AddToCars" version="0">
-      <Schema name="ClubMember_Cars" version="0"/>
-      <Script name="ClubMember_AddToCars" version="0"/>
-    </Activity>
-    <ScriptResource name="ClubMember_RemoveFromCars" version="0"/>
-    <Activity name="ClubMember_RemoveFromCars" version="0">
-      <Schema name="ClubMember_Cars" version="0"/>
-      <Script name="ClubMember_RemoveFromCars" version="0"/>
-    </Activity>
     <Workflow name="ClubMember_ManageCars" version="0">
-      <Activity name="ClubMember_AddToCars" version="0"/>
-      <Activity name="ClubMember_RemoveFromCars" version="0"/>
+      <Activity name="CrudEntity_ChangeDependecy" version="0"/>
     </Workflow>
     <SchemaResource name="ClubMember_Motorcycles" version="0"/>
     <ScriptResource name="ClubMember_AddToMotorcycles" version="0"/>

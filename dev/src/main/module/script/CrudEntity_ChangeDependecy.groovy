@@ -18,8 +18,8 @@ if (memberPath) {
 }
 else {
     // find the item in the 'default' location eg. /integTest/Patients/kovax1
-    def root = job.getActProp('Root')
-    dep.addMember(agent.getItem("$root/$depName/$memberName").getPath(), new CastorHashMap(), '', null);
+    def moduleNs = job.getActProp('ModuleNameSpace')
+    dep.addMember(agent.getItem("$moduleNs/$depName/$memberName").getPath(), new CastorHashMap(), '', null);
 }
 
 outcome.appendXmlFragment('//AddMembersToCollection', agent.marshall(dep))

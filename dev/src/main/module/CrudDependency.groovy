@@ -41,8 +41,8 @@ Script('CrudEntity_ChangeDependecy', 0) {
 }
 
 Activity('CrudEntity_ChangeDependecy', 0) {
-    Property((PREDEFINED_STEP): 'AddMembersToCollection')
     Property((OUTCOME_INIT): 'Empty')
+    Property((PREDEFINED_STEP): 'TO BE OVERRIDDEN')
     Property((DEPENDENCY_NAME): 'TO BE OVERRIDDEN')
     Property((DEPENDENCY_TO): 'TO BE OVERRIDDEN')
     Property((DEPENDENCY_TYPE): 'TO BE OVERRIDDEN')

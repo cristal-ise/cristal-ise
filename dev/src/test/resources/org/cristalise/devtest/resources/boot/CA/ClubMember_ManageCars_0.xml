@@ -10,10 +10,16 @@
         <InEdgeId>17</InEdgeId>
         <OutEdgeId>18</OutEdgeId>
         <Properties>
+          <KeyValuePair Key="DependencyTo" String="Car" isAbstract="false"/>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+          <KeyValuePair Key="ActivityDefName" String="CrudEntity_ChangeDependecy" isAbstract="false"/>
+          <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+          <KeyValuePair Key="PredefinedStep" String="RemoveSlotFromCollection" isAbstract="false"/>
           <KeyValuePair Key="Name" String="RemoveFromCars" isAbstract="false"/>
+          <KeyValuePair Key="DependencyName" String="Cars" isAbstract="false"/>
+          <KeyValuePair Key="ModuleNameSpace" String="devtest" isAbstract="false"/>
         </Properties>
-        <activityDef>ClubMember_RemoveFromCars</activityDef>
+        <activityDef>CrudEntity_ChangeDependecy</activityDef>
       </ActivitySlotDef>
       <ActivitySlotDef Height="60" ID="6" IsComposite="false" IsLayoutable="true" Name="AddToCars" Width="130">
         <CentrePoint x="100" y="210"/>
@@ -24,10 +30,16 @@
         <InEdgeId>7</InEdgeId>
         <OutEdgeId>8</OutEdgeId>
         <Properties>
+          <KeyValuePair Key="DependencyTo" String="Car" isAbstract="false"/>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+          <KeyValuePair Key="ActivityDefName" String="CrudEntity_ChangeDependecy" isAbstract="false"/>
+          <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+          <KeyValuePair Key="PredefinedStep" String="AddMembersToCollection" isAbstract="false"/>
           <KeyValuePair Key="Name" String="AddToCars" isAbstract="false"/>
+          <KeyValuePair Key="DependencyName" String="Cars" isAbstract="false"/>
+          <KeyValuePair Key="ModuleNameSpace" String="devtest" isAbstract="false"/>
         </Properties>
-        <activityDef>ClubMember_AddToCars</activityDef>
+        <activityDef>CrudEntity_ChangeDependecy</activityDef>
       </ActivitySlotDef>
       <JoinDef Height="24" ID="14" IsComposite="false" IsLayoutable="true" Name="" Width="60">
         <CentrePoint x="280" y="370"/>

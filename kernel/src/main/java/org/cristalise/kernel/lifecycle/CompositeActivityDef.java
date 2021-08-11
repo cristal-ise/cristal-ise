@@ -473,7 +473,7 @@ public class CompositeActivityDef extends ActivityDef {
         }
         catch (Exception e) {
             log.error("Couldn't marshall composite activity def " + getActName(), e);
-            throw new InvalidDataException("Couldn't marshall composite activity def " + getActName());
+            throw new InvalidDataException("Couldn't marshall composite activity def " + getActName(), e);
         }
 
         if (imports != null) {
@@ -495,6 +495,9 @@ public class CompositeActivityDef extends ActivityDef {
         for (int i = 0; i < nodeList.getLength(); i++) {
             Node activityDefNode = ((Node)outcome.evaluateXpath(nodeList.item(i), "activityDef/text()", XPathConstants.NODE));
             String syskey = activityDefNode.getNodeValue();
+
+            log.debug("replaceActivitySlotDefUUIDWithName(name:{}) - replacing UIID:{}", getActName(), syskey);
+
             try {
                 if (StringUtils.isNotBlank(syskey) && ItemPath.isUUID(syskey)) {
                     ItemPath itemPath = Gateway.getLookup().getItemPath(syskey);
@@ -503,22 +506,30 @@ public class CompositeActivityDef extends ActivityDef {
                     log.debug("replaceActivitySlotDefUUIDWithName(name:{}) - replaced UIID:{} with name:{}", getActName(), syskey, itemName);
                 }
                 else if (StringUtils.isNotBlank(syskey)) {
-                    log.debug("replaceActivitySlotDefUUIDWithName(name:{}) - UIID:{} was not replaced - not null & neither UUID", getActName(), syskey);
+                    log.trace("replaceActivitySlotDefUUIDWithName(name:{}) - UIID:{} was not replaced - not null & neither UUID", getActName(), syskey);
                 }
             }
             catch(Exception e) {
-                String itemName = ((Node) outcome.evaluateXpath(
+                Node actDefNameNode = (Node) outcome.evaluateXpath(nodeList.item(i), "Properties/KeyValuePair[@Key='ActivityDefName']", XPathConstants.NODE);
+                String actDefName = actDefNameNode == null ? null : actDefNameNode.getAttributes().getNamedItem("String").getNodeValue();
+
+                //Try to read 'Name' property if 'ActivityDefName' property was not available
+                if (StringUtils.isBlank(actDefName)) {
+                    actDefName = ((Node) outcome.evaluateXpath(
                         nodeList.item(i), "Properties/KeyValuePair[@Key='Name']", XPathConstants.NODE)
                     )
                     .getAttributes().getNamedItem("String").getNodeValue();
 
-                //Name property of ActivitySlotDef should be equal with the Name of the ActivityDescription Item
-                if (itemName.contains("_")) {
-                    activityDefNode.setNodeValue(itemName);
-                    log.debug("replaceActivitySlotDefUUIDWithName(name:{}) - replaced UIID:{} with name:{}", getActName(), syskey, itemName);
+                    //Name property of ActivitySlotDef might be equal with the Name of the ActivityDescription Item
+                    if (!actDefName.contains("_")) actDefName = null;
+                }
+
+                if (StringUtils.isNotBlank(actDefName)) {
+                    activityDefNode.setNodeValue(actDefName);
+                    log.debug("replaceActivitySlotDefUUIDWithName(name:{}) - replaced UIID:{} with name:{}", getActName(), syskey, actDefName);
                 }
                 else {
-                    log.error("replaceActivitySlotDefUUIDWithName() - Cannot find item with UIID:{} with Name property={}", syskey, itemName, e);
+                    log.error("replaceActivitySlotDefUUIDWithName() - Cannot find item with UIID:{} with Name property={}", syskey, actDefName, e);
                     throw new ObjectNotFoundException("Cannot find item with UIID: "+nodeList.item(i).getNodeValue());
                 }
             }

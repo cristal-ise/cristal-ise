@@ -1,4 +1,4 @@
-@if{!useCrudDependency}
+@if{!currentDependency.useCrudDependency}
 Schema('@{item.name}_@{currentDependency.name}', @{version}) {
     struct(name: '@{item.name}_@{currentDependency.to}', useSequence: true) {
         field(name: 'MemberName', type: 'string') {
@@ -46,20 +46,35 @@ Activity('@{item.name}_RemoveFrom@{currentDependency.name}', @{version}) {
 Workflow(name: '@{item.name}_Manage@{currentDependency.name}', version: @{version}) {
     Layout {
         AndSplit {
+@if{!currentDependency.useCrudDependency}
             LoopInfinitive {
                 Act('AddTo@{currentDependency.name}', @{itemVar}_AddTo@{currentDependency.name}_ActivityDef)
             }
             LoopInfinitive {
-@if{!useCrudDependency}
                 Act('RemoveFrom@{currentDependency.name}', @{itemVar}_RemoveFrom@{currentDependency.name}_ActivityDef)
+            }
 @else{}
-                ElemActDef('CrudEntity_ChangeDependecy', @{version}) {
+            LoopInfinitive {
+                ElemActDef('AddTo@{currentDependency.name}', 'CrudEntity_ChangeDependecy', @{version}) {
+                    Property((PREDEFINED_STEP): 'AddMembersToCollection')
                     Property((DEPENDENCY_NAME): '@{currentDependency.name}')
                     Property((DEPENDENCY_TO): '@{currentDependency.to}')
                     Property((DEPENDENCY_TYPE): '@{currentDependency.type}')
+                    Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
+                    Property(ModuleNameSpace: '@{moduleNs}')
                 }
-@end{}
             }
+            LoopInfinitive {
+                ElemActDef('RemoveFrom@{currentDependency.name}', 'CrudEntity_ChangeDependecy', @{version}) {
+                    Property((PREDEFINED_STEP): 'RemoveSlotFromCollection')
+                    Property((DEPENDENCY_NAME): '@{currentDependency.name}')
+                    Property((DEPENDENCY_TO): '@{currentDependency.to}')
+                    Property((DEPENDENCY_TYPE): '@{currentDependency.type}')
+                    Property(ModuleNameSpace: '@{moduleNs}')
+                    Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
+                }
+            }
+@end{}
         }
     }
 }

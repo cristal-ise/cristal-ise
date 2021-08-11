@@ -37,6 +37,7 @@ class CRUDDependency {
     String      to
     Type        type
     Cardinality cardinality
+    Boolean     useCrudDependency = true
 
     /**
      * Specifies if this Dependency instance originates the relationship which means 

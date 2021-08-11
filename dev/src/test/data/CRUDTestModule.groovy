@@ -11,6 +11,6 @@ Module(namespace: 'devtest') {
         field(name: 'Email')
 
         dependency(to: 'Car',        type: 'Bidirectional', cardinality: 'OneToMany')
-        dependency(to: 'Motorcycle', type: 'Bidirectional', cardinality: 'OneToMany')
+        dependency(to: 'Motorcycle', type: 'Bidirectional', cardinality: 'OneToMany', useCrudDependency: false)
     }
 }
