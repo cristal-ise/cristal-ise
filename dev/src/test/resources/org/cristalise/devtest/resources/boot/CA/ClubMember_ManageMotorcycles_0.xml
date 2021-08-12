@@ -14,7 +14,7 @@
           <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
           <KeyValuePair Key="ActivityDefName" String="CrudEntity_ChangeDependecy" isAbstract="false"/>
           <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
-          <KeyValuePair Key="PredefinedStep" String="RemoveSlotFromCollection" isAbstract="false"/>
+          <KeyValuePair Key="PredefinedStep" String="RemoveMembersFromCollection" isAbstract="false"/>
           <KeyValuePair Key="Name" String="RemoveFromMotorcycles" isAbstract="false"/>
           <KeyValuePair Key="DependencyName" String="Motorcycles" isAbstract="false"/>
           <KeyValuePair Key="ModuleNameSpace" String="devtest" isAbstract="false"/>

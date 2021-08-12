@@ -245,7 +245,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     }
 
     @Test
-    public void 'Create Car, Motorcycle and add them to ClubMember'() {
+    public void 'Create Car, Motorcycle and add them to ClubMember and remove Car'() {
         def car = creator.createItemWithUpdateAndCheck(
             Name: "Car-$timeStamp",
             RegistrationPlate: 'IG 94-11',
@@ -297,5 +297,18 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
         assert motorcycleClubMember.members.list.size() == 1
         assert motorcycleClubMember.getMember(0).itemPath == clubMember.path
+
+        //Remove from Cars
+        def removeFromCarsJob = clubMember.getJobByName('RemoveFromCars', agent)
+        assert removeFromCarsJob, "Cannot get Job $removeFromCarsJob of Item '$clubMember.name'"
+
+        addToCarsJob.getOutcome().setField("MemberSlotId", "0")
+        agent.execute(removeFromCarsJob)
+
+        clubMemberCars = (Dependency)clubMember.getCollection('Cars')
+        carClubMember  = (Dependency)car.getCollection('ClubMember')
+
+        assert clubMemberCars.members.list.size() == 0
+        assert carClubMember.members.list.size() == 0
     }
 }

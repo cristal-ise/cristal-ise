@@ -150,17 +150,15 @@ public abstract class PredefinedStep extends Activity {
         return "PredefinedStepOutcome"; // default to standard if not found - server may be a newer version
     }
 
-    public static Activity getStepInstance(String stepName) {
+    public static PredefinedStep getStepInstance(String stepName) {
         PredefinedStepContainer[] allSteps =
                 { new ItemPredefinedStepContainer(), new AgentPredefinedStepContainer(), new ServerPredefinedStepContainer() };
 
         for (PredefinedStepContainer thisContainer : allSteps) {
             String stepPath = thisContainer.getName() + "/" + stepName;
-            Activity step = (Activity) thisContainer.search(stepPath);
+            PredefinedStep step = (PredefinedStep) thisContainer.search(stepPath);
 
-            if (step != null) {
-                return step;
-            }
+            if (step != null) return step;
         }
         return null;
     }
@@ -361,5 +359,6 @@ public abstract class PredefinedStep extends Activity {
             throws InvalidDataException, PersistencyException, ObjectNotFoundException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
         //empty implementation
+        log.warn("computeUpdates() - UNIMPLEMENTED!");
     };
 }

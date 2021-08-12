@@ -79,7 +79,7 @@ Workflow(name: 'ClubMember_ManageCars', version: 0) {
             }
             LoopInfinitive {
                 ElemActDef('RemoveFromCars', 'CrudEntity_ChangeDependecy', 0) {
-                    Property((PREDEFINED_STEP): 'RemoveSlotFromCollection')
+                    Property((PREDEFINED_STEP): 'RemoveMembersFromCollection')
                     Property((DEPENDENCY_NAME): 'Cars')
                     Property((DEPENDENCY_TO): 'Car')
                     Property((DEPENDENCY_TYPE): 'Bidirectional')
@@ -107,7 +107,7 @@ Workflow(name: 'ClubMember_ManageMotorcycles', version: 0) {
             }
             LoopInfinitive {
                 ElemActDef('RemoveFromMotorcycles', 'CrudEntity_ChangeDependecy', 0) {
-                    Property((PREDEFINED_STEP): 'RemoveSlotFromCollection')
+                    Property((PREDEFINED_STEP): 'RemoveMembersFromCollection')
                     Property((DEPENDENCY_NAME): 'Motorcycles')
                     Property((DEPENDENCY_TO): 'Motorcycle')
                     Property((DEPENDENCY_TYPE): 'Bidirectional')

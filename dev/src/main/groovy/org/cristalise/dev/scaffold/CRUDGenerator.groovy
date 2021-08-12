@@ -66,12 +66,10 @@ import groovy.util.logging.Slf4j
 class CRUDGenerator {
 
     static List<String> templates = [
-        'item_addToDependency_groovy.tmpl',
         'item_aggregate_groovy.tmpl',
         'item_dependencies_groovy.tmpl',
         'item_groovy.tmpl',
         'item_queryList_groovy.tmpl',
-        'item_removeFromDependency_groovy.tmpl',
         'module_groovy.tmpl'
     ]
 
@@ -146,16 +144,6 @@ class CRUDGenerator {
         generateDSL(new File(moduleDir, "${item.name}.groovy"),           'item_groovy.tmpl',           inputs)
         generateDSL(new File(scriptDir, "${item.name}_Aggregate.groovy"), 'item_aggregate_groovy.tmpl', inputs)
         generateDSL(new File(scriptDir, "${item.name}_QueryList.groovy"), 'item_queryList_groovy.tmpl', inputs)
-
-        item.dependencies.each { name, dependency ->
-            if (dependency.originator) {
-                inputs['currentDependency'] = dependency
-                def scriptFile = new File(scriptDir, "${item.name}_AddTo${dependency.name}.groovy")
-                generateDSL(scriptFile, 'item_addToDependency_groovy.tmpl', inputs)
-                scriptFile = new File(scriptDir, "${item.name}_RemoveFrom${dependency.name}.groovy")
-                generateDSL(scriptFile, 'item_removeFromDependency_groovy.tmpl', inputs)
-            }
-        }
     }
 
     /**

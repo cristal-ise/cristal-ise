@@ -56,7 +56,6 @@ import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.WfCastorHashMap;
-import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
@@ -254,11 +253,7 @@ public class Activity extends WfVertex {
         setState(newState.getId());
         setBuiltInProperty(AGENT_NAME, transition.getReservation(this, agent));
 
-        History hist = null;
-
-        // Enables PredefinedSteps instances to call Activity.request() during bootstrap
-        if (getParent() != null) hist = getWf().getHistory(transactionKey);
-        else                     hist = new History(itemPath, transactionKey);
+        History hist = new History(itemPath, transactionKey);
 
         if (storeOutcome) {
             Schema schema = transition.getSchema(getProperties());
@@ -312,36 +307,35 @@ public class Activity extends WfVertex {
     }
 
     /**
-     * Execute PredefiendSteps using the properties of Activity and the Outcome
+     * Execute PredefiendSteps associated with the Activity using its properties and the Outcome
      * 
-     * @param agent
-     * @param itemPath
-     * @param newOutcome
-     * @param transactionKey
+     * @param agent current Agent requesting the Activity
+     * @param itemPath the current Item
+     * @param newOutcome the Outcome submitted to the Activity
+     * @param transactionKey the key of the current transaction 
      */
     private void executePredefinedSteps(AgentPath agent, ItemPath itemPath, Outcome newOutcome, TransactionKey transactionKey) 
             throws AccessRightsException, InvalidTransitionException, InvalidDataException, ObjectNotFoundException, 
             PersistencyException, ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification
     {
-        String predefStepName = getBuiltInProperty(PREDEFINED_STEP, "").toString();
+        String predefStepProperty = getBuiltInProperty(PREDEFINED_STEP, "").toString();
 
-        if (StringUtils.isNotBlank(predefStepName)) {
-            log.debug("executePredefinedStep(predefStepProperty:{})", predefStepName);
+        if (StringUtils.isNotBlank(predefStepProperty)) {
+            log.debug("executePredefinedStep() - predefStepProperty:{}", predefStepProperty);
 
-            PredefinedStep predefStep = null;
+            for (String predefStepName : StringUtils.split(predefStepProperty, ',')) {
+                PredefinedStep predefStep = PredefinedStep.getStepInstance(predefStepName.trim());
 
-            if (predefStepName.contains("AddMembersToCollection")) {
-                predefStep = new AddMembersToCollection();
-                predefStep.computeUpdates(itemPath, this, newOutcome, transactionKey);
-            }
+                if (predefStep != null) {
+                    predefStep.computeUpdates(itemPath, this, newOutcome, transactionKey);
 
-            if (predefStep == null) {
-                log.debug("executePredefinedStep(predefStepProperty:{}) - none of PredefinedSteps will be requested", predefStepName);
-                return;
-            }
-
-            for (Entry<ItemPath, String> entry : predefStep.getAutoUpdates().entrySet()) {
-                predefStep.request(agent, entry.getKey(), entry.getValue(), transactionKey);
+                    for (Entry<ItemPath, String> entry : predefStep.getAutoUpdates().entrySet()) {
+                        predefStep.request(agent, entry.getKey(), entry.getValue(), transactionKey);
+                    }
+                }
+                else {
+                    log.warn("executePredefinedStep() - PredefinedStep '{}' will NOT be requested", predefStepName);
+                }
             }
         }
     }
