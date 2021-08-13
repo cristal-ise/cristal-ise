@@ -25,7 +25,7 @@ Schema('@{item.name}', @{version}) {
         field(name: 'Name', type: 'string')
         field(name: 'State', type: 'string', values: states)
 @if{item.fields != null && item.fields.size() != 0}
-@foreach{field : item.fields.values()}        field(name: '@{field.name}', type: '@{field.dslType}')@end{'\n'}
+@foreach{field : item.fields.values()}        field(name: '@{field.name}', type: '@{field.dslType}'@if{field.multiplicityString != null}, multiplicity:'@{field.multiplicityString}'@end{})@end{'\n'}
 @else{}
         field(name: 'Description', type: 'string')
 @end{}
@@ -40,7 +40,7 @@ Schema('@{item.name}_Details', @{version}) {
         field(name: 'Name', type: 'string')
 @end{}
 @if{item.fields != null && item.fields.size() != 0}
-@foreach{field : item.fields.values()}        field(name: '@{field.name}',  type: '@{field.dslType}')@end{'\n'}
+@foreach{field : item.fields.values()}        field(name: '@{field.name}',  type: '@{field.dslType}'@if{field.multiplicityString != null}, multiplicity:'@{field.multiplicityString}'@end{})@end{'\n'}
 @else{}
         field(name: 'Description', type: 'string')
 @end{}

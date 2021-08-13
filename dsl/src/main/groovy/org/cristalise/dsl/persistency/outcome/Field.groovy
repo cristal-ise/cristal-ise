@@ -79,13 +79,17 @@ class Field extends Attribute {
 
             if (v) maxOccurs = v
             else   maxOccurs = 'unbounded'
+
+            multiplicityString = m
         }
         else {
             def v = getMultiplicityVal(m)
 
             if (!v) { minOccurs = '0'; maxOccurs = 'unbounded'; }
             else    { minOccurs = v;   maxOccurs = v; }
-        }
+
+            multiplicityString = m
+       }
     }
 
     def setUnit(Unit u) {
