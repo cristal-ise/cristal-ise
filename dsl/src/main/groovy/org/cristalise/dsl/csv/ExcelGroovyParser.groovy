@@ -86,16 +86,33 @@ class ExcelGroovyParser implements TabularGroovyParser {
 
                     log.debug "getHeader() - row:${cell.getRowIndex()} cell:$cellRef='$cellText'" +
                     ((currentRegion == null) ? '' : " - region:"+currentRegion.formatAsString())
-                } 
+                }
 
-                if (header[cell.columnIndex] == null) header[cell.columnIndex] = []
+                // cellText must have a valid string value
+                if (cellText) {
+                    //initialise the header value with empty list
+                    if (header[cell.columnIndex] == null) header[cell.columnIndex] = []
 
-                header[cell.columnIndex] << cellText
+                    header[cell.columnIndex].add(cellText)
+                }
+                else {
+                    if (log.debugEnabled) {
+                        def cellRef = new CellReference(row.getRowNum(), cell.getColumnIndex()).formatAsString()
+
+                        log.debug "getHeader() - STOPPING at row:${cell.getRowIndex()} cell:$cellRef='$cellText'" +
+                        ((currentRegion == null) ? '' : " - region:"+currentRegion.formatAsString())
+                    }
+                    // stop processing row because header is invalid if it contains empty value
+                    break;
+                }
             }
 
             // stop the loop after processing the header rows
             if (row.getRowNum() == headerRowCount - 1) break
         }
+
+        //remove null or empty list values
+        header = header.findAll { it }
 
         log.debug "getHeader() - header:{}", header
 
