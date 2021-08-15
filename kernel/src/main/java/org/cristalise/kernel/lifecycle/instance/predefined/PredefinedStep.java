@@ -343,7 +343,7 @@ public abstract class PredefinedStep extends Activity {
             CannotManageException, 
             InvalidCollectionModification
     {
-        log.info("request({}) - Type:{}", itemPath, getType());
+        log.info("request(item:{}) - class:{}", itemPath.getItemName(transactionKey), getType());
         this.setActive(true);
         return request(agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, transactionKey);
     }
@@ -359,6 +359,6 @@ public abstract class PredefinedStep extends Activity {
             throws InvalidDataException, PersistencyException, ObjectNotFoundException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
         //empty implementation
-        log.warn("computeUpdates() - UNIMPLEMENTED!");
+        log.debug("computeUpdates() - UNIMPLEMENTED!");
     };
 }

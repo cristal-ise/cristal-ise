@@ -102,7 +102,7 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
                    ObjectAlreadyExistsException, PersistencyException, ObjectCannotBeUpdated, CannotManageException,
                    InvalidCollectionModification
     {
-        log.info("requestAction() - transition:" + transitionID + " step:" + stepPath + " agent:" + agent);
+        log.debug("requestAction() - transition:" + transitionID + " step:" + stepPath + " agent:" + agent);
         GraphableVertex vert = search(stepPath);
         if (vert != null && vert instanceof Activity)
             return ((Activity) vert).request(agent, itemPath, transitionID, requestData, attachmentType, attachment, transactionKey);
