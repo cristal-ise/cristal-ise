@@ -10,10 +10,8 @@
         <InEdgeId>17</InEdgeId>
         <OutEdgeId>18</OutEdgeId>
         <Properties>
-          <KeyValuePair Key="DependencyTo" String="Motorcycle" isAbstract="false"/>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
           <KeyValuePair Key="ActivityDefName" String="CrudEntity_ChangeDependecy" isAbstract="false"/>
-          <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
           <KeyValuePair Key="PredefinedStep" String="RemoveMembersFromCollection" isAbstract="false"/>
           <KeyValuePair Key="Name" String="RemoveFromMotorcycles" isAbstract="false"/>
           <KeyValuePair Key="DependencyName" String="Motorcycles" isAbstract="false"/>
@@ -30,10 +28,8 @@
         <InEdgeId>7</InEdgeId>
         <OutEdgeId>8</OutEdgeId>
         <Properties>
-          <KeyValuePair Key="DependencyTo" String="Motorcycle" isAbstract="false"/>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
           <KeyValuePair Key="ActivityDefName" String="CrudEntity_ChangeDependecy" isAbstract="false"/>
-          <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
           <KeyValuePair Key="PredefinedStep" String="AddMembersToCollection" isAbstract="false"/>
           <KeyValuePair Key="Name" String="AddToMotorcycles" isAbstract="false"/>
           <KeyValuePair Key="DependencyName" String="Motorcycles" isAbstract="false"/>

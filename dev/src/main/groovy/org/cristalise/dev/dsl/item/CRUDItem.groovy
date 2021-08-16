@@ -35,24 +35,25 @@ class CRUDItem extends Struct {
     List<String> orderOfElements = []
     Map<String, CRUDDependency> dependencies = [:]
 
-    public void addBidirectionalDependency(CRUDDependency d) {
-        if (dependencies.containsKey(d.name)) {
-            log.debug('addBidirectionalDependency(item:{}) - already exists:{}', name, d.name)
-        }
-        else {
-            log.debug('addBiderectionalDependency(item:{}) - adding:{}', name, d.name)
+    public void addBidirectionalDependency(CRUDDependency otherDep) {
+        log.debug('addBidirectionalDependency(item:{}) - processing other dependency:{}', name, otherDep.name)
 
-            def newDep = new CRUDDependency(
-                from: d.to,
-                to: d.from,
-                type: Bidirectional,
-                cardinality: d.cardinality.reverse(),
-                originator: false
-            )
+        def newDep = new CRUDDependency(
+            from: otherDep.to,
+            to: otherDep.from,
+            type: Bidirectional,
+            cardinality: otherDep.cardinality.reverse(),
+            originator: false
+        )
+
+        if (!dependencies.containsKey(newDep.name)) {
+            log.debug('addBiderectionalDependency(item:{}) - adding:{}', name, newDep.name)
 
             dependencies.put(newDep.name, newDep)
             orderOfElements << newDep.name
         }
+
+        dependencies.get(newDep.name).otherDependencyNames << otherDep.name
     }
 
     public String getPlantUml() {

@@ -77,17 +77,17 @@ def Dependency processAddMembersToCollection(AgentProxy theAgent, Job theJob, St
  */
 @CompileStatic
 def Dependency processRemoveMembersFromCollection(ItemProxy theItem, AgentProxy theAgent, Job theJob, String dependencyName, Outcome outcome) {
-    def memberSlotId = outcome.getField('MemberSlotId')
+    def memberSlotId = outcome.hasField('MemberSlotId') ? outcome.getField('MemberSlotId') as Integer : -1
     def dep = new Dependency(dependencyName)
 
-    if (memberSlotId) {
+    if (memberSlotId != -1) {
         def currDep = (Dependency)theItem.getCollection(dependencyName)
-        def member = currDep.getMember(memberSlotId as int)
+        def member = currDep.getMember(memberSlotId)
 
         dep.addMember(member)
     }
     else {
-        log.error('processRemoveMembersFromCollection() - MemberSlotId is missing from outcome:{}', outcome)
+        log.error('processRemoveMembersFromCollection() - MemberSlotId was not set in outcome:{}', outcome)
         throw new InvalidDataException('Please provide MemberSlotId')
     }
 

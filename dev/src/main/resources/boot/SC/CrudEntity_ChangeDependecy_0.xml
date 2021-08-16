@@ -1,6 +1,26 @@
 <cristalscript>
   <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
-  <script language="groovy" name="CrudEntity_ChangeDependecy"><![CDATA[ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
+  <script language="groovy" name="CrudEntity_ChangeDependecy"><![CDATA[ /**
+ * This file is part of the CRISTAL-iSE Development Module.
+ * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * http://www.fsf.org/licensing/licenses/lgpl.html
+ */
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.common.InvalidDataException
@@ -59,17 +79,17 @@ def Dependency processAddMembersToCollection(AgentProxy theAgent, Job theJob, St
  */
 @CompileStatic
 def Dependency processRemoveMembersFromCollection(ItemProxy theItem, AgentProxy theAgent, Job theJob, String dependencyName, Outcome outcome) {
-    def memberSlotId = outcome.getField('MemberSlotId')
+    def memberSlotId = outcome.hasField('MemberSlotId') ? outcome.getField('MemberSlotId') as Integer : -1
     def dep = new Dependency(dependencyName)
 
-    if (memberSlotId) {
+    if (memberSlotId != -1) {
         def currDep = (Dependency)theItem.getCollection(dependencyName)
-        def member = currDep.getMember(memberSlotId as int)
+        def member = currDep.getMember(memberSlotId)
 
         dep.addMember(member)
     }
     else {
-        log.error('processRemoveMembersFromCollection() - MemberSlotId is missing from outcome:{}', outcome)
+        log.error('processRemoveMembersFromCollection() - MemberSlotId was not set in outcome:{}', outcome)
         throw new InvalidDataException('Please provide MemberSlotId')
     }
 

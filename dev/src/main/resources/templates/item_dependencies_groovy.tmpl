@@ -5,8 +5,6 @@ Workflow(name: '@{item.name}_Manage@{currentDependency.name}', version: @{versio
                 ElemActDef('AddTo@{currentDependency.name}', 'CrudEntity_ChangeDependecy', @{version}) {
                     Property((PREDEFINED_STEP): 'AddMembersToCollection')
                     Property((DEPENDENCY_NAME): '@{currentDependency.name}')
-                    Property((DEPENDENCY_TO): '@{currentDependency.to}')
-                    Property((DEPENDENCY_TYPE): '@{currentDependency.type}')
                     Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
                     Property(ModuleNameSpace: '@{moduleNs}')
                 }
@@ -15,8 +13,6 @@ Workflow(name: '@{item.name}_Manage@{currentDependency.name}', version: @{versio
                 ElemActDef('RemoveFrom@{currentDependency.name}', 'CrudEntity_ChangeDependecy', @{version}) {
                     Property((PREDEFINED_STEP): 'RemoveMembersFromCollection')
                     Property((DEPENDENCY_NAME): '@{currentDependency.name}')
-                    Property((DEPENDENCY_TO): '@{currentDependency.to}')
-                    Property((DEPENDENCY_TYPE): '@{currentDependency.type}')
                     Property(ModuleNameSpace: '@{moduleNs}')
                     Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
                 }
