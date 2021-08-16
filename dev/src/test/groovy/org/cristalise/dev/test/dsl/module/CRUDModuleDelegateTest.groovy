@@ -59,7 +59,7 @@ class CRUDModuleDelegateTest {
 
         assert clubMember.name == 'ClubMember'
         assert clubMemberCars.name == 'Cars'
-        assert clubMemberCars.nameInTo == 'ClubMember'
+        assert clubMemberCars.otherNames == 'ClubMember'
         assert clubMemberCars.from == 'ClubMember'
         assert clubMemberCars.to == 'Car'
         assert clubMemberCars.type == Bidirectional
@@ -73,7 +73,7 @@ class CRUDModuleDelegateTest {
 
         assert car.name == 'Car'
         assert carClubMember.name == 'ClubMember'
-        assert carClubMember.nameInTo == 'Cars'
+        assert carClubMember.otherNames == 'Cars'
         assert carClubMember.from == 'Car'
         assert carClubMember.to == 'ClubMember'
         assert carClubMember.type == Bidirectional
