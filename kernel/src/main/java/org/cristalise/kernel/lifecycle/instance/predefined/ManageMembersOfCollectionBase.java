@@ -160,14 +160,19 @@ public abstract class ManageMembersOfCollectionBase extends PredefinedStep {
      * @param inputDependency the Dependency object extracted from the Outcome of the Activity.requets()
      * @throws InvalidDataException 
      */
-    private void addToDependencyUpdates(ItemPath currentItem, String toDependencyName, Dependency inputDependency)
+    private void addToDependencyUpdates(ItemPath currentItem, Dependency currentDependency, Dependency inputDependency)
             throws InvalidDataException, InvalidCollectionModification, ObjectAlreadyExistsException
     {
+        String toDependencyName = (String) currentDependency.getBuiltInProperty(DEPENDENCY_TO);
+
         for (DependencyMember inputMember : inputDependency.getMembers().list) {
             Dependency toDep = new Dependency(toDependencyName);
 
             try {
-                toDep.addMember(currentItem, inputMember.getProperties(), inputMember.getClassProps(), null);
+                CastorHashMap inputMemberProps = inputMember.getProperties();
+                inputMemberProps.setBuiltInProperty(DEPENDENCY_TO, currentDependency.getName());
+
+                toDep.addMember(currentItem, inputMemberProps, inputMember.getClassProps(), null);
 
                 String dependencyString = Gateway.getMarshaller().marshall(toDep);
 
@@ -206,7 +211,7 @@ public abstract class ManageMembersOfCollectionBase extends PredefinedStep {
         }
 
         if (currentDepType != null && currentDepType == Bidirectional) {
-            addToDependencyUpdates(currentItemPath, (String) currentDependency.getBuiltInProperty(DEPENDENCY_TO), inputDependency);
+            addToDependencyUpdates(currentItemPath, currentDependency, inputDependency);
         }
     }
 }

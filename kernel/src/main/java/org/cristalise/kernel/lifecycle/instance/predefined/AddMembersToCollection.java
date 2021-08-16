@@ -106,10 +106,11 @@ public class AddMembersToCollection extends ManageMembersOfCollectionBase {
             checkCardinatilyConstraint(currentDependency, inputDependency, itemPath, transactionKey);
 
             for (DependencyMember inputMember : inputDependency.getMembers().list) {
+                CastorHashMap inputMemberProps = inputMember.getProperties();
                 DependencyMember newMember = null;
 
-                if (inputMember.getProperties() != null && inputMember.getProperties().size() != 0) {
-                    newMember = currentDependency.createMember(inputMember.getItemPath(), inputMember.getProperties(), transactionKey);
+                if (inputMemberProps.size() != 0) {
+                    newMember = currentDependency.createMember(inputMember.getItemPath(), inputMemberProps, transactionKey);
                 }
                 else {
                     newMember = currentDependency.createMember(inputMember.getItemPath(), transactionKey);

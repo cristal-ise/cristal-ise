@@ -287,7 +287,8 @@ public class Dependency extends Collection<DependencyMember> {
             }
         }
 
-        depMember.setProperties(props);
+        depMember.setProperties((CastorHashMap) mProperties.clone());
+        depMember.getProperties().merge(props);
         depMember.setClassProps(mClassProps);
 
         // assign entity
@@ -297,8 +298,9 @@ public class Dependency extends Collection<DependencyMember> {
 
     private boolean checkUniqueness() {
         Boolean checkUniqueness = (Boolean) getBuiltInProperty(DEPENDENCY_ALLOW_DUPLICATE_ITEMS);
-        if (checkUniqueness == null)
+        if (checkUniqueness == null) {
             checkUniqueness = Gateway.getProperties().getBoolean("Dependency.checkMemberUniqueness", true);
+        }
         return checkUniqueness;
     }
 
