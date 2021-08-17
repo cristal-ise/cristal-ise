@@ -205,7 +205,7 @@ public class Transition {
             String propValString = propValue == null ? "" : propValue.toString();
             result = result.replace("${" + propName + "}", propValString);
         }
-        log.debug("resolveValue() - returning key '" + key + "' as '" + result + "'");
+        log.trace("resolveValue() - returning key '" + key + "' as '" + result + "'");
         return result;
     }
 

@@ -96,6 +96,8 @@ public class AddMembersToCollection extends ManageMembersOfCollectionBase {
     {
         ItemProxy item = Gateway.getProxy(itemPath, transactionKey);
 
+        log.debug("runActivityLogic() - item:{} requestdata:{}", item, requestData);
+
         try {
             Dependency inputDependency   = (Dependency) Gateway.getMarshaller().unmarshall(requestData);
             String     collectionName    = inputDependency.getName();

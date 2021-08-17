@@ -63,7 +63,7 @@ public class Loop extends XOrSplit {
     public void reinit(int idLoop) throws InvalidDataException {
         //propagate if the reinit was NOT started by this loop 
         if (idLoop != getID()) {
-            log.debug("reinit(id:{}, idLoop:{}) - parent:{}", getID(), idLoop, getParent().getName());
+            log.trace("reinit(id:{}, idLoop:{}) - parent:{}", getID(), idLoop, getParent().getName());
 
             for (Vertex outVertex: getOutGraphables()) {
                 WfVertex v = (WfVertex)outVertex;
@@ -80,7 +80,7 @@ public class Loop extends XOrSplit {
             }
         }
         else {
-            log.debug("reinit(id:{}, idLoop:{}) - STOPPED!", getID(), idLoop);
+            log.trace("reinit(id:{}, idLoop:{}) - STOPPED!", getID(), idLoop);
         }
     }
 
