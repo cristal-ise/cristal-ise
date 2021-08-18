@@ -16,11 +16,11 @@ def states = ['ACTIVE', 'INACTIVE']
 
 Schema('Car', 0) {
     struct(name:' Car', documentation: 'Car aggregated data') {
-        field(name: 'Name',  type: 'string')
+        field(name: 'Name', type: 'string')
         field(name: 'State', type: 'string', values: states)
-      
-        field(name: 'RegistrationPlate',  type: 'string')
-      
+
+        field(name: 'RegistrationPlate', type: 'string')
+
     }
 }
 
@@ -29,9 +29,9 @@ Schema('Car_Details', 0) {
 
         field(name: 'Name', type: 'string')
 
-      
+
         field(name: 'RegistrationPlate',  type: 'string')
-      
+
     }
 }
 

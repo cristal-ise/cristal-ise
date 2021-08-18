@@ -42,6 +42,7 @@ import org.cristalise.kernel.process.Gateway;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
+@SuppressWarnings("serial")
 @Slf4j
 public class CollectionPane extends ItemTabPane {
     JTabbedPane collTabs;
@@ -138,9 +139,7 @@ public class CollectionPane extends ItemTabPane {
             String collNames = sourceItem.getItem().queryData(ClusterType.COLLECTION + "/all");
             StringTokenizer tok = new StringTokenizer(collNames, ",");
             while (tok.hasMoreTokens()) {
-                Collection<?> thisLastColl = (Collection<?>) sourceItem.getItem()
-                        .getObject(ClusterType.COLLECTION + "/" + tok.nextToken() + "/last");
-                add(thisLastColl);
+                add(sourceItem.getItem().getCollection(tok.nextToken()));
             }
         }
         catch (Exception e) {

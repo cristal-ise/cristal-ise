@@ -68,7 +68,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Instantiates ClusterStorages listed in properties file. All read/write requests to storage pass through this object,
  * which can query the capabilities of each declared storage, and channel requests accordingly. Transaction based.
- * It also has a memoryCache to increase performance, use 'Storage.disableCache=true' to disable it.
+ * It also has a memoryCache to increase performance..
  */
 @Slf4j
 public class ClusterStorageManager {

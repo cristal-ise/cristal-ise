@@ -108,9 +108,12 @@ class BlockDefDelegate extends PropertyDelegate {
         return newSlotDef
     }
 
-    // Alias of method Act(...)
-    def ElemActDef(String actName, int actVer) {
-        return Act(LocalObjectLoader.getElemActDef(actName, actVer))
+    def ElemActDef(String actDefName, int actVer, @DelegatesTo(PropertyDelegate) Closure cl = null) {
+        return Act(LocalObjectLoader.getElemActDef(actDefName, actVer), cl)
+    }
+
+    def ElemActDef(String actName, String actDefName, int actVer, @DelegatesTo(PropertyDelegate) Closure cl = null) {
+        return Act(actName, LocalObjectLoader.getElemActDef(actDefName, actVer), cl)
     }
 
     // Alias of method Act(...)
@@ -123,9 +126,12 @@ class BlockDefDelegate extends PropertyDelegate {
         return Act(actName, actDef, cl)
     }
 
-    // Alias of method Act(...)
-    def CompActDef(String actName, int actVer) {
-        return Act(LocalObjectLoader.getCompActDef(actName, actVer))
+    def CompActDef(String actDefName, int actVer, @DelegatesTo(PropertyDelegate) Closure cl = null) {
+        return Act(LocalObjectLoader.getCompActDef(actDefName, actVer), cl)
+    }
+
+    def CompActDef(String actName, String actDefName, int actVer, @DelegatesTo(PropertyDelegate) Closure cl = null) {
+        return Act(actName, LocalObjectLoader.getCompActDef(actDefName, actVer), cl)
     }
 
     // Alias of method Act(...)

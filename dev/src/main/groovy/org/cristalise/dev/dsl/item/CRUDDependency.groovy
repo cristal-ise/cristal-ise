@@ -37,6 +37,8 @@ class CRUDDependency {
     String      to
     Type        type
     Cardinality cardinality
+    
+    List<String> otherDependencyNames = []
 
     /**
      * Specifies if this Dependency instance originates the relationship which means 
@@ -72,15 +74,20 @@ class CRUDDependency {
         return name
     }
 
-    public String getNameInTo() {
-        if (cardinality == ManyToMany || cardinality == ManyToOne) {
-            return English.plural(from)
+    public String getOtherNames() {
+        if (otherDependencyNames) {
+            return otherDependencyNames.join(',')
         }
         else {
-            return from
+            if (cardinality == ManyToMany || cardinality == ManyToOne) {
+                return English.plural(from)
+            }
+            else {
+                return from
+            }
         }
     }
-        
+
     public String getPlantUml() {
         String fromMany = cardinality == ManyToMany || cardinality == ManyToOne ? '"*" ' : ''
         String toMany   = cardinality == ManyToMany || cardinality == OneToMany ? ' "*"' : ''

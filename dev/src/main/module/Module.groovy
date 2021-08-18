@@ -43,6 +43,7 @@ Module(ns: 'dev', name: 'CristaliseDev', version: 0) {
 
     include(moduleDir+'/Property.groovy')
     include(moduleDir+'/CrudState.groovy')
+    include(moduleDir+'/CrudDependency.groovy')
     include(moduleDir+'/CrudFactory.groovy')
     include(moduleDir+'/Schema.groovy')
     include(moduleDir+'/Script.groovy')

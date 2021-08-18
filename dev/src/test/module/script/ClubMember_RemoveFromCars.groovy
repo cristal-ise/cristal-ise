@@ -1,6 +1,4 @@
-<cristalscript>
-  <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
-  <script language="groovy" name="ClubMember_AddCar"><![CDATA[ import org.cristalise.kernel.collection.Dependency
+import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.utils.CastorHashMap
 
@@ -11,5 +9,3 @@ def dep = new Dependency('Cars')
 dep.addMember(agent.getItem('/devtest/Cars/'+memberName).getPath(), new CastorHashMap(), '', null);
 
 outcome.appendXmlFragment('//AddMembersToCollection', agent.marshall(dep))
- ]]></script>
-</cristalscript>

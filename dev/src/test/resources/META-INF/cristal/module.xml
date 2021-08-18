@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><CristalModule ns="devtest" name="DEV Scaffold Test module">
   <Info>
-    <Description>DEV Scaffold Test module CRISTAL-iSE module</Description>
+    <Description>DEV Scaffold Test module</Description>
     <Version>0</Version>
     <Dependency>CristaliseDev</Dependency>
   </Info>
@@ -9,6 +9,7 @@
     <AgentResource name="devtest" version="0"/>
     <PropertyDescriptionResource name="Car" version="0"/>
     <PropertyDescriptionResource name="ClubMember" version="0"/>
+    <PropertyDescriptionResource name="Motorcycle" version="0"/>
     <PropertyDescriptionResource name="TestAgent" version="0"/>
     <PropertyDescriptionResource name="TestAgentUseConstructor" version="0"/>
     <PropertyDescriptionResource name="TestItem" version="0"/>
@@ -45,25 +46,36 @@
       <Schema name="ClubMember" version="0"/>
       <Script name="ClubMember_Aggregate" version="0"/>
     </Activity>
-    <SchemaResource name="ClubMember_Car" version="0"/>
-    <ScriptResource name="ClubMember_AddCar" version="0"/>
-    <Activity name="ClubMember_AddCar" version="0">
-      <Schema name="ClubMember_Car" version="0"/>
-      <Script name="ClubMember_AddCar" version="0"/>
-    </Activity>
-    <Activity name="ClubMember_RemoveCar" version="0">
-      <Schema name="ClubMember_Car" version="0"/>
-    </Activity>
     <Workflow name="ClubMember_ManageCars" version="0">
-      <Activity name="ClubMember_AddCar" version="0"/>
-      <Activity name="ClubMember_RemoveCar" version="0"/>
+      <Activity name="CrudEntity_ChangeDependecy" version="0"/>
+    </Workflow>
+    <Workflow name="ClubMember_ManageMotorcycles" version="0">
+      <Activity name="CrudEntity_ChangeDependecy" version="0"/>
     </Workflow>
     <Workflow name="ClubMember_Workflow" version="0">
       <Activity name="ClubMember_Update" version="0"/>
       <Activity name="CrudState_Manage" version="0"/>
       <Activity name="ClubMember_ManageCars" version="0"/>
+      <Activity name="ClubMember_ManageMotorcycles" version="0"/>
     </Workflow>
     <ItemResource name="ClubMemberFactory" version="0"/>
+    <SchemaResource name="Motorcycle" version="0"/>
+    <SchemaResource name="Motorcycle_Details" version="0"/>
+    <Activity name="Motorcycle_Update" version="0">
+      <Schema name="Motorcycle_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
+    </Activity>
+    <ScriptResource name="Motorcycle_Aggregate" version="0"/>
+    <ScriptResource name="Motorcycle_QueryList" version="0"/>
+    <Activity name="Motorcycle_Aggregate" version="0">
+      <Schema name="Motorcycle" version="0"/>
+      <Script name="Motorcycle_Aggregate" version="0"/>
+    </Activity>
+    <Workflow name="Motorcycle_Workflow" version="0">
+      <Activity name="Motorcycle_Update" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
+    </Workflow>
+    <ItemResource name="MotorcycleFactory" version="0"/>
     <SchemaResource name="TestAgent" version="0"/>
     <SchemaResource name="TestAgent_Details" version="0"/>
     <Activity name="TestAgent_Update" version="0">

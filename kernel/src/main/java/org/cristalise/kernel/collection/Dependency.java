@@ -21,6 +21,7 @@
 package org.cristalise.kernel.collection;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ACTIVITY_DEF_URN;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_ALLOW_DUPLICATE_ITEMS;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_CARDINALITY;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_TYPE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.QUERY_NAME;
@@ -212,7 +213,7 @@ public class Dependency extends Collection<DependencyMember> {
             throw new InvalidCollectionModification("Cannot add empty slot to Dependency collection");
 
         if (contains(itemPath))
-            throw new ObjectAlreadyExistsException("Item "+itemPath+" already exists in Dependency:"+getName());
+            throw new ObjectAlreadyExistsException("Item "+itemPath.getItemName()+" already exists in Dependency:"+this);
 
         // create member object
         DependencyMember depMember = new DependencyMember();
@@ -268,9 +269,7 @@ public class Dependency extends Collection<DependencyMember> {
         if (itemPath == null)
             throw new InvalidCollectionModification("Cannot add empty slot to Dependency collection");
 
-        boolean checkUniqueness = Gateway.getProperties().getBoolean("Dependency.checkMemberUniqueness", true);
-
-        if (checkUniqueness && contains(itemPath))
+        if (checkUniqueness() && contains(itemPath))
             throw new ObjectAlreadyExistsException("Item "+itemPath+" already exists in Dependency "+getName());
 
         for (String classProp: mClassProps.split(",")) {
@@ -288,12 +287,21 @@ public class Dependency extends Collection<DependencyMember> {
             }
         }
 
-        depMember.setProperties(props);
+        depMember.setProperties((CastorHashMap) mProperties.clone());
+        depMember.getProperties().merge(props);
         depMember.setClassProps(mClassProps);
 
         // assign entity
         depMember.assignItem(itemPath, transactionKey);
         return depMember;
+    }
+
+    private boolean checkUniqueness() {
+        Boolean checkUniqueness = (Boolean) getBuiltInProperty(DEPENDENCY_ALLOW_DUPLICATE_ITEMS);
+        if (checkUniqueness == null) {
+            checkUniqueness = Gateway.getProperties().getBoolean("Dependency.checkMemberUniqueness", true);
+        }
+        return checkUniqueness;
     }
 
     /**
@@ -553,7 +561,7 @@ public class Dependency extends Collection<DependencyMember> {
         }
         return false;
     }
-    
+
     /**
      * Method of convenience to get property value using BuiltInVertexProperties
      * 
@@ -561,7 +569,18 @@ public class Dependency extends Collection<DependencyMember> {
      * @return the value, can be null
      */
     public Object getBuiltInProperty(BuiltInVertexProperties prop) {
-        return mProperties.get(prop.getName());
+        return mProperties.getBuiltInProperty(prop);
+    }
+
+    /**
+     * Method of convenience to get property value using BuiltInVertexProperties
+     * 
+     * @param prop the property to read
+     * @param defValue default value
+     * @return the value, can be null
+     */
+    public Object getBuiltInProperty(BuiltInVertexProperties prop, Object defValue) {
+        return mProperties.getBuiltInProperty(prop, defValue);
     }
 
     /**
@@ -618,7 +637,10 @@ public class Dependency extends Collection<DependencyMember> {
     public String toString() {
         Type type = getType();
         Cardinality cardinality = getCardinality();
-        return "Dependency("+getName() + (cardinality != null ? " "+cardinality : "") + (type != null ? " "+type : "") + ")";
+        return "Dependency(" + getName()
+                + (cardinality != null ? " " + cardinality : "") 
+                + (type        != null ? " " + type : "")
+                + " size:" + getMembers().list.size() + ")";
     }
 
 }

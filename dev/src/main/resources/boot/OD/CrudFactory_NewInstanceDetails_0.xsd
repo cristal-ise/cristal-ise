@@ -26,7 +26,9 @@
         <xs:element name='SchemaInitialise' minOccurs='0' maxOccurs='1'>
           <xs:annotation>
             <xs:appinfo>
-              <dynamicForms />
+              <dynamicForms>
+                <hidden>true</hidden>
+              </dynamicForms>
             </xs:appinfo>
           </xs:annotation>
           <xs:complexType>

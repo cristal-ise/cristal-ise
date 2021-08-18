@@ -80,12 +80,12 @@ public class Join extends WfVertex {
 
             vertices = GraphTraversal.getTraversal(getParent().getChildrenGraphModel(), this, endVertex, GraphTraversal.kUp, true);
 
-            log.debug("hasPrevActiveActs(id:{}) - vertices[PairingID:"+pairingID+"]={}", getID(), (Object)vertices);
+            log.trace("hasPrevActiveActs(id:{}) - vertices[PairingID:"+pairingID+"]={}", getID(), (Object)vertices);
         }
         else {
             vertices = GraphTraversal.getTraversal(getParent().getChildrenGraphModel(), this, GraphTraversal.kUp, true);
 
-            log.debug("hasPrevActiveActs(id:{}) - vertices={}", getID(), (Object)vertices);
+            log.trace("hasPrevActiveActs(id:{}) - vertices={}", getID(), (Object)vertices);
         }
 
         for (Vertex v : vertices) {
@@ -119,7 +119,7 @@ public class Join extends WfVertex {
 
     @Override
     public void reinit(int idLoop) throws InvalidDataException {
-        log.debug("reinit(id:{}, idLoop:{}) - parent:{}", getID(), idLoop, getParent().getName());
+        log.trace("reinit(id:{}, idLoop:{}) - parent:{}", getID(), idLoop, getParent().getName());
 
         Vertex[] outVertices = getOutGraphables();
         if (outVertices.length == 1) {

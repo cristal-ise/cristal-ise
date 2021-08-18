@@ -47,6 +47,9 @@ import org.cristalise.kernel.utils.CastorHashMap;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * @deprecated it is a base class of deprecated classes
+ */
 @Slf4j
 public abstract class PredefinedStepCollectionBase extends PredefinedStep {
 

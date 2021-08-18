@@ -33,7 +33,6 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.graph.model.TypeNameAndConstructionInfo;
@@ -79,24 +78,6 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
     }
 
     /**
-     * Caches a History object for this Item, using the workflow as a transactionKey. This object will be used for all Event storage during
-     * execution, to reduce the cost of creating a new one for each one.
-     * 
-     * For other storage, such as during initialization, a non-cached History is created
-     * 
-     * @param transactionKey the transaction transactionKey
-     * @return History object
-     * @throws InvalidDataException inconsistent data
-     */
-    public History getHistory(TransactionKey transactionKey) throws InvalidDataException {
-        return new History(itemPath, transactionKey);
-    }
-
-    public History getHistory() throws InvalidDataException {
-        return getHistory(null);
-    }
-
-    /**
      * Method getVertexTypeNameAndConstructionInfo.
      *
      * @return TypeNameAndConstructionInfo[]
@@ -121,7 +102,7 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
                    ObjectAlreadyExistsException, PersistencyException, ObjectCannotBeUpdated, CannotManageException,
                    InvalidCollectionModification
     {
-        log.info("requestAction() - transition:" + transitionID + " step:" + stepPath + " agent:" + agent);
+        log.debug("requestAction() - transition:" + transitionID + " step:" + stepPath + " agent:" + agent);
         GraphableVertex vert = search(stepPath);
         if (vert != null && vert instanceof Activity)
             return ((Activity) vert).request(agent, itemPath, transitionID, requestData, attachmentType, attachment, transactionKey);

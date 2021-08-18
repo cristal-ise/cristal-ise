@@ -2,20 +2,19 @@
 import groovy.transform.BaseScript
 import groovy.transform.SourceURI
 
-@SourceURI
-URI scriptUri
+@SourceURI URI scriptUri
 
 setModuleDir scriptUri
 
 setConfig  '@{rootDir}/conf/client.conf'
 setConnect '@{rootDir}/conf/server.clc'
 
-setResourceRoot @if{resourceRootDir} '@{resourceRootDir}' @else{} '@{rootDir}/resources' @end{}
-@if{moduleXmlDir} setModuleXmlDir '@{moduleXmlDir}' @end{}
+setResourceRoot @if{resourceRootDir != null} '@{resourceRootDir}' @else{} '@{rootDir}/resources' @end{}
+@if{moduleXmlDir != null} setModuleXmlDir '@{moduleXmlDir}' @end{}
 
 Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{version}) {
 
-    Info(description: '@{moduleName} CRISTAL-iSE module', version: '@{version}'){
+    Info(description: '@{moduleName}', version: '@{version}'){
         Dependencies:['CristaliseDev']
     }
 

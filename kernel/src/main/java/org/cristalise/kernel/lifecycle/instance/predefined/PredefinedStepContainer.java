@@ -52,9 +52,10 @@ public abstract class PredefinedStepContainer extends CompositeActivity {
         predInit("AssignItemToSlot", "Assigns the referenced item to a pre-existing slot in an aggregation", new AssignItemToSlot());
         predInit("ClearSlot", "Clears an aggregation member slot, given a slot no or item uuid", new ClearSlot());
         predInit("RemoveSlotFromCollection", RemoveSlotFromCollection.description, new RemoveSlotFromCollection());
-        predInit("UpdateDependencyMember",   UpdateDependencyMember.description,   new UpdateDependencyMember());
         predInit("AddMemberToCollection",    AddMemberToCollection.description,    new AddMemberToCollection());
-        predInit("AddMembersToCollection",    AddMembersToCollection.description,    new AddMembersToCollection());
+        predInit(AddMembersToCollection.class,      AddMembersToCollection.description,      new AddMembersToCollection());
+        predInit(RemoveMembersFromCollection.class, RemoveMembersFromCollection.description, new RemoveMembersFromCollection());
+        predInit(UpdateDependencyMember.class,      UpdateDependencyMember.description,      new UpdateDependencyMember());
         predInit("Import", "Imports an outcome into the Item, with a given schema and viewpoint", new Import());
         predInit("CreateAgentFromDescription", "Create a new agent using this item as its description", new CreateAgentFromDescription());
         predInit(ChangeName.class, ChangeName.description, new ChangeName());

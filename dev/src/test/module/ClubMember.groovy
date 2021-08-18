@@ -16,11 +16,11 @@ def states = ['ACTIVE', 'INACTIVE']
 
 Schema('ClubMember', 0) {
     struct(name:' ClubMember', documentation: 'ClubMember aggregated data') {
-        field(name: 'Name',  type: 'string')
+        field(name: 'Name', type: 'string')
         field(name: 'State', type: 'string', values: states)
-      
-        field(name: 'Email',  type: 'string')
-      
+
+        field(name: 'Email', type: 'string')
+
     }
 }
 
@@ -29,9 +29,9 @@ Schema('ClubMember_Details', 0) {
 
         field(name: 'Name', type: 'string')
 
-      
+
         field(name: 'Email',  type: 'string')
-      
+
     }
 }
 
@@ -64,49 +64,49 @@ Activity('ClubMember_Aggregate', 0) {
 }
 
 
-Schema('ClubMember_Car', 0) {
-    struct(name: 'ClubMember_Car', useSequence: true) {
-        field(name: 'MemberName', type: 'string') {
-            dynamicForms (label: 'Car')
-        }
-        struct(name: 'AddMembersToCollection', useSequence: true) {
-            dynamicForms (hidden: true)
-            anyField()
+Workflow(name: 'ClubMember_ManageCars', version: 0) {
+    Layout {
+        AndSplit {
+            LoopInfinitive {
+                ElemActDef('AddToCars', 'CrudEntity_ChangeDependecy', 0) {
+                    Property((PREDEFINED_STEP): 'AddMembersToCollection')
+                    Property((DEPENDENCY_NAME): 'Cars')
+                    Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
+                    Property(ModuleNameSpace: 'devtest')
+                }
+            }
+            LoopInfinitive {
+                ElemActDef('RemoveFromCars', 'CrudEntity_ChangeDependecy', 0) {
+                    Property((PREDEFINED_STEP): 'RemoveMembersFromCollection')
+                    Property((DEPENDENCY_NAME): 'Cars')
+                    Property(ModuleNameSpace: 'devtest')
+                    Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
+                }
+            }
         }
     }
 }
 
-Script('ClubMember_AddCar', 0) {
-    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    script('groovy', moduleDir+'/script/ClubMember_AddCar.groovy')
-}
 
-Activity('ClubMember_AddCar', 0) {
-    Property((PREDEFINED_STEP): 'AddMembersToCollection')
-    Property((DEPENDENCY_NAME): 'Cars')
-    Property((DEPENDENCY_TO): 'Car')
-    Property((DEPENDENCY_TYPE): 'Bidirectional')
-    Property((OUTCOME_INIT): 'Empty')
-
-    Schema($clubMember_Car_Schema)
-    Script($clubMember_AddCar_Script)
-}
-
-Activity('ClubMember_RemoveCar', 0) {
-    Property((PREDEFINED_STEP): 'RemoveSlotFromCollection')
-    Property((DEPENDENCY_NAME): 'Cars')
-    Property((DEPENDENCY_TO): 'Car')
-    Property((DEPENDENCY_TYPE): 'Bidirectional')
-    Property((OUTCOME_INIT): 'Empty')
-
-    Schema($clubMember_Car_Schema)
-}
-
-Workflow(name: 'ClubMember_ManageCars', version: 0) {
+Workflow(name: 'ClubMember_ManageMotorcycles', version: 0) {
     Layout {
         AndSplit {
-            LoopInfinitive { Act('AddCar', $clubMember_AddCar_ActivityDef) }
-            LoopInfinitive { Act('RemoveCar', $clubMember_RemoveCar_ActivityDef) }
+            LoopInfinitive {
+                ElemActDef('AddToMotorcycles', 'CrudEntity_ChangeDependecy', 0) {
+                    Property((PREDEFINED_STEP): 'AddMembersToCollection')
+                    Property((DEPENDENCY_NAME): 'Motorcycles')
+                    Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
+                    Property(ModuleNameSpace: 'devtest')
+                }
+            }
+            LoopInfinitive {
+                ElemActDef('RemoveFromMotorcycles', 'CrudEntity_ChangeDependecy', 0) {
+                    Property((PREDEFINED_STEP): 'RemoveMembersFromCollection')
+                    Property((DEPENDENCY_NAME): 'Motorcycles')
+                    Property(ModuleNameSpace: 'devtest')
+                    Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
+                }
+            }
         }
     }
 }
@@ -120,6 +120,8 @@ Workflow('ClubMember_Workflow', 0) {
             Block { CompActDef('CrudState_Manage', 0) }
 
             Block { Act($clubMember_ManageCars_CompositeActivityDef) }
+
+            Block { Act($clubMember_ManageMotorcycles_CompositeActivityDef) }
 
         }
     }
@@ -167,6 +169,16 @@ Item(name: 'ClubMemberFactory', version: 0, folder: '/devtest', workflow: 'CrudF
         }
         
         Member($car_PropertyDescriptionList)
+    }
+  
+    DependencyDescription('Motorcycles') {
+        Properties {
+            Property((DEPENDENCY_CARDINALITY): OneToMany.toString())
+            Property((DEPENDENCY_TYPE): Bidirectional.toString())
+            Property((DEPENDENCY_TO): 'ClubMember')
+        }
+        
+        Member($motorcycle_PropertyDescriptionList)
     }
   
 

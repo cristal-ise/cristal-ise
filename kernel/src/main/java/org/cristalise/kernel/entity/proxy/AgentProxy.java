@@ -338,6 +338,8 @@ public class AgentProxy extends ItemProxy {
             else                        throw new InvalidDataException("predefStep:'"+predefStep+"' schemaName:'"+schemaName+"' incorrect params:"+Arrays.toString(params));
         }
 
+        log.info("execute(predefStep) - {}", predefStep);
+
         String result = requestAction(
                 item.getPath().toString(),
                 getPath().toString(), 

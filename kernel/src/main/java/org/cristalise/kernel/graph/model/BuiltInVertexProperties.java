@@ -64,13 +64,13 @@ public enum BuiltInVertexProperties {
     DEPENDENCY_CARDINALITY("DependencyCardinality"),
 
     /**
-     * String property. The name of the ... In DSL it is used like this:
+     * String property of Activity specifying he name of the Dependency update by the Activity. In DSL it is used like this:
      *
      * <pre>
      * Activity('User_AddAddress', 0) {
      *   Property(PredefinedStep: 'AddMemberToCollection')
      *   Property(DependencyName: 'Addresses')
-     *   Schema('Address_Detaails', 0)
+     *   Schema('Address_Details', 0)
      * }</pre>
      */
     DEPENDENCY_NAME("DependencyName"),
@@ -85,6 +85,11 @@ public enum BuiltInVertexProperties {
      * String property of Collection specifying the type. It contains one of the values of {@link Collection.Type}
      */
     DEPENDENCY_TYPE("DependencyType"),
+
+    /**
+     * default: false
+     */
+    DEPENDENCY_ALLOW_DUPLICATE_ITEMS("DependencyAllowDuplicateItems"),
 
     /**
      * String property used in ActivityDef to store the description text

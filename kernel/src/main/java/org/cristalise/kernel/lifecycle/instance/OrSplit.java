@@ -47,7 +47,7 @@ public class OrSplit extends Split {
 
         ArrayList<DirectedEdge> nextsToFollow = new ArrayList<DirectedEdge>();
 
-        log.debug("runNext(id:{}) - Finding edge with {} '{}'", id, ALIAS, Arrays.toString(nextsTab));
+        log.trace("runNext(id:{}) - Finding edge with {} '{}'", id, ALIAS, Arrays.toString(nextsTab));
 
         for (DirectedEdge outEdge : getOutEdges()) {
             if (isInTable((String)((Next)outEdge).getBuiltInProperty(ALIAS), nextsTab)) {
@@ -61,7 +61,7 @@ public class OrSplit extends Split {
 
         for (DirectedEdge edge : nextsToFollow) {
             Next next = (Next)edge;
-            log.debug("runNext(id:{}) - Running {}", id, next.getBuiltInProperty(ALIAS));
+            log.trace("runNext(id:{}) - Running {}", id, next.getBuiltInProperty(ALIAS));
             next.getTerminusVertex().run(agent, itemPath, transactionKey);
         }
     }

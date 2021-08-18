@@ -33,6 +33,8 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobArrayList;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
@@ -125,7 +127,7 @@ public class TraceableEntity implements Item {
 
                 try {
                     mStorage.begin(transactionKey);
-                    String finalOutcome = requestAction(item, agent, stepPath, transitionID, requestData, fileName, attachment, transactionKey);
+                    String finalOutcome = requestAction(Gateway.getProxy(item), agent, stepPath, transitionID, requestData, fileName, attachment, transactionKey);
                     mStorage.commit(transactionKey);
                     returnHandler.handle(Future.succeededFuture(finalOutcome));
                 }
@@ -175,20 +177,20 @@ public class TraceableEntity implements Item {
      * @return
      * @throws Exception
      */
-    private String requestAction(ItemPath item, AgentPath agent, String stepPath, int transitionID, String requestData, String fileName,
+    private String requestAction(ItemProxy item, AgentPath agent, String stepPath, int transitionID, String requestData, String fileName,
             List<Byte> attachment, TransactionKey transactionKey) throws Exception
     {
         log.info("=======================================================================================");
         log.info("requestAction("+item+") Transition " + transitionID + " on " + stepPath + " by agent " + agent);
 
-        Workflow lifeCycle = (Workflow) mStorage.get(item, ClusterType.LIFECYCLE + "/workflow", transactionKey);
+        Workflow lifeCycle = (Workflow) mStorage.get(item.getPath(), ClusterType.LIFECYCLE + "/workflow", transactionKey);
 
         SecurityManager secMan = Gateway.getSecurityManager();
 
         Activity act = (Activity) lifeCycle.search(stepPath);
 
         if (act != null) {
-            if (secMan.isShiroEnabled() && !secMan.checkPermissions(agent, act, item, transactionKey)) {
+            if (secMan.isShiroEnabled() && !secMan.checkPermissions(agent, act, item.getPath(), transactionKey)) {
                 if (log.isTraceEnabled()) {
                     for (RolePath role : agent.getRoles()) log.error(role.dump());
                 }
@@ -200,15 +202,15 @@ public class TraceableEntity implements Item {
         }
 
         byte[] bytes = ArrayUtils.toPrimitive(attachment.toArray(new Byte[0]));
-        String finalOutcome = lifeCycle.requestAction(agent, stepPath, item, transitionID, requestData, fileName, bytes, transactionKey);
+        String finalOutcome = lifeCycle.requestAction(agent, stepPath, item.getPath(), transitionID, requestData, fileName, bytes, transactionKey);
 
         // store the workflow if we've changed the state of the domain wf
-        if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(item, lifeCycle, transactionKey);
+        if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(item.getPath(), lifeCycle, transactionKey);
 
         // remove entity path if transaction was successful
         if (stepPath.equals("workflow/predefined/Erase")) {
             log.info("requestAction() - deleting ItemPath:{}", item);
-            Gateway.getLookupManager().delete(item, transactionKey);
+            Gateway.getLookupManager().delete(item.getPath(), transactionKey);
         }
 
         return finalOutcome;
@@ -295,15 +297,12 @@ public class TraceableEntity implements Item {
      */
     @Override
     public void queryLifeCycle(String itemUuid, String agentUuid, boolean filter, Handler<AsyncResult<String>> returnHandler) {
-        log.info("=======================================================================================");
-        log.info("queryLifeCycle(" + itemUuid + ") - agent: " + agentUuid);
-
-        ItemPath item = null;
-        AgentPath agent = null;
+        ItemProxy item = null;
+        AgentProxy agent = null;
 
         try {
-            item  = Gateway.getLookup().getItemPath(itemUuid);
-            agent = (AgentPath) Gateway.getLookup().getItemPath(agentUuid);
+            item  = Gateway.getProxy(Gateway.getLookup().getItemPath(itemUuid));
+            agent = Gateway.getAgentProxy((AgentPath) Gateway.getLookup().getItemPath(agentUuid));
         }
         catch (InvalidItemPathException | ObjectNotFoundException e) {
             log.error("queryLifeCycle("+item+")", e);
@@ -311,22 +310,25 @@ public class TraceableEntity implements Item {
             return;
         }
 
+        log.info("=======================================================================================");
+        log.info("queryLifeCycle(" + item + ") - agent: " + agent);
+
         try {
-            Workflow wf = (Workflow) mStorage.get(item, ClusterType.LIFECYCLE + "/workflow", null);
+            Workflow wf = (Workflow) mStorage.get(item.getPath(), ClusterType.LIFECYCLE + "/workflow", null);
 
             JobArrayList jobBag = new JobArrayList();
             CompositeActivity domainWf = (CompositeActivity) wf.search("workflow/domain");
             ArrayList<Job> jobs = filter ? 
-                    domainWf.calculateJobs(agent, item, true) : domainWf.calculateAllJobs(agent, item, true);
+                    domainWf.calculateJobs(agent.getPath(), item.getPath(), true) : domainWf.calculateAllJobs(agent.getPath(), item.getPath(), true);
 
             SecurityManager secMan = Gateway.getSecurityManager();
 
             if (secMan.isShiroEnabled()) {
                 for (Job j : jobs) {
                     Activity act = (Activity) wf.search(j.getStepPath());
-                    if (secMan.checkPermissions(agent, act, item, null)) {
+                    if (secMan.checkPermissions(agent.getPath(), act, item.getPath(), null)) {
                         try {
-                            j.getTransition().getPerformingRole(act, agent);
+                            j.getTransition().getPerformingRole(act, agent.getPath());
                             jobBag.list.add(j);
                         }
                         catch (AccessRightsException e) {

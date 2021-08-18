@@ -16,11 +16,11 @@ def states = ['ACTIVE', 'INACTIVE']
 
 Schema('TestItemUseConstructor', 0) {
     struct(name:' TestItemUseConstructor', documentation: 'TestItemUseConstructor aggregated data') {
-        field(name: 'Name',  type: 'string')
+        field(name: 'Name', type: 'string')
         field(name: 'State', type: 'string', values: states)
-      
+
         field(name: 'Description', type: 'string')
-      
+
     }
 }
 
@@ -29,9 +29,9 @@ Schema('TestItemUseConstructor_Details', 0) {
 
         field(name: 'Name', type: 'string')
 
-      
+
         field(name: 'Description', type: 'string')
-      
+
     }
 }
 

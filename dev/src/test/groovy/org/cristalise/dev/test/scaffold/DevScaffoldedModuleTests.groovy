@@ -245,34 +245,70 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     }
 
     @Test
-    public void 'Create Car and ClubMember and AddCar to ClubMember'() {
+    public void 'Create Car, Motorcycle and add them to ClubMember and remove Car'() {
         def car = creator.createItemWithUpdateAndCheck(
             Name: "Car-$timeStamp",
             RegistrationPlate: 'IG 94-11',
             "/$folder/CarFactory")
+
+        def motorcycle = creator.createItemWithUpdateAndCheck(
+            Name: "Motorcycle-$timeStamp",
+            RegistrationPlate: 'JTG 345',
+            "/$folder/MotorcycleFactory")
 
         def clubMember = creator.createItemWithUpdateAndCheck(
             Name: "ClubMember-$timeStamp",
             Email: 'mate@people.hu',
             "/$folder/ClubMemberFactory")
 
-        def addCarJob = clubMember.getJobByName('AddCar', agent)
+        assert clubMember.getCollection('Cars').members.list.size() == 0
+        clubMember.getCollection('Motorcycles').members.list.size() == 0
+        car.getCollection('ClubMember').members.list.size() == 0
+        motorcycle.getCollection('ClubMember').members.list.size() == 0
 
-        assert addCarJob, "Cannot get Job for Activity 'AddCar' of Item '$clubMember.name'"
+        //Add to Cars
+        def addToCarsJob = clubMember.getJobByName('AddToCars', agent)
+        assert addToCarsJob, "Cannot get Job $addToCarsJob of Item '$clubMember.name'"
 
-        clubMember.getCollection('Cars')
-        car.getCollection('ClubMember')
-
-        addCarJob.getOutcome().setField("MemberName", "Car-$timeStamp",)
-        agent.execute(addCarJob)
+        addToCarsJob.getOutcome().setField("MemberName", "Car-$timeStamp",)
+        agent.execute(addToCarsJob)
 
         def clubMemberCars = (Dependency)clubMember.getCollection('Cars')
         def carClubMember  = (Dependency)car.getCollection('ClubMember')
 
         assert clubMemberCars.members.list.size() == 1
         assert clubMemberCars.getMember(0).itemPath == car.path
-        
+
         assert carClubMember.members.list.size() == 1
         assert carClubMember.getMember(0).itemPath == clubMember.path
+
+        //Add to Motorcycles
+        def addToMotorcyclesJob = clubMember.getJobByName('AddToMotorcycles', agent)
+        assert addToMotorcyclesJob, "Cannot get Job $addToCarsJob of Item '$clubMember'"
+
+        addToMotorcyclesJob.getOutcome().setField("MemberName", "Motorcycle-$timeStamp",)
+        agent.execute(addToMotorcyclesJob)
+
+        def clubMemberMotorcycles = (Dependency)clubMember.getCollection('Motorcycles')
+        def motorcycleClubMember  = (Dependency)motorcycle.getCollection('ClubMember')
+
+        assert clubMemberMotorcycles.members.list.size() == 1
+        assert clubMemberMotorcycles.getMember(0).itemPath == motorcycle.path
+
+        assert motorcycleClubMember.members.list.size() == 1
+        assert motorcycleClubMember.getMember(0).itemPath == clubMember.path
+
+        //Remove from Cars
+        def removeFromCarsJob = clubMember.getJobByName('RemoveFromCars', agent)
+        assert removeFromCarsJob, "Cannot get Job $removeFromCarsJob of Item '$clubMember.name'"
+
+        addToCarsJob.getOutcome().setField("MemberSlotId", "0")
+        agent.execute(removeFromCarsJob)
+
+        clubMemberCars = (Dependency)clubMember.getCollection('Cars')
+        carClubMember  = (Dependency)car.getCollection('ClubMember')
+
+        assert clubMemberCars.members.list.size() == 0
+        assert carClubMember.members.list.size() == 0
     }
 }

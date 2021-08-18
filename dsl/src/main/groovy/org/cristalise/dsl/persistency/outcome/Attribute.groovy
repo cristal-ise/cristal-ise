@@ -66,6 +66,8 @@ class Attribute {
     Reference reference = null
     Expression expression = null
 
+    String multiplicityString
+    
     /**
      * Checks if the type is acceptable
      * 
@@ -97,6 +99,8 @@ class Attribute {
             else if (m == "1..1") required = true
             else if (m == "0..1") required = false
             else                  throw new InvalidDataException("Invalid value for attribute multiplicity : '$m'")
+
+            multiplicityString = m
         }
     }
 
