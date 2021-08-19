@@ -115,6 +115,7 @@ public class CollectionPane extends ItemTabPane {
         collTabs.add(contents.getName() + (contents instanceof CollectionDescription ? "*" : ""), thisCollView);
     }
 
+    @SuppressWarnings("unchecked")
     private CollectionView<? extends CollectionMember> findTabForCollName(String collName) {
         CollectionView<? extends CollectionMember> thisCollView = null;
         for (int i = 0; i < collTabs.getTabCount(); i++) {

@@ -70,7 +70,7 @@ public class LocalChangeVerticle extends AbstractVerticle {
             String ebMsg     = msg.getLocalEventBusMessage();
 
             if (publish) {
-                log.trace("handler() - publising to address:{}, msg:{}", ebAddress, ebMsg);
+                log.trace("handler() - publishing to address:{}, msg:{}", ebAddress, ebMsg);
                 vertx.eventBus().publish(ebAddress, ebMsg, opt);
             }
             else {
@@ -88,7 +88,7 @@ public class LocalChangeVerticle extends AbstractVerticle {
 
             if (msg.isClusterStoreMesssage()) {
                 String key = msg.getItemPath().getUUID() + "/" + msg.getPath();
-                log.trace("clearCache() - invalidating entry:{}", key);
+                log.trace("clearCache() - adding entry:{}", key);
                 clearCacheList.add(key);
             }
         }

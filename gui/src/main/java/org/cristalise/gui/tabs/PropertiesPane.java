@@ -58,6 +58,7 @@ import lombok.extern.slf4j.Slf4j;
  * Pane to display all work orders that this agent can execute, and activate them on 
  * request from the user. Subscribes to NodeItem for Property objects.
  */
+@SuppressWarnings("serial")
 @Slf4j
 public class PropertiesPane extends ItemTabPane implements ActionListener {
 

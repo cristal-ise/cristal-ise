@@ -39,15 +39,7 @@ import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
 
 
-/**************************************************************************
- *
- * $Revision: 1.3 $
- * $Date: 2004/10/21 08:02:21 $
- *
- * Copyright (C) 2003 CERN - European Organization for Nuclear Research
- * All rights reserved.
- **************************************************************************/
-
+@SuppressWarnings("serial")
 public class RoleAdmin extends Box implements ActionListener {
 
     AgentProxy agent;
