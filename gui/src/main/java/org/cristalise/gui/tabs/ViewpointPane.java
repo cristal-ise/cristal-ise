@@ -50,7 +50,6 @@ import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tabs.outcome.OutcomeException;
 import org.cristalise.gui.tabs.outcome.OutcomeHandler;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
@@ -61,6 +60,7 @@ import org.cristalise.kernel.process.Gateway;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
+@SuppressWarnings("serial")
 @Slf4j
 public class ViewpointPane extends ItemTabPane implements ItemListener, ActionListener {
 
@@ -93,15 +93,15 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
         Vertx vertx = Gateway.getVertx();
         vertx.eventBus().localConsumer(parent.getItemPath().getUUID() + "/" + VIEWPOINT, message -> {
             String[] tokens = ((String) message.body()).split(":");
-            String viewPath = tokens[0];
+            String[] viewPath = tokens[0].split("/");
             if (tokens[1].equals("DELETE")) return;
 
             vertx.executeBlocking(promise -> {
                 try {
-                    add(sourceItem.getItem().getObject(VIEWPOINT+"/"+viewPath));
+                    addViewpoint(sourceItem.getItem().getViewpoint(viewPath[0], viewPath[1]));
                 }
                 catch (ObjectNotFoundException e) {
-                    log.error("", e);
+                    log.error("EventBus.localConsumer(VIEWPOINT)", e);
                 }
                 promise.complete();
             }, res -> {
@@ -115,10 +115,10 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
 
             vertx.executeBlocking(promise -> {
                 try {
-                    add(sourceItem.getItem().getObject(OUTCOME+"/"+outcomePath));
+                    addOutcome((Outcome)sourceItem.getItem().getObject(OUTCOME+"/"+outcomePath));
                 }
                 catch (ObjectNotFoundException e) {
-                    log.error("", e);
+                    log.error("EventBus.localConsumer(OUTCOME)", e);
                 }
                 promise.complete();
             }, res -> {
@@ -447,16 +447,9 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
         log.error("Viewpoint " + command + " not found in this item");
     }
 
-    public void add(C2KLocalObject contents) {
-        if (contents instanceof Viewpoint)
-            addViewpoint((Viewpoint) contents);
-        else if (contents instanceof Outcome)
-            addOutcome((Outcome) contents);
-    }
-
     public void addViewpoint(Viewpoint newView) {
         String schemaName = newView.getSchemaName();
-        log.info("Viewpoint " + newView.getName() + " now points to " + newView.getEventId());
+        log.info("addViewpoint() - {}/{} eventId:{}", sourceItem.getItem(), newView.getClusterPath(), newView.getEventId());
         if (!(schemaList.contains(schemaName))) {
             schemaList.add(schemaName);
             schemas.addItem(schemaName);
@@ -488,13 +481,13 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
         if (isSelected) {
             views.setSelectedItem(newView);
         }
-
     }
 
     public void addOutcome(Outcome contents) {
         if (!(contents.getSchema().getName().equals(currentSchema))) // not interested
             return;
-        log.info("Adding event " + contents.getID());
+
+        log.info("addOutcome() - {}", contents.getClusterPath());
         EventItem newEvent = new EventItem(contents.getID(), contents.getSchema().getVersion());
         eventList.add(newEvent);
         events.addItem(newEvent);
