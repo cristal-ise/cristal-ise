@@ -55,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Generic item details tabbed pane.
  */
+@SuppressWarnings("serial")
 @Slf4j
 public class ItemTabPane extends JPanel implements Runnable {
     protected NodeItem         sourceItem;

@@ -46,6 +46,7 @@ import org.cristalise.kernel.process.Gateway;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
+@SuppressWarnings("serial")
 @Slf4j
 public class ExecutionPane extends ItemTabPane {
     List<Job>               jobList          = null;
