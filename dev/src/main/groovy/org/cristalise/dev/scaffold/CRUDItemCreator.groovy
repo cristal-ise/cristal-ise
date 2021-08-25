@@ -20,9 +20,7 @@
  */
 package org.cristalise.dev.scaffold
 
-import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.ERASE
-import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.SKIP
-import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.UPDATE
+import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.*
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION
 
@@ -30,6 +28,7 @@ import org.cristalise.dev.dsl.DevXMLUtility
 import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.dsl.csv.TabularGroovyParserBuilder
 import org.cristalise.kernel.collection.DependencyMember
+import org.cristalise.kernel.common.ObjectAlreadyExistsException
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.Erase
@@ -52,7 +51,7 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class CRUDItemCreator extends StandardClient {
 
-    public enum UpdateMode {ERASE, UPDATE, SKIP}
+    public enum UpdateMode {ERASE, UPDATE, SKIP, ERROR}
 
     String moduleNs
     UpdateMode updateMode
@@ -211,6 +210,9 @@ class CRUDItemCreator extends StandardClient {
             if (itemName && updateMode == ERASE) {
                 agent.execute(item, Erase.class)
                 item = null
+            }
+            else if (itemName && updateMode == ERROR) {
+                throw new ObjectAlreadyExistsException(dp.toString())
             }
         }
 
