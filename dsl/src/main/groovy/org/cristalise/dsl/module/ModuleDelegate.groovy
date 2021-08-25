@@ -278,7 +278,8 @@ class ModuleDelegate implements BindingConvention {
                 DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
                 //do not rebuild during export, because LocalObjectLoader will not find new actDefs declared in DSL
                 caDef.export(null, resourceBootDir, true, false)
-                generateWorkflowSVG('target', caDef)
+
+                if (log.isDebugEnabled()) generateWorkflowSVG('target', caDef)
             }
 
             assert caDef.verify(), args
