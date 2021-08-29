@@ -81,7 +81,7 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
     protected String  workflow;
     protected Integer workflowVer;
 
-    protected ArrayList<Property> properties = new ArrayList<Property>();
+    protected PropertyArrayList properties = new PropertyArrayList();
 
     protected ArrayList<ImportAggregation> aggregationList = new ArrayList<ImportAggregation>();
     protected ArrayList<ImportDependency>  dependencyList  = new ArrayList<ImportDependency>();
@@ -95,7 +95,7 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
 
     /**
      * Alternative way to provide workflow.
-     * It is not marshallable by castor, therefore cannot be set in module.xml
+     * It is not marshalable by castor, therefore cannot be set in module.xml
      */
     protected Workflow wf;
 
@@ -305,10 +305,10 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
      * @return
      */
     protected PropertyArrayList createItemProperties() {
-        properties.add(new Property(NAME, name, true));
-        properties.add(new Property(CREATOR, "bootstrap", true));
+        if (!properties.contains(NAME.getName()))    properties.put(new Property(NAME, name, true));
+        if (!properties.contains(CREATOR.getName())) properties.put(new Property(CREATOR, "bootstrap", true));
 
-        return new PropertyArrayList(properties);
+        return properties;
     }
 
     /**
@@ -413,5 +413,13 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
     @Override
     public String toString() {
         return "ImportItem(name:"+name+" version:"+version+" status:"+resourceChangeStatus+")";
+    }
+
+    /**
+     * Method required to be backward compatible with castor marshalling. check issue #518
+     * @return
+     */
+    public ArrayList<Property> getProperties() {
+        return properties.list;
     }
 }

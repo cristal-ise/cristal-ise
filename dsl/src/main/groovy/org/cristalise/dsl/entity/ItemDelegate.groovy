@@ -103,7 +103,7 @@ class ItemDelegate extends PropertyDelegate {
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
 
-        if (itemProps) newItem.properties = itemProps.list
+        if (itemProps) newItem.properties = itemProps
     }
 
     def Workflow(@DelegatesTo(CompActDelegate) Closure cl) {

@@ -78,7 +78,7 @@ public class Module extends ImportItem {
 
     public Module() {
         super();
-        properties.add(new Property(TYPE, "Module", false));
+        properties.put(new Property(TYPE, "Module", false));
 
         setInitialPath(BuiltInResources.MODULE_RESOURCE.getTypeRoot());
         setWorkflow(   BuiltInResources.MODULE_RESOURCE.getWorkflowDef());
@@ -125,14 +125,14 @@ public class Module extends ImportItem {
     }
 
     private void replaceProp(Property newProp) {
-        for (Property prop : properties) {
+        for (Property prop : properties.list) {
             if (prop.getName().equals(newProp.getName())) {
                 prop.setMutable(newProp.isMutable());
                 prop.setValue(newProp.getValue());
                 return;
             }
         }
-        properties.add(newProp);
+        properties.put(newProp);
     }
 
     private void addItemToContents(Path itemPath) {
