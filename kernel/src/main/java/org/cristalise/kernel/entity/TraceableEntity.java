@@ -127,7 +127,7 @@ public class TraceableEntity implements Item {
 
                 try {
                     mStorage.begin(transactionKey);
-                    String finalOutcome = requestAction(Gateway.getProxy(item), agent, stepPath, transitionID, requestData, fileName, attachment, transactionKey);
+                    String finalOutcome = requestAction(Gateway.getProxy(item), Gateway.getAgentProxy(agent), stepPath, transitionID, requestData, fileName, attachment, transactionKey);
                     mStorage.commit(transactionKey);
                     returnHandler.handle(Future.succeededFuture(finalOutcome));
                 }
@@ -177,7 +177,7 @@ public class TraceableEntity implements Item {
      * @return
      * @throws Exception
      */
-    private String requestAction(ItemProxy item, AgentPath agent, String stepPath, int transitionID, String requestData, String fileName,
+    private String requestAction(ItemProxy item, AgentProxy agent, String stepPath, int transitionID, String requestData, String fileName,
             List<Byte> attachment, TransactionKey transactionKey) throws Exception
     {
         log.info("=======================================================================================");
@@ -190,11 +190,11 @@ public class TraceableEntity implements Item {
         Activity act = (Activity) lifeCycle.search(stepPath);
 
         if (act != null) {
-            if (secMan.isShiroEnabled() && !secMan.checkPermissions(agent, act, item.getPath(), transactionKey)) {
+            if (secMan.isShiroEnabled() && !secMan.checkPermissions(agent.getPath(), act, item.getPath(), transactionKey)) {
                 if (log.isTraceEnabled()) {
                     for (RolePath role : agent.getRoles()) log.error(role.dump());
                 }
-                throw new AccessRightsException("'" + agent.getAgentName() + "' is NOT permitted to execute step:" + stepPath);
+                throw new AccessRightsException("'" + agent.getName() + "' is NOT permitted to execute step:" + stepPath);
             }
         }
         else {
@@ -202,7 +202,7 @@ public class TraceableEntity implements Item {
         }
 
         byte[] bytes = ArrayUtils.toPrimitive(attachment.toArray(new Byte[0]));
-        String finalOutcome = lifeCycle.requestAction(agent, stepPath, item.getPath(), transitionID, requestData, fileName, bytes, transactionKey);
+        String finalOutcome = lifeCycle.requestAction(agent.getPath(), stepPath, item.getPath(), transitionID, requestData, fileName, bytes, transactionKey);
 
         // store the workflow if we've changed the state of the domain wf
         if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(item.getPath(), lifeCycle, transactionKey);
