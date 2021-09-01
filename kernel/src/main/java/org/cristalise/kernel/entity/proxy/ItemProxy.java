@@ -28,7 +28,6 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -36,7 +35,6 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
@@ -75,9 +73,17 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-
+import org.springframework.scheduling.annotation.Async;
 import com.google.errorprone.annotations.Immutable;
-
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.json.JsonObject;
+import io.vertx.core.net.NetClient;
+import io.vertx.core.net.NetSocket;
+import io.vertx.ext.eventbus.bridge.tcp.impl.protocol.FrameHelper;
+import io.vertx.ext.eventbus.bridge.tcp.impl.protocol.FrameParser;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -204,6 +210,94 @@ public class ItemProxy {
             log.error("requestAction() - item:{} agent:{}", itemUuid, agentUuid, e);
             throw new CannotManageException("Error while waiting for the requestAction() return value item:"+itemUuid+" agent:"+agentUuid+"", e);
         }
+    }
+
+    public String requestTCPAction(
+            String     itemUuid,
+            String     agentUuid,
+            String     stepPath,
+            int        transitionID,
+            String     requestData,
+            String     fileName,
+            List<Byte> attachment
+        ) throws CriseVertxException
+    {
+        NetClient tcpClient = Vertx.vertx().createNetClient();
+
+        tcpClient.connect(80, "jenkov.com",
+            new Handler<AsyncResult<NetSocket>>(){
+                @Override
+                public void handle(AsyncResult<NetSocket> result) {
+                    NetSocket socket = result.result();
+
+                    socket.write("GET / HTTP/1.1\r\nHost: jenkov.com\r\n\r\n");
+
+                    socket.handler(new Handler<Buffer>(){
+                        @Override
+                        public void handle(Buffer buffer) {
+                            System.out.println("Received data: " + buffer.length());
+
+                            System.out.println(buffer.getString(0, buffer.length()));
+
+                        }
+                    });
+                }
+            }
+        );
+
+        NetClient client = vertx.createNetClient();
+        final Async async = context.async();
+        client.connect(7000, "localhost", conn -> {
+            context.assertFalse(conn.failed());
+            NetSocket socket = conn.result();
+            
+            final FrameParser parser = new FrameParser(parse -> {
+                context.assertTrue(parse.succeeded());
+                JsonObject frame = parse.result();
+                context.assertNotEquals("err", frame.getString("type"));
+                context.assertEquals("Hello vert.x",
+                        frame.getJsonObject("body").getString("value"));
+                client.close();
+                async.complete();
+            });
+            socket.handler(parser);
+            FrameHelper.sendFrame("send", "hello", "#backtrack",
+                    new JsonObject().put("value", "vert.x"), socket);
+        });
+
+//        CompletableFuture<String> futureResult = new CompletableFuture<>();
+//
+//        log.debug("requestAction() - item:{} agent:{}", itemUuid, agentUuid);
+//
+//        getItem().requestAction(
+//                itemUuid,
+//                agentUuid,
+//                stepPath,
+//                transitionID,
+//                requestData,
+//                fileName,
+//                attachment,
+//                (result) -> {
+//                    if (result.succeeded()) {
+//                        String returnString = result.result();
+//                        log.trace("requestAction() - return:{}", returnString);
+//                        futureResult.complete(returnString);
+//                    }
+//                    else {
+//                        futureResult.completeExceptionally(result.cause());
+//                    }
+//                });
+//
+//        try {
+//            return futureResult.get(5, SECONDS);
+//        }
+//        catch (ExecutionException e) {
+//            throw CriseVertxException.convertFutureException(e);
+//        }
+//        catch (InterruptedException | TimeoutException | CancellationException e) {
+//            log.error("requestAction() - item:{} agent:{}", itemUuid, agentUuid, e);
+//            throw new CannotManageException("Error while waiting for the requestAction() return value item:"+itemUuid+" agent:"+agentUuid+"", e);
+//        }
     }
 
     /**
