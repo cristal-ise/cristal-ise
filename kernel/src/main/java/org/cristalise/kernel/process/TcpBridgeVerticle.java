@@ -1,6 +1,5 @@
 package org.cristalise.kernel.process;
 
-import org.cristalise.kernel.entity.ItemVerticle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.ext.bridge.BridgeOptions;
@@ -10,24 +9,33 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class TcpBridgeVerticle extends AbstractVerticle {
+    
+    public static final int PORT = Gateway.getProperties().getInt("TcpBridgeVerticle.port", 7000);
+
+    private TcpEventBusBridge bridge;
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
-        TcpEventBusBridge bridge = TcpEventBusBridge.create(
+        bridge = TcpEventBusBridge.create(
             vertx,
             new BridgeOptions()
-                .addInboundPermitted(new PermittedOptions().setAddress("in"))
-                .addOutboundPermitted(new PermittedOptions().setAddress("out")));
+                .addInboundPermitted(new PermittedOptions().setAddressRegex(".*"))
+                .addOutboundPermitted(new PermittedOptions().setAddressRegex(".*t")));
 
-        bridge.listen(7000, res -> {
+        bridge.listen(PORT, res -> {
           if (res.succeeded()) {
-            // succeed...
-          } else {
-            // fail...
+              log.info("start() - listen to port:{}", PORT);
+              startPromise.complete();
+          }
+          else {
+              log.error("start() - CANNOT listen to port:{}", PORT, res.cause());
+              startPromise.fail(res.cause());
           }
         });
+    }
 
-        startPromise.complete();
-        log.info("start() - deployed to bridge '{}'", ItemVerticle.ebAddress);
+    @Override
+    public void stop() throws Exception {
+        bridge.close();
     }
 }
