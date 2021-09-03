@@ -25,6 +25,7 @@ import java.util.Properties;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.process.resource.ResourceLoader;
 import org.cristalise.kernel.utils.LocalObjectLoader;
@@ -117,7 +118,9 @@ abstract public class StandardClient extends AbstractMain {
         Gateway.init(props, res);
         Gateway.connect();
 
-        createClientVerticles();
+        if (Gateway.getProperties().getBoolean(ItemProxy.USE_EVENTBUS_PROPERTY, true)) {
+            createClientVerticles();
+        }
     }
 
     public static void standardInitialisation(String[] args) throws Exception {

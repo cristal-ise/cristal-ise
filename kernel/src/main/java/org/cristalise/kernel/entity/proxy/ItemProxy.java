@@ -95,11 +95,14 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j @Immutable
 public class ItemProxy {
+    public static final String USE_EVENTBUS_PROPERTY   = "ItemProxy.useEventBus";
+    public static final String TCPBRIDGE_HOST_PROPERTY = "ItemProxy.tcpBridgeHost";
+
+    private static final boolean useEventBus = Gateway.getProperties().getBoolean(USE_EVENTBUS_PROPERTY, true);
+    private static final String tcpBridgeHost = Gateway.getProperties().getString(TCPBRIDGE_HOST_PROPERTY, "localhost");
+
     protected Item     mItem = null;
     protected ItemPath mItemPath;
-
-    private static final boolean useEventBus = Gateway.getProperties().getBoolean("ItemProxy.useEventBus", true);
-    private static final String tcpBridgeHost = Gateway.getProperties().getString("ItemProxy.tcpBridgeHost", "localhost");
 
     /**
      * Set Transaction key (a.k.a. transKey/locker) when ItemProxy is used in server side scripting
@@ -228,7 +231,8 @@ public class ItemProxy {
                 attachment,
                 (result) -> {
                     if (result.succeeded()) {
-                        String returnString = result.result();
+                        JsonObject returnJson = result.result();
+                        String returnString = returnJson.getString("outcome");
                         log.trace("requestActionEventBus() - return:{}", returnString);
                         futureResult.complete(returnString);
                     }
@@ -300,6 +304,8 @@ public class ItemProxy {
                     if (bufferResult.succeeded()) {
                         JsonObject resultJson = bufferResult.result();
 
+                        log.debug("requestActionTcpBridge() - item:{} returnJson:{}", this, resultJson);
+
                         if (resultJson.getString("type").equals("err")) {
                             futureResult.completeExceptionally(new InvalidDataException("item:" + this + " json:"+ resultJson.toString()));
                         }
@@ -308,7 +314,7 @@ public class ItemProxy {
                             futureResult.complete("");
                         }
                         else {
-                            String returnString = resultJson.getString("message");
+                            String returnString = resultJson.getJsonObject("body").getString("outcome");
 
                             log.trace("requestActionTcpBridge() - item:{} return:{}", this, returnString);
                             futureResult.complete(returnString);
@@ -411,7 +417,8 @@ public class ItemProxy {
 
         getItem().queryLifeCycle(mItemPath.toString(), agentPath.toString(), filter, (result) -> {
             if (result.succeeded()) {
-                String returnString = result.result();
+                JsonObject returnJson = result.result();
+                String returnString = returnJson.getString("jobs");
                 log.trace("getJobList() - handler return:{}", returnString);
                 futureResult.complete(returnString);
             }

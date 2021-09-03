@@ -26,6 +26,7 @@ import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
+import io.vertx.core.json.JsonObject;
 
 @ProxyGen // Generate the proxy and handler
 @VertxGen // Generate clients in non-java languages
@@ -58,7 +59,7 @@ public interface Item {
             String     requestData, 
             String     fileName, 
             List<Byte> attachment,
-            Handler<AsyncResult<String>> returnHandler);
+            Handler<AsyncResult<JsonObject>> returnHandler);
 
     /**
      * Returns a set of Jobs for this Agent on this Item. Each Job represents a possible transition of a particular 
@@ -70,5 +71,5 @@ public interface Item {
      * @param returnHandler vert.x way to return the marshaled {@link org.cristalise.kernel.entity.agent.JobArrayList JobArrayList}
      *                      or Exception
      **/
-    public void queryLifeCycle(String itemUuid, String agentUuid, boolean filter, Handler<AsyncResult<String>> returnHandler);
+    public void queryLifeCycle(String itemUuid, String agentUuid, boolean filter, Handler<AsyncResult<JsonObject>> returnHandler);
 }
