@@ -56,6 +56,7 @@ public class TcpBridgeVerticle extends AbstractVerticle {
 
     @Override
     public void stop() throws Exception {
+        log.info("stop() - closing bridge listening to port:{}", PORT);
         bridge.close();
     }
 }

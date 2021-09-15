@@ -41,7 +41,6 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.ItemVerticle;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
-import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.entity.proxy.ProxyManager;
 import org.cristalise.kernel.entity.proxy.ProxyMessage;
 import org.cristalise.kernel.lifecycle.instance.JobPusherVerticle;
@@ -369,9 +368,8 @@ public class Gateway extends ProxyManager
     private static void setup(Authenticator auth) throws CriseVertxException {
         if (mLookup != null) mLookup.close();
 
-        if (getProperties().getBoolean(ItemProxy.USE_EVENTBUS_PROPERTY, true)) {
-            createVertx(new VertxOptions(), mC2KProps.getBoolean("Gateway.clusteredVertx", true));
-        }
+        // To use tcpip-bride, the client has to create non-clustered vertx
+        createVertx(new VertxOptions(), mC2KProps.getBoolean("Gateway.clusteredVertx", true));
 
         try {
             mLookup = (Lookup)mC2KProps.getInstance("Lookup");
