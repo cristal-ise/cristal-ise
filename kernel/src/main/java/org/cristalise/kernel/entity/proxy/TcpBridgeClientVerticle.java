@@ -77,8 +77,8 @@ public class TcpBridgeClientVerticle extends AbstractVerticle {
                                 message.reply("pong");
                             }
                             else {
-                                log.debug("handler() - returning:{}", resultJson.getJsonObject("body"));
-                                message.reply(resultJson.getJsonObject("body"));
+                                log.debug("handler() - returning:{}", resultJson.getString("body"));
+                                message.reply(resultJson.getString("body"));
                             }
                         }
                         else {

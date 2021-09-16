@@ -54,7 +54,6 @@ import org.cristalise.kernel.security.SecurityManager;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
-import io.vertx.core.json.JsonObject;
 import io.vertx.core.shareddata.Lock;
 import io.vertx.core.shareddata.SharedData;
 import lombok.extern.slf4j.Slf4j;
@@ -102,7 +101,7 @@ public class TraceableEntity implements Item {
 
     @Override
     public void requestAction(String itemUuid, String agentUuid, String stepPath, int transitionID, String requestData, String fileName,
-            List<Byte> attachment, Handler<AsyncResult<JsonObject>> returnHandler)
+            List<Byte> attachment, Handler<AsyncResult<String>> returnHandler)
     {
         ItemPath item;
         AgentPath agent;
@@ -130,9 +129,7 @@ public class TraceableEntity implements Item {
                     mStorage.begin(transactionKey);
                     String finalOutcome = requestAction(Gateway.getProxy(item), Gateway.getAgentProxy(agent), stepPath, transitionID, requestData, fileName, attachment, transactionKey);
                     mStorage.commit(transactionKey);
-                    JsonObject json = new JsonObject();
-                    json.put("outcome", finalOutcome);
-                    returnHandler.handle(Future.succeededFuture(json));
+                    returnHandler.handle(Future.succeededFuture(finalOutcome));
                 }
                 catch (Exception originalEx) {
                     log.error("requestAction() - " + item + " by " + agent + " executing " + stepPath, originalEx);
@@ -299,7 +296,7 @@ public class TraceableEntity implements Item {
      * 
      */
     @Override
-    public void queryLifeCycle(String itemUuid, String agentUuid, boolean filter, Handler<AsyncResult<JsonObject>> returnHandler) {
+    public void queryLifeCycle(String itemUuid, String agentUuid, boolean filter, Handler<AsyncResult<String>> returnHandler) {
         ItemProxy item = null;
         AgentProxy agent = null;
 
@@ -348,10 +345,7 @@ public class TraceableEntity implements Item {
 
             try {
                 String result = Gateway.getMarshaller().marshall(jobBag);
-                JsonObject json = new JsonObject();
-                json.put("jobs", result);
-
-                returnHandler.handle(Future.succeededFuture(json));
+                returnHandler.handle(Future.succeededFuture(result));
             }
             catch (Exception ex) {
                 log.error("queryLifeCycle(" + item + ")", ex);

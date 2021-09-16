@@ -78,7 +78,6 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
 
 import com.google.errorprone.annotations.Immutable;
 
-import io.vertx.core.json.JsonObject;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -186,8 +185,7 @@ public class ItemProxy {
                 attachment,
                 (result) -> {
                     if (result.succeeded()) {
-                        JsonObject returnJson = result.result();
-                        String returnString = returnJson.getString("outcome");
+                        String returnString = result.result();
                         log.trace("requestAction() - return:{}", returnString);
                         futureResult.complete(returnString);
                     }
@@ -283,8 +281,7 @@ public class ItemProxy {
 
         getItem().queryLifeCycle(mItemPath.toString(), agentPath.toString(), filter, (result) -> {
             if (result.succeeded()) {
-                JsonObject returnJson = result.result();
-                String returnString = returnJson.getString("jobs");
+                String returnString = result.result();
                 log.trace("getJobList() - handler return:{}", returnString);
                 futureResult.complete(returnString);
             }
