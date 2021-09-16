@@ -171,9 +171,9 @@ public class ItemProxy {
             List<Byte> attachment
         ) throws CriseVertxException
     {
-        CompletableFuture<String> futureResult = new CompletableFuture<>();
+        log.debug("requestAction() - item:{} agent:{} stepPath:{}", this, agentUuid, stepPath);
 
-        log.debug("requestAction() - item:{} agent:{}", itemUuid, agentUuid);
+        CompletableFuture<String> futureResult = new CompletableFuture<>();
 
         getItem().requestAction(
                 itemUuid,
@@ -195,9 +195,10 @@ public class ItemProxy {
                 });
 
         try {
-            return futureResult.get(5, SECONDS);
+            return futureResult.get(ItemVerticle.requestTimeout, SECONDS);
         }
         catch (ExecutionException e) {
+            log.error("requestAction() - item:{} agent:{}", this, agentUuid, e);
             throw CriseVertxException.convertFutureException(e);
         }
         catch (InterruptedException | TimeoutException | CancellationException e) {
@@ -276,7 +277,7 @@ public class ItemProxy {
     private List<Job> getJobs(AgentPath agentPath, boolean filter) throws CriseVertxException {
         CompletableFuture<String> futureResult = new CompletableFuture<>();
 
-        log.debug("getJobList() - item:{} agent:{}", mItemPath, agentPath.getAgentName());
+        log.debug("getJobs() - item:{} agent:{}", mItemPath, agentPath.getAgentName());
 
         getItem().queryLifeCycle(mItemPath.toString(), agentPath.toString(), filter, (result) -> {
             if (result.succeeded()) {
@@ -291,7 +292,7 @@ public class ItemProxy {
         });
 
         try {
-            String jobs = futureResult.get(5, SECONDS);
+            String jobs = futureResult.get(ItemVerticle.requestTimeout, SECONDS);
             try {
                 JobArrayList thisJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(jobs);
                 return thisJobList.list;

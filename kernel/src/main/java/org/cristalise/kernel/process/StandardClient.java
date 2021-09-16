@@ -25,6 +25,7 @@ import java.util.Properties;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.entity.proxy.TcpBridgeClientVerticle;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.process.resource.ResourceLoader;
 import org.cristalise.kernel.utils.LocalObjectLoader;
@@ -39,8 +40,12 @@ abstract public class StandardClient extends AbstractMain {
      * 
      */
      public static void createClientVerticles() {
-         //deploys only one such verticles per client process
-        Gateway.getVertx().deployVerticle(new LocalChangeVerticle());
+         if (StringUtils.isNotBlank(TcpBridgeClientVerticle.HOST)) {
+             Gateway.getVertx().deployVerticle(new TcpBridgeClientVerticle());
+         }
+
+         //deploy only one such verticle per client process
+         Gateway.getVertx().deployVerticle(new LocalChangeVerticle());
     }
 
     /**
@@ -116,7 +121,6 @@ abstract public class StandardClient extends AbstractMain {
 
         Gateway.init(props, res);
         Gateway.connect();
-
         createClientVerticles();
     }
 

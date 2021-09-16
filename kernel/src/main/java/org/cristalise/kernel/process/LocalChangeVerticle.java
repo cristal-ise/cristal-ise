@@ -95,4 +95,9 @@ public class LocalChangeVerticle extends AbstractVerticle {
 
         Gateway.getStorage().clearCache(clearCacheList);
     }
+
+    @Override
+    public void stop() throws Exception {
+        log.info("stop() - '{}' consumer", ProxyMessage.ebAddress);
+    }
 }
