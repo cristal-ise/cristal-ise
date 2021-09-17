@@ -21,7 +21,6 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
-
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DefaultValue;
@@ -38,15 +37,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
-import org.jooq.DSLContext;
-import org.jooq.exception.DataAccessException;
-
 import com.google.common.collect.ImmutableMap;
 
 @Path("/script")
@@ -142,14 +135,11 @@ public class ScriptAccess extends ResourceAccess {
      * @return
      */
     private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie) {
-        try (DSLContext context = JooqDataSourceHandler.retrieveContext(null)) {
-            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, ImmutableMap.of("dsl", context)).cookie(cookie).build();
+        try {
+            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, ImmutableMap.of()).cookie(cookie).build();
         }
         catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
-        }
-        catch (DataAccessException | PersistencyException e) {
-            throw new WebAppExceptionBuilder("Error connecting to database, please contact support", e, Response.Status.NOT_FOUND, cookie).build();
         }
     }
 }
