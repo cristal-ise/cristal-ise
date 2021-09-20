@@ -23,7 +23,7 @@ script:
       # Upload to docker hub
       #
       echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-      mvn -P docker jib:build
+      mvn -P docker -pl dev,gui,restapi jib:build
     else
       mvn -e clean install --settings .maven.xml -Dgpg.skip -B -V
     fi

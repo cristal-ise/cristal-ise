@@ -190,6 +190,9 @@
               <exclude>**/*.conf</exclude>
               <exclude>**/*.clc</exclude>
               <exclude>.groovy/**</exclude>
+              <exclude>**/docker-compose.yml</exclude>
+              <exclude>**/shiro.ini</exclude>
+              <exclude>**/*.log</exclude>
             </excludes>
             <mapping>
               <idl>JAVADOC_STYLE</idl>
