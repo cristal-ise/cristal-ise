@@ -1,0 +1,45 @@
+{
+  "Group": [
+    {
+      "Button": [
+        {
+          "label": "New",
+          "icon": "fa-plus",
+          "item": {
+            "path": "/@{moduleNs}",
+            "name": "@{item.name}Factory"
+          },
+          "activityName": "InstantiateItem",
+          "actsOnSelected": false
+        },
+        {
+          "label": "Edit",
+          "icon": "fa-pencil-alt",
+          "activityName": "Update",
+          "actsOnSelected": true,
+          "hiddenWhen": "!jobActivityNameArray.includes('Update')"
+        }
+      ]
+    },
+    {
+      "Button": [
+        {
+          "label": "Activate",
+          "icon": "fa-eye",
+          "iconColor": "icon-green",
+          "activityName": "Activate",
+          "actsOnSelected": true,
+          "hiddenWhen": "!jobActivityNameArray.includes('Activate')"
+        },
+        {
+          "label": "Deactivate",
+          "icon": "fa-eye-slash",
+          "iconColor": "icon-red",
+          "activityName": "Deactivate",
+          "actsOnSelected": true,
+          "hiddenWhen": "!jobActivityNameArray.includes('Deactivate')"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{"Group": [
+  {"Button": [
+    {
+      "item": {
+        "path": "/devtest",
+        "name": "ClubMemberFactory"
+      },
+      "icon": "fa-plus",
+      "activityName": "InstantiateItem",
+      "actsOnSelected": false,
+      "label": "New"
+    },
+    {
+      "icon": "fa-pencil-alt",
+      "activityName": "Update",
+      "hiddenWhen": "!jobActivityNameArray.includes('Update')",
+      "actsOnSelected": true,
+      "label": "Edit"
+    }
+  ]},
+  {"Button": [
+    {
+      "icon": "fa-eye",
+      "iconColor": "icon-green",
+      "activityName": "Activate",
+      "hiddenWhen": "!jobActivityNameArray.includes('Activate')",
+      "actsOnSelected": true,
+      "label": "Activate"
+    },
+    {
+      "icon": "fa-eye-slash",
+      "iconColor": "icon-red",
+      "activityName": "Deactivate",
+      "hiddenWhen": "!jobActivityNameArray.includes('Deactivate')",
+      "actsOnSelected": true,
+      "label": "Deactivate"
+    }
+  ]}
+]}
