@@ -27,8 +27,6 @@ import org.cristalise.dev.dsl.module.CRUDModuleDelegate
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.utils.FileStringUtility
-import org.json.JSONArray
-import org.json.JSONObject
 import org.mvel2.integration.impl.MapVariableResolverFactory
 import org.mvel2.templates.CompiledTemplate
 import org.mvel2.templates.SimpleTemplateRegistry
@@ -41,6 +39,8 @@ import groovy.cli.commons.OptionAccessor
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+import io.vertx.core.json.JsonArray
+import io.vertx.core.json.JsonObject
 
 /**
  * Class generating the following DSL files. 
@@ -74,8 +74,13 @@ class CRUDGenerator {
         'item_queryList_groovy.tmpl',
         'module_groovy.tmpl',
         'item_toolbarMain_json.tmpl',
-        'item_menu_json.tmpl',
-        'item_lookupNames_json.tmpl'
+        'item_itemCollection_json.tmpl',
+        'item_itemCollectionList_json.tmpl',
+        'item_toolbarCollection_json.tmpl',
+        'resourcesMenu_json.tmpl',
+        'lookupNames_json.tmpl',
+        'item_masterOutcomeView_json.tmpl',
+        'item_itemList_json.tmpl',
     ]
 
     static final String templateRoot = '/org/cristalise/dev/resources/templates/'
@@ -86,12 +91,15 @@ class CRUDGenerator {
     String resourceRootDir
     String moduleXmlDir
 
+    String webuiDir
+
     public CRUDGenerator(Map<String, String> args) {
         assert args && args.rootDir, 'Please specify rootDir'
 
         rootDir         = args.rootDir
         resourceRootDir = args?.resourceRootDir
         moduleXmlDir    = args?.moduleXmlDir
+        webuiDir        = args?.webuiDir
 
         if (!resourceRootDir) resourceRootDir = "${rootDir}/resources"
 
@@ -146,30 +154,52 @@ class CRUDGenerator {
 
         def moduleDir = new File("${rootDir}/module")
         def scriptDir = new File("${rootDir}/module/script")
+        scriptDir.mkdirs()
 
-        generateDSL(new File(moduleDir, "${item.name}.groovy"),           'item_groovy.tmpl',           inputs)
-        generateDSL(new File(scriptDir, "${item.name}_Aggregate.groovy"), 'item_aggregate_groovy.tmpl', inputs)
-        generateDSL(new File(scriptDir, "${item.name}_QueryList.groovy"), 'item_queryList_groovy.tmpl', inputs)
+        new File(moduleDir, "${item.name}.groovy")          .write(mvelGenerate('item_groovy.tmpl', inputs));
+        new File(scriptDir, "${item.name}_Aggregate.groovy").write(mvelGenerate('item_aggregate_groovy.tmpl', inputs));
+        new File(scriptDir, "${item.name}_QueryList.groovy").write(mvelGenerate('item_queryList_groovy.tmpl', inputs));
     }
 
-    public void generateWebuiConfigs(JSONArray menu, JSONArray lookupNames, Map<String, Object> inputs) {
+    /**
+     * 
+     * @param menu
+     * @param lookupNames
+     * @param inputs
+     */
+    public void generateWebuiConfigs(JsonArray menu, JsonArray lookupNames, Map<String, Object> inputs) {
         setInputs(inputs)
 
         assert inputs['item'], "Specify input called 'item'"
         def item = (CRUDItem) inputs['item']
 
-        JSONObject toolbarMain = generateJSON('item_toolbarMain_json.tmpl', inputs)
-        menu.put generateJSON('item_menu_json.tmpl', inputs)
-        lookupNames.put generateJSON('item_lookupNames_json.tmpl', inputs)
+        menu.add(       new JsonObject(mvelGenerate('resourcesMenu_json.tmpl', inputs)))
+        lookupNames.add(new JsonObject(mvelGenerate('lookupNames_json.tmpl', inputs)))
 
-        def webuiDir = new File("${rootDir}/module/webui")
-        webuiDir.mkdirs()
-        new File(webuiDir, 'lookupNames.json')  .write(new JSONObject().put('column', lookupNames).toString(2))
-        new File(webuiDir, 'resourcesMenu.json').write(new JSONObject().put('column', menu       ).toString(2))
+        def configRootDir = new File(webuiDir ?: rootDir+'/module/webui')
+        configRootDir.mkdirs()
+        new File(configRootDir, 'lookupNames.json')  .write(new JsonObject().put('column', lookupNames).encodePrettily())
+        new File(configRootDir, 'resourcesMenu.json').write(new JsonObject().put('column', menu       ).encodePrettily())
 
-        def itemDir = new File("${webuiDir.getPath()}/${item.name}")
-        itemDir.mkdirs()
-        new File(itemDir, 'toolbarMain.json').write(toolbarMain.toString(2))
+        def configItemDir = new File("${configRootDir.getPath()}/${item.name}")
+        configItemDir.mkdirs()
+        JsonObject toolbarMain       = new JsonObject(mvelGenerate('item_toolbarMain_json.tmpl', inputs))
+        JsonObject masterOutcomeView = new JsonObject(mvelGenerate('item_masterOutcomeView_json.tmpl', inputs))
+        JsonObject itemList          = new JsonObject(mvelGenerate('item_itemList_json.tmpl', inputs))
+        JsonArray  itemCollection    = new JsonArray (mvelGenerate('item_itemCollection_json.tmpl', inputs))
+
+        new File(configItemDir, 'toolbarMain.json')      .write(toolbarMain.encodePrettily())
+        new File(configItemDir, 'masterOutcomeView.json').write(masterOutcomeView.encodePrettily())
+        new File(configItemDir, 'itemList.json')         .write(masterOutcomeView.encodePrettily())
+        new File(configItemDir, 'itemCollection.json')   .write(itemCollection.encodePrettily())
+
+        item.dependencies.values().each { currentDependency ->
+            inputs.put('currentDependency', currentDependency)
+            JsonObject toolbarCollection  = new JsonObject(mvelGenerate('item_toolbarCollection_json.tmpl', inputs))
+            JsonObject itemCollectionList = new JsonObject(mvelGenerate('item_itemCollectionList_json.tmpl', inputs))
+            new File(configItemDir, "toolbar${currentDependency.name}.json").write(toolbarCollection.encodePrettily())
+            new File(configItemDir, "itemCollection${currentDependency.name}.json").write(itemCollectionList.encodePrettily())
+        }
     }
 
     /**
@@ -193,30 +223,19 @@ class CRUDGenerator {
 
         log.info('generateModuleDSL() - files:{}', inputs['moduleFiles'])
 
-        generateDSL(new File(moduleDir, 'Module.groovy'), 'module_groovy.tmpl', inputs)
+        new File(moduleDir, "Module.groovy").write(mvelGenerate('module_groovy.tmpl', inputs));
     }
 
     /**
-     * Generates and saves a single DSL file
-     * 
-     * @param file to be saved
-     * @param templName MVEL2 template to be used, shall be available on the classpath
-     * @param inputs the inputs needed for the generation
-     */
-    private void generateDSL(File file, String templName, Map inputs) {
-        CompiledTemplate expr = templateRegistry.getNamedTemplate(templName)
-        file.write((String)TemplateRuntime.execute(expr, null, new MapVariableResolverFactory(inputs), templateRegistry))
-    }
-
-    /**
-     * Generates a JSONObject based on the MVEL2 template
+     * Generates a String based on the MVEL2 template
      * 
      * @param templName MVEL2 template to be used, shall be available on the classpath
      * @param inputs needed for the generation
+     * @return generated String
      */
-    private JSONObject generateJSON(String templName, Map inputs) {
+    private String mvelGenerate(String templName, Map inputs) {
         CompiledTemplate expr = templateRegistry.getNamedTemplate(templName)
-        return new JSONObject((String)TemplateRuntime.execute(expr, null, new MapVariableResolverFactory(inputs), templateRegistry))
+        return (String)TemplateRuntime.execute(expr, null, new MapVariableResolverFactory(inputs), templateRegistry);
     }
 
     @CompileDynamic
@@ -263,8 +282,8 @@ class CRUDGenerator {
         def crudModule = new CRUDModuleDelegate(null).processText(scriptText)
         assert crudModule
 
-        JSONArray menu = new JSONArray()
-        JSONArray lookupNames = new JSONArray()
+        JsonArray menu = new JsonArray()
+        JsonArray lookupNames = new JsonArray()
 
         crudModule.items.values().each { def item ->
             log.info('generateCRUDModule() - generating item:{}', item.name)
@@ -305,6 +324,7 @@ class CRUDGenerator {
         cli.with {
             h longOpt: 'help', 'Show usage information'
             r longOpt: 'rootDir',    args: 1, argName: 'root',  'Root directory'
+            w longOpt: 'webuiDir',   args: 1, argName: 'webui', 'Directory for webui config files'
             t longOpt: 'itemTypes',  args: 1, argName: 'types', 'Comma separated list of Item types (e.g. Site, Product)'
             m longOpt: 'moduleFile', args: 1, argName: 'file',  'File containing the definition of CRUD Items'
             n longOpt: 'moduleNs',   args: 1, argName: 'ns',    'Module namespace'
@@ -338,7 +358,7 @@ class CRUDGenerator {
             def moduleFile = (String)options.m
             def scriptText = new File(moduleFile).text
     
-            def generator  = new CRUDGenerator(rootDir: rootDir)
+            def generator  = new CRUDGenerator(rootDir: rootDir, webuiDir: (options.w ? (String)options.w : null) )
 
             generator.generateCRUDModule(scriptText)
         }

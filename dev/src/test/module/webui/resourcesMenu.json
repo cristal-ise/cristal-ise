@@ -1,17 +1,15 @@
-{"column": [
-  {
-    "routerLink": ["devtest/Cars"],
-    "icon": "fa fa-cubes",
-    "label": "Cars"
-  },
-  {
-    "routerLink": ["devtest/Motorcycles"],
-    "icon": "fa fa-cubes",
-    "label": "Motorcycles"
-  },
-  {
-    "routerLink": ["devtest/ClubMembers"],
-    "icon": "fa fa-cubes",
-    "label": "ClubMembers"
-  }
-]}
+{
+  "column" : [ {
+    "label" : "Cars",
+    "icon" : "fa fa-cubes",
+    "routerLink" : [ "devtest/Cars" ]
+  }, {
+    "label" : "Motorcycles",
+    "icon" : "fa fa-cubes",
+    "routerLink" : [ "devtest/Motorcycles" ]
+  }, {
+    "label" : "ClubMembers",
+    "icon" : "fa fa-cubes",
+    "routerLink" : [ "devtest/ClubMembers" ]
+  } ]
+}
