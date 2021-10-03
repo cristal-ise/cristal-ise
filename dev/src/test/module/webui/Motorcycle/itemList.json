@@ -1,0 +1,12 @@
+{
+  "column" : [ {
+    "field" : "Name",
+    "caption" : "Name"
+  }, {
+    "field" : "State",
+    "caption" : "State"
+  }, {
+    "field" : "RegistrationPlate",
+    "caption" : "Registration Plate"
+  } ]
+}

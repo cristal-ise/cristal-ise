@@ -123,7 +123,7 @@ public class JooqDomainPathHandler {
             }
         }
 
-        log.debug("JooqDomainPathHandler.insert() - SQL:\n"+insertInto.toString());
+        log.debug("insert() - SQL:{}\n", insertInto);
 
         return insertInto.execute();
     }
@@ -193,7 +193,7 @@ public class JooqDomainPathHandler {
 
         if (uuids != null && uuids.size() != 0) select.and(TARGET.in(uuids));
 
-        log.debug("JooqDomainPathHandler.find() - SQL:\n" + select);
+        log.debug("find() - SQL:{}\n", select);
 
         return getListOfPath(select.fetch());
     }
