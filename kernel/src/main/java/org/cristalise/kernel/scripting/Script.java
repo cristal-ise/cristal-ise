@@ -200,11 +200,7 @@ public class Script implements DescriptionObject {
      * @throws ScriptingEngineException
      */
     public Script(String lang, String expr, Class<?> returnType) throws ScriptingEngineException {
-        mName = "<expr>";
-        setScriptEngine(lang);
-        mVersion = null;
-        addOutput(null, returnType);
-        setScriptData(expr);
+        this(lang, "<expr>", expr, null, Object.class);
     }
 
     /**
@@ -216,10 +212,28 @@ public class Script implements DescriptionObject {
      * @param agent - the agentproxy to pass into the script as 'agent'
      */
     public Script(String lang, String name, String expr, AgentProxy agent) throws ScriptingEngineException {
-        this(lang, expr, Object.class);
+        this(lang, name, expr, agent, Object.class);
+    }
+
+    /**
+     * Creates a script executor requiring an agent to be set. Used by module event scripts.
+     * 
+     * @param lang - script language
+     * @param name - script name for debugging
+     * @param expr - the script to run
+     * @param agent - the agentproxy to pass into the script as 'agent'
+     */
+    public Script(String lang, String name, String expr, AgentProxy agent, Class<?> returnType) throws ScriptingEngineException {
         mName = name;
-        addInputParam(PARAMETER_AGENT, AgentProxy.class);
-        setInputParamValue(PARAMETER_AGENT, agent, true);
+        mVersion = null;
+        setScriptEngine(lang);
+        mName = name;
+        if (agent != null) {
+            addInputParam(PARAMETER_AGENT, AgentProxy.class);
+            setInputParamValue(PARAMETER_AGENT, agent, true);
+        }
+        addOutput(null, returnType);
+        setScriptData(expr);
     }
 
     /**
@@ -231,7 +245,7 @@ public class Script implements DescriptionObject {
      * @throws ScriptingEngineException
      */
     public Script(String lang, String expr) throws ScriptingEngineException {
-        this(lang, expr, Object.class);
+        this(lang, "<expr>", expr, null, Object.class);
     }
 
     /**
@@ -360,12 +374,12 @@ public class Script implements DescriptionObject {
      * @param scriptXML
      * @throws ScriptParsingException - when script is invalid
      */
-    private void parseScriptXML(String scriptXML) throws ScriptParsingException, ParameterException {
+    private synchronized void parseScriptXML(String scriptXML) throws ScriptParsingException, ParameterException {
         if (StringUtils.isBlank(scriptXML)) {
             log.warn("parseScriptXML - scriptXML was NULL!" );
             return;
         }
-        
+
         Document scriptDoc = null;
 
         // get the DOM document from the XML
@@ -681,8 +695,9 @@ public class Script implements DescriptionObject {
 
    /**
      * Executes the script with the submitted parameters. All declared input parameters should have been set first.
-     * It executes the included scripts first because they might set input parameters, for the actual Script
-     *
+     * It executes the included scripts first because they might set input parameters, for the actual Script.
+     * NOT thread-safe!!!!
+     * 
      * @return The return value depends on the way the output type was declared in the script xml.
      * <ul><li>If there was no output class declared then null is returned
      * <li>If a class was declared, but not named, then the object returned by the script is checked

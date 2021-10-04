@@ -200,7 +200,7 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         executeDoneJob(patient, elemActName)
         executeDoneJob(patient, 'SetUrinSample')
 
-        PollingConditions pollingWait = new PollingConditions(timeout: 5, initialDelay: 0.5, delay: 0.5, factor: 1)
+        PollingConditions pollingWait = new PollingConditions(timeout: 5, initialDelay: (0.5 as double), delay: (0.5 as double), factor: 1)
         pollingWait.eventually {
             assert patient.checkViewpoint("AggregatedPatientData-$timeStamp", 'last')
         }

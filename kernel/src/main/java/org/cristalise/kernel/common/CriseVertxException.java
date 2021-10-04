@@ -162,7 +162,7 @@ public class CriseVertxException extends Exception {
             CriseVertxException cve;
 
             switch (FailureCodes.getValue(serviceEx.failureCode())) {
-                case AccessRightsError:                  cve = new AccessRightsException(ex); break;
+                case AccessRightsError:             cve = new AccessRightsException(ex); break;
                 case CannotManage:                  cve = new CannotManageException(ex); break;
                 case InvalidCollectionModification: cve = new InvalidCollectionModification(ex); break;
                 case InvalidData:                   cve = new InvalidDataException(ex); break;
@@ -171,7 +171,7 @@ public class CriseVertxException extends Exception {
                 case ObjectAlreadyExists:           cve = new ObjectAlreadyExistsException(ex); break;
                 case ObjectCannotBeUpdated:         cve = new ObjectCannotBeUpdated(ex); break;
                 case ObjectNotFound:                cve = new ObjectNotFoundException(ex); break;
-                case PersistencyError:                   cve = new PersistencyException(ex); break;
+                case PersistencyError:              cve = new PersistencyException(ex); break;
                 case ScriptError:                   cve = new ScriptErrorException(ex); break;
                 default:
                     cve = null;
