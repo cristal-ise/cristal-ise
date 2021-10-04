@@ -153,8 +153,9 @@ public class TraceableEntity implements Item {
                         returnHandler.handle(CriseVertxException.failService(originalEx));
                     }
                 }
-
-                lock.release();
+                finally {
+                    lock.release();
+                }
             }
             else {
                 Throwable cause = lockResult.cause();

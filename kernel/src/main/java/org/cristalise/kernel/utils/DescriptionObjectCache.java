@@ -171,29 +171,29 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    public D get(String name, int version) throws ObjectNotFoundException, InvalidDataException {
+    protected D get(String name, int version) throws ObjectNotFoundException, InvalidDataException {
         return get(name, version, null);
     }
 
     /**
      * 
-     * @param name the Name or the UUID of the resource Item
+     * @param name the Name the UUID of the resource Item
      * @param version the Version of the resource Item
      * @param transactionKey
      * @return
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    public D get(String name, int version, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+    protected D get(String name, int version, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         try {
             CacheEntry<D> thisDefEntry = null;
             synchronized (cache) {
                 thisDefEntry = cache.get(name + "_" + version);
-            }
 
-            if (thisDefEntry != null) {
-                log.trace("get() - key:{}_{} found in cache.", name, version);
-                return thisDefEntry.descObject;
+                if (thisDefEntry != null) {
+                    log.trace("get() - key:{}_{} found in cache.", name, version);
+                    return thisDefEntry.descObject;
+                }
             }
 
             ItemPath defItemPath = findItem(name, transactionKey);

@@ -28,15 +28,12 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeoutException;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
@@ -75,9 +72,10 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-
+import org.exolab.castor.mapping.MappingException;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.ValidationException;
 import com.google.errorprone.annotations.Immutable;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -173,35 +171,35 @@ public class ItemProxy {
     {
         log.debug("requestAction() - item:{} agent:{} stepPath:{}", this, agentUuid, stepPath);
 
-        CompletableFuture<String> futureResult = new CompletableFuture<>();
-
-        getItem().requestAction(
-                itemUuid,
-                agentUuid,
-                stepPath,
-                transitionID,
-                requestData,
-                fileName,
-                attachment,
-                (result) -> {
-                    if (result.succeeded()) {
-                        String returnString = result.result();
-                        log.trace("requestAction() - return:{}", returnString);
-                        futureResult.complete(returnString);
-                    }
-                    else {
-                        futureResult.completeExceptionally(result.cause());
-                    }
-                });
-
         try {
+            CompletableFuture<String> futureResult = new CompletableFuture<>();
+
+            getItem().requestAction(
+                    itemUuid,
+                    agentUuid,
+                    stepPath,
+                    transitionID,
+                    requestData,
+                    fileName,
+                    attachment,
+                    (result) -> {
+                        if (result.succeeded()) {
+                            String returnString = result.result();
+                            log.trace("requestAction() - return:{}", returnString);
+                            futureResult.complete(returnString);
+                        }
+                        else {
+                            futureResult.completeExceptionally(result.cause());
+                        }
+                    });
+
             return futureResult.get(ItemVerticle.requestTimeout, SECONDS);
         }
         catch (ExecutionException e) {
             log.error("requestAction() - item:{} agent:{}", this, agentUuid, e);
             throw CriseVertxException.convertFutureException(e);
         }
-        catch (InterruptedException | TimeoutException | CancellationException e) {
+        catch (Exception e) {
             log.error("requestAction() - item:{} agent:{}", itemUuid, agentUuid, e);
             throw new CannotManageException("Error while waiting for the requestAction() return value item:"+itemUuid+" agent:"+agentUuid+"", e);
         }
@@ -275,39 +273,44 @@ public class ItemProxy {
      * @throws ObjectNotFoundException data was invalid
      */
     private List<Job> getJobs(AgentPath agentPath, boolean filter) throws CriseVertxException {
-        CompletableFuture<String> futureResult = new CompletableFuture<>();
-
-        log.debug("getJobs() - item:{} agent:{}", mItemPath, agentPath.getAgentName());
-
-        getItem().queryLifeCycle(mItemPath.toString(), agentPath.toString(), filter, (result) -> {
-            if (result.succeeded()) {
-                String returnString = result.result();
-                log.trace("getJobList() - handler return:{}", returnString);
-                futureResult.complete(returnString);
-            }
-            else {
-                log.error("getJobList() - handler error", result.cause());
-                futureResult.completeExceptionally(result.cause());
-            }
-        });
-
+        log.debug("getJobs() - item:{} agent:{}", mItemPath.getItemName(), agentPath.getAgentName());
         try {
+            CompletableFuture<String> futureResult = new CompletableFuture<>();
+
+            getItem().queryLifeCycle(mItemPath.toString(), agentPath.toString(), filter, (result) -> {
+                if (result.succeeded()) {
+                    String returnString = result.result();
+                    log.trace("getJobs() - handler return:{}", returnString);
+                    futureResult.complete(returnString);
+                }
+                else {
+                    String msg = "item:" + this + " agent:" + agentPath.getAgentName();
+                    log.error("getJobs() - handling error {}",msg , result.cause());
+                    futureResult.completeExceptionally(result.cause());
+                }
+            });
+
             String jobs = futureResult.get(ItemVerticle.requestTimeout, SECONDS);
+
             try {
                 JobArrayList thisJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(jobs);
                 return thisJobList.list;
             }
-            catch (Exception e) {
-                log.error("Cannot unmarshall the jobs", e);
-                throw new PersistencyException("Cannot unmarshall the jobs");
+            catch (MarshalException | ValidationException | IOException | MappingException e) {
+                String msg = "item:" + this + " agent:" + agentPath.getAgentName();
+                log.error("Cannot unmarshall jobs {}", msg, e);
+                throw new PersistencyException("Cannot unmarshall jobs " + msg, e);
             }
         }
         catch (ExecutionException e) {
+            String msg = "item:" + this + " agent:" + agentPath.getAgentName();
+            log.error("getJobList() - {}", msg, e);
             throw CriseVertxException.convertFutureException(e);
         }
-        catch (InterruptedException | TimeoutException | CancellationException e) {
-            log.error("getJobList() - item:{} agent:{}", mItemPath, agentPath, e);
-            throw new CannotManageException("Error while waiting for the getJobList() return value item:"+mItemPath+" agent:"+agentPath+"", e);
+        catch (Exception e) {
+            String msg = "item:" + this + " agent:" + agentPath.getAgentName();
+            log.error("getJobList() - Error while waiting {}", msg, e);
+            throw new CannotManageException("Error while waiting for getJobs() " + msg, e);
         }
     }
 
