@@ -1,4 +1,4 @@
-Module(namespace: 'devtest') {
+Module(namespace: 'devtest', webuiConfigs: true) {
     Item(name: 'Car') {
         field(name: 'RegistrationPlate')
     }

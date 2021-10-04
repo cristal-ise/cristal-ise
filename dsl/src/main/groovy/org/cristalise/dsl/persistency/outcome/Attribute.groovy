@@ -24,6 +24,7 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.OffsetTime
 
+import org.apache.commons.lang3.StringUtils
 import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.transform.CompileStatic;
@@ -199,5 +200,9 @@ class Attribute {
             case 'xs:time':     return OffsetTime.class;
             case 'xs:dateTime': return OffsetDateTime.class;
         }
+    }
+
+    public String getLabel() {
+        return StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(name), " ")
     }
 }
