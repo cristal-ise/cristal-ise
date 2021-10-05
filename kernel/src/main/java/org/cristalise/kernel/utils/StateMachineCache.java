@@ -36,22 +36,22 @@ import lombok.extern.slf4j.Slf4j;
 public class StateMachineCache extends DescriptionObjectCache<StateMachine> {
 
     @Override
-    public String getTypeCode() {
+    protected String getTypeCode() {
         return STATE_MACHINE_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
+    protected String getSchemaName() {
         return STATE_MACHINE_RESOURCE.getSchemaName();
     }
 
     @Override
-    public String getTypeRoot() {
+    protected String getTypeRoot() {
         return STATE_MACHINE_RESOURCE.getTypeRoot();
     }
 
     @Override
-    public StateMachine buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected StateMachine buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             StateMachine thisStateMachine = (StateMachine) Gateway.getMarshaller().unmarshall(data);
             thisStateMachine.validate();

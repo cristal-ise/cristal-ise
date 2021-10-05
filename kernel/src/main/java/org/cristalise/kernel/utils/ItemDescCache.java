@@ -36,22 +36,22 @@ import lombok.extern.slf4j.Slf4j;
 public class ItemDescCache extends DescriptionObjectCache<ImportItem> {
 
     @Override
-    public String getTypeCode() {
+    protected String getTypeCode() {
         return ITEM_DESC_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
+    protected String getSchemaName() {
         return ITEM_DESC_RESOURCE.getSchemaName();
     }
 
     @Override
-    public String getTypeRoot() {
+    protected String getTypeRoot() {
         return ITEM_DESC_RESOURCE.getTypeRoot(); 
     }
 
     @Override
-    public ImportItem buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected ImportItem buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             ImportItem thisImportItem = (ImportItem) Gateway.getMarshaller().unmarshall(data);
             thisImportItem.setName(name);
