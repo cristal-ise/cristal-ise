@@ -36,22 +36,22 @@ import lombok.extern.slf4j.Slf4j;
 public class PropertyDescriptionCache extends DescriptionObjectCache<PropertyDescriptionList> {
 
     @Override
-    public String getTypeCode() {
+    protected String getTypeCode() {
         return PROPERTY_DESC_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
+    protected String getSchemaName() {
         return PROPERTY_DESC_RESOURCE.getSchemaName();
     }
 
     @Override
-    public String getTypeRoot() {
+    protected String getTypeRoot() {
         return PROPERTY_DESC_RESOURCE.getTypeRoot();
     }
 
     @Override
-    public PropertyDescriptionList buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected PropertyDescriptionList buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             PropertyDescriptionList pdl = (PropertyDescriptionList) Gateway.getMarshaller().unmarshall(data);
             pdl.setName(name);

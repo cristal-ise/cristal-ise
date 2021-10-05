@@ -78,15 +78,15 @@ public class ModuleResource extends ModuleImport {
     public String getResourceFileName() {
         if (StringUtils.isBlank(resourceLocation) && ns != null) {
             String[] vals = Gateway.getProperties().getString("Resource.moduleUseFileNameWithVersion", "").split(",");
-            log.debug("getResourceLocation(ns:{}) - moduleUseFileNameWithVersion:{}", ns, Arrays.toString(vals));
+            log.debug("getResourceFileName(ns:{}) - moduleUseFileNameWithVersion:{}", ns, Arrays.toString(vals));
 
             if (Arrays.asList(vals).contains(ns)) {
                 resourceLocation = getResourceDir() + "/" + name + "_" + version + "." + getResourceExt();
-                log.debug("getResourceLocation(WithVersion) - {}", resourceLocation );
+                log.debug("getResourceFileName(WithVersion) - {}", resourceLocation );
             }
             else {
                 resourceLocation = getResourceDir() + "/" + name + "." + getResourceExt();
-                log.debug("getResourceLocation(NoVersion) - {}", resourceLocation );
+                log.debug("getResourceFileName(NoVersion) - {}", resourceLocation );
             }
         }
 

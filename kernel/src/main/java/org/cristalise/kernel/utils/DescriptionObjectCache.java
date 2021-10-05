@@ -25,12 +25,10 @@ package org.cristalise.kernel.utils;
 
 import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.EXACT_NAME_MATCH;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.UUID;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -48,7 +46,6 @@ import org.cristalise.kernel.process.module.ModuleResource;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -73,231 +70,275 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         }
     }
 
-    public D loadObjectFromBootstrap(String name) throws InvalidDataException, ObjectNotFoundException {
+    /**
+     * 
+     * @param name UUID or Name of the resource Item
+     * @return
+     * @throws InvalidDataException
+     * @throws ObjectNotFoundException
+     */
+    private D loadObjectFromBootstrap(String name) throws InvalidDataException, ObjectNotFoundException {
         try {
-            log.trace("loadObjectFromBootstrap() - name:" + name + " Loading it from kernel items");
+            log.debug("loadObjectFromBootstrap() - name:{} typeCode:{}", name, getTypeCode());
 
             String bootItems = FileStringUtility.url2String(Gateway.getResource().getKernelResourceURL("boot/allbootitems.txt"));
             StringTokenizer str = new StringTokenizer(bootItems, "\n\r");
+
             while (str.hasMoreTokens()) {
                 String resLine = str.nextToken();
+
                 String[] resElem = resLine.split(",");
-                if (resElem[0].equals(name) || isBootResource(resElem[1], name)) {
-                    log.trace("loadObjectFromBootstrap() - Shimming " + getTypeCode() + " " + name + " from bootstrap");
-                    String resData = Gateway.getResource().getTextResource(null, "boot/" + resElem[1] + (resElem[1].startsWith("OD") ? ".xsd" : ".xml"));
-                    return buildObject(name, 0, new ItemPath(resElem[0]), resData);
+                String uuid = resElem[0];
+                String path = resElem[1];
+
+                if (uuid.equals(name) || isBootResource(path, name)) {
+                    String textResourcePath = "boot/" + path + (path.startsWith("OD") ? ".xsd" : ".xml");
+                    log.trace("loadObjectFromBootstrap() - FOUND in KERNEL uuid:{} textResourcePath:{}", uuid, textResourcePath);
+
+                    String resData = Gateway.getResource().getTextResource(null, textResourcePath);
+                    String realName = path.split("/")[1]; //name input could contain UUID (see if() statement)
+                    return buildObject(realName, 0, new ItemPath(uuid), resData);
                 }
             }
 
+            //this search only works if name does not contain the UUID (see note bellow)
             for (Module module: Gateway.getModuleManager().getModules()) {
-                log.trace("loadObjectFromBootstrap() - name:" + name + " Lodaing it from module:"+module.getName());
-                
                 ModuleResource res = (ModuleResource) module.getImports().findImport(name, getTypeCode());
 
                 if (res != null) {
                     res.setNs(module.getNs());
+                    log.trace("loadObjectFromBootstrap() - FOUND in module:{} textResourcePath:{}", module.getName(), res.getResourceFileName());
+
                     String resData = Gateway.getResource().getTextResource(module.getNs(), res.getResourceFileName());
-                    // At this point the resource loaded from classpath, which means it has no UUID so a random UUID is assigned 
+                    // if it has no UUID a random UUID is assigned 
                     String uuid = res.getID() == null ? UUID.randomUUID().toString() : res.getID();
                     return buildObject(name, 0, new ItemPath(uuid), resData);
                 }
             }
         }
         catch (Exception e) {
-            log.error("Error finding bootstrap resources", e);
-            throw new InvalidDataException("Error finding bootstrap resources");
+            String msg = "name:"+name+" typeCode:"+getTypeCode();
+
+            log.error("loadObjectFromBootstrap() cannot find resource {}", msg, e);
+            throw new InvalidDataException("Cannot find resource "+ msg);
         }
         throw new ObjectNotFoundException("Resource " + getSchemaName() + " " + name + " not found in bootstrap resources");
     }
 
+    /**
+     * 
+     * @param filename
+     * @param resName
+     * @return
+     */
     protected boolean isBootResource(String filename, String resName) {
         return filename.equals(getTypeCode() + "/" + resName);
     }
 
-    protected ItemPath findItem(String name, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+    /**
+     * Finds the resource Item in the database and returns the ItemPath based on the UUID/Name/DomainPath
+     * 
+     * @param id UUID or Item Name or DomainPath
+     * @param transactionKey if transaction is involved
+     * @return the ItemPath
+     * @throws ObjectNotFoundException if object was not found
+     * @throws InvalidDataException Data was inconsistent 
+     */
+    private ItemPath findItem(String id, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         if (Gateway.getLookup() == null) throw new ObjectNotFoundException("Cannot find Items without a Lookup");
 
-        // first check for a UUID name
-        // exception handling is slow, the if() avoids to use exception to check valid UUID
-        if (ItemPath.isUUID(name)) {
+        // first check if name is a UUID or not
+        if (ItemPath.isUUID(id)) {
             try {
-                ItemPath resItem = new ItemPath(name);
+                // exception handling is slow, the if() avoids to use exception to check valid UUID
+                ItemPath resItem = new ItemPath(id);
                 if (resItem.exists(transactionKey)) return resItem;
             }
-            catch (InvalidItemPathException ex) {}
+            catch (InvalidItemPathException ex) {/*should never happen*/}
         }
-
-        // then check for a direct path
-        DomainPath directPath = new DomainPath(name);
-        if (directPath.exists(transactionKey) && directPath.getItemPath(transactionKey) != null) { 
-            return directPath.getItemPath(transactionKey);
-        }
-
-        Iterator<Path> searchResult = null;
-
-        // else ...
-        if (Gateway.getProperties().getBoolean("LocalObjectLoader.lookupUseProperties", false) || StringUtils.isBlank(getTypeRoot())) {
-            // search for it in the whole tree using properties
-            Property[] searchProps = new Property[classIdProps.length + 1];
-            searchProps[0] = new Property(NAME, name);
-            System.arraycopy(classIdProps, 0, searchProps, 1, classIdProps.length);
-
-            searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), transactionKey, searchProps);
+        else if (id.contains("/")) {
+            // then check for a DomainPath
+            DomainPath directPath = new DomainPath(id);
+            if (directPath.exists(transactionKey) && directPath.getItemPath(transactionKey) != null) { 
+                return directPath.getItemPath(transactionKey);
+            }
         }
         else {
-            // or search for it in the subtree using name
-            searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), name, EXACT_NAME_MATCH, transactionKey);
-        }
+            // finally search item tree
+            Iterator<Path> searchResult = null;
 
-        if (searchResult.hasNext()) {
-            Path defPath = searchResult.next();
-            if (searchResult.hasNext()) throw new InvalidDataException("Too many matches for name:" + name + " typeCode:" + getTypeCode());
+            if (Gateway.getProperties().getBoolean("LocalObjectLoader.lookupUseProperties", false) || StringUtils.isBlank(getTypeRoot())) {
+                // search for it in the whole tree using properties
+                Property[] searchProps = new Property[classIdProps.length + 1];
+                searchProps[0] = new Property(NAME, id);
+                System.arraycopy(classIdProps, 0, searchProps, 1, classIdProps.length);
 
-            if (defPath.getItemPath(transactionKey) == null)
-                throw new InvalidDataException("name:" + name + " typeCode:" + getTypeCode() + " was found, but was not an Item");
+                searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), transactionKey, searchProps);
+            }
+            else {
+                // or search for it in the subtree using name
+                searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), id, EXACT_NAME_MATCH, transactionKey);
+            }
 
-            return defPath.getItemPath(transactionKey);
+            if (searchResult.hasNext()) {
+                Path defPath = searchResult.next();
+                if (searchResult.hasNext()) throw new InvalidDataException("Too many matches for id:" + id + " typeCode:" + getTypeCode());
+
+                if (defPath.getItemPath(transactionKey) == null) {
+                    throw new InvalidDataException("id:" + id + " typeCode:" + getTypeCode() + " was found, but was not an Item");
+                }
+
+                return defPath.getItemPath(transactionKey);
+            }
         }
-        else {
-            throw new ObjectNotFoundException("No match for name:" + name + " typeCode:" + getTypeCode());
-        }
+        throw new ObjectNotFoundException("No match for id:" + id + " typeCode:" + getTypeCode());
     }
 
     /**
      * 
-     * @param name the Name or the UUID of the resource Item
-     * @param version the Version of the resource Item
+     * @param id Name or UUID or DomainPath of the resource Item
+     * @param version of the resource Item
      * @return
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    protected D get(String name, int version) throws ObjectNotFoundException, InvalidDataException {
-        return get(name, version, null);
+    public D get(String id, int version) throws ObjectNotFoundException, InvalidDataException {
+        return get(id, version, null);
     }
 
     /**
      * 
-     * @param name the Name the UUID of the resource Item
+     * @param uuid
+     * @param version
+     * @return
+     */
+    private D findInCache(String uuid, int version) {
+        String key = uuid + "_" + version;
+
+        CacheEntry<D> cacheEntry = cache.get(key);
+
+        if (cacheEntry != null) {
+            log.trace("findInCache() - key:{} found in cache.", key);
+            return cacheEntry.descObject;
+        }
+
+        return null;
+    }
+
+    /**
+     * 
+     * @param id Name or UUID or DomainPath of the resource Item
      * @param version the Version of the resource Item
      * @param transactionKey
      * @return
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    protected D get(String name, int version, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+    public synchronized D get(String id, int version, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        String key = id + "_" + version;
+
+        // If id is a uuid check if cache contains the key
+        if (ItemPath.isUUID(id)) {
+            D obj = findInCache(id, version);
+            if (obj != null) return obj;
+        }
+
         try {
-            CacheEntry<D> thisDefEntry = null;
-            synchronized (cache) {
-                thisDefEntry = cache.get(name + "_" + version);
+            log.trace("get() - key:{} not found in cache. Loading from database.", key);
 
-                if (thisDefEntry != null) {
-                    log.trace("get() - key:{}_{} found in cache.", name, version);
-                    return thisDefEntry.descObject;
-                }
+            ItemPath resourcePath = findItem(id, transactionKey);
+            String realUuid = resourcePath.getName();
+
+            // if id is NOT a uuid check again if cache contains the key already using the real uuid
+            if ( ! ItemPath.isUUID(id)) {
+                D obj = findInCache(realUuid, version);
+                if (obj != null) return obj;
             }
 
-            ItemPath defItemPath = findItem(name, transactionKey);
-            String defUuid = defItemPath.getUUID().toString();
+            D thisDef = loadObject(realUuid, version, Gateway.getProxy(resourcePath), transactionKey);
 
-            synchronized (cache) {
-                log.trace("get() - key:{}_{} not found in cache. Checking key using uuid:{}", name, version, defUuid);
-                thisDefEntry = cache.get(defUuid + "_" + version);
-
-                if (thisDefEntry != null) {
-                    log.trace("get() - key:{}_{} found in cache.", defUuid, version);
-                    return thisDefEntry.descObject;
-                }
-            }
-
-            log.trace("get() - key:{}_{} not found in cache. Loading from database.", name, version);
-
-            ItemProxy defItemProxy = Gateway.getProxy(defItemPath, transactionKey);
-            if (name.equals(defUuid)) {
-                String itemName = defItemProxy.getName(transactionKey);
-                if (itemName != null) name = itemName;
-            }
-
-            D thisDef = loadObject(name, version, defItemProxy, transactionKey);
-            addToCache(name, version, defUuid, thisDef);
+            CacheEntry<D> newEntry = new CacheEntry<>(thisDef, this);
+            cache.put(newEntry.key, newEntry);
 
             return thisDef;
         }
         catch (ObjectNotFoundException ex) {
-            log.trace("get - failed to load resource key:{}_{} from database, loading from classpath.", name, version);
+            log.trace("get() - failed to load resource key:{}_{} from database, loading from classpath.", id, version);
             // for bootstrap and testing, try to load built-in kernel objects from resources
             if (version == 0) {
                 try {
-                    return loadObjectFromBootstrap(name);
+                    return loadObjectFromBootstrap(id);
                 }
                 catch (ObjectNotFoundException ex2) {
                     log.error("get() - ", ex2);
                 }
             }
             else {
-                log.error("get() - only resources with version zero can be loaded from classpath - name:{} version:{}", name, version);
+                log.error("get() - only resources with version zero can be loaded from classpath - name:{} version:{}", id, version);
             }
             throw ex;
         }
     }
 
-    private void addToCache(String name, int version, String defUuid, D thisDef) {
-        log.trace("addToCache() - key1:{}_{} and key2:{}_{}", name, version, defUuid, version);
+    protected abstract String getTypeCode();
 
-        // DO NOT add this to the synchronized block because it can create deadlock. check issue: #447
-        CacheEntry<D> entry = new CacheEntry<>(thisDef, this);
-        synchronized (cache) {
-            cache.put(defUuid + "_" + version, entry);
-            cache.put(name + "_" + version, entry);
-        }
-    }
+    protected abstract String getSchemaName();
 
-    public abstract String getTypeCode();
+    protected abstract String getTypeRoot();
 
-    public abstract String getSchemaName();
+    /**
+     * 
+     * @param name
+     * @param version
+     * @param path
+     * @param data
+     * @return
+     * @throws InvalidDataException
+     */
+    protected abstract D buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException;
 
-    public abstract String getTypeRoot();
-
-    public abstract D buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException;
-
-    public D loadObject(String name, int version, ItemProxy proxy, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        Viewpoint smView = proxy.getViewpoint(getSchemaName(), String.valueOf(version), transactionKey);
-
+    /**
+     * 
+     * @param name
+     * @param version
+     * @param proxy
+     * @param transactionKey
+     * @return
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     */
+    protected D loadObject(String name, int version, ItemProxy proxy, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         try {
-            String rawRes = smView.getOutcome(transactionKey).getData();
-            return buildObject(name, version, proxy.getPath(), rawRes);
+            Viewpoint view = proxy.getViewpoint(getSchemaName(), String.valueOf(version), transactionKey);
+            String rawRes = view.getOutcome(transactionKey).getData();
+            return buildObject(proxy.getName(), version, proxy.getPath(), rawRes);
         }
         catch (PersistencyException ex) {
-            log.error("Problem loading " + getSchemaName() + " " + name + " v" + version, ex);
+            log.error("loadObject() - Problem loading " + getSchemaName() + " " + name + " v" + version, ex);
             throw new ObjectNotFoundException("Problem loading " + getSchemaName() + " " + name + " v" + version + ": " + ex.getMessage());
         }
     }
 
-    public void removeObject(String id, String idName) {
-        synchronized (cache) {
-            if (cache.keySet().contains(id) || cache.keySet().contains(idName)) {
-                log.debug("remove() - key:{} and key:{}", id, idName);
-                cache.remove(id);
-                cache.remove(idName);
-            }
-        }
+    public synchronized void invalidate(String id, int version) {
+        cache.remove(id+"_"+version);
     }
 
-    public class CacheEntry<E extends DescriptionObject> {
-        public String                    id;
-        public String                    idName;
-        public E                         descObject;
-        public DescriptionObjectCache<E> parent;
+    public synchronized void invalidate() {
+        cache.clear();
+    }
+
+    protected class CacheEntry<E extends DescriptionObject> {
+        public String key;
+        public E      descObject;
 
         public CacheEntry(E def, DescriptionObjectCache<E> parent) {
-            this.id = def.getItemID() + "_" + def.getVersion();
-            this.idName = def.getName() + "_" + def.getVersion();
+            this.key = def.getItemID() + "_" + def.getVersion();
             this.descObject = def;
-            this.parent = parent;
         }
 
         @Override
         public String toString() {
-            return "Cache entry: " + id;
+            return "Cache entry: " + key;
         }
     }
 }

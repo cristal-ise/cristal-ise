@@ -36,22 +36,22 @@ import lombok.extern.slf4j.Slf4j;
 public class RoleDescCache extends DescriptionObjectCache<ImportRole> {
 
     @Override
-    public String getTypeCode() {
+    protected String getTypeCode() {
         return ROLE_DESC_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
+    protected String getSchemaName() {
         return ROLE_DESC_RESOURCE.getSchemaName();
     }
 
     @Override
-    public String getTypeRoot() {
+    protected String getTypeRoot() {
         return ROLE_DESC_RESOURCE.getTypeRoot(); 
     }
 
     @Override
-    public ImportRole buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected ImportRole buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             ImportRole thisImportRole = (ImportRole) Gateway.getMarshaller().unmarshall(data);
             thisImportRole.setName(name);
