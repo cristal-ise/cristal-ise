@@ -24,6 +24,7 @@ import static org.cristalise.kernel.collection.BuiltInCollections.ACTIVITY;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionMember;
@@ -66,7 +67,7 @@ public class ModuleWorkflow extends ModuleActivity {
     public void populateActivityDef(TransactionKey transactionKey) throws ObjectNotFoundException, CannotManageException {
         super.populateActivityDef(transactionKey);
         CompositeActivityDef compActDef = (CompositeActivityDef) actDef;
-        ArrayList<ActivityDef> graphActDefs = compActDef.getRefChildActDef();
+        List<ActivityDef> graphActDefs = compActDef.getRefChildActDef();
 
         if (activities.size() != graphActDefs.size())
             throw new CannotManageException("'" + getName() + "' has " + activities.size() + " declared activities, but the graph uses " + graphActDefs.size());
