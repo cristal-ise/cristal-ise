@@ -25,10 +25,12 @@ package org.cristalise.kernel.utils;
 
 import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.EXACT_NAME_MATCH;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.UUID;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -46,6 +48,7 @@ import org.cristalise.kernel.process.module.ModuleResource;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -136,15 +139,19 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
     }
 
     /**
-     * Finds the resource Item in the database and returns the ItemPath based on the UUID/Name/DomainPath
+     * Finds the resource Item in the database and returns the ItemPath.
+     * <pre>
+     * 1. Checks if the Id is a UUID
+     * 2. Checks if id is a DomainPath
+     * 3. Searches the domain tree treating id as a Name of the resource Item
      * 
-     * @param id UUID or Item Name or DomainPath
+     * @param id is either UUID or Item Name or DomainPath
      * @param transactionKey if transaction is involved
      * @return the ItemPath
      * @throws ObjectNotFoundException if object was not found
      * @throws InvalidDataException Data was inconsistent 
      */
-    private ItemPath findItem(String id, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+    private ItemPath findItemInDatabase(String id, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         if (Gateway.getLookup() == null) throw new ObjectNotFoundException("Cannot find Items without a Lookup");
 
         // first check if name is a UUID or not
@@ -155,16 +162,14 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
                 if (resItem.exists(transactionKey)) return resItem;
             }
             catch (InvalidItemPathException ex) {/*should never happen*/}
-        }
+        } // then check for a DomainPath
         else if (id.contains("/")) {
-            // then check for a DomainPath
             DomainPath directPath = new DomainPath(id);
             if (directPath.exists(transactionKey) && directPath.getItemPath(transactionKey) != null) { 
                 return directPath.getItemPath(transactionKey);
             }
-        }
+        } // finally search Domain tree
         else {
-            // finally search item tree
             Iterator<Path> searchResult = null;
 
             if (Gateway.getProperties().getBoolean("LocalObjectLoader.lookupUseProperties", false) || StringUtils.isBlank(getTypeRoot())) {
@@ -196,24 +201,12 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
     /**
      * 
-     * @param id Name or UUID or DomainPath of the resource Item
-     * @param version of the resource Item
-     * @return
-     * @throws ObjectNotFoundException
-     * @throws InvalidDataException
-     */
-    public D get(String id, int version) throws ObjectNotFoundException, InvalidDataException {
-        return get(id, version, null);
-    }
-
-    /**
-     * 
-     * @param uuid
+     * @param id can be UUID or Name
      * @param version
      * @return
      */
-    private D findInCache(String uuid, int version) {
-        String key = uuid + "_" + version;
+    private D findInCache(String id, int version) {
+        String key = id + "_" + version;
 
         CacheEntry<D> cacheEntry = cache.get(key);
 
@@ -223,6 +216,46 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         }
 
         return null;
+    }
+
+    /**
+     * 
+     * @param resourcePath
+     * @param version
+     * @param transactionKey
+     * @return
+     */
+    private D findInCache(ItemPath resourcePath, int version, TransactionKey transactionKey) {
+        String realName = resourcePath.getItemName(transactionKey);
+        String realUuid = resourcePath.getName();
+
+        D resourceItem = findInCache(realUuid, version);
+        if (resourceItem == null) resourceItem = findInCache(realName, version);
+        if (resourceItem != null) return resourceItem;
+
+        return null;
+    }
+
+    /**
+     * 
+     * @param resourceItem
+     */
+    private void addToCache(D resourceItem) {
+        CacheEntry<D> newEntry = new CacheEntry<>(resourceItem, this);
+        cache.put(newEntry.uuidKey, newEntry);
+        cache.put(newEntry.nameKey, newEntry);
+    }
+
+    /**
+     * 
+     * @param id Name or UUID or DomainPath of the resource Item
+     * @param version of the resource Item
+     * @return
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     */
+    public D get(String id, int version) throws ObjectNotFoundException, InvalidDataException {
+        return get(id, version, null);
     }
 
     /**
@@ -237,34 +270,27 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
     public synchronized D get(String id, int version, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         String key = id + "_" + version;
 
-        // If id is a uuid check if cache contains the key
-        if (ItemPath.isUUID(id)) {
-            D obj = findInCache(id, version);
-            if (obj != null) return obj;
-        }
+        // Check if the id is in the cache
+        D resourceItem = findInCache(id, version);
+        if (resourceItem != null) return resourceItem;
 
         try {
-            log.trace("get() - key:{} not found in cache. Loading from database.", key);
+            log.trace("get() - key:{} not found in cache, loading from database.", key);
 
-            ItemPath resourcePath = findItem(id, transactionKey);
-            String realUuid = resourcePath.getName();
+            ItemPath resourcePath = findItemInDatabase(id, transactionKey);
 
-            // if id is NOT a uuid check again if cache contains the key already using the real uuid
-            if ( ! ItemPath.isUUID(id)) {
-                D obj = findInCache(realUuid, version);
-                if (obj != null) return obj;
-            }
+            // check the cache again for both name and uuid
+            resourceItem = findInCache(resourcePath, version, transactionKey);
+            if (resourceItem != null) return resourceItem;
 
-            D thisDef = loadObject(realUuid, version, Gateway.getProxy(resourcePath), transactionKey);
+            resourceItem = loadObject(Gateway.getProxy(resourcePath, transactionKey), version, transactionKey);
+            addToCache(resourceItem);
 
-            CacheEntry<D> newEntry = new CacheEntry<>(thisDef, this);
-            cache.put(newEntry.key, newEntry);
-
-            return thisDef;
+            return resourceItem;
         }
         catch (ObjectNotFoundException ex) {
-            log.trace("get() - failed to load resource key:{}_{} from database, loading from classpath.", id, version);
-            // for bootstrap and testing, try to load built-in kernel objects from resources
+            log.trace("get() - key:{} not found in database, loading from bootstrap.", key);
+            // This is needed for bootstrap, but useful for testing as well
             if (version == 0) {
                 try {
                     return loadObjectFromBootstrap(id);
@@ -274,7 +300,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
                 }
             }
             else {
-                log.error("get() - only resources with version zero can be loaded from classpath - name:{} version:{}", id, version);
+                log.error("get() - only resources with version zero can be loaded from classpath - key:{}", key);
             }
             throw ex;
         }
@@ -307,20 +333,25 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    protected D loadObject(String name, int version, ItemProxy proxy, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+    protected D loadObject(ItemProxy proxy, int version, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         try {
             Viewpoint view = proxy.getViewpoint(getSchemaName(), String.valueOf(version), transactionKey);
             String rawRes = view.getOutcome(transactionKey).getData();
             return buildObject(proxy.getName(), version, proxy.getPath(), rawRes);
         }
         catch (PersistencyException ex) {
-            log.error("loadObject() - Problem loading " + getSchemaName() + " " + name + " v" + version, ex);
-            throw new ObjectNotFoundException("Problem loading " + getSchemaName() + " " + name + " v" + version + ": " + ex.getMessage());
+            log.error("loadObject() - Problem loading " + getSchemaName() + " " + proxy + " v" + version, ex);
+            throw new ObjectNotFoundException("Problem loading " + getSchemaName() + " " + proxy + " v" + version + ": " + ex.getMessage());
         }
     }
 
-    public synchronized void invalidate(String id, int version) {
-        cache.remove(id+"_"+version);
+    public synchronized void invalidate(ItemPath ip, int version) {
+        invalidate(ip.getName(), ip.getItemName(), version);
+    }
+
+    public synchronized void invalidate(String uuid, String name,  int version) {
+        cache.remove(uuid+"_"+version);
+        cache.remove(name+"_"+version);
     }
 
     public synchronized void invalidate() {
@@ -328,17 +359,19 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
     }
 
     protected class CacheEntry<E extends DescriptionObject> {
-        public String key;
+        public String uuidKey;
+        public String nameKey;
         public E      descObject;
 
         public CacheEntry(E def, DescriptionObjectCache<E> parent) {
-            this.key = def.getItemID() + "_" + def.getVersion();
+            this.uuidKey = def.getItemID() + "_" + def.getVersion();
+            this.nameKey = def.getName()   + "_" + def.getVersion();
             this.descObject = def;
         }
 
         @Override
         public String toString() {
-            return "Cache entry: " + key;
+            return "Cache entry: " + uuidKey;
         }
     }
 }

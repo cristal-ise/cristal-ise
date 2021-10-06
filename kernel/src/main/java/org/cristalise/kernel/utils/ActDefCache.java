@@ -80,7 +80,7 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
     }
 
     @Override
-    protected ActivityDef loadObject(String name, int version, ItemProxy proxy, TransactionKey transactionKey) 
+    protected ActivityDef loadObject(ItemProxy proxy, int version, TransactionKey transactionKey) 
             throws ObjectNotFoundException, InvalidDataException
     {
         String viewName;
@@ -102,8 +102,8 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
             return buildObject(proxy.getName(), version, proxy.getPath(), marshalledAct);
         }
         catch (PersistencyException ex) {
-            log.error("Problem loading Activity " + name + " v" + version, ex);
-            throw new ObjectNotFoundException("Problem loading Activity " + name + " v" + version + ": " + ex.getMessage());
+            log.error("Problem loading Activity " + proxy + " v" + version, ex);
+            throw new ObjectNotFoundException("Problem loading Activity " + proxy + " v" + version + ": " + ex.getMessage());
         }
     }
 
