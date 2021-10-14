@@ -243,6 +243,7 @@ public class ItemRoot extends ItemUtils {
                     .cookie(cookie).build();
         }
         catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException | AccessRightsException | AccessDeniedException e) {
+            log.error("Exception caught in getScriptResultPost(uuid={}, scriptName={}, scriptVersion={}, actPath={}, postData={}", uuid, scriptName, scriptVersion, actPath, postData, e);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
