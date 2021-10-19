@@ -359,6 +359,52 @@ public class ItemProxy {
     }
 
     /**
+     * Checks if the given built-in Collection exists
+     * 
+     * @param collection the built-in Collection
+     * @return true of Collection exists false otherwise
+     * @throws ObjectNotFoundException if Item does not have any Collections at all
+     */
+    public boolean checkCollection(BuiltInCollections collection) throws ObjectNotFoundException {
+        return checkCollection(collection, transactionKey);
+    }
+
+    /**
+     * Checks if the given built-in Collection exists
+     * 
+     * @param collection the built-in Collection
+     * @param transKey the transaction key
+     * @return true of Collection exists false otherwise
+     * @throws ObjectNotFoundException if Item does not have any Collections at all
+     */
+    public boolean checkCollection(BuiltInCollections collection, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkCollection(collection.getName(), transKey);
+    }
+
+    /**
+     * Checks if the given Collection exists
+     * 
+     * @param collection the name Collection
+     * @return true of Collection exists false otherwise
+     * @throws ObjectNotFoundException if Item does not have any Collections at all
+     */
+    public boolean checkCollection(String collection) throws ObjectNotFoundException {
+        return checkCollection(collection, transactionKey);
+    }
+
+    /**
+     * Checks if the given Collection exists
+     * 
+     * @param collection the name Collection
+     * @param transKey the transaction key
+     * @return true of Collection exists false otherwise
+     * @throws ObjectNotFoundException if Item does not have any Collections at all
+     */
+    public boolean checkCollection(String collection, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkContent(ClusterType.COLLECTION, collection, transKey == null ? transactionKey : transKey);
+    }
+
+    /**
      * Gets the current version of the named Collection
      *
      * @param collection The built-in collection
@@ -948,6 +994,19 @@ public class ItemProxy {
     }
 
     /**
+     * Check the root content of the given ClusterType
+     *
+     * @param cluster the type of the cluster
+     * @param name the name of the content to be checked
+     * @param transKey the transaction key
+     * @return true if there is content false otherwise
+     * @throws ObjectNotFoundException path was not correct
+     */
+    public boolean checkContent(ClusterType cluster, String name, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkContent(cluster.getName(), name, transKey);
+    }
+
+    /**
      * Check if the data of the Item located by the ClusterStorage path is exist. This method can be used
      * in server side Script to find uncommitted changes during the active transaction.
      *
@@ -958,7 +1017,11 @@ public class ItemProxy {
      * @throws ObjectNotFoundException path was not correct
      */
     public boolean checkContent(String path, String name, TransactionKey transKey) throws ObjectNotFoundException {
-        for (String key : getContents(path, transKey == null ? transactionKey : transKey)) if (key.equals(name)) return true;
+        String[] contents = getContents(path, transKey == null ? transactionKey : transKey);
+
+        for (String key : contents) {
+            if (key.equals(name)) return true;
+        }
         return false;
     }
 
@@ -1034,7 +1097,7 @@ public class ItemProxy {
      * @throws ObjectNotFoundException the type did not result in a C2KLocalObject
      */
     public C2KLocalObject getObject(ClusterType type) throws ObjectNotFoundException {
-        return getObject(type.getName(), null);
+        return getObject(type.getName(), transactionKey);
     }
 
     /**
@@ -1173,6 +1236,30 @@ public class ItemProxy {
 
         if(prop != null) return prop.getValue();
         else             throw new ObjectNotFoundException("COULD not find property "+name+" from item "+mItemPath);
+    }
+
+    /**
+     * Check if the given built-in Property exists
+     * 
+     * @param prop the built-in Property
+     * @return true if the Property exist false otherwise
+     * @throws ObjectNotFoundException Item does not have any properties at all
+     */
+    public boolean checkProperty(BuiltInItemProperties prop) throws ObjectNotFoundException {
+        return checkProperty(prop, transactionKey);
+    }
+
+    /**
+     * Check if the given built-in Property exists. This method can be used in server 
+     * side Script to find uncommitted changes during the active transaction.
+     * 
+     * @param prop the built-in Property
+     * @param transKey the transaction key
+     * @return true if the Property exist false otherwise
+     * @throws ObjectNotFoundException Item does not have any properties at all
+     */
+    public boolean checkProperty(BuiltInItemProperties prop, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkProperty(prop.getName(), transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -1377,6 +1464,14 @@ public class ItemProxy {
         }
 
         return LocalObjectLoader.getScript(scriptName, scriptVersion, transactionKey);
+    }
+
+    public String marshall(Object obj) throws Exception {
+        return Gateway.getMarshaller().marshall(obj);
+    }
+
+    public Object unmarshall(String obj) throws Exception {
+        return Gateway.getMarshaller().unmarshall(obj);
     }
 
     @Override

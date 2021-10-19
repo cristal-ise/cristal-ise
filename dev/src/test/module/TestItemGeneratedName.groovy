@@ -6,6 +6,7 @@ import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
+import static org.cristalise.kernel.property.BuiltInItemProperties.*;
 
 // this is defined in CrudState.groovy of the dev module
 def states = ['ACTIVE', 'INACTIVE']
@@ -81,8 +82,9 @@ Item(name: 'TestItemGeneratedNameFactory', version: 0, folder: '/devtest', workf
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': '/devtest/TestItemGeneratedNames')
 
-    InmutableProperty('IDPrefix': 'ID')
-    Property('LeftPadSize': '6')
+    InmutableProperty((ID_PREFIX): 'ID')
+    InmutableProperty((LEFT_PAD_SIZE): '6')
+    Property((LAST_COUNT): '0')
 
 
 

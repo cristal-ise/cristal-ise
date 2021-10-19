@@ -65,7 +65,16 @@ public class CollectionPane extends ItemTabPane {
 
             vertx.executeBlocking(promise -> {
                 try {
-                    add(sourceItem.getItem().getCollection(collPath));
+                    int idx = collPath.lastIndexOf("/");
+                    String collName = collPath.substring(0, idx);
+
+                    if (collPath.endsWith("/last")) {
+                        add(sourceItem.getItem().getCollection(collName));
+                    }
+                    else {
+                        Integer version = new Integer(collPath.substring(idx+1));
+                        add(sourceItem.getItem().getCollection(collName, version));
+                    }
                 }
                 catch (ObjectNotFoundException e) {
                     log.error("", e);

@@ -62,20 +62,29 @@ public class NodeCollection extends Node {
         Vertx vertx = Gateway.getVertx();
         vertx.eventBus().localConsumer(parent.getPath().getUUID() + "/" + COLLECTION, message -> {
             String[] tokens = ((String) message.body()).split(":");
-             String collPath = tokens[0];
+            String collPath = tokens[0];
 
             if (tokens[1].equals("DELETE")) return;
 
             vertx.executeBlocking(promise -> {
                 try {
-                    add(parent.getCollection(collPath));
+                    int idx = collPath.lastIndexOf("/");
+                    String collName = collPath.substring(0, idx);
+
+                    if (collPath.endsWith("/last")) {
+                        add(parent.getCollection(collName));
+                    }
+                    else {
+                        Integer version = new Integer(collPath.substring(idx+1));
+                        add(parent.getCollection(collName, version));
+                    }
                 }
                 catch (ObjectNotFoundException e) {
-                    log.error("", e);
+                    log.error("localConsumer.handler()", e);
                 }
                 promise.complete();
             }, res -> {
-                //
+                log.warn("", res.cause());
             });
         });
     }

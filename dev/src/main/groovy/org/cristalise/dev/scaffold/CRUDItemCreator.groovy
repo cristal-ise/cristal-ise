@@ -23,6 +23,7 @@ package org.cristalise.dev.scaffold
 import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.*
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION
+import static org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription.FACTORY_GENERATED_NAME
 
 import org.cristalise.dev.dsl.DevXMLUtility
 import org.cristalise.dsl.csv.TabularGroovyParser
@@ -79,7 +80,7 @@ class CRUDItemCreator extends StandardClient {
         String schemaName = null
         Integer schemaVersion = null
 
-        if (factory.checkContent(ClusterType.COLLECTION, SCHEMA_INITIALISE.name)) {
+        if (factory.checkCollection(SCHEMA_INITIALISE)) {
             def initSchemaCollection = factory.getCollection(SCHEMA_INITIALISE)
             DependencyMember member = (DependencyMember) initSchemaCollection.getMembers().list[0]
 
@@ -261,7 +262,7 @@ class CRUDItemCreator extends StandardClient {
 
         def dp = new DomainPath(itemRoot+'/'+itemName)
 
-        if (dp.exists()) {
+        if (itemName && FACTORY_GENERATED_NAME != itemName && dp.exists()) {
             item = agent.getItem(dp)
 
             if (itemName && updateMode == ERASE) {

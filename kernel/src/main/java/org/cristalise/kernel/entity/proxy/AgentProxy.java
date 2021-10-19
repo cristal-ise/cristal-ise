@@ -401,15 +401,6 @@ public class AgentProxy extends ItemProxy {
         return execute(item, predefStep, new String[] { param });
     }
 
-    /** Wrappers for scripts */
-    public String marshall(Object obj) throws Exception {
-        return Gateway.getMarshaller().marshall(obj);
-    }
-
-    public Object unmarshall(String obj) throws Exception {
-        return Gateway.getMarshaller().unmarshall(obj);
-    }
-
     public ItemProxy searchItem(String name) throws ObjectNotFoundException {
         return searchItem(new DomainPath(""), name);
     }
