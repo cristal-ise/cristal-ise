@@ -1223,4 +1223,13 @@ public class Outcome implements C2KLocalObject {
     public boolean hasField(Element element, String name) {
         return hasSingleField(element.getElementsByTagName(name));
     }
+
+    public String getRootName() {
+        return mDOM.getDocumentElement().getNodeName();
+    }
+
+    @Override
+    public String toString() {
+        return getData(true);
+    }
 }

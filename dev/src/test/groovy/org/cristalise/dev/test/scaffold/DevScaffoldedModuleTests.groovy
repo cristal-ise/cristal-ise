@@ -184,12 +184,25 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     @Test
     public void 'Create Item using Update and Generated Name'() {
+        String fatoryPath = "/$folder/TestItemGeneratedNameFactory"
+
         item = creator.createItemWithUpdateAndCheck(
             Description: 'ItemUsingUpdateGenretedName description',
-            "/$folder/TestItemGeneratedNameFactory")
+            fatoryPath)
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
+
+        assert item.name == 'ID000001'
+        ItemProxy factory = agent.getItem(fatoryPath)
+        assert factory.getViewpoint('CrudFactory_NewInstanceDetails', 'last').getOutcome().getField('Name') == 'ID000001'
+
+        item = creator.createItemWithUpdateAndCheck(
+            Description: 'ItemUsingUpdateGenretedName description',
+            fatoryPath)
+
+        assert item.name == 'ID000002'
+        assert factory.getViewpoint('CrudFactory_NewInstanceDetails', 'last').getOutcome().getField('Name') == 'ID000002'
     }
 
     @Test
