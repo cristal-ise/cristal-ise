@@ -21,7 +21,13 @@
 Schema('CrudFactory_NewInstanceDetails', 0) {
     struct(name: 'CrudFactory_NewInstanceDetails', useSequence: true) {
         field(name: 'Name',      type: 'string',  documentation: 'The Name of the new instance, it can be generated')
-        field(name: 'SubFolder',  type: 'string',  documentation: 'Put the new Item into this sub-forlder', multiplicity: '0..1')
+        field(name: 'SubFolder', type: 'string',  documentation: 'Put the new Item into this sub-forlder', multiplicity: '0..1')
+        struct(name: 'PropertyList',  multiplicity: '0..1', useSequence: true) {
+            field(name: 'Property',  type: 'string',  multiplicity: '1..*') {
+                attribute(name: 'name',    type: 'string')
+                attribute(name: 'mutable', type: 'boolean', default: 'true', multiplicity: '0..1')
+            }
+        }
         struct(name: 'SchemaInitialise', useSequence: true, multiplicity: '0..1') {
             dynamicForms (hidden: true)
             anyField()

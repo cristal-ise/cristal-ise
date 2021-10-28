@@ -40,6 +40,7 @@ import org.cristalise.kernel.persistency.TransactionKey
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.property.PropertyArrayList
 import org.cristalise.kernel.utils.LocalObjectLoader
+import org.w3c.dom.Node
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -186,7 +187,7 @@ class CrudFactoryHelper {
     public static Class<?> getPredefStep(ItemProxy factoryItem) {
         return getPredefStep(factoryItem, factoryItem.getTransactionKey())
     }
-    
+
     /**
      * Calculate the predefined step, i.e. CreateAgentFromDescription or CreateItemFromDescription
      *
@@ -211,6 +212,46 @@ class CrudFactoryHelper {
     }
 
     /**
+    /**
+     * Reads the optional PropertyList XMl fragment from the Outcome usually created by a CRUD Factory
+     * 
+     * The 'Empty' OutcomeInitiator creates invalid empty PropertyList, which has one Property element 
+     * with the name attribute empty. This is recognised and ignored!
+     * 
+     * @param factoryItem
+     * @param outcome optionally containing the PropertyList
+     * @return the valid XML fragment extracted from the Outcome or null
+     */
+    public static String getInitialProperties(ItemProxy factoryItem, Outcome outcome) {
+        def nodes = outcome.getNodesByXPath('//PropertyList/Property')
+
+        if (nodes) {
+            Node validNode = null;
+
+            if (nodes.getLength() == 1) {
+                if (outcome.getFieldByXPath('//PropertyList/Property/@name')) {
+                    validNode = outcome.getNodeByXPath('//PropertyList')
+                }
+                else {
+                    log.trace('getInitialProperties() - factory:{} IGNORING invalid PropertyList in Outcome:{}', factoryItem, outcome)
+                }
+            }
+            else {
+                validNode = outcome.getNodeByXPath('//PropertyList')
+            }
+
+            if (validNode) {
+                def outcomeString = outcome.serialize(validNode, false)
+                log.debug('getInitialProperties() - factory:{} outcomeString: {}', factoryItem, outcomeString)
+
+                return outcomeString
+            }
+        }
+
+        return null
+    }
+
+    /**
      * 
      * @param factoryItem
      * @param agent
@@ -221,19 +262,24 @@ class CrudFactoryHelper {
      */
     public static String[] getParams(ItemProxy factoryItem, AgentProxy agent, Job job, String newItemName, TransactionKey transKey) {
         String[] params = null
-        String initaliseOutcomeXML = getInitaliseOutcomeXML(factoryItem, job.getOutcome(), newItemName, transKey)
         String domainRoot = getDomainRoot(factoryItem, job, transKey)
+        String initialProps = getInitialProperties(factoryItem, job.outcome)
+        String initaliseOutcomeXML = getInitaliseOutcomeXML(factoryItem, job.getOutcome(), newItemName, transKey)
 
         if (isCreateAgent(factoryItem)) {
-            params = new String[initaliseOutcomeXML ? 7 : 4]
+            if      (initaliseOutcomeXML) params = new String[7]
+            else if (initialProps)        params = new String[6]
+            else                          params = new String[4]
 
             params[0] = newItemName
             params[1] = domainRoot
-            params[2] = factoryItem.getProperty('DefaultRoles')
+            params[2] = factoryItem.getProperty('DefaultRoles', 'Admin')
             params[3] = factoryItem.getProperty('DefaultPassword', 'password')
         }
         else {
-            params = new String[initaliseOutcomeXML ? 5 : 2]
+            if      (initaliseOutcomeXML) params = new String[5]
+            else if (initialProps)        params = new String[4]
+            else                          params = new String[2]
 
             params[0] = newItemName
             params[1] = domainRoot
@@ -241,8 +287,12 @@ class CrudFactoryHelper {
 
         if (initaliseOutcomeXML) {
             params[params.length-3] = 'last'
-            params[params.length-2] = agent.marshall(new PropertyArrayList())
+            params[params.length-2] = initialProps ?: agent.marshall(new PropertyArrayList())
             params[params.length-1] = initaliseOutcomeXML
+        }
+        else if (initialProps) {
+            params[params.length-2] = 'last'
+            params[params.length-1] = initialProps
         }
 
         log.debug('getParams() - factory:{} params:{}', factoryItem, params);
