@@ -43,7 +43,7 @@ public class LocalChangeVerticle extends AbstractVerticle {
     public void start(Promise<Void> startPromise) throws Exception {
         vertx.eventBus().consumer(ProxyMessage.ebAddress, message -> {
             Object body = message.body();
-            log.debug("handler() - message.body:{}", body);
+            log.trace("handler() - message.body:{}", body);
 
             boolean publish = Gateway.getProperties().getBoolean("LocalChangeVerticle.publishLocalMessage", false);
 
@@ -70,11 +70,11 @@ public class LocalChangeVerticle extends AbstractVerticle {
             String ebMsg     = msg.getLocalEventBusMessage();
 
             if (publish) {
-                log.trace("handler() - publishing to address:{}, msg:{}", ebAddress, ebMsg);
+                log.debug("handler() - publishing to address:{}, msg:{}", ebAddress, ebMsg);
                 vertx.eventBus().publish(ebAddress, ebMsg, opt);
             }
             else {
-                log.trace("handler() - sending to address:{}, msg:{}", ebAddress, ebMsg);
+                log.debug("handler() - sending to address:{}, msg:{}", ebAddress, ebMsg);
                 vertx.eventBus().send(ebAddress, ebMsg, opt);
             }
         }
