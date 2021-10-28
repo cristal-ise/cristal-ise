@@ -17,9 +17,7 @@ def detailsSchema = '@{item.name}_Details'
 
 def name  = item.getName()
 def state = item.getProperty('State')
-@if{generatedName}
-def id = item.getProperty('ID')
-@end{}
+def type  = item.getType()
 
 Outcome details = null
 
@@ -30,12 +28,9 @@ if (item.checkViewpoint(detailsSchema, 'last')) {
 def writer = new StringWriter()
 def xml = new MarkupBuilder(writer)
 
-xml.@{item.name} {
+xml."$type" {
     Name(  name  )
     State( state )
-@if{generatedName}
-    ID(    id    )
-@end{}
 
     if (details) {
         details.getRecord().each {field, value ->
