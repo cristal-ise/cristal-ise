@@ -980,8 +980,8 @@ public class Outcome implements C2KLocalObject {
             transformer.transform(new DOMSource(node), new StreamResult(out));
         }
         catch (Exception e) {
-            log.error("", e);
-            throw new InvalidDataException(e.getMessage());
+            log.error("serialize()", e);
+            throw new InvalidDataException(e);
         }
         return out.toString();
     }

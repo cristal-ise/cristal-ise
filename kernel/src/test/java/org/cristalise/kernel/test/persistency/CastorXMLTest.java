@@ -56,6 +56,8 @@ import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
@@ -317,6 +319,19 @@ public class CastorXMLTest {
         PropertyDescriptionList pdlPrime = (PropertyDescriptionList) marshaller.unmarshall(marshaller.marshall(pdl));
 
         assertReflectionEquals(pdl, pdlPrime, LENIENT_ORDER);
+    }
+
+    @Test
+    public void testPropertyArrayList() throws Exception {
+        CastorXMLUtility marshaller = Gateway.getMarshaller();
+
+        PropertyArrayList pal = new PropertyArrayList();
+        pal.list.add(new Property("Name", null, false));
+        pal.list.add(new Property("Type", "Item", true));
+
+        PropertyArrayList palPrime = (PropertyArrayList) marshaller.unmarshall(marshaller.marshall(pal));
+
+        assertReflectionEquals(pal, palPrime, LENIENT_ORDER);
     }
 
     @Test

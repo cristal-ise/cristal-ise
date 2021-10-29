@@ -906,7 +906,7 @@ public class Script implements DescriptionObject {
                 mCompScript = ((Compilable)engine).compile(mScript);
             }
             catch (ScriptException e) {
-                log.error("", e);
+                log.error("setScriptData() - name:{}", mName, e);
                 throw new ScriptParsingException(e);
             }
         }

@@ -129,7 +129,7 @@ public class PropertyDescriptionList extends CastorArrayList<PropertyDescription
 
         for (Property initProp : initProps.list) {
             if (!definesProperty(initProp.getName()))
-                throw new InvalidDataException("Property "+initProp.getName()+" has not been declared in the property descriptions");
+                throw new InvalidDataException("Property '"+initProp.getName()+"' has not been declared in the PropertyDescriptions");
             else
                 validatedInitProps.put(initProp.getName(), initProp.getValue());
         }
