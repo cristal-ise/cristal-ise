@@ -121,7 +121,7 @@ public class ProxyMessage {
      * @return
      */
     public String getLocalEventBusAddress() {
-        if (clusterStoreMesssage) return itemPath.getUUID() + "/" + getClusterType();
+        if (clusterStoreMesssage) return itemPath.getName() + "/" + getClusterType();
         else                      return "tree";
     }
 
