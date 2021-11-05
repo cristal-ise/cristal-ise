@@ -153,7 +153,7 @@ public class AgentProxy extends ItemProxy {
         log.info("execute(job) - {}", job);
 
         if (job.hasScript()) {
-            log.info("execute(job) - executing script");
+            log.debug("execute(job) - executing script");
             try {
                 // load script
                 ErrorInfo scriptErrors = callScript(item, job);
@@ -179,7 +179,7 @@ public class AgentProxy extends ItemProxy {
             }
         }
         else if (job.hasQuery() && !"Query".equals(job.getActProp(BuiltInVertexProperties.OUTCOME_INIT))) {
-            log.info("execute(job) - executing query (OutcomeInit != Query)");
+            log.debug("execute(job) - executing query (OutcomeInit != Query)");
 
             job.setOutcome(item.executeQuery(job.getQuery()));
         }
@@ -197,7 +197,8 @@ public class AgentProxy extends ItemProxy {
             if (xml != null) execute(this, Sign.class, xml);
         }
 
-        log.info("execute(job) - submitting job to item proxy");
+        log.debug("execute(job) - submitting job to item proxy");
+
         String result = item.requestAction(job);
                 
         if (log.isDebugEnabled()) {

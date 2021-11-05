@@ -28,12 +28,14 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
@@ -75,7 +77,10 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
+
 import com.google.errorprone.annotations.Immutable;
+
+import io.vertx.core.AsyncResult;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -149,6 +154,22 @@ public class ItemProxy {
 
     /**
      * 
+     * @param result
+     * @param futureResult
+     */
+    private void asyncHandleRequestAction(AsyncResult<String> result, CompletableFuture<String> futureResult) {
+        if (result.succeeded()) {
+            String returnString = result.result();
+            log.trace("handleRequestAction() - return:{}", returnString);
+            futureResult.complete(returnString);
+        }
+        else {
+            futureResult.completeExceptionally(result.cause());
+        }
+    }
+
+    /**
+     * 
      * @param itemUuid
      * @param agentUuid
      * @param stepPath
@@ -174,24 +195,22 @@ public class ItemProxy {
         try {
             CompletableFuture<String> futureResult = new CompletableFuture<>();
 
-            getItem().requestAction(
-                    itemUuid,
-                    agentUuid,
-                    stepPath,
-                    transitionID,
-                    requestData,
-                    fileName,
-                    attachment,
-                    (result) -> {
-                        if (result.succeeded()) {
-                            String returnString = result.result();
-                            log.trace("requestAction() - return:{}", returnString);
-                            futureResult.complete(returnString);
-                        }
-                        else {
-                            futureResult.completeExceptionally(result.cause());
-                        }
-                    });
+            Thread thread = new Thread("requestAction-"+this) {
+                public void run() {
+                    getItem().requestAction(
+                            itemUuid,
+                            agentUuid,
+                            stepPath,
+                            transitionID,
+                            requestData,
+                            fileName,
+                            attachment,
+                            (result) -> { asyncHandleRequestAction(result, futureResult); }
+                    );
+                }
+            };
+
+            thread.start();
 
             return futureResult.get(ItemVerticle.requestTimeout, SECONDS);
         }
@@ -263,6 +282,29 @@ public class ItemProxy {
     }
 
     /**
+     * 
+     * @param result
+     * @param agentPath
+     * @param futureResult
+     */
+    private void asyncHandleGetJobs(AsyncResult<String> result, CompletableFuture<List<Job>> futureResult) {
+        if (result.succeeded()) {
+            String returnString = result.result();
+            log.trace("getJobsHandler() - received:{}", returnString);
+            try {
+                JobArrayList thisJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(returnString);
+                futureResult.complete(thisJobList.list);
+            }
+            catch (MarshalException | ValidationException | IOException | MappingException e) {
+                futureResult.completeExceptionally(e);
+            }
+        }
+        else {
+            futureResult.completeExceptionally(result.cause());
+        }
+    }
+
+    /**
      * Get the list of Jobs of the Item that can be executed by the Agent
      *
      * @param agentPath the Agent requesting the job
@@ -274,43 +316,34 @@ public class ItemProxy {
      */
     private List<Job> getJobs(AgentPath agentPath, boolean filter) throws CriseVertxException {
         log.debug("getJobs() - item:{} agent:{}", mItemPath.getItemName(), agentPath.getAgentName());
+
         try {
-            CompletableFuture<String> futureResult = new CompletableFuture<>();
+            CompletableFuture<List<Job>> futureResult = new CompletableFuture<>();
 
-            getItem().queryLifeCycle(mItemPath.toString(), agentPath.toString(), filter, (result) -> {
-                if (result.succeeded()) {
-                    String returnString = result.result();
-                    log.trace("getJobs() - handler return:{}", returnString);
-                    futureResult.complete(returnString);
+            Thread thread = new Thread("getJobs-"+this) {
+                public void run() {
+                    getItem().queryLifeCycle(
+                            mItemPath.toString(),
+                            agentPath.toString(),
+                            filter,
+                            (result) -> { asyncHandleGetJobs(result, futureResult); }
+                    );
                 }
-                else {
-                    String msg = "item:" + this + " agent:" + agentPath.getAgentName();
-                    log.error("getJobs() - handling error {}",msg , result.cause());
-                    futureResult.completeExceptionally(result.cause());
-                }
-            });
+            };
 
-            String jobs = futureResult.get(ItemVerticle.requestTimeout, SECONDS);
+            thread.start();
 
-            try {
-                JobArrayList thisJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(jobs);
-                return thisJobList.list;
-            }
-            catch (MarshalException | ValidationException | IOException | MappingException e) {
-                String msg = "item:" + this + " agent:" + agentPath.getAgentName();
-                log.error("Cannot unmarshall jobs {}", msg, e);
-                throw new PersistencyException("Cannot unmarshall jobs " + msg, e);
-            }
+            return futureResult.get(ItemVerticle.requestTimeout, SECONDS);
         }
         catch (ExecutionException e) {
             String msg = "item:" + this + " agent:" + agentPath.getAgentName();
-            log.error("getJobList() - {}", msg, e);
+            log.error("getJobs() - {}", msg, e);
             throw CriseVertxException.convertFutureException(e);
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             String msg = "item:" + this + " agent:" + agentPath.getAgentName();
-            log.error("getJobList() - Error while waiting {}", msg, e);
-            throw new CannotManageException("Error while waiting for getJobs() " + msg, e);
+            log.error("getJobs() - Error while waiting {}", msg, e);
+            throw new CannotManageException("Error while waiting for getJobs() - " + msg, e);
         }
     }
 
@@ -938,11 +971,11 @@ public class ItemProxy {
      * @throws ObjectNotFoundException path was not correct
      */
     public String queryData(String path, TransactionKey transKey) throws ObjectNotFoundException {
-        try {
-            log.debug("queryData() - {}/{}", mItemPath, path);
+        log.debug("queryData() - {}/{}", mItemPath, path);
 
+        try {
             if (path.endsWith("all")) {
-                log.debug("queryData() - listing contents");
+                log.trace("queryData() - listing contents");
 
                 String[] result = Gateway.getStorage().getClusterContents(mItemPath, path.substring(0, path.length()-3), transKey == null ? transactionKey : transKey);
                 StringBuffer retString = new StringBuffer();
@@ -952,7 +985,7 @@ public class ItemProxy {
 
                     if (i < result.length-1) retString.append(",");
                 }
-                log.debug("queryData() - {}", retString);
+                log.trace("queryData() - retString:{}", retString);
                 return retString.toString();
             }
             else {
@@ -1230,8 +1263,6 @@ public class ItemProxy {
      * @throws ObjectNotFoundException
      */
     public String getProperty(String name, TransactionKey transKey) throws ObjectNotFoundException {
-        log.debug("getProperty() - {} from item {}", name, mItemPath);
-
         Property prop = (Property)getObject(ClusterType.PROPERTY+"/"+name, transKey == null ? transactionKey : transKey);
 
         if(prop != null) return prop.getValue();

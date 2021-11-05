@@ -27,6 +27,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPT
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PREDEFINED_STEP;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VALIDATE_OUTCOME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 
 import java.util.ArrayList;
@@ -199,7 +200,9 @@ public class Activity extends WfVertex {
                    CannotManageException,
                    InvalidCollectionModification
     {
-        boolean validateOutcome = Gateway.getProperties().getBoolean("Activity.validateOutcome", false);
+        boolean validateOutcomeDefault = Gateway.getProperties().getBoolean("Activity.validateOutcome", false);
+        boolean validateOutcome = (boolean) getBuiltInProperty(VALIDATE_OUTCOME, validateOutcomeDefault);
+
         return request(agent, itemPath, transitionID, requestData, attachmentType, attachment, validateOutcome, transactionKey);
     }
 
@@ -236,10 +239,12 @@ public class Activity extends WfVertex {
         // Verify outcome
         boolean storeOutcome = false;
         if (transition.hasOutcome(getProperties())) {
-            if (StringUtils.isNotBlank(requestData))
+            if (StringUtils.isNotBlank(requestData)) {
                 storeOutcome = true;
-            else if (transition.getOutcome().isRequired())
+            }
+            else if (transition.getOutcome().isRequired()) {
                 throw new InvalidDataException("Transition requires outcome data, but none was given");
+            }
         }
 
         // Get new state
@@ -262,6 +267,8 @@ public class Activity extends WfVertex {
             // This is used by PredefinedStep executed during bootstrap
             if (validateOutcome) newOutcome.validateAndCheck();
 
+            executePredefinedSteps(agent, itemPath, newOutcome, transactionKey);
+
             String viewpoint = resolveViewpointName(newOutcome);
             boolean hasAttachment = attachment.length > 0;
 
@@ -283,8 +290,6 @@ public class Activity extends WfVertex {
             Gateway.getStorage().put(itemPath, new Viewpoint(itemPath, schema, "last", eventID), transactionKey);
 
             updateItemProperties(itemPath, newOutcome, transactionKey);
-
-            executePredefinedSteps(agent, itemPath, newOutcome, transactionKey);
         }
         else {
             updateItemProperties(itemPath, null, transactionKey);
@@ -326,7 +331,10 @@ public class Activity extends WfVertex {
             for (String predefStepName : StringUtils.split(predefStepProperty, ',')) {
                 PredefinedStep predefStep = PredefinedStep.getStepInstance(predefStepName.trim());
 
-                if (predefStep != null) {
+                if (predefStep == null) {
+                    log.warn("executePredefinedStep() - SKIPPING Invalid PredefinedStep name:'{}'", predefStepName);
+                }
+                else if (predefStep.outcomeHasValidData(newOutcome)) {
                     predefStep.computeUpdates(itemPath, this, newOutcome, transactionKey);
 
                     for (Entry<ItemPath, String> entry : predefStep.getAutoUpdates().entrySet()) {
@@ -334,7 +342,7 @@ public class Activity extends WfVertex {
                     }
                 }
                 else {
-                    log.warn("executePredefinedStep() - PredefinedStep '{}' will NOT be requested", predefStepName);
+                    log.debug("executePredefinedStep() - SKIPPING optional PredefinedStep:'{}'", predefStepName);
                 }
             }
         }
