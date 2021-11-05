@@ -33,6 +33,7 @@ import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
@@ -161,6 +162,22 @@ public abstract class PredefinedStep extends Activity {
             if (step != null) return step;
         }
         return null;
+    }
+
+    /**
+     * Check if the Outcome contains the data required to execute it. Uses its own simple name.
+     * 
+     * @param outcome 
+     * @return
+     */
+    public boolean outcomeHasValidData(Outcome outcome) {
+        try {
+            return outcome.getNodeByXPath("//" + this.getClass().getSimpleName()) != null;
+        }
+        catch (XPathExpressionException e) {
+            log.error("outcomeHasValidData()", e);
+        }
+        return false;
     }
 
     /**

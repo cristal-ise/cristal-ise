@@ -51,7 +51,7 @@
 
     <properties>
         <revision>6.0.0-SNAPSHOT</revision>
-        <vertx.version>4.2.0.CR1</vertx.version>
+        <vertx.version>4.2.1</vertx.version>
         <productionMode>false</productionMode>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

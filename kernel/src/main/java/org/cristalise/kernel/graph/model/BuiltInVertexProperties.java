@@ -323,6 +323,12 @@ public enum BuiltInVertexProperties {
     TYPE("Type"),
 
     /**
+     * Boolean property to trigger Outcome validation before creating the entry in the ClusterStore. 
+     * Default value is false, which can be overwritten by the 'Activity.validateOutcome' system property.
+     */
+    VALIDATE_OUTCOME("ValidateOutcome"),
+
+    /**
      * Integer property. It is used in CollectionMember to store the version of DescriptionDependency
      */
     VERSION("Version"),
@@ -365,5 +371,4 @@ public enum BuiltInVertexProperties {
         }
         return null;
     }
-
 }

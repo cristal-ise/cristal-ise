@@ -341,7 +341,7 @@ public class Job implements C2KLocalObject {
             viewName = "last";
         }
 
-        log.info("Job.getValidViewpointName() - returning Viewpoint:'{}'", viewName);
+        log.debug("getValidViewpointName() - returning Viewpoint:'{}'", viewName);
 
         return viewName;
     }
@@ -390,7 +390,7 @@ public class Job implements C2KLocalObject {
             OutcomeInitiator ocInit;
 
             synchronized (ocInitCache) {
-                log.info("Job.getOutcomeInitiator() - ocConfigPropName:{}", ocConfigPropName);
+                log.debug("Job.getOutcomeInitiator() - ocConfigPropName:{}", ocConfigPropName);
                 ocInit = ocInitCache.get(ocConfigPropName);
 
                 if (ocInit == null) {
@@ -606,7 +606,7 @@ public class Job implements C2KLocalObject {
         }
 
         if(result.size() == 0) {
-            log.info("matchActPropNames() - NO properties were found for propName.startsWith(pattern:'{}')", pattern);
+            log.debug("matchActPropNames() - NO properties were found for propName.startsWith(pattern:'{}')", pattern);
             log.trace("matchActPropNames() - actProps:", actProps);
         }
 
