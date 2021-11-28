@@ -335,6 +335,7 @@ public class Activity extends WfVertex {
                     log.warn("executePredefinedStep() - SKIPPING Invalid PredefinedStep name:'{}'", predefStepName);
                 }
                 else if (predefStep.outcomeHasValidData(newOutcome)) {
+                    predefStep.mergeProperties(getProperties());
                     predefStep.computeUpdates(itemPath, this, newOutcome, transactionKey);
 
                     for (Entry<ItemPath, String> entry : predefStep.getAutoUpdates().entrySet()) {

@@ -734,7 +734,7 @@ public class Script implements DescriptionObject {
                 throw new ScriptingEngineException("Script engine not set. Cannot execute scripts.");
             }
 
-            engine.put(ScriptEngine.FILENAME, mName);
+            context.setAttribute(ScriptEngine.FILENAME, mName, ScriptContext.ENGINE_SCOPE);
 
             if (mCompScript != null) returnValue = mCompScript.eval(context);
             else                     returnValue = engine.eval(mScript);

@@ -53,19 +53,22 @@ def Dependency processAddMembersToCollection(AgentProxy theAgent, Job theJob, St
     def memberName = outcome.getField('MemberName')
 
     if (!memberPath && !memberName) {
-        log.error('processAddMembersToCollection() - MemberPath and MemberName is missing from outcome:{}', outcome)
+        log.error('processAddMembersToCollection() - Both MemberPath and MemberName are missing from outcome:{}', outcome)
         throw new InvalidDataException('Please provide MemberPath or MemberName')
     }
+
+    def memberPropString = outcome.getField('MemberProperties')
+    def memberProps = memberPropString ? (CastorHashMap)theAgent.unmarshall(memberPropString) : new CastorHashMap()
 
     def dep = new Dependency(dependencyName)
 
     if (memberPath) {
-        dep.addMember(theAgent.getItem(memberPath).getPath(), new CastorHashMap(), '', null);
+        dep.addMember(theAgent.getItem(memberPath).getPath(), memberProps, '', null);
     }
     else {
         // find the item in the 'default' location eg. /integTest/Patients/kovax
         def moduleNs = theJob.getActProp('ModuleNameSpace')
-        dep.addMember(theAgent.getItem("$moduleNs/$dependencyName/$memberName").getPath(), new CastorHashMap(), '', null);
+        dep.addMember(theAgent.getItem("$moduleNs/$dependencyName/$memberName").getPath(), memberProps, '', null);
     }
 
     return dep

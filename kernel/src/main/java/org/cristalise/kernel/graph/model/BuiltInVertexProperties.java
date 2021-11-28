@@ -92,6 +92,11 @@ public enum BuiltInVertexProperties {
     DEPENDENCY_ALLOW_DUPLICATE_ITEMS("DependencyAllowDuplicateItems"),
 
     /**
+     * default: false
+     */
+    DEPENDENCY_DISABLE_TYPE_CHECK("DependencyDisableTypeCheck"),
+
+    /**
      * String property used in ActivityDef to store the description text
      */
     DESCRIPTION("Description"),

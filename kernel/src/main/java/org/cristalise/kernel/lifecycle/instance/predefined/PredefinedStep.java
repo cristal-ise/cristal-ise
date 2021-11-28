@@ -46,6 +46,7 @@ import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.events.History;
+import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
@@ -58,6 +59,8 @@ import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.CastorHashMap;
+import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
@@ -378,4 +381,28 @@ public abstract class PredefinedStep extends Activity {
         //empty implementation
         log.debug("computeUpdates() - UNIMPLEMENTED!");
     };
+
+    public void mergeProperties(CastorHashMap newProps) {
+        for (KeyValuePair kvPair : newProps.getKeyValuePairs()) {
+            BuiltInVertexProperties key = BuiltInVertexProperties.getValue((String)kvPair.getKey());
+
+          //only check built-in properties
+            if (key == null) continue;
+
+            switch (key) {
+                case NAME:
+                case VERSION:
+                case STATE_MACHINE_NAME:
+                case STATE_MACHINE_VERSION:
+                case SCHEMA_NAME:
+                case SCHEMA_VERSION:
+                    // do not overwrite existing values for these
+                    break;
+
+                default:
+                    getProperties().setKeyValuePair(kvPair);
+                    break;
+            }
+        }
+    }
 }
