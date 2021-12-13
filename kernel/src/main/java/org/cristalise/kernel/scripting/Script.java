@@ -1037,7 +1037,7 @@ public class Script implements DescriptionObject {
     public void export(Writer imports, File dir, boolean shallow) throws IOException, InvalidDataException {
         String tc = SCRIPT_RESOURCE.getTypeCode();
 
-        String xml = new Outcome(getScriptData()).getData(true);
+        String xml = new Outcome(getScriptData()).getData();
         FileStringUtility.string2File(new File(new File(dir, tc), getName()+(getVersion()==null?"":"_"+getVersion())+".xml"), xml);
 
         if (imports == null) return;

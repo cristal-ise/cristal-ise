@@ -34,7 +34,6 @@ import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.Erase
 import org.cristalise.kernel.lookup.DomainPath
-import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.persistency.outcomebuilder.Field
@@ -44,7 +43,7 @@ import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.StandardClient
 import org.cristalise.kernel.utils.LocalObjectLoader
 
-import groovy.cli.commons.CliBuilder
+import groovy.cli.picocli.CliBuilder
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
