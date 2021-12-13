@@ -275,7 +275,9 @@
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>3.3.1</version>
                         <configuration>
-                            <additionalparam>-Xdoclint:none</additionalparam>
+                            <additionalOptions>
+                                <additionalOption>-Xdoclint:none</additionalOption>
+                            </additionalOptions>
                         </configuration>
                         <executions>
                             <execution>
