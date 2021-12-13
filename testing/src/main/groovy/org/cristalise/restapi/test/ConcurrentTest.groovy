@@ -30,6 +30,8 @@ class ConcurrentTest extends RestapiTestBase {
         def factory = agent.getItem("/$folder/PatientFactory")
         def createItemJob = factory.getJobByName('InstantiateItem', agent)
         def o = createItemJob.getOutcome()
+        // Empty OotcomeInitiator will create this optional node
+        o.removeNodeByXPath('//PropertyList')
 
         List<String> uuids = []
 
