@@ -188,7 +188,7 @@ class CRUDGeneratorTest {
 
         generator.generateModuleDSL(inputs)
 
-//        assert getCheckGitStatus()
+        assert getCheckGitStatus()
 
         CompilerConfiguration cc = new CompilerConfiguration()
         cc.setScriptBaseClass(DelegatingScript.class.getName())
@@ -200,6 +200,6 @@ class CRUDGeneratorTest {
         script.setDelegate(this)
         script.run()
 
-//        assert getCheckGitStatus()
+        assert getCheckGitStatus()
     }
 }

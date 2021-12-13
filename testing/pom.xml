@@ -154,41 +154,6 @@
                 </executions>
             </plugin>
         </plugins>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.codehaus.gmavenplus</groupId>
-                                        <artifactId>gmavenplus-plugin</artifactId>
-                                        <versionRange>1.13.1</versionRange>
-                                        <goals>
-                                            <goal>addSources</goal>
-                                            <goal>addTestSources</goal>
-                                            <goal>generateStubs</goal>
-                                            <goal>generateTestStubs</goal>
-                                            <goal>compile</goal>
-                                            <goal>compileTests</goal>
-                                            <goal>removeStubs</goal>
-                                            <goal>removeTestStubs</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore />
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
     </build>
     <dependencies>
         <dependency>
