@@ -35,11 +35,21 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
     fi
     ```
 
-1. jdk 11 does not have the ejb/corba libraries so configure linux to use java 8
+1. Select the required JDK version
+  - Version 6.x: openjdk 11 (CORBA was replaced with vert.x)
+  - Version 5.x: openjdk 8 (jdk 11 does not have the ejb/corba libraries)
 
     ```shell
       sudo update-alternatives --config java
       sudo update-alternatives --config javac
+    ```
+
+1. Select the maven version compatible with the JDK
+  - Version 6.x: maven 3.8.4
+  - Version 5.x: maven 3.6.0
+
+    ```shell
+      sudo update-alternatives --config mvn
     ```
 
 1. `mkdir workspace; cd workspace`
@@ -50,13 +60,22 @@ This work is based on [jhipster-devbox](https://github.com/jhipster/jhipster-dev
 1. `mvn install` - Do this step before any build in eclipse to download all maven dependencies
 1. Rebbot the VM
 
-### Configure Eclipse
+### Configure Eclipse 
 
-1. Install eclipse `umake ide eclipse` or download eclipse-inst
+1. Install eclipse `umake ide eclipse` or download eclipse installer
+  - Eclipse v4.21 (2021-09) was tested at the time of writing 
+1. Select the required JDK version
+  - Version 6.x: use java 11 (CORBA was replaced with vert.x)
+  - Version 5.x: use java 8 (jdk 11 does not have the ejb/corba libraries)
 1. Add lombok to eclipse: https://projectlombok.org/download
 1. Open Eclipse and use workspace: `~/workspace/cristal-ise`
-1. Add groovy plugin to eclipse:  https://dist.springsource.org/release/GRECLIPSE/e4.14
-1. Configure eclipse to use groovy 2.5
+1. Configure eclipse to use required JDK version
+  - Version 6.x: use java 11 (CORBA was replaced with vert.x)
+  - Version 5.x: use java 8 (jdk 11 does not have the ejb/corba libraries)
+1. Add groovy plugin to eclipse:  https://github.com/groovy/groovy-eclipse/wiki
+1. Configure eclipse to use required version
+  - Version 6.x: groovy 3.0
+  - Version 5.x: groovy 2.5
 1. 'Import/Existing Maven Projects' - select directory `~/workspace/cristal-ise`
 1. The flattener maven plugin has to be ignored for all imported projects in eclipse preferences
 
