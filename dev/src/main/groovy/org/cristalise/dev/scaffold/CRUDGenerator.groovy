@@ -20,7 +20,6 @@
  */
 package org.cristalise.dev.scaffold
 
-import org.apache.commons.collections4.map.HashedMap
 import org.apache.commons.lang3.StringUtils
 import org.cristalise.dev.dsl.item.CRUDItem
 import org.cristalise.dev.dsl.module.CRUDModuleDelegate
@@ -34,8 +33,8 @@ import org.mvel2.templates.TemplateCompiler
 import org.mvel2.templates.TemplateRegistry
 import org.mvel2.templates.TemplateRuntime
 
-import groovy.cli.commons.CliBuilder
-import groovy.cli.commons.OptionAccessor
+import groovy.cli.picocli.CliBuilder
+import groovy.cli.picocli.OptionAccessor
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j

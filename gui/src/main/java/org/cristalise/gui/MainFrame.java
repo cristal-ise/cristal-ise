@@ -50,7 +50,6 @@ import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.Logger;
-import org.omg.CORBA.UserException;
 
 /**
  * @version $Revision: 1.83 $ $Date: 2005/09/12 14:56:19 $
@@ -62,7 +61,6 @@ public class MainFrame extends javax.swing.JFrame {
     public static ItemTabManager myDesktopManager;
     public static ItemFinder itemFinder;
     protected MenuBuilder menuBuilder;
-    protected org.omg.CORBA.ORB orb;
     public static Properties prefs = new Properties();
     
     public static ProgressReporter progress;
@@ -323,8 +321,6 @@ public class MainFrame extends javax.swing.JFrame {
 
 		String className = ex.getClass().getSimpleName();
 		String error = ex.getMessage();
-		if (ex instanceof UserException)
-			error = error.substring(error.indexOf(' ') + 1);
 		JOptionPane.showMessageDialog(null, error, className, JOptionPane.ERROR_MESSAGE);
 	}
 

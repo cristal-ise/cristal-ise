@@ -133,7 +133,7 @@ class CSVGroovyParser implements TabularGroovyParser {
         }
 
         def currentNames = []
-        def header = []
+        List<List<String>> header = []
 
         //construct the path of each header, make sure to skip columns if needed
         for (int i in skipLeftCols..size-(1+skipRightCols)) {

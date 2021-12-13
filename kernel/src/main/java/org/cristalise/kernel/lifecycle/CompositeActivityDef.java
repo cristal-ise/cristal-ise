@@ -467,7 +467,7 @@ public class CompositeActivityDef extends ActivityDef {
 
         try {
             // export marshalled compAct
-            String compactXML = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
+            String compactXML = new Outcome(Gateway.getMarshaller().marshall(this)).getData();
             if (Gateway.getProperties().getBoolean("Export.replaceActivitySlotDefUUIDWithName", false)) {
                 compactXML = replaceActivitySlotDefUUIDWithName(compactXML);
             }            
