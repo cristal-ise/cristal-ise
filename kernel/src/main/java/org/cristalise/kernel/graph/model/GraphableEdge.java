@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.graph.model;
 
+import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.TYPE;
+import org.cristalise.kernel.graph.renderer.DefaultDirectedEdgeRenderer.EdgeRouting;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 
@@ -61,5 +63,45 @@ public abstract class GraphableEdge extends DirectedEdge {
 
     public void setBuiltInProperty(BuiltInEdgeProperties prop, Object val) {
         mProperties.put(prop.getName(), val);
+    }
+
+    @Override
+    public boolean containsPoint(GraphPoint p) {
+        GraphPoint originPoint = getOriginPoint();
+        GraphPoint terminusPoint = getTerminusPoint();
+        GraphPoint midPoint = new GraphPoint();
+
+        EdgeRouting type = EdgeRouting.getValue(getBuiltInProperty(TYPE).toString());
+
+        switch (type) {
+            case BROKEN_PLUS:
+                midPoint.x = (originPoint.x + terminusPoint.x) / 2;
+                midPoint.y = (originPoint.y + terminusPoint.y) / 2;
+                break;
+
+            case BROKEN_MINUS:
+                boolean arrowOnY = !(originPoint.y - terminusPoint.y < 60 && originPoint.y - terminusPoint.y > -60);
+                midPoint.x = arrowOnY ? terminusPoint.x : (originPoint.x + terminusPoint.x) / 2;
+                midPoint.y = arrowOnY ? (originPoint.y + terminusPoint.y) / 2 : originPoint.y;
+                break;
+
+            case BROKEN_PIPE:
+                arrowOnY = !(originPoint.y - terminusPoint.y < 60 && originPoint.y - terminusPoint.y > -60);
+                midPoint.x = arrowOnY ? originPoint.x : (originPoint.x + terminusPoint.x) / 2;
+                midPoint.y = arrowOnY ? (originPoint.y + terminusPoint.y) / 2 : terminusPoint.y;
+                break;
+
+            default:
+                midPoint.x = originPoint.x + (terminusPoint.x - originPoint.x) / 2;
+                midPoint.y = originPoint.y + (terminusPoint.y - originPoint.y) / 2;
+                break;
+        }
+
+        int minX = midPoint.x - 10;
+        int minY = midPoint.y - 10;
+        int maxX = midPoint.x + 10;
+        int maxY = midPoint.y + 10;
+
+        return (p.x >= minX) && (p.x <= maxX) && (p.y >= minY) && (p.y <= maxY);
     }
 }
