@@ -40,7 +40,7 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 @CompileStatic @Slf4j
-class AndSplitDefDelegate extends BlockDefDelegate {
+class AndSplitDefDelegate extends SplitDefDelegate {
 
     AndSplitDef andSplitDef
     JoinDef     joinDef

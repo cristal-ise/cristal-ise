@@ -20,10 +20,12 @@
  */
 package org.cristalise.dsl.test.lifecycle.definition
 
+import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
+
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder;
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
-import org.cristalise.kernel.graph.model.GraphableVertex
+import org.cristalise.kernel.graph.model.GraphableEdge
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
@@ -52,7 +54,6 @@ class OrSplitCompActDefBuilderSpecs extends Specification implements CristalTest
         caDef = null
     }
 
-
     def 'CompositeActivityDef can start with OrSplit'() {
         when:
         def left  = new ActivityDef('left',  0)
@@ -60,9 +61,9 @@ class OrSplitCompActDefBuilderSpecs extends Specification implements CristalTest
     
         caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-StartOrSplit', version: 0) {
             Layout {
-                OrSplit {
-                    Block { Act(left)  }
-                    Block { Act(right) }
+                OrSplit(groovy: 'left') {
+                    Block(Alias: 'left')  { Act(left)  }
+                    Block(Alias: 'right') { Act(right) }
                 }
             }
         }
@@ -86,6 +87,10 @@ class OrSplitCompActDefBuilderSpecs extends Specification implements CristalTest
 
         orSplitDef.getInGraphables().size() == 0
         orSplitDef.getOutGraphables().collect {it.name} == ['left','right']
+        orSplitDef.properties.RoutingScriptName == "groovy:left"
+        orSplitDef.properties.RoutingScriptVersion == null;
+        orSplitDef.getOutEdges().collect {((GraphableEdge)it).getBuiltInProperty(ALIAS)} == ['left','right']
+
         joinDef.getInGraphables().collect {it.name} == ['left','right']
         joinDef.getOutGraphables().size() == 0
     }

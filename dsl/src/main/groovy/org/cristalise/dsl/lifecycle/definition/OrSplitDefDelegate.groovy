@@ -20,6 +20,8 @@
  */
 package org.cristalise.dsl.lifecycle.definition;
 
+import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
+
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
@@ -70,6 +72,8 @@ class OrSplitDefDelegate extends SplitDefDelegate {
         //link to end of the current Block with the Join of the OrSplit
         log.debug('Block() - linking lastSlotDef:{} to join:{}', blockD.lastSlotDef, joinDef)
         compActDef.addNextDef(blockD.lastSlotDef, joinDef)
+
+        if (blockD.firstEdge && props?.Alias) blockD.firstEdge.setBuiltInProperty(ALIAS, props.Alias)
 
         return blockD.lastSlotDef
     }
