@@ -95,4 +95,28 @@ class OrSplitDefDelegate extends SplitDefDelegate {
 
         return loopD.lastSlotDef
     }
+
+    @Override
+    def AndSplit(Map<String, Object> props = null, @DelegatesTo(AndSplitDefDelegate) Closure cl) {
+        def andD =  new AndSplitDefDelegate(compActDef, lastSlotDef, props)
+        andD.processClosure(cl)
+
+        //link to the end of the current Block with the Join of the AndSplit
+        log.debug('AndSplit() - linking lastSlotDef:{} to join:{}', andD.lastSlotDef, joinDef)
+        compActDef.addNextDef(andD.lastSlotDef, joinDef)
+
+        return andD.andSplitDef
+    }
+
+    @Override
+    def OrSplit(Map<String, Object> props = null, @DelegatesTo(OrSplitDefDelegate) Closure cl) {
+        def orD =  new OrSplitDefDelegate(compActDef, lastSlotDef, props)
+        orD.processClosure(cl)
+
+        //link to the end of the current Block with the Join of the AndSplit
+        log.debug('OrSplit() - linking lastSlotDef:{} to join:{}', orD.lastSlotDef, joinDef)
+        compActDef.addNextDef(orD.lastSlotDef, joinDef)
+
+        return orD.orSplitDef
+    }
 }

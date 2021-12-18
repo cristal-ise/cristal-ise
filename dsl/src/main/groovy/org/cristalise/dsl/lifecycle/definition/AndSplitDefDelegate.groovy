@@ -75,7 +75,7 @@ class AndSplitDefDelegate extends SplitDefDelegate {
         def blockD =  new BlockDefDelegate(compActDef, andSplitDef)
         blockD.processClosure(cl)
 
-        //link to end of the current Block with the Join of the AndSplit
+        //link to the end of the current Block with the Join of the AndSplit
         log.debug('Block() - linking lastSlotDef:{} to join:{}', blockD.lastSlotDef, joinDef)
         compActDef.addNextDef(blockD.lastSlotDef, joinDef)
 
@@ -93,11 +93,34 @@ class AndSplitDefDelegate extends SplitDefDelegate {
         def loopD =  new LoopDefDelegate(compActDef, andSplitDef, null)
         loopD.processClosure(cl)
 
-        //link to end of the current Block with the Join of the AndSplit
+        //link to the end of the current Block with the Join of the AndSplit
         log.debug('Loop() - linking lastSlotDef:{} to join:{}', loopD.lastSlotDef, joinDef)
         compActDef.addNextDef(loopD.lastSlotDef, joinDef)
 
         return loopD.lastSlotDef
     }
 
+    @Override
+    def AndSplit(Map<String, Object> props = null, @DelegatesTo(AndSplitDefDelegate) Closure cl) {
+        def andD =  new AndSplitDefDelegate(compActDef, lastSlotDef, props)
+        andD.processClosure(cl)
+
+        //link to the end of the current Block with the Join of the AndSplit
+        log.debug('AndSplit() - linking lastSlotDef:{} to join:{}', andD.lastSlotDef, joinDef)
+        compActDef.addNextDef(andD.lastSlotDef, joinDef)
+
+        return andD.andSplitDef
+    }
+
+    @Override
+    def OrSplit(Map<String, Object> props = null, @DelegatesTo(OrSplitDefDelegate) Closure cl) {
+        def orD =  new OrSplitDefDelegate(compActDef, lastSlotDef, props)
+        orD.processClosure(cl)
+
+        //link to the end of the current Block with the Join of the AndSplit
+        log.debug('OrSplit() - linking lastSlotDef:{} to join:{}', orD.lastSlotDef, joinDef)
+        compActDef.addNextDef(orD.lastSlotDef, joinDef)
+
+        return orD.orSplitDef
+    }
 }

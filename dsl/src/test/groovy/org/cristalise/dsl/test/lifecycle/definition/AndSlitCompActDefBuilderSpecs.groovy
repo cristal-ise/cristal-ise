@@ -143,17 +143,24 @@ class AndSlitCompActDefBuilderSpecs extends Specification implements CristalTest
         joinDef.getOutGraphables().collect {it.name} == ['last']
     }
 
-    def 'CompositeActivityDef can define AndSplit with Loops'() {
+    def 'CompositeActivityDef can define AndSplit with AndSplits, Loops and OrSplts'() {
         when:
         def left   = new ActivityDef('left',  0)
         def middle = new ActivityDef('middle', 0)
         def right  = new ActivityDef('right', 0)
 
-        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-AndSplitWithLoops', version: 0) {
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-AndSplitWithSplits', version: 0) {
             Layout {
                 AndSplit {
                     LoopInfinitive { Act('Left', left)  }
-                    Block { Act('Middle', middle) }
+                    AndSplit { 
+                        Block {Act('Middle0', middle)}
+                        Block {Act('Middle1', middle)}
+                    }
+                    OrSplit { 
+                        Block {Act('Middle2', middle)}
+                        Block {Act('Middle3', middle)}
+                    }
                     Loop { Act('Right', right) }
                     Block { CompActDef('ManageItemDesc', 0) }
                 }
@@ -164,12 +171,12 @@ class AndSlitCompActDefBuilderSpecs extends Specification implements CristalTest
 
         then:
         caDef.verify()
-        caDef.name == 'CADef-AndSplitWithLoops'
+        caDef.name == 'CADef-AndSplitWithSplits'
         caDef.version == 0
-        caDef.childrenGraphModel.vertices.length == 12
+        caDef.childrenGraphModel.vertices.length == 19
         caDef.childrenGraphModel.startVertex.class.simpleName == 'AndSplitDef'
 
         andSplitDef.getInGraphables().size() == 0
-        andSplitDef.getOutGraphables().collect { it.class.simpleName } == ['JoinDef', 'ActivitySlotDef', 'JoinDef', 'ActivitySlotDef']
+        andSplitDef.getOutGraphables().collect { it.class.simpleName } == ['JoinDef', 'AndSplitDef', 'OrSplitDef', 'JoinDef', 'ActivitySlotDef']
     }
 }
