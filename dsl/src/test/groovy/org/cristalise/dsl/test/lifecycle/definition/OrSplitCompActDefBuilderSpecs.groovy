@@ -21,8 +21,6 @@
 package org.cristalise.dsl.test.lifecycle.definition
 
 import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
-
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder;
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.graph.model.GraphableEdge
@@ -31,6 +29,7 @@ import org.cristalise.kernel.lifecycle.AndSplitDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.OrSplitDef
+import org.cristalise.kernel.lifecycle.XOrSplitDef
 import org.cristalise.kernel.test.utils.CristalTestSetup
 import spock.lang.Specification
 
@@ -184,6 +183,36 @@ class OrSplitCompActDefBuilderSpecs extends Specification implements CristalTest
         caDef.childrenGraphModel.vertices.length == 7
 
         innerOrSplit.inGraphables[0].getID() == outerOrSplit.getID()
+        outerJoin.inGraphables[0].getID() == innerJoin.getID()
+    }
+
+    def 'OrSplit can contain XOrSplits'() {
+        when:
+        def middle = new ActivityDef('middle', 0)
+
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-OrSplitWithXOrSplit', version: 0) {
+            Layout {
+                OrSplit {
+                    XOrSplit {
+                        Block {Act('Middle1', middle)}
+                        Block {Act('Middle2', middle)}
+                    }
+                    Block { CompActDef('ManageItemDesc', 0) }
+                }
+            }
+        }
+
+        def outerOrSplit  = (OrSplitDef)  caDef.childrenGraphModel.startVertex
+        def innerXOrSplit = (XOrSplitDef) caDef.getChildren().find { it instanceof XOrSplitDef && it.getID() != outerOrSplit.getID() }
+
+        def outerJoin = (JoinDef) caDef.getChildren().find { it instanceof JoinDef && it.pairingId == outerOrSplit.pairingId }
+        def innerJoin = (JoinDef) caDef.getChildren().find { it instanceof JoinDef && it.pairingId == innerXOrSplit.pairingId }
+
+        then:
+        caDef.verify()
+        caDef.childrenGraphModel.vertices.length == 7
+
+        innerXOrSplit.inGraphables[0].getID() == outerOrSplit.getID()
         outerJoin.inGraphables[0].getID() == innerJoin.getID()
     }
 
