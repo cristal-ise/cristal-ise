@@ -1,7 +1,8 @@
 <cristalscript>
   <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
   <output name="TestItemUseConstructorGeneratedNameMap" type="java.util.Map"/>
-  <script language="groovy" name="TestItemUseConstructorGeneratedName_QueryList"><![CDATA[ import org.cristalise.kernel.entity.proxy.AgentProxy
+  <script language="groovy" name="TestItemUseConstructorGeneratedName_QueryList">
+    <![CDATA[ import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.property.Property
@@ -27,5 +28,6 @@ for (DomainPath dp: result.rows) {
 }
 
 return TestItemUseConstructorGeneratedNameMap
- ]]></script>
+ ]]>
+  </script>
 </cristalscript>

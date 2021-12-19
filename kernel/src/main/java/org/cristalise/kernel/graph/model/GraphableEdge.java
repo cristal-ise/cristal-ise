@@ -58,7 +58,11 @@ public abstract class GraphableEdge extends DirectedEdge {
     }
 
     public Object getBuiltInProperty(BuiltInEdgeProperties prop) {
-        return mProperties.get(prop.getName());
+        return mProperties.getBuiltInProperty(prop);
+    }
+
+    public Object getBuiltInProperty(BuiltInEdgeProperties prop, Object defaultValue) {
+        return mProperties.getBuiltInProperty(prop, defaultValue);
     }
 
     public void setBuiltInProperty(BuiltInEdgeProperties prop, Object val) {
@@ -71,7 +75,7 @@ public abstract class GraphableEdge extends DirectedEdge {
         GraphPoint terminusPoint = getTerminusPoint();
         GraphPoint midPoint = new GraphPoint();
 
-        EdgeRouting type = EdgeRouting.getValue(getBuiltInProperty(TYPE).toString());
+        EdgeRouting type = EdgeRouting.getValue(getBuiltInProperty(TYPE, "").toString());
 
         switch (type) {
             case BROKEN_PLUS:

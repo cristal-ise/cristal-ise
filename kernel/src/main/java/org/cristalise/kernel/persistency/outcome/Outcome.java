@@ -21,8 +21,8 @@
 package org.cristalise.kernel.persistency.outcome;
 
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
-
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -33,22 +33,20 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
-
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -71,7 +69,6 @@ import org.xmlunit.diff.DefaultNodeMatcher;
 import org.xmlunit.diff.Diff;
 import org.xmlunit.diff.Difference;
 import org.xmlunit.diff.ElementSelectors;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -952,38 +949,62 @@ public class Outcome implements C2KLocalObject {
         return nodeToTemove.getParentNode().removeChild(nodeToTemove);
     }
 
+    private static Transformer getPrettyTransformer() throws InvalidDataException {
+        try {
+            TransformerFactory tf = TransformerFactory.newInstance();
+            tf.setAttribute("indent-number", 2);
+
+            // add XSLT for pretty print
+            InputStream is = Outcome.class.getResourceAsStream("/org/cristalise/kernel/utils/resources/textFiles/prettyPrint.xslt");
+            Transformer transformer = tf.newTransformer(new StreamSource(is));
+    
+            // add extra standalone to break the root node to a new line
+            transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
+
+            return transformer;
+        }
+        catch (Exception ex) {
+            log.error("getPrettyTransformer()", ex);
+            throw new InvalidDataException(ex);
+        }
+    }
+
+    private static Transformer getTransformer() throws InvalidDataException {
+        try {
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer             transformer = tf.newTransformer();
+    
+            return transformer;
+        }
+        catch (Exception ex) {
+            log.error("getTransformer()", ex);
+            throw new InvalidDataException(ex);
+        }
+    }
+
     /**
-     * Serialize the Given Document
+     * Serialize the given Document
      *
      * @param doc document to be serialized
      * @param prettyPrint if the xml is pretty printed or not
      * @return the xml string
      * @throws InvalidDataException Transformer Exception
      */
-    static public String serialize(Node node, boolean prettyPrint) throws InvalidDataException {
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer transformer;
+    public static String serialize(Node node, boolean prettyPrint) throws InvalidDataException {
         try {
-            transformer = tf.newTransformer();
-        }
-        catch (TransformerConfigurationException ex) {
-            log.error("", ex);
-            return "";
-        }
-        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-        transformer.setOutputProperty(OutputKeys.INDENT, prettyPrint ? "yes" : "no");
-        if (prettyPrint) transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            Transformer transformer = prettyPrint ? getPrettyTransformer() : getTransformer();
 
-        Writer out = new StringWriter();
-        try {
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+
+            Writer out = new StringWriter();
             transformer.transform(new DOMSource(node), new StreamResult(out));
+            return out.toString();
         }
-        catch (Exception e) {
-            log.error("serialize()", e);
-            throw new InvalidDataException(e);
+        catch (Exception ex) {
+            log.error("serialize()", ex);
+            throw new InvalidDataException(ex);
         }
-        return out.toString();
     }
 
     /**
