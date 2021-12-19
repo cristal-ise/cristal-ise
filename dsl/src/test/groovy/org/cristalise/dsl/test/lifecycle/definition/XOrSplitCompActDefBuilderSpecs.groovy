@@ -21,8 +21,6 @@
 package org.cristalise.dsl.test.lifecycle.definition
 
 import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
-
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder;
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.graph.model.GraphableEdge
@@ -31,6 +29,7 @@ import org.cristalise.kernel.lifecycle.AndSplitDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.OrSplitDef
+import org.cristalise.kernel.lifecycle.XOrSplitDef
 import org.cristalise.kernel.test.utils.CristalTestSetup
 import spock.lang.Specification
 
@@ -38,7 +37,7 @@ import spock.lang.Specification
 /**
  *
  */
-class OrSplitCompActDefBuilderSpecs extends Specification implements CristalTestSetup {
+class XOrSplitCompActDefBuilderSpecs extends Specification implements CristalTestSetup {
     
     CompositeActivityDef caDef
     
@@ -55,53 +54,53 @@ class OrSplitCompActDefBuilderSpecs extends Specification implements CristalTest
         caDef = null
     }
 
-    def 'CompositeActivityDef can start with OrSplit'() {
+    def 'CompositeActivityDef can start with XOrSplit'() {
         when:
         def left  = new ActivityDef('left',  0)
         def right = new ActivityDef('right', 0)
     
-        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-OrSplitStart', version: 0) {
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-XOrSplitStart', version: 0) {
             Layout {
-                OrSplit(groovy: 'left') {
+                XOrSplit(groovy: 'left') {
                     Block(Alias: 'left')  { Act(left)  }
                     Block(Alias: 'right') { Act(right) }
                 }
             }
         }
 
-        def orSplitDef = caDef.getChildren().find { it instanceof OrSplitDef }
+        def xorSplitDef = caDef.getChildren().find { it instanceof XOrSplitDef }
         def joinDef = caDef.getChildren().find { it instanceof JoinDef }
 
         then:
         caDef.verify()
-        caDef.name == 'CADef-OrSplitStart'
+        caDef.name == 'CADef-XOrSplitStart'
         caDef.version == 0
         caDef.childrenGraphModel.vertices.length == 4
-        caDef.childrenGraphModel.startVertex.class.simpleName == 'OrSplitDef'
+        caDef.childrenGraphModel.startVertex.class.simpleName == 'XOrSplitDef'
 
-        orSplitDef
+        xorSplitDef
         joinDef
 
-        orSplitDef.getPairingId() == joinDef.getPairingId()
+        xorSplitDef.getPairingId() == joinDef.getPairingId()
 
-        orSplitDef.getInGraphables().size() == 0
-        orSplitDef.getOutGraphables().collect {it.name} == ['left','right']
-        orSplitDef.properties.RoutingScriptName == "groovy:left"
-        orSplitDef.properties.RoutingScriptVersion == null;
-        orSplitDef.getOutEdges().collect {((GraphableEdge)it).getBuiltInProperty(ALIAS)} == ['left','right']
+        xorSplitDef.getInGraphables().size() == 0
+        xorSplitDef.getOutGraphables().collect {it.name} == ['left','right']
+        xorSplitDef.properties.RoutingScriptName == "groovy:left"
+        xorSplitDef.properties.RoutingScriptVersion == null;
+        xorSplitDef.getOutEdges().collect {((GraphableEdge)it).getBuiltInProperty(ALIAS)} == ['left','right']
 
         joinDef.getInGraphables().collect {it.name} == ['left','right']
         joinDef.getOutGraphables().size() == 0
     }
 
-    def 'OrSplit can define properties'() {
+    def 'XOrSplit can define properties'() {
         when:
         def left  = new ActivityDef('left',  0)
         def right = new ActivityDef('right', 0)
     
-        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-OrSplitProps', version: 0) {
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-XOrSplitProps', version: 0) {
             Layout {
-                OrSplit(RoutingScriptName: 'CounterScript01', RoutingScriptVersion: 0) {
+                XOrSplit(RoutingScriptName: 'CounterScript01', RoutingScriptVersion: 0) {
                     Property(counter: 'activity//./first:/TestData/counter')
 
                     Block(Alias: 'left')  { Act(left)  }
@@ -110,27 +109,27 @@ class OrSplitCompActDefBuilderSpecs extends Specification implements CristalTest
             }
         }
 
-        def orSplitDef = caDef.getChildren().find { it instanceof OrSplitDef }
+        def xorSplitDef = caDef.getChildren().find { it instanceof XOrSplitDef }
 
         then:
         caDef.verify()
 
-        orSplitDef.properties.RoutingScriptName == 'CounterScript01'
-        orSplitDef.properties.RoutingScriptVersion == 0
-        orSplitDef.properties.counter == 'activity//./first:/TestData/counter'
+        xorSplitDef.properties.RoutingScriptName == 'CounterScript01'
+        xorSplitDef.properties.RoutingScriptVersion == 0
+        xorSplitDef.properties.counter == 'activity//./first:/TestData/counter'
     }
 
-    def 'CompositeActivityDef can include OrSplit'() {
+    def 'CompositeActivityDef can include XOrSplit'() {
         when:
         def first = new ActivityDef('first',  0)
         def left  = new ActivityDef('left',  0)
         def right = new ActivityDef('right', 0)
         def last  = new ActivityDef('last',  0)
 
-        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-OrSplitIncluded', version: 0) {
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-XOrSplitIncluded', version: 0) {
             Layout {
                 Act(first)
-                OrSplit(groovy: 'left') {
+                XOrSplit(groovy: 'left') {
                     Block(Alias: 'left')  { Act(left)  }
                     Block(Alias: 'right') { Act(right) }
                 }
@@ -138,32 +137,32 @@ class OrSplitCompActDefBuilderSpecs extends Specification implements CristalTest
             }
         }
 
-        def orSplitDef = caDef.getChildren().find { it instanceof OrSplitDef }
+        def xorSplitDef = caDef.getChildren().find { it instanceof XOrSplitDef }
         def joinDef = caDef.getChildren().find { it instanceof JoinDef }
 
         then:
         caDef.verify()
-        caDef.name == 'CADef-OrSplitIncluded'
+        caDef.name == 'CADef-XOrSplitIncluded'
         caDef.version == 0
         caDef.childrenGraphModel.vertices.length == 6
         caDef.childrenGraphModel.startVertex.class.simpleName == 'ActivitySlotDef'
 
-        orSplitDef
+        xorSplitDef
         joinDef
 
-        orSplitDef.pairingId == joinDef.pairingId
+        xorSplitDef.pairingId == joinDef.pairingId
 
-        orSplitDef.inGraphables.size() == 1
+        xorSplitDef.inGraphables.size() == 1
         joinDef.outGraphables.size() == 1
     }
 
-    def 'OrSplit can contain OrSplits'() {
+    def 'XOrSplit can contain OrSplits'() {
         when:
         def middle = new ActivityDef('middle', 0)
 
-        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-OrSplitWithOrSplit', version: 0) {
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-XOrSplitWithOrSplit', version: 0) {
             Layout {
-                OrSplit {
+                XOrSplit {
                     OrSplit { 
                         Block {Act('Middle1', middle)}
                         Block {Act('Middle2', middle)}
@@ -173,27 +172,27 @@ class OrSplitCompActDefBuilderSpecs extends Specification implements CristalTest
             }
         }
 
-        def outerOrSplit = (OrSplitDef) caDef.childrenGraphModel.startVertex
-        def innerOrSplit = (OrSplitDef) caDef.getChildren().find { it instanceof OrSplitDef && it.getID() != outerOrSplit.getID() }
+        def outerXOrSplit = (XOrSplitDef) caDef.childrenGraphModel.startVertex
+        def innerOrSplit = (OrSplitDef) caDef.getChildren().find { it instanceof OrSplitDef && it.getID() != outerXOrSplit.getID() }
 
-        def outerJoin = (JoinDef) caDef.getChildren().find { it instanceof JoinDef && it.pairingId == outerOrSplit.pairingId }
+        def outerJoin = (JoinDef) caDef.getChildren().find { it instanceof JoinDef && it.pairingId == outerXOrSplit.pairingId }
         def innerJoin = (JoinDef) caDef.getChildren().find { it instanceof JoinDef && it.pairingId == innerOrSplit.pairingId }
 
         then:
         caDef.verify()
         caDef.childrenGraphModel.vertices.length == 7
 
-        innerOrSplit.inGraphables[0].getID() == outerOrSplit.getID()
+        innerOrSplit.inGraphables[0].getID() == outerXOrSplit.getID()
         outerJoin.inGraphables[0].getID() == innerJoin.getID()
     }
 
-    def 'OrSplit can contain AndSplits'() {
+    def 'XOrSplit can contain AndSplits'() {
         when:
         def middle = new ActivityDef('middle', 0)
 
-        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-OrSplitWithAndSplit', version: 0) {
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-XOrSplitWithAndSplit', version: 0) {
             Layout {
-                OrSplit {
+                XOrSplit {
                     AndSplit { 
                         Block {Act('Middle1', middle)}
                         Block {Act('Middle2', middle)}
@@ -203,27 +202,27 @@ class OrSplitCompActDefBuilderSpecs extends Specification implements CristalTest
             }
         }
 
-        def outerOrSplit = (OrSplitDef) caDef.childrenGraphModel.startVertex
-        def innerAndSplit = (AndSplitDef) caDef.getChildren().find { it instanceof AndSplitDef && it.getID() != outerOrSplit.getID() }
+        def outerXOrSplit = (XOrSplitDef) caDef.childrenGraphModel.startVertex
+        def innerAndSplit = (AndSplitDef) caDef.getChildren().find { it instanceof AndSplitDef && it.getID() != outerXOrSplit.getID() }
 
-        def outerJoin = (JoinDef) caDef.getChildren().find { it instanceof JoinDef && it.pairingId == outerOrSplit.pairingId }
+        def outerJoin = (JoinDef) caDef.getChildren().find { it instanceof JoinDef && it.pairingId == outerXOrSplit.pairingId }
         def innerJoin = (JoinDef) caDef.getChildren().find { it instanceof JoinDef && it.pairingId == innerAndSplit.pairingId }
 
         then:
         caDef.verify()
         caDef.childrenGraphModel.vertices.length == 7
 
-        innerAndSplit.inGraphables[0].getID() == outerOrSplit.getID()
+        innerAndSplit.inGraphables[0].getID() == outerXOrSplit.getID()
         outerJoin.inGraphables[0].getID() == innerJoin.getID()
     }
 
-    def 'OrSplit can contain Loops'() {
+    def 'XOrSplit can contain Loops'() {
         when:
         def middle = new ActivityDef('middle', 0)
 
-        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-OrSplitWithLoop', version: 0) {
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-XOrSplitWithLoop', version: 0) {
             Layout {
-                OrSplit {
+                XOrSplit {
                     Loop { Act('Middle', middle)}
                     LoopInfinitive { CompActDef('ManageItemDesc', 0) }
                 }

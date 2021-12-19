@@ -21,38 +21,38 @@
 package org.cristalise.dsl.lifecycle.definition;
 
 import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
-
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.OrSplitDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
+import org.cristalise.kernel.lifecycle.XOrSplitDef
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 @CompileStatic @Slf4j
-class OrSplitDefDelegate extends SplitDefDelegate {
+class XOrSplitDefDelegate extends SplitDefDelegate {
 
-    OrSplitDef orSplitDef
+    XOrSplitDef xorSplitDef
     JoinDef    joinDef
 
-    public OrSplitDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef, Map<String, Object> initialProps) {
+    public XOrSplitDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef, Map<String, Object> initialProps) {
         super(parent, originSlotDef)
 
-        orSplitDef = (OrSplitDef) compActDef.newChild("", Types.OrSplit, 0, new GraphPoint())
-        joinDef    = (JoinDef)    compActDef.newChild("", Types.Join, 0, new GraphPoint())
+        xorSplitDef = (XOrSplitDef) compActDef.newChild("", Types.XOrSplit, 0, new GraphPoint())
+        joinDef     = (JoinDef)    compActDef.newChild("", Types.Join, 0, new GraphPoint())
 
-        String pairingId = "OrSplit${orSplitDef.getID()}"
-        setPairingId(pairingId, orSplitDef, joinDef)
+        String pairingId = "XOrSplit${xorSplitDef.getID()}"
+        setPairingId(pairingId, xorSplitDef, joinDef)
 
-        setInitialProperties(orSplitDef, initialProps)
+        setInitialProperties(xorSplitDef, initialProps)
     }
 
     public void processClosure(Closure cl) {
         assert cl, "Split only works with a valid Closure"
 
-        addAsNext(orSplitDef)
+        addAsNext(xorSplitDef)
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
@@ -61,15 +61,15 @@ class OrSplitDefDelegate extends SplitDefDelegate {
         lastSlotDef = joinDef
 
         props.each { k, v ->
-            orSplitDef.properties.put(k, v, props.getAbstract().contains(k))
+            xorSplitDef.properties.put(k, v, props.getAbstract().contains(k))
         }
     }
 
     def Block(Map<String, Object> props = null, @DelegatesTo(BlockDefDelegate) Closure cl) {
-        def blockD =  new BlockDefDelegate(compActDef, orSplitDef)
+        def blockD =  new BlockDefDelegate(compActDef, xorSplitDef)
         blockD.processClosure(cl)
 
-        //link to end of the current Block with the Join of the OrSplit
+        //link to end of the current Block with the Join of the XOrSplit
         log.debug('Block() - linking lastSlotDef:{} to join:{}', blockD.lastSlotDef, joinDef)
         compActDef.addNextDef(blockD.lastSlotDef, joinDef)
 
@@ -86,10 +86,10 @@ class OrSplitDefDelegate extends SplitDefDelegate {
 
     @Override
     def Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
-        def loopD =  new LoopDefDelegate(compActDef, orSplitDef, null)
+        def loopD =  new LoopDefDelegate(compActDef, xorSplitDef, null)
         loopD.processClosure(cl)
 
-        //link to end of the current Block with the Join of the OrSplit
+        //link to end of the current Block with the Join of the XOrSplit
         log.debug('Loop() - linking lastSlotDef:{} to join:{}', loopD.lastSlotDef, joinDef)
         compActDef.addNextDef(loopD.lastSlotDef, joinDef)
 
@@ -101,7 +101,7 @@ class OrSplitDefDelegate extends SplitDefDelegate {
         def andD =  new AndSplitDefDelegate(compActDef, lastSlotDef, props)
         andD.processClosure(cl)
 
-        //link to the end of the current Block with the Join of the OrSplit
+        //link to the end of the current Block with the Join of the XOrSplit
         log.debug('AndSplit() - linking lastSlotDef:{} to join:{}', andD.lastSlotDef, joinDef)
         compActDef.addNextDef(andD.lastSlotDef, joinDef)
 
@@ -113,7 +113,7 @@ class OrSplitDefDelegate extends SplitDefDelegate {
         def orD =  new OrSplitDefDelegate(compActDef, lastSlotDef, props)
         orD.processClosure(cl)
 
-        //link to the end of the current Block with the Join of the OrSplit
+        //link to the end of the current Block with the Join of the XOrSplit
         log.debug('OrSplit() - linking lastSlotDef:{} to join:{}', orD.lastSlotDef, joinDef)
         compActDef.addNextDef(orD.lastSlotDef, joinDef)
 

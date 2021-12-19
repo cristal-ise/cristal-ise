@@ -156,4 +156,13 @@ class BlockDefDelegate extends PropertyDelegate {
 
         return orD.orSplitDef
     }
+
+    def XOrSplit(Map<String, Object> props = null, @DelegatesTo(XOrSplitDefDelegate) Closure cl) {
+        def xorD =  new XOrSplitDefDelegate(compActDef, lastSlotDef, props)
+        xorD.processClosure(cl)
+
+        lastSlotDef = xorD.lastSlotDef
+
+        return xorD.xorSplitDef
+    }
 }
