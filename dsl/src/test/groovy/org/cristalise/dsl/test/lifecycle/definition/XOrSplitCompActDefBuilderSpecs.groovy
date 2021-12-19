@@ -156,6 +156,36 @@ class XOrSplitCompActDefBuilderSpecs extends Specification implements CristalTes
         joinDef.outGraphables.size() == 1
     }
 
+    def 'XOrSplit can contain XOrSplits'() {
+        when:
+        def middle = new ActivityDef('middle', 0)
+
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-XOrSplitWithXOrSplit', version: 0) {
+            Layout {
+                XOrSplit {
+                    XOrSplit { 
+                        Block {Act('Middle1', middle)}
+                        Block {Act('Middle2', middle)}
+                    }
+                    Block { CompActDef('ManageItemDesc', 0) }
+                }
+            }
+        }
+
+        def outerXOrSplit = (XOrSplitDef) caDef.childrenGraphModel.startVertex
+        def innerXOrSplit = (XOrSplitDef) caDef.getChildren().find { it instanceof XOrSplitDef && it.getID() != outerXOrSplit.getID() }
+
+        def outerJoin = (JoinDef) caDef.getChildren().find { it instanceof JoinDef && it.pairingId == outerXOrSplit.pairingId }
+        def innerJoin = (JoinDef) caDef.getChildren().find { it instanceof JoinDef && it.pairingId == innerXOrSplit.pairingId }
+
+        then:
+        caDef.verify()
+        caDef.childrenGraphModel.vertices.length == 7
+
+        innerXOrSplit.inGraphables[0].getID() == outerXOrSplit.getID()
+        outerJoin.inGraphables[0].getID() == innerJoin.getID()
+    }
+
     def 'XOrSplit can contain OrSplits'() {
         when:
         def middle = new ActivityDef('middle', 0)

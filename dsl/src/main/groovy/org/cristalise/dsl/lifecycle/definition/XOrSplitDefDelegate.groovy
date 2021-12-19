@@ -119,4 +119,16 @@ class XOrSplitDefDelegate extends SplitDefDelegate {
 
         return orD.orSplitDef
     }
+
+    @Override
+    def XOrSplit(Map<String, Object> props = null, @DelegatesTo(XOrSplitDefDelegate) Closure cl) {
+        def xorD =  new XOrSplitDefDelegate(compActDef, lastSlotDef, props)
+        xorD.processClosure(cl)
+
+        //link to the end of the current Block with the Join of the XOrSplit
+        log.debug('XOrSplit() - linking lastSlotDef:{} to join:{}', xorD.lastSlotDef, joinDef)
+        compActDef.addNextDef(xorD.lastSlotDef, joinDef)
+
+        return xorD.xorSplitDef
+    }
 }
