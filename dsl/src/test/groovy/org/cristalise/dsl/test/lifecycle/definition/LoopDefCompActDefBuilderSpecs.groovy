@@ -21,7 +21,6 @@
 package org.cristalise.dsl.test.lifecycle.definition
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
-
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder;
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.graph.model.GraphableVertex
@@ -31,12 +30,8 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.LoopDef
 import org.cristalise.kernel.lifecycle.OrSplitDef
-import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
-import org.cristalise.kernel.lookup.ItemPath
-import org.cristalise.kernel.persistency.outcome.Schema
-import org.cristalise.kernel.scripting.Script
+import org.cristalise.kernel.lifecycle.XOrSplitDef
 import org.cristalise.kernel.test.utils.CristalTestSetup
-
 import spock.lang.Specification
 
 
@@ -246,6 +241,40 @@ class LoopDefCompActDefBuilderSpecs extends Specification implements CristalTest
         ((GraphableVertex)orSplit.inGraphables[0]).getBuiltInProperty(PAIRING_ID) == loop.getBuiltInProperty(PAIRING_ID)
         // Loop's input Vertex is the end Join of the orSplit
         ((GraphableVertex)loop.inGraphables[0]).getBuiltInProperty(PAIRING_ID) == orSplit.getBuiltInProperty(PAIRING_ID)
+    }
+    
+    def 'Loop can contain XOrSplit'() {
+        when:
+        def left  = new ActivityDef('left', 0)
+        def right = new ActivityDef('right', 0)
+
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-LoopWithXOrSplit', version: 0) {
+            Layout {
+                Loop {
+                    XOrSplit {
+                        Block { Act(left)  }
+                        Block { Act(right) }
+                    }
+                }
+            }
+        }
+
+        def loop = caDef.getChildren().find { it instanceof LoopDef }
+        def xorSplit = caDef.getChildren().find { it instanceof XOrSplitDef }
+
+        then:
+        caDef.verify()
+        caDef.childrenGraphModel.vertices.length == 7
+
+        xorSplit.inGraphables.size() == 1
+        xorSplit.outGraphables.size() == 2
+        loop.inGraphables.size() == 1
+        loop.outGraphables.size() == 2
+
+        // XOrSplit's input Vertex is the start Join of the Loop
+        ((GraphableVertex)xorSplit.inGraphables[0]).getBuiltInProperty(PAIRING_ID) == loop.getBuiltInProperty(PAIRING_ID)
+        // Loop's input Vertex is the end Join of the XOrSplit
+        ((GraphableVertex)loop.inGraphables[0]).getBuiltInProperty(PAIRING_ID) == xorSplit.getBuiltInProperty(PAIRING_ID)
     }
 
     def 'Loop can contain Loop'() {
