@@ -143,7 +143,7 @@ class AndSlitCompActDefBuilderSpecs extends Specification implements CristalTest
         joinDef.getOutGraphables().collect {it.name} == ['last']
     }
 
-    def 'CompositeActivityDef can define AndSplit with AndSplits, Loops and OrSplts'() {
+    def 'CompositeActivityDef can define AndSplit with AndSplits, Loops, OrSplit and XOrSplts'() {
         when:
         def left   = new ActivityDef('left',  0)
         def middle = new ActivityDef('middle', 0)
@@ -161,6 +161,10 @@ class AndSlitCompActDefBuilderSpecs extends Specification implements CristalTest
                         Block {Act('Middle2', middle)}
                         Block {Act('Middle3', middle)}
                     }
+                    XOrSplit { 
+                        Block {Act('Middle4', middle)}
+                        Block {Act('Middle5', middle)}
+                    }
                     Loop { Act('Right', right) }
                     Block { CompActDef('ManageItemDesc', 0) }
                 }
@@ -173,10 +177,10 @@ class AndSlitCompActDefBuilderSpecs extends Specification implements CristalTest
         caDef.verify()
         caDef.name == 'CADef-AndSplitWithSplits'
         caDef.version == 0
-        caDef.childrenGraphModel.vertices.length == 19
+        caDef.childrenGraphModel.vertices.length == 23
         caDef.childrenGraphModel.startVertex.class.simpleName == 'AndSplitDef'
 
         andSplitDef.getInGraphables().size() == 0
-        andSplitDef.getOutGraphables().collect { it.class.simpleName } == ['JoinDef', 'AndSplitDef', 'OrSplitDef', 'JoinDef', 'ActivitySlotDef']
+        andSplitDef.getOutGraphables().collect { it.class.simpleName } == ['JoinDef', 'AndSplitDef', 'OrSplitDef', 'XOrSplitDef', 'JoinDef', 'ActivitySlotDef']
     }
 }
