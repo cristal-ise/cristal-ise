@@ -135,7 +135,7 @@
         <OriginPoint x="190" y="130"/>
         <TerminusPoint x="280" y="210"/>
         <Properties>
-          <KeyValuePair Key="Alias" String="ACTIVE" isAbstract="false"/>
+          <KeyValuePair Key="Alias" String="!INACTIVE" isAbstract="false"/>
         </Properties>
       </NextDef>
       <NextDef ID="8" OriginVertexId="6" TerminusVertexId="4">

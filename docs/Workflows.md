@@ -1,1 +1,0 @@
-The RoutingExpression of an OR split can return a comma-separated list of string, each one identifying a different edge: the activities along all of those edges will be activated.

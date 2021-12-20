@@ -50,9 +50,9 @@ public class OrSplit extends Split {
         log.trace("runNext(id:{}) - Finding edge with {} '{}'", id, ALIAS, Arrays.toString(nextsTab));
 
         for (DirectedEdge outEdge : getOutEdges()) {
-            if (isInTable((String)((Next)outEdge).getBuiltInProperty(ALIAS), nextsTab)) {
-                nextsToFollow.add(outEdge);
-            }
+            String alias = (String)((Next)outEdge).getBuiltInProperty(ALIAS, "");
+
+            if (isInTable(alias, nextsTab)) nextsToFollow.add(outEdge);
         }
 
         if (nextsToFollow .size() == 0) {
