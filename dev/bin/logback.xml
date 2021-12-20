@@ -1,0 +1,64 @@
+<configuration>
+  <property name="LOG_HISTORY_DAILY_PATTERN" value="%d{yyyy-MM-dd}"/>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{56} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <if condition='isDefined("APP_NAME")'>
+    <then>
+      <appender name="LOGFILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <append>true</append>
+        <immediateFlush>true</immediateFlush>
+        <file>/app/log/${APP_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+          <!--  daily rollover  -->
+          <fileNamePattern>/app/log/${APP_NAME}-${LOG_HISTORY_DAILY_PATTERN}.log </fileNamePattern>
+          <!--  keep 365 days' worth of history capped at 2GB total size  -->
+          <maxHistory>365</maxHistory>
+          <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+          <pattern>%d{yyyy-MM-dd_HH:mm:ss.SSS} [%thread] %-5level %logger{56} - %msg%n</pattern>
+        </encoder>
+      </appender>
+    </then>
+  </if>
+
+  <!-- Slf4j log levels are ERROR, WARN, INFO, DEBUG, TRACE-->
+
+  <!--  Predefined loggers for the main components used. To be uncommented for debug purpose -->
+  <!--  <logger name="com.zaxxer.hikari" level="TRACE"/>-->
+  <!--  <logger name="org.apache.shiro" level="TRACE"/>-->
+  <!--  <logger name="org.apache.commons" level="TRACE"/>-->
+  <!--  <logger name="org.castor" level="TRACE"/>-->
+  <!--  <logger name="org.cristalise" level="TRACE"/>-->
+  <!--  <logger name="org.exolab.castor" level="TRACE"/>-->
+  <!--  <logger name="org.glassfish.grizzly" level="TRACE"/>-->
+  <!--  <logger name="org.jooq" level="TRACE"/>-->
+
+  <!--  Make server startup log visible-->
+  <logger name="org.cristalise.kernel.entity.imports" level="INFO"/>
+  <logger name="org.cristalise.kernel.process.Bootstrap" level="INFO"/>
+  <logger name="org.cristalise.kernel.process.StandardServer" level="INFO"/>
+
+  <!-- Fine tune log level of some of the components -->
+  <!-- avoid java.lang.Integer output parameter initialisation warning-->
+  <logger name="org.cristalise.kernel.scripting.Script" level="ERROR"/>
+  <!--  Waiting for cristal-ise issue #333 to be fixed-->
+  <logger name="org.cristalise.kernel.lifecycle.ActivityDef" level="ERROR"/>
+  <!--  <logger name="org.cristalise.kernel.entity.proxy.ItemProxy" level="ERROR"/>-->
+
+  <root level="INFO">
+    <appender-ref ref="STDOUT"/>
+    <if condition='isDefined("APP_NAME")'>
+      <then>
+        <appender-ref ref="LOGFILE"/>
+      </then>
+    </if>
+  </root>
+
+</configuration>

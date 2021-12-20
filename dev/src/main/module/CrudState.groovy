@@ -28,7 +28,13 @@ Activity('CrudState_Deactivate', 0) {
     Property('ItemProperty.State': states[1])
 }
 
-def stateWf = Workflow('CrudState_Manage', 0) {
-    ElemActDef($crudState_Activate_ActivityDef)
-    ElemActDef($crudState_Deactivate_ActivityDef)
+Workflow('CrudState_Manage', 0) {
+    Layout {
+        LoopInfinitive {
+            OrSplit(RoutingExpr: 'property//State') {
+                Block(Alias: 'INACTIVE') { Act('Activate',   $crudState_Activate_ActivityDef) }
+                Block(Alias: 'ACTIVE')   { Act('Deactivate', $crudState_Deactivate_ActivityDef) }
+            }
+        }
+    }
 }

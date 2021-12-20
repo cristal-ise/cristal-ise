@@ -67,6 +67,7 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
+import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -470,13 +471,23 @@ public class Script implements DescriptionObject {
         // get script source from CDATA
         NodeList scriptChildNodes = scriptElem.getChildNodes();
 
-        if (scriptChildNodes.getLength() != 1)
-            throw new ScriptParsingException("More than one child element found under script tag. Script characters may need escaping - suggest convert to CDATA section");
-        
-        if (scriptChildNodes.item(0) instanceof Text)
-            setScriptData(((Text) scriptChildNodes.item(0)).getData());
-        else
-            throw new ScriptParsingException("Child element of script tag was not text");
+        int cdataIdx = -1;
+
+        for (int i = 0; i < scriptChildNodes.getLength(); i++) {
+            if (scriptChildNodes.item(i) instanceof CDATASection) { 
+                cdataIdx = i;
+            }
+            else if (scriptChildNodes.item(i) instanceof Text) {
+                if (StringUtils.isNotBlank(((Text)scriptChildNodes.item(i)).getData())) {
+                    throw new ScriptParsingException("Script must be wrapped in CDATA - name:"+getName()+" element:"+scriptChildNodes.item(i));
+                }
+            }
+            else {
+                throw new ScriptParsingException("Child element of script tag was not text - name:"+getName()+" element:"+scriptChildNodes.item(i));
+            }
+        }
+
+        setScriptData(((Text)scriptChildNodes.item(cdataIdx)).getData());
 
         log.trace("parseScriptTag() - script:" + mScript);
     }
@@ -1037,7 +1048,7 @@ public class Script implements DescriptionObject {
     public void export(Writer imports, File dir, boolean shallow) throws IOException, InvalidDataException {
         String tc = SCRIPT_RESOURCE.getTypeCode();
 
-        String xml = new Outcome(getScriptData()).getData();
+        String xml = new Outcome(getScriptData()).getData(true);
         FileStringUtility.string2File(new File(new File(dir, tc), getName()+(getVersion()==null?"":"_"+getVersion())+".xml"), xml);
 
         if (imports == null) return;

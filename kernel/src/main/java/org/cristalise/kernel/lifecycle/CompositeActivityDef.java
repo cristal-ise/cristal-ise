@@ -467,10 +467,10 @@ public class CompositeActivityDef extends ActivityDef {
 
         try {
             // export marshalled compAct
-            String compactXML = new Outcome(Gateway.getMarshaller().marshall(this)).getData();
+            String compactXML = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
             if (Gateway.getProperties().getBoolean("Export.replaceActivitySlotDefUUIDWithName", false)) {
                 compactXML = replaceActivitySlotDefUUIDWithName(compactXML);
-            }            
+            }
             FileStringUtility.string2File(new File(new File(dir, tc), getActName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml"), compactXML);
         }
         catch (Exception e) {
