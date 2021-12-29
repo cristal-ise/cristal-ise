@@ -30,6 +30,8 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.OrSplitDef
 import org.cristalise.kernel.lifecycle.XOrSplitDef
+import org.cristalise.kernel.lookup.ItemPath
+import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.CristalTestSetup
 import spock.lang.Specification
 
@@ -116,6 +118,33 @@ class OrSplitCompActDefBuilderSpecs extends Specification implements CristalTest
 
         orSplitDef.properties.RoutingScriptName == 'CounterScript01'
         orSplitDef.properties.RoutingScriptVersion == 0
+        orSplitDef.properties.counter == 'activity//./first:/TestData/counter'
+    }
+
+    def 'OrSplit can use Script object as RoutingScript'() {
+        when:
+        def left  = new ActivityDef('left',  0)
+        def right = new ActivityDef('right', 0)
+        def script = new Script('RoutingScript42', 13, new ItemPath(), null)
+        
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-OrSplitExternalRoutingScript', version: 0) {
+            Layout {
+                OrSplit(RoutingScript: script) {
+                    Property(counter: 'activity//./first:/TestData/counter')
+
+                    Block(Alias: 'left')  { Act(left)  }
+                    Block(Alias: 'right') { Act(right) }
+                }
+            }
+        }
+
+        def orSplitDef = caDef.getChildren().find { it instanceof OrSplitDef }
+
+        then:
+        caDef.verify()
+
+        orSplitDef.properties.RoutingScriptName == 'RoutingScript42'
+        orSplitDef.properties.RoutingScriptVersion == 13
         orSplitDef.properties.counter == 'activity//./first:/TestData/counter'
     }
 

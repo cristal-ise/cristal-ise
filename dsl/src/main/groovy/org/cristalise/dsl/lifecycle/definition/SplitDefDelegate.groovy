@@ -28,6 +28,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_
 import org.cristalise.kernel.graph.model.GraphableVertex
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
+import org.cristalise.kernel.scripting.Script
 import groovy.transform.CompileStatic
 
 @CompileStatic
@@ -49,6 +50,11 @@ abstract class SplitDefDelegate extends BlockDefDelegate {
         else if(initialProps?.groovy) {
             setRoutingScript(splitDef, (String)"groovy:${initialProps.groovy}", null);
             initialProps.remove('groovy')
+        }
+        else if (initialProps?.RoutingScript) {
+            def script = initialProps?.RoutingScript as Script
+            setRoutingScript(splitDef, script.getName(), script.getVersion());
+            initialProps.remove('RoutingScript')
         }
         else {
             setRoutingExpr(splitDef, 'true')

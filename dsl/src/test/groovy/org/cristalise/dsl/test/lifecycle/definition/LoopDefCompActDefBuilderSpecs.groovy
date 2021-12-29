@@ -31,6 +31,8 @@ import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.LoopDef
 import org.cristalise.kernel.lifecycle.OrSplitDef
 import org.cristalise.kernel.lifecycle.XOrSplitDef
+import org.cristalise.kernel.lookup.ItemPath
+import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.CristalTestSetup
 import spock.lang.Specification
 
@@ -122,7 +124,7 @@ class LoopDefCompActDefBuilderSpecs extends Specification implements CristalTest
         lastDef.getOutGraphables().size() == 0
     }
 
-    def 'LoopDef can define RoutingScript'() {
+    def 'Loop can define RoutingScript'() {
         when:
         def looping = new ActivityDef('looping', 0)
         caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-Loop-RoutingScript', version: 0) {
@@ -146,6 +148,35 @@ class LoopDefCompActDefBuilderSpecs extends Specification implements CristalTest
         loopDef.properties.size() == 6
         loopDef.properties.RoutingScriptName == 'javascript:true;'
         loopDef.properties.RoutingScriptVersion == null;
+        loopDef.properties.toto == 123
+    }
+
+    def 'Loop can use Script object as RoutingScript'() {
+        when:
+        def script = new Script('RoutingScript42', 13, new ItemPath(), null)
+
+        def looping = new ActivityDef('looping', 0)
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-Loop-ExistingRoutingScript', version: 0) {
+            Layout {
+                Loop(RoutingScript: script) {
+                    Property(toto: 123)
+                    Act(looping)
+                }
+            }
+        }
+
+        def loopDef = caDef.getChildren().find { it instanceof LoopDef }
+
+        then:
+        caDef.verify()
+        caDef.name == 'CADef-Loop-ExistingRoutingScript'
+        caDef.version == 0
+        caDef.childrenGraphModel.vertices.length == 4
+
+        loopDef
+        loopDef.properties.size() == 6
+        loopDef.properties.RoutingScriptName == 'RoutingScript42'
+        loopDef.properties.RoutingScriptVersion == 13;
         loopDef.properties.toto == 123
     }
 
