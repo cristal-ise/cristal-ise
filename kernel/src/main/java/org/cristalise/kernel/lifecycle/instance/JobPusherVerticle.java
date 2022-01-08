@@ -27,7 +27,7 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobArrayList;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
-import org.cristalise.kernel.lifecycle.instance.predefined.agent.RefreshJobList;
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.RefreshJobListOfAgent;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -69,7 +69,7 @@ public class JobPusherVerticle extends AbstractVerticle {
 
                         String stringJobs = Gateway.getMarshaller().marshall(new JobArrayList(jobs));
 
-                        agent.execute(agent, RefreshJobList.class, stringJobs);
+                        agent.execute(agent, RefreshJobListOfAgent.class, stringJobs);
                     }
                     catch (Throwable e) {
                         //FIXME store this error, because the JobList of Agent was not refreshed

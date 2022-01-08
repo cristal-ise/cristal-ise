@@ -46,18 +46,18 @@ import org.exolab.castor.xml.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Supplies the new set of jobs for the given item and activity. The Agent replaces all existing jobs 
+ * Supplies Agent with the new set of jobs for the given Item and Activity. The Agent replaces all existing jobs 
  * for that activity with the given set.  Only activities that are assigned to a Role that is flagged 
  * to push Jobs do this
  * 
  * {@value #description}
  */
 @Slf4j
-public class RefreshJobList extends PredefinedStep {
+public class RefreshJobListOfAgent extends PredefinedStep {
 
     public static final String description = "Updates the Agent's list of Jobs referencing one Activity of a single Item.";
 
-    public RefreshJobList() {
+    public RefreshJobListOfAgent() {
         super();
         this.setBuiltInProperty(SCHEMA_NAME, "JobArrayList");
     }
