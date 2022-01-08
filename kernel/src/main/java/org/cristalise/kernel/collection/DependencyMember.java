@@ -248,8 +248,12 @@ public class DependencyMember implements CollectionMember {
      */
     public void updateProperties(CastorHashMap newProps) throws ObjectNotFoundException, InvalidCollectionModification {
         for (Entry<String, Object> newProp: newProps.entrySet()) {
-            if (mClassProps.contains(newProp.getKey())) {
-                throw new InvalidCollectionModification("Dependency cannot change classProperties:"+mClassProps);
+            String key = newProp.getKey();
+            if (mClassProps.contains(key)) {
+                Object value = newProp.getValue();
+                if (! value.equals(getProperties().get(newProp.getKey()))) {
+                    throw new InvalidCollectionModification("Dependency cannot change classProperties:"+key);
+                }
             }
 
             if (getProperties().containsKey(newProp.getKey())) {
