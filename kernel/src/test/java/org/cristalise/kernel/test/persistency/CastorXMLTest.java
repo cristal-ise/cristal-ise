@@ -32,11 +32,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
 import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
-
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
-
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.entity.agent.Job;
@@ -48,7 +46,6 @@ import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.GraphableEdge;
 import org.cristalise.kernel.lifecycle.instance.Next;
-import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -76,7 +73,6 @@ import org.xmlunit.builder.DiffBuilder;
 import org.xmlunit.diff.DefaultNodeMatcher;
 import org.xmlunit.diff.Diff;
 import org.xmlunit.diff.ElementSelectors;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -250,11 +246,10 @@ public class CastorXMLTest {
             "".substring(5);
         }
         catch (Exception ex) {
-            Transition t = new Transition(1, "Done", 0, 3);
             CastorHashMap actProps = new CastorHashMap();
             actProps.setBuiltInProperty(STATE_MACHINE_NAME, "Default");
             actProps.setBuiltInProperty(STATE_MACHINE_VERSION, 0);
-            Job j = new Job(-1, new ItemPath(), "TestStep", "workflow/1", "", t, "Waiting", "Finished", "Admin", new AgentPath(), actProps, new GTimeStamp());
+            Job j = new Job(new ItemPath(), "TestStep", "workflow/1", "", "Done", "Admin", new AgentPath(), actProps, new GTimeStamp());
 
             ErrorInfo ei = new ErrorInfo(j, ex);
             ErrorInfo eiPrime = (ErrorInfo) marshaller.unmarshall(marshaller.marshall(ei));
@@ -270,13 +265,12 @@ public class CastorXMLTest {
     public void testCastorJobArrayList() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
 
-        Transition t = new Transition(1, "Done", 0, 3);
         CastorHashMap actProps = new CastorHashMap();
         actProps.setBuiltInProperty(STATE_MACHINE_NAME, "Default");
         actProps.setBuiltInProperty(STATE_MACHINE_VERSION, 0);
 
-        Job j1 = new Job(1, new ItemPath(), "TestStep", "workflow/1", "", t, "Waiting", "Finished", "Admin", new AgentPath(), actProps, new GTimeStamp());
-        Job j2 = new Job(2, new ItemPath(), "TestStep2", "workflow/2", "", t, "Waiting", "Finished", "Admin", new AgentPath(), actProps, new GTimeStamp());
+        Job j1 = new Job(new ItemPath(), "TestStep",  "workflow/1", "", "Done", "Admin", new AgentPath(), actProps, new GTimeStamp());
+        Job j2 = new Job(new ItemPath(), "TestStep2", "workflow/2", "", "Done", "Admin", new AgentPath(), actProps, new GTimeStamp());
 
         JobArrayList jobs = new JobArrayList();
         jobs.list.add(j1);

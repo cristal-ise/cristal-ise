@@ -81,10 +81,10 @@ public class RefreshJobListOfAgent extends PredefinedStep {
             // merge new jobs in first, so the RemoteMap.getLastId() used during addJob() returns the next unique id
             for (Job newJob : newJobs.list) {
                 // FIXME: id = -999 is a hack to get the itemPath and stepPath to cleanup the actual list
-                if (newJob.getId() != -999) {
-                    log.trace("Adding job:{}", newJob);
-                    currentJobList.addJob(newJob);
-                }
+//                if (newJob.getId() != -999) {
+//                    log.trace("Adding job:{}", newJob);
+//                    currentJobList.addJob(newJob);
+//                }
             }
 
             log.trace("Removing old jobs:{}", idsToRemove);

@@ -33,7 +33,7 @@ import org.cristalise.kernel.persistency.TransactionKey;
 
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+@Slf4j @Deprecated
 public class JobList extends C2KLocalObjectMap<Job> {
 
     public JobList(AgentPath agentPath) {
@@ -45,9 +45,7 @@ public class JobList extends C2KLocalObjectMap<Job> {
     }
 
     public synchronized void addJob(Job job) {
-        int jobId = getLastId() + 1;
-        job.setId(jobId);
-        put(String.valueOf(jobId), job);
+        put(job.getClusterPath(), job);
     }
 
     public Job get(int id) {

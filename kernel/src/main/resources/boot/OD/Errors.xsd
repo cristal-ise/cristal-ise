@@ -35,17 +35,14 @@
     <!-- IMPORTANT: copied from JobArrayList.xsd -->
     <xs:complexType name="JobType">
         <xs:all>
-            <xs:element minOccurs="0" maxOccurs="1" name="Transition" type="TransitionType" />
             <xs:element minOccurs="0" maxOccurs="1" name="ActProps" type="PropertyType" />
             <xs:element minOccurs="0" maxOccurs="1" name="CreationDate" type="GTimeStampType" />
         </xs:all>
-        <xs:attribute name="Id" type="xs:decimal" use="optional"/>
-        <xs:attribute name="ItemUUID" type="xs:string" use="required"/>
-        <xs:attribute name="StepName" type="xs:string" />
+        <xs:attribute name="ItemUUID"       type="xs:string" use="required" />
+        <xs:attribute name="StepName"       type="xs:string" use="required" />
+        <xs:attribute name="TransitionName" type="xs:string" use="required" />
         <xs:attribute name="StepPath" type="xs:string" />
         <xs:attribute name="StepType" type="xs:string" />
-        <xs:attribute name="OriginState" type="xs:string" />
-        <xs:attribute name="TargetState" type="xs:string" />
         <xs:attribute name="AgentRole" type="xs:string" />
         <xs:attribute name="AgentUUID" type="xs:string" />
         <xs:attribute name="DelegatePath" type="xs:string" />

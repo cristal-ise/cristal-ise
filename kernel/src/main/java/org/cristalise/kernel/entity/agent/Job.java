@@ -68,14 +68,11 @@ import lombok.extern.slf4j.Slf4j;
 @Getter @Setter @Slf4j
 public class Job implements C2KLocalObject {
     // Persistent fields
-    private int            id;
     private ItemPath       itemPath;
     private String         stepName;
+    private String         transitionName;
     private String         stepPath;
     private String         stepType;
-    private Transition     transition;
-    private String         originStateName;
-    private String         targetStateName;
     private String         agentRole;
     private AgentPath      agentPath;
     private CastorHashMap  actProps = new CastorHashMap();
@@ -83,7 +80,6 @@ public class Job implements C2KLocalObject {
 
     // Non-persistent fields
     private ErrorInfo  error;
-    private boolean    transitionResolved = false;
 
     private Outcome           outcome = null;
     private OutcomeAttachment attachment = null;
@@ -97,7 +93,7 @@ public class Job implements C2KLocalObject {
      * Empty constructor required for Castor
      */
     public Job() {
-        id = -1;
+//        id = -1;
         setCreationDate(DateUtility.getNow());
         setActProps(new CastorHashMap());
     }
@@ -105,15 +101,13 @@ public class Job implements C2KLocalObject {
     /**
      * Main constructor to create Job during workflow enactment
      */
-    public Job(Activity act, ItemPath itemPath, Transition transition, AgentPath agent, String role)
+    public Job(Activity act, ItemPath itemPath, String transition, AgentPath agent, String role)
             throws InvalidDataException, ObjectNotFoundException
     {
         this();
         setItemPath(itemPath);
         setStepPath(act.getPath());
-        setTransition(transition);
-        setOriginStateName(act.getStateMachine().getState(transition.getOriginStateId()).getName());
-        setTargetStateName(act.getStateMachine().getState(transition.getTargetStateId()).getName());
+        setTransitionName(transition);
         setStepName(act.getName());
         setStepType(act.getType());
         setAgentPath(agent);
@@ -127,19 +121,15 @@ public class Job implements C2KLocalObject {
     /**
      * Constructor for recreating Job from backend
      */
-    public Job(int id, ItemPath itemPath, String stepName, String stepPath, String stepType, 
-            Transition transition, String originStateName, String targetStateName, 
+    public Job(ItemPath itemPath, String stepName, String stepPath, String stepType, String transition,
             String agentRole, AgentPath agentPath, CastorHashMap actProps, GTimeStamp creationDate)
     {
         this();
-        setId(id);
         setItemPath(itemPath);
         setStepName(stepName);
         setStepPath(stepPath);
         setStepType(stepType);
-        setTransition(transition);
-        setOriginStateName(originStateName);
-        setTargetStateName(targetStateName);
+        setTransitionName(transition);
         setAgentRole(agentRole);
         setAgentPath(agentPath);
         setActProps(actProps);
@@ -168,24 +158,14 @@ public class Job implements C2KLocalObject {
     }
 
     public Transition getTransition() {
-        if (transition != null && transitionResolved == false && actProps.size() != 0) {
-            log.debug("getTransition() - retrieving state machine for actProps:{}", actProps);
-            try {
-                StateMachine sm = LocalObjectLoader.getStateMachine(actProps);
-                transition = sm.getTransition(transition.getId());
-                transitionResolved = true;
-            }
-            catch (Exception e) {
-                log.error("Cannot retrieve state machine for actProps:{}", actProps, e);
-                return transition;
-            }
+        try {
+            StateMachine sm = LocalObjectLoader.getStateMachine(actProps);
+            return sm.getTransition(transitionName);
         }
-        return transition;
-    }
-
-    public void setTransition(Transition transition) {
-        this.transition = transition;
-        transitionResolved = false;
+        catch (Exception e) {
+            log.error("Cannot retrieve state machine for actProps:{}", actProps, e);
+            return null;
+        }
     }
 
     /**
@@ -292,12 +272,12 @@ public class Job implements C2KLocalObject {
 
     @Override
     public String getName() {
-        return Integer.toString(id);
+        return null;
     }
 
     @Override
     public void setName(String name) {
-        id = Integer.parseInt(name);
+        //do nothing
     }
 
     public ItemProxy getItemProxy() throws ObjectNotFoundException, InvalidItemPathException {
@@ -311,7 +291,7 @@ public class Job implements C2KLocalObject {
     }
 
     public void setOutcome(String outcomeData) throws InvalidDataException, ObjectNotFoundException {
-        setOutcome(new Outcome(-1, outcomeData, transition.getSchema(actProps)));
+        setOutcome(new Outcome(-1, outcomeData, getTransition().getSchema(actProps)));
     }
 
     public void setOutcome(Outcome o) {
@@ -470,15 +450,15 @@ public class Job implements C2KLocalObject {
     }
 
     public boolean hasOutcome() {
-        return transition.hasOutcome(actProps);
+        return getTransition().hasOutcome(actProps);
     }
 
     public boolean hasScript() {
-        return transition.hasScript(actProps);
+        return getTransition().hasScript(actProps);
     }
 
     public boolean hasQuery() {
-        return transition.hasQuery(actProps);
+        return getTransition().hasQuery(actProps);
     }
 
     public boolean isOutcomeSet() {
@@ -492,16 +472,16 @@ public class Job implements C2KLocalObject {
 
     @Override
     public String getClusterPath() {
-        return getClusterType()+"/"+id;
+        return getClusterType()+"/"+getStepName()+"/"+getTransition().getName();
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((itemPath == null)   ? 0 : itemPath.hashCode());
-        result = prime * result + ((stepPath == null)   ? 0 : stepPath.hashCode());
-        result = prime * result + ((transition == null) ? 0 : transition.hashCode());
+        result = prime * result + ((itemPath == null)       ? 0 : itemPath.hashCode());
+        result = prime * result + ((stepPath == null)       ? 0 : stepPath.hashCode());
+        result = prime * result + ((transitionName == null) ? 0 : transitionName.hashCode());
         return result;
     }
 
@@ -519,8 +499,8 @@ public class Job implements C2KLocalObject {
         if (stepPath == null) if (otherJob.stepPath != null) return false;
         else if (!stepPath.equals(otherJob.stepPath))        return false;
 
-        if (transition == null) if (otherJob.transition != null) return false;
-        else if (!transition.equals(otherJob.transition))        return false;
+        if (transitionName == null) if (otherJob.transitionName != null) return false;
+        else if (!transitionName.equals(otherJob.transitionName))        return false;
 
         return true;
     }
@@ -623,6 +603,6 @@ public class Job implements C2KLocalObject {
         String item = itemPath.toString();
         if (Gateway.getStorage() != null) item = getPropertyValue(itemPath, NAME, item, null);
 
-        return "[id:"+id+" item:"+item+" step:"+stepName+" trans:"+getTransition()+" agent:"+agent+"]";
+        return "[item:"+item+" step:"+stepName+" trans:"+getTransition()+" agent:"+agent+"]";
     }
 }

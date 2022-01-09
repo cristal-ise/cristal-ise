@@ -38,7 +38,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
+@Slf4j @Deprecated
 public class JobPusherVerticle extends AbstractVerticle {
     public static final String ebAddress = "cristalise-jobPusher";
 
@@ -62,8 +62,8 @@ public class JobPusherVerticle extends AbstractVerticle {
 
                         if (jobs.isEmpty()) {
                             // FIXME: hack to send the itemPath and stepPath to RefreshJobList to cleanup the actual list
-                            jobs.add(new Job(-999, itemPath, ""/*stepName*/, stepPath, ""/*stepType*/, 
-                                    null/*transition*/, ""/*originStateName*/, ""/*targetStateName*/, ""/*roleName*/,
+                            jobs.add(new Job(itemPath, ""/*stepName*/, stepPath, ""/*stepType*/, 
+                                    ""/*transition*/, ""/*roleName*/,
                                     agentPath, new CastorHashMap(), null/*creationDate*/));
                         }
 
