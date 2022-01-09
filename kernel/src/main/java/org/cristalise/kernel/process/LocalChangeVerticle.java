@@ -42,15 +42,15 @@ public class LocalChangeVerticle extends AbstractVerticle {
     @Override
     public void start(Promise<Void> startPromise) throws Exception {
         vertx.eventBus().consumer(ProxyMessage.ebAddress, message -> {
-            Object body = message.body();
-            log.trace("handler() - message.body:{}", body);
-
-            boolean publish = Gateway.getProperties().getBoolean("LocalChangeVerticle.publishLocalMessage", false);
+            JsonArray proxyMessages = (JsonArray)message.body();
+            log.trace("handler() - proxyMessages:{}", proxyMessages);
 
             try {
                 //order is important: see above
-                clearCache((JsonArray)body);
-                publishLocalMessages((JsonArray)body, publish);
+                clearCache(proxyMessages);
+
+                publishLocalProxyMessage(proxyMessages);
+                publishLocalItemMessages(proxyMessages);
             }
             catch (Exception e) {
                 log.error("handler()", e);
@@ -58,32 +58,34 @@ public class LocalChangeVerticle extends AbstractVerticle {
         });
 
         startPromise.complete();
+
         log.info("start() - '{}' consumer configured", ProxyMessage.ebAddress);
     }
 
-    private void publishLocalMessages(JsonArray body, boolean publish) throws InvalidDataException {
+    private void publishLocalProxyMessage(JsonArray proxyMessages) throws InvalidDataException {
         DeliveryOptions opt = new DeliveryOptions().setLocalOnly(true);
 
-        for (Object element: body) {
+        log.debug("publishLocalProxyMessage() - address:{}, msg:{}", ProxyMessage.ebLocalAddress, proxyMessages);
+        vertx.eventBus().publish(ProxyMessage.ebLocalAddress, proxyMessages, opt);
+    }
+
+    private void publishLocalItemMessages(JsonArray proxyMessages) throws InvalidDataException {
+        DeliveryOptions opt = new DeliveryOptions().setLocalOnly(true);
+
+        for (Object element: proxyMessages) {
             ProxyMessage msg = new ProxyMessage((String)element);
             String ebAddress = msg.getLocalEventBusAddress();
             String ebMsg     = msg.getLocalEventBusMessage();
 
-            if (publish) {
-                log.debug("handler() - publishing to address:{}, msg:{}", ebAddress, ebMsg);
-                vertx.eventBus().publish(ebAddress, ebMsg, opt);
-            }
-            else {
-                log.debug("handler() - sending to address:{}, msg:{}", ebAddress, ebMsg);
-                vertx.eventBus().send(ebAddress, ebMsg, opt);
-            }
+            log.debug("publishLocalItemMessages() - address:{}, msg:{}", ebAddress, ebMsg);
+            vertx.eventBus().publish(ebAddress, ebMsg, opt);
         }
     }
 
-    private void clearCache(JsonArray body) throws InvalidDataException {
+    private void clearCache(JsonArray proxyMessages) throws InvalidDataException {
         ArrayList<String> clearCacheList = new ArrayList<String>();
 
-        for (Object element: body) {
+        for (Object element: proxyMessages) {
             ProxyMessage msg = new ProxyMessage((String)element);
 
             if (msg.isClusterStoreMesssage()) {

@@ -40,6 +40,7 @@ public class ProxyMessage {
 
     public enum Type {ADD, DELETE};
     public static final String ebAddress = "cristalise-proxyMessage";
+    public static final String ebLocalAddress = "cristalise-localProxyMessage";
 
     /**
      * The reference of the changed Item. Can be null for messages of Lookup changes
