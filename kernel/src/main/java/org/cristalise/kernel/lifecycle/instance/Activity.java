@@ -26,21 +26,19 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.BREAKPOI
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PREDEFINED_STEP;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VALIDATE_OUTCOME;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.Vector;
-
 import javax.xml.xpath.XPathExpressionException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
@@ -641,29 +639,29 @@ public class Activity extends WfVertex {
     /**
      * Calculates the lists of jobs for the activity and its children (cf org.cristalise.kernel.entity.Job)
      */
-    public ArrayList<Job> calculateJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
+    public List<Job> calculateJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
             throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException
     {
         return calculateJobsBase(agent, itemPath, false);
     }
 
-    public ArrayList<Job> calculateAllJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
+    public List<Job> calculateAllJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
             throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException {
         return calculateJobsBase(agent, itemPath, true);
     }
 
-    private ArrayList<Job> calculateJobsBase(AgentPath agent, ItemPath itemPath, boolean includeInactive)
+    private List<Job> calculateJobsBase(AgentPath agent, ItemPath itemPath, boolean includeInactive)
             throws ObjectNotFoundException, InvalidDataException, InvalidItemPathException
     {
         log.trace("calculateJobsBase() - act:" + getPath());
-        ArrayList<Job> jobs = new ArrayList<Job>();
+        List<Job> jobs = new ArrayList<Job>();
         Map<Transition, String> transitions;
         if ((includeInactive || getActive()) && !getName().equals("domain")) {
             transitions = getStateMachine().getPossibleTransitions(this, agent);
             log.trace("calculateJobsBase() - Got " + transitions.size() + " transitions.");
             for (Transition transition : transitions.keySet()) {
                 log.trace("calculateJobsBase() - Creating Job object for transition " + transition.getName());
-                jobs.add(new Job(this, itemPath, transition, agent, transitions.get(transition)));
+                jobs.add(new Job(this, itemPath, transition.getName(), agent, transitions.get(transition)));
             }
         }
         return jobs;
