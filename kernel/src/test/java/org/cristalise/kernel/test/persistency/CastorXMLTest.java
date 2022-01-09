@@ -276,6 +276,8 @@ public class CastorXMLTest {
         jobs.list.add(j1);
         jobs.list.add(j2);
 
+        log.info(marshaller.marshall(jobs));
+
         JobArrayList jobsPrime = (JobArrayList) marshaller.unmarshall(marshaller.marshall(jobs));
 
         assertThat(jobs).isEqualToComparingFieldByField(jobsPrime);

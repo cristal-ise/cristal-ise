@@ -20,12 +20,7 @@
  */
 package org.cristalise.kernel.test.persistency;
 
-import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
-import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
-import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
-import static org.cristalise.kernel.persistency.ClusterType.PATH;
-import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
-import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+import static org.cristalise.kernel.persistency.ClusterType.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -33,8 +28,10 @@ import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Properties;
-
+import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.process.MainTest;
@@ -64,7 +61,7 @@ public class XMLClusterStorageTest {
     public void checkXMLClusterStorage(XMLClusterStorage importCluster) throws Exception {
         ClusterType[] types = importCluster.getClusters(itemPath, null);
 
-        assertEquals(6, types.length);
+        assertEquals(7, types.length);
 
         for (ClusterType type : types) {
             String[] contents = importCluster.getClusterContents(itemPath, type, null);
@@ -104,10 +101,38 @@ public class XMLClusterStorageTest {
                     assertEquals(29, importCluster.getLastIntegerId(itemPath, HISTORY.getName(), null));
                     break;
 
+                case JOB:
+                    assertEquals(2, contents.length);
+                    checkJobs(importCluster);
+                    break;
+
                 default:
                     fail("Unhandled ClusterType:"+type);
             }
         }
+    }
+
+    private void checkJobs(ClusterStorage importCluster) throws PersistencyException {
+        assertNotNull( importCluster.get(itemPath, JOB+"/TestStep/Done", null) );
+        Job aJob = (Job)importCluster.get(itemPath, JOB+"/TestStep/Done", null);
+        assertEquals("TestStep", aJob.getStepName());
+        assertEquals("Done", aJob.getTransitionName());
+        assertNotNull(aJob.getTransition());
+        assertEquals(aJob.getTransitionName(), aJob.getTransition().getName());
+
+        assertNotNull( importCluster.get(itemPath, JOB+"/TestStep/Start", null) );
+        aJob = (Job)importCluster.get(itemPath, JOB+"/TestStep/Start", null);
+        assertEquals("TestStep", aJob.getStepName());
+        assertEquals("Start", aJob.getTransitionName());
+        assertNotNull(aJob.getTransition());
+        assertEquals(aJob.getTransitionName(), aJob.getTransition().getName());
+
+        assertNotNull( importCluster.get(itemPath, JOB+"/TestStep2/Start", null) );
+        aJob = (Job)importCluster.get(itemPath, JOB+"/TestStep2/Start", null);
+        assertEquals("TestStep2", aJob.getStepName());
+        assertEquals("Start", aJob.getTransitionName());
+        assertNotNull(aJob.getTransition());
+        assertEquals(aJob.getTransitionName(), aJob.getTransition().getName());
     }
 
     @Test

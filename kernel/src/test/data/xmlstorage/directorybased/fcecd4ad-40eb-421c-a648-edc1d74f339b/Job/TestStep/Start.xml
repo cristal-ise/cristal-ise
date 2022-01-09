@@ -1,0 +1,9 @@
+<Job AgentRole="Admin" AgentUUID="da8c7b53-f0ab-4532-9773-64233c536415"
+  ItemUUID="70309ee0-f910-4e27-a737-b4c3fd9f03ff" StepName="TestStep" StepPath="workflow/1" StepType=""
+  TransitionName="Start">
+  <ActProps>
+    <KeyValuePair Integer="0" Key="StateMachineVersion" isAbstract="false" />
+    <KeyValuePair Key="StateMachineName" String="Default" isAbstract="false" />
+  </ActProps>
+  <CreationDate D="0" H="0" Mi="0" Mo="0" O="0" S="0" Y="0" />
+</Job>
