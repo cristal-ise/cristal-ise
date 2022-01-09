@@ -67,7 +67,6 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
 
         // if new workflow, activate it, otherwise refresh the jobs
         if (!domain.active) lifeCycle.run(agent, item, transactionKey);
-        else                lifeCycle.refreshJobs(item);
 
         // store new wf
         try {

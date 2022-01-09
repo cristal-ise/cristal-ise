@@ -467,14 +467,6 @@ public class CompositeActivity extends Activity {
         return result;
     }
 
-    public void refreshJobs(ItemPath itemPath) {
-        GraphableVertex[] children = getChildren();
-        for (GraphableVertex element : children) {
-            if (element instanceof CompositeActivity) ((CompositeActivity) element).refreshJobs(itemPath);
-            else if (element instanceof Activity)     ((Activity)          element).pushJobsToAgents(itemPath);
-        }
-    }
-
     public List<Activity> getPossibleActs(WfVertex fromVertex, int direction) throws InvalidDataException {
         List<Activity> nextActs = new ArrayList<>();
 

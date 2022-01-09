@@ -23,20 +23,16 @@ package org.cristalise.storage;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.events.History;
-import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.AbstractMain;
-
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -101,10 +97,6 @@ public abstract class TransactionalClusterStorageBase extends ClusterStorage{
         if (path.indexOf('/') == -1) {
             if (path.equals(ClusterType.HISTORY.getName()) && transactionKey != null) {
                 return new History(itemPath, transactionKey);
-            }
-            else if (path.equals(ClusterType.JOB.getName()) && transactionKey != null) {
-                if (itemPath instanceof AgentPath) return new JobList((AgentPath)itemPath, transactionKey);
-                else                               throw new ObjectNotFoundException("TransactionManager.get() - Items do not have job lists");
             }
         }
 

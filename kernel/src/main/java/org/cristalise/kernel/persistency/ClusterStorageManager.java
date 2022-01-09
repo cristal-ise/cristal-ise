@@ -42,11 +42,10 @@ import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.entity.agent.JobList;
+import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.proxy.ProxyMessage;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
-import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.outcome.Outcome;
@@ -82,7 +81,7 @@ public class ClusterStorageManager {
      */
     public static final String CACHESPEC_PROPERTY = "ClusterStorage.cacheSpec";
     /**
-     * {@value}
+     * default value:{@value}
      */
     public static final String defaultCacheSpec = "expireAfterAccess = 600s, recordStats";
 
@@ -412,8 +411,7 @@ public class ClusterStorageManager {
                 case HISTORY:
                     return new History(itemPath, transactionKey);
                 case JOB:
-                    if (itemPath instanceof AgentPath) return new JobList((AgentPath)itemPath, transactionKey);
-                    else                               throw new ObjectNotFoundException("Item "+itemPath+" do not have JobList");
+                    return new C2KLocalObjectMap<Job>(itemPath, JOB, transactionKey);
                 case PROPERTY:
                     return new C2KLocalObjectMap<Property>(itemPath, PROPERTY, transactionKey);
                 case COLLECTION:

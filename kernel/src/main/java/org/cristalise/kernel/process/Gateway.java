@@ -43,7 +43,6 @@ import org.cristalise.kernel.entity.ItemVerticle;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ProxyManager;
 import org.cristalise.kernel.entity.proxy.ProxyMessage;
-import org.cristalise.kernel.lifecycle.instance.JobPusherVerticle;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup;
@@ -247,7 +246,6 @@ public class Gateway extends ProxyManager
         mVertx.deployVerticle(ItemVerticle.class, options);
 
         options.setInstances(getProperties().getInt("JobPusherVerticle.instances", 2));
-        mVertx.deployVerticle(JobPusherVerticle.class, options);
 
         options.setInstances(1);
         options.setWorker(false);
