@@ -21,22 +21,17 @@
 package org.cristalise.kernel.entity;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.entity.agent.JobArrayList;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.instance.Activity;
-import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
@@ -44,13 +39,13 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.persistency.ClusterStorageManager;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.ErrorInfo;
 import org.cristalise.kernel.security.SecurityManager;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -318,14 +313,17 @@ public class TraceableEntity implements Item {
             Workflow wf = (Workflow) mStorage.get(item.getPath(), ClusterType.LIFECYCLE + "/workflow", null);
 
             JobArrayList jobBag = new JobArrayList();
-            CompositeActivity domainWf = (CompositeActivity) wf.search("workflow/domain");
-            ArrayList<Job> jobs = filter ? 
-                    domainWf.calculateJobs(agent.getPath(), item.getPath(), true) : domainWf.calculateAllJobs(agent.getPath(), item.getPath(), true);
+//            CompositeActivity domainWf = (CompositeActivity) wf.search("workflow/domain");
+//            ArrayList<Job> jobs = filter ? 
+//                    domainWf.calculateJobs(agent.getPath(), item.getPath(), true) : domainWf.calculateAllJobs(agent.getPath(), item.getPath(), true);
+
+            @SuppressWarnings("unchecked")
+            C2KLocalObjectMap<Job> jobs = (C2KLocalObjectMap<Job>)mStorage.get(item.getPath(), ClusterType.JOB.getName(), null);
 
             SecurityManager secMan = Gateway.getSecurityManager();
 
             if (secMan.isShiroEnabled()) {
-                for (Job j : jobs) {
+                for (Job j : jobs.values()) {
                     Activity act = (Activity) wf.search(j.getStepPath());
                     if (secMan.checkPermissions(agent.getPath(), act, item.getPath(), null)) {
                         try {
@@ -339,7 +337,7 @@ public class TraceableEntity implements Item {
                 }
             }
             else {
-                jobBag.list = jobs;
+                jobBag.list = (ArrayList<Job>) jobs.values();
             }
 
             log.info("queryLifeCycle(" + item + ") - Returning " + jobBag.list.size() + " jobs.");

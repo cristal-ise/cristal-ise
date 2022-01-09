@@ -102,8 +102,8 @@ public class C2KLocalObjectMap<V extends C2KLocalObject> implements Map<String, 
 
         String[] children = storage.getClusterContents(itemPath, fullKey, transactionKey);
 
-        if (((clusterType == PROPERTY  || clusterType == LIFECYCLE || clusterType == JOB || clusterType == HISTORY) && count == 0) ||
-            ((clusterType == VIEWPOINT || clusterType == COLLECTION) && count == 1) ||
+        if (((clusterType == PROPERTY  || clusterType == LIFECYCLE || clusterType == HISTORY) && count == 0) ||
+            ((clusterType == VIEWPOINT || clusterType == COLLECTION || clusterType == JOB) && count == 1) ||
             ((clusterType == OUTCOME   || clusterType == ATTACHMENT) && count == 2))
         {
             //at last element of the object key, so add the actual key values
@@ -166,12 +166,12 @@ public class C2KLocalObjectMap<V extends C2KLocalObject> implements Map<String, 
     public V put(String key, V value) {
         try {
             storage.put(itemPath, value, transactionKey);
+            return value;
         }
         catch (PersistencyException e) {
             log.error("put() - {}/{}", itemPath, value.getClusterPath(), e);
             throw new IllegalArgumentException(e);
         }
-        return null;
     }
 
     @Override

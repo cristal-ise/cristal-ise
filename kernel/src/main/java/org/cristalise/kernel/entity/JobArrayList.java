@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.kernel.entity.agent;
+package org.cristalise.kernel.entity;
 
 import java.util.List;
 

@@ -22,7 +22,7 @@
 
 -->
 <mapping>
-  <class name="org.cristalise.kernel.entity.agent.Job">
+  <class name="org.cristalise.kernel.entity.Job">
     <map-to xml="Job" />
     <field name="mItemPath" type="string" direct="false" get-method="getItemUUID" set-method="setItemUUID">
       <bind-xml name="ItemUUID" node="attribute" />
@@ -54,9 +54,9 @@
       <bind-xml name="CreationDate" node="element" />
     </field>
   </class>
-  <class name="org.cristalise.kernel.entity.agent.JobArrayList">
+  <class name="org.cristalise.kernel.entity.JobArrayList">
     <map-to xml="JobArrayList" />
-    <field name="list" collection="arraylist" direct="true" type="org.cristalise.kernel.entity.agent.Job">
+    <field name="list" collection="arraylist" direct="true" type="org.cristalise.kernel.entity.Job">
       <bind-xml name="Job" node="element" />
     </field>
   </class>
