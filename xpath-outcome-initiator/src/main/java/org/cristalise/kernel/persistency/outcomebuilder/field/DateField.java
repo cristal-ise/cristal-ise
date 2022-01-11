@@ -90,7 +90,7 @@ public class DateField extends StringField {
                 else if (sVal.contains("T")) zdt = ZonedDateTime.parse(sVal);
 
                 if (zdt != null) {
-                    log.trace("setValue() - ZonedDateTime:%s", zdt);
+                    log.trace("setValue() - ZonedDateTime:{}", zdt);
 
                     // now the local date can be extracted
                     setData(zdt.toLocalDate().toString());

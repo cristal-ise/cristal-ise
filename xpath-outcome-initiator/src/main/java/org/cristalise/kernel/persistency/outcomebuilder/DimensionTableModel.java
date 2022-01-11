@@ -235,7 +235,7 @@ public class DimensionTableModel {
     }
 
     public void setValueAt(Object aValue, int rowIndex, String columnName) {
-        log.debug("setValueAt() - columnName:%s", columnName);
+        log.debug("setValueAt() - columnName:{}", columnName);
 
         int idx = columnHeadings.lastIndexOf(columnName);
 
@@ -257,7 +257,7 @@ public class DimensionTableModel {
 
             //Create the optional element if the new value is not null
             if (elements.item(0) == null && aValue != null && !"null".equals(aValue.toString())) {
-                log.debug("setValueAt() - Creating columnElement:%s", columnDecl.getName());
+                log.debug("setValueAt() - Creating columnElement:{}", columnDecl.getName());
 
                 columnElement = rowElement.getOwnerDocument().createElement(columnDecl.getName());
                 setupDefaultElement(columnDecl, columnElement, columnClasses.get(columnIndex));
@@ -273,11 +273,11 @@ public class DimensionTableModel {
             }
             else if (columnElement != null) {
                 if (columnDecl.getMinOccurs() == 0) {
-                    log.debug("setValueAt() - Removing columnElement:%s", columnDecl.getName());
+                    log.debug("setValueAt() - Removing columnElement:{}", columnDecl.getName());
                     rowElement.removeChild(columnElement);
                 }
                 else {
-                    log.debug("setValueAt() - Setting columnElement:%s to default value", columnDecl.getName());
+                    log.debug("setValueAt() - Setting columnElement:{} to default value", columnDecl.getName());
                     setupDefaultElement(columnDecl, columnElement, columnClasses.get(columnIndex));
                 }
             }
@@ -346,7 +346,7 @@ public class DimensionTableModel {
     }
 
     public Element initNew(Document parent, int index) {
-        log.info("initNew() - name:%s index:%d", model.getName(), index);
+        log.info("initNew() - name:{} index:{}", model.getName(), index);
 
         if (index == -1) index = elements.size();
         Object[] newRow = new Object[columnHeadings.size()];

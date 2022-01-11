@@ -148,18 +148,6 @@ public class OutcomeBuilder {
     /**
      * 
      * @param path
-     * @param data
-     * @throws OutcomeBuilderException
-     * @Deprecated incorrect method name, use the camel case version
-     */
-    @Deprecated
-    public void addfield(String path, String data) throws OutcomeBuilderException {
-        addField(path, data);
-    }
-
-    /**
-     * 
-     * @param path
      * @param value
      * @throws OutcomeBuilderException
      */
@@ -283,7 +271,7 @@ public class OutcomeBuilder {
     public String generateNgDynamicForms(Map<String, Object> inputs) {
         String json = generateNgDynamicFormsJson(inputs).toString(2);
 
-        log.debug("generateNgDynamicForms() - json:%s", json);
+        log.debug("generateNgDynamicForms() - json:{}", json);
 
         return json;
     }
