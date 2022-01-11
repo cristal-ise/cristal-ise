@@ -261,11 +261,8 @@ public class JooqClusterStorage extends ClusterStorage {
         else if (cluster == ClusterType.HISTORY) {
             return ((JooqHistoryHandler)handler).getLastEventId(context, itemPath.getUUID());
         }
-        else if (cluster == ClusterType.JOB) {
-            return ((JooqJobHandler)handler).getLastJobId(context, itemPath.getUUID());
-        }
         else {
-            String msg = "Invalid ClusterType! Must be either HISTORY or JOB. Actual cluster:" + cluster;
+            String msg = "Invalid ClusterType! Must be HISTORY. Actual cluster:" + cluster;
             log.error("getLastIntegerId() - {}", msg);
             throw new PersistencyException(msg);
         }

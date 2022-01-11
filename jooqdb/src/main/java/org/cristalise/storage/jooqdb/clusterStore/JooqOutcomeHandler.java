@@ -106,7 +106,7 @@ public class JooqOutcomeHandler extends JooqHandler {
 
     @Override
     public int update(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
-        throw new IllegalArgumentException("Outcome must not be updated uuid:"+uuid+" name:"+obj.getName());
+        throw new PersistencyException("Outcome must not be updated uuid:"+uuid+" name:"+obj.getName());
     }
 
     @Override

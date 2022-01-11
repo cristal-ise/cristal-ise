@@ -123,7 +123,7 @@ public class BulkImport extends PredefinedStep {
 
     public void importAllClusters(TransactionKey transactionKey) throws InvalidDataException, PersistencyException {
         for (ItemPath item: getItemsToImport(root)) {
-            for (ClusterType type : importCluster.getClusters(item, null)) {
+            for (ClusterType type : importCluster.getClusters(item, transactionKey)) {
                 switch (type) {
                     case PATH:       importPath(item, transactionKey);       break;
                     case PROPERTY:   importProperty(item, transactionKey);   break;
@@ -174,7 +174,7 @@ public class BulkImport extends PredefinedStep {
     }
 
     public void importProperty(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
-        String[] contents = importCluster.getClusterContents(item, PROPERTY, null);
+        String[] contents = importCluster.getClusterContents(item, PROPERTY, transactionKey);
 
         for (String c : contents) {
             String path = PROPERTY+"/"+c;
@@ -186,7 +186,7 @@ public class BulkImport extends PredefinedStep {
     }
 
     public void importViewPoint(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
-        String[] contents = importCluster.getClusterContents(item, VIEWPOINT, null);
+        String[] contents = importCluster.getClusterContents(item, VIEWPOINT, transactionKey);
 
         for (String c : contents) {
             String[] subContents = importCluster.getClusterContents(item, VIEWPOINT+"/"+c, transactionKey);
@@ -202,7 +202,7 @@ public class BulkImport extends PredefinedStep {
     }
 
     public void importLifeCycle(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
-        String[] contents = importCluster.getClusterContents(item, LIFECYCLE, null);
+        String[] contents = importCluster.getClusterContents(item, LIFECYCLE, transactionKey);
 
         for (String c : contents) {
             String path = LIFECYCLE+"/"+c;
@@ -214,7 +214,7 @@ public class BulkImport extends PredefinedStep {
     }
 
     public void importHistory(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
-        String[] contents = importCluster.getClusterContents(item, HISTORY, null);
+        String[] contents = importCluster.getClusterContents(item, HISTORY, transactionKey);
 
         for (String c : contents) {
             String path = HISTORY+"/"+c;
@@ -226,7 +226,7 @@ public class BulkImport extends PredefinedStep {
     }
 
     public void importOutcome(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
-        String[] schemas = importCluster.getClusterContents(item, OUTCOME, null);
+        String[] schemas = importCluster.getClusterContents(item, OUTCOME, transactionKey);
 
         for (String schema : schemas) {
             String[] versions = importCluster.getClusterContents(item, OUTCOME+"/"+schema, transactionKey);
@@ -245,19 +245,22 @@ public class BulkImport extends PredefinedStep {
     }
 
     public void importJob(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
-        String[] contents = importCluster.getClusterContents(item, JOB, null);
+        String[] stepNames = importCluster.getClusterContents(item, JOB, transactionKey);
 
-        for (String c : contents) {
-            String path = JOB+"/"+c;
-            C2KLocalObject job = importCluster.get(item, path, transactionKey);
-            Gateway.getStorage().put(item, job, transactionKey);
+        for (String step : stepNames) {
+            String[] transitions = importCluster.getClusterContents(item, JOB+"/"+step, transactionKey);
 
-            //importCluster.delete(item, path);
+            for (String trans : transitions) {
+                C2KLocalObject job = importCluster.get(item, JOB+"/"+step+"/"+trans, transactionKey);
+                Gateway.getStorage().put(item, job, transactionKey);
+
+                //importCluster.delete(item, path);
+            }
         }
     }
 
     public void importCollection(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
-        String[] names = importCluster.getClusterContents(item, COLLECTION, null);
+        String[] names = importCluster.getClusterContents(item, COLLECTION, transactionKey);
 
         for (String name : names) {
             String[] versions = importCluster.getClusterContents(item, COLLECTION+"/"+name, transactionKey);
@@ -343,7 +346,7 @@ public class BulkImport extends PredefinedStep {
     }
 
     public void importPath(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
-        String[] contents = importCluster.getClusterContents(item, PATH, null);
+        String[] contents = importCluster.getClusterContents(item, PATH, transactionKey);
 
         AgentPath agentPath = null;
         String entity = "";

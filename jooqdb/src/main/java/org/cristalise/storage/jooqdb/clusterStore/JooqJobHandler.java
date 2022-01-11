@@ -22,7 +22,6 @@ package org.cristalise.storage.jooqdb.clusterStore;
 
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
-import static org.jooq.impl.DSL.max;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 
@@ -35,9 +34,7 @@ import java.util.UUID;
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
-import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -49,8 +46,6 @@ import org.jooq.DSLContext;
 import org.jooq.DataType;
 import org.jooq.Field;
 import org.jooq.Record;
-import org.jooq.Record1;
-import org.jooq.SelectConditionStep;
 import org.jooq.Table;
 
 import lombok.extern.slf4j.Slf4j;
@@ -60,15 +55,10 @@ public class JooqJobHandler extends JooqHandler {
     static final Table<?> JOB_TABLE = table(name("JOB"));
 
     static final Field<UUID>      UUID              = field(name("UUID"),              UUID.class);
-    static final Field<Integer>   ID                = field(name("ID"),                Integer.class);
-//    static final Field<UUID>      DELEGATE_UUID     = field(name("DELEGATE_UUID"),     UUID.class);
-    static final Field<UUID>      ITEM_UUID         = field(name("ITEM_UUID"),         UUID.class);
     static final Field<String>    STEP_NAME         = field(name("STEP_NAME"),         String.class);
     static final Field<String>    STEP_PATH         = field(name("STEP_PATH"),         String.class);
     static final Field<String>    STEP_TYPE         = field(name("STEP_TYPE"),         String.class);
     static final Field<String>    TRANSITION        = field(name("TRANSITION"),        String.class);
-    static final Field<String>    ORIGIN_STATE_NAME = field(name("ORIGIN_STATE_NAME"), String.class);
-    static final Field<String>    TARGET_STATE_NAME = field(name("TARGET_STATE_NAME"), String.class);
     static final Field<String>    AGENT_ROLE        = field(name("AGENT_ROLE"),        String.class);
     static final Field<String>    ACT_PROPERTIES    = field(name("ACT_PROPERTIES"),    String.class);
     static final Field<Timestamp> CREATION_TS       = field(name("CREATION_TS"),       Timestamp.class);
@@ -82,8 +72,13 @@ public class JooqJobHandler extends JooqHandler {
 
     @Override
     protected Field<?> getNextPKField(String... primaryKeys) throws PersistencyException {
-        if (primaryKeys.length == 0) return ID;
-        else                         return null;
+        switch (primaryKeys.length) {
+            case 0: return STEP_NAME;
+            case 1: return TRANSITION;
+            case 2: return null;
+            default:
+                throw new PersistencyException("Invalid number of primary keys:"+Arrays.toString(primaryKeys));
+        }
     }
 
     @Override
@@ -96,7 +91,12 @@ public class JooqJobHandler extends JooqHandler {
                 break;
             case 1:
                 conditions.add(UUID.equal(uuid));
-                conditions.add(ID  .equal(Integer.valueOf(primaryKeys[0])));
+                conditions.add(STEP_NAME.equal(primaryKeys[0]));
+                break;
+            case 2:
+                conditions.add(UUID.equal(uuid));
+                conditions.add(STEP_NAME.equal(primaryKeys[0]));
+                conditions.add(TRANSITION.equal(primaryKeys[1]));
                 break;
             default:
                 throw new PersistencyException("Invalid number of primary keys:"+Arrays.toString(primaryKeys));
@@ -113,9 +113,8 @@ public class JooqJobHandler extends JooqHandler {
     public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         Job job = (Job)obj;
 
-        String transXML, actPropsXML;
+        String actPropsXML;
         try {
-            transXML    = Gateway.getMarshaller().marshall(job.getTransition());
             actPropsXML = Gateway.getMarshaller().marshall(job.getActProps());
         }
         catch (Exception ex) {
@@ -126,14 +125,10 @@ public class JooqJobHandler extends JooqHandler {
         return context
                 .insertInto(JOB_TABLE)
                 .set(UUID,              uuid)
-                .set(ID,                job.getId())
-                .set(ITEM_UUID,         job.getItemPath().getUUID())
                 .set(STEP_NAME,         job.getStepName())
                 .set(STEP_PATH,         job.getStepPath())
                 .set(STEP_TYPE,         job.getStepType())
-                .set(TRANSITION,        transXML)
-                .set(ORIGIN_STATE_NAME, job.getOriginStateName())
-                .set(TARGET_STATE_NAME, job.getTargetStateName())
+                .set(TRANSITION,        job.getTransitionName())
                 .set(AGENT_ROLE,        job.getAgentRole())
                 .set(ACT_PROPERTIES,    actPropsXML)
                 .set(CREATION_TS,       DateUtility.toSqlTimestamp(job.getCreationDate()))
@@ -146,23 +141,18 @@ public class JooqJobHandler extends JooqHandler {
 
         if (result != null) {
             try {
-                Transition trans       = (Transition)   Gateway.getMarshaller().unmarshall(result.get(TRANSITION));
                 CastorHashMap actProps = (CastorHashMap)Gateway.getMarshaller().unmarshall(result.get(ACT_PROPERTIES));
 
                 GTimeStamp ts = DateUtility.fromSqlTimestamp( result.get(CREATION_TS));
                 //GTimeStamp ts = DateUtility.fromOffsetDateTime( result.get(CREATION_TS));
 
                 return new Job(
-                        result.get(ID),
-                        new ItemPath(getUUID(result, ITEM_UUID)),
+                        new ItemPath(uuid),
                         result.get(STEP_NAME),
                         result.get(STEP_PATH),
                         result.get(STEP_TYPE),
-                        trans,
-                        result.get(ORIGIN_STATE_NAME),
-                        result.get(TARGET_STATE_NAME),
+                        result.get(TRANSITION),
                         result.get(AGENT_ROLE),
-                        new AgentPath(getUUID(result, UUID)),
                         actProps,
                         ts);
             }
@@ -181,34 +171,19 @@ public class JooqJobHandler extends JooqHandler {
 
         context.createTableIfNotExists(JOB_TABLE)
         .column(UUID,               UUID_TYPE     .nullable(false))
-        .column(ID,                 ID_TYPE       .nullable(false))
-//        .column(DELEGATE_UUID,      UUID_TYPE     .nullable(true))
-        .column(ITEM_UUID,          UUID_TYPE     .nullable(false))
         .column(STEP_NAME,          NAME_TYPE     .nullable(false))
         .column(STEP_PATH,          STRING_TYPE   .nullable(false))
         .column(STEP_TYPE,          NAME_TYPE     .nullable(false))
-        .column(TRANSITION,         xmlType       .nullable(false))
-        .column(ORIGIN_STATE_NAME,  NAME_TYPE     .nullable(false))
-        .column(TARGET_STATE_NAME,  NAME_TYPE     .nullable(false))
+        .column(TRANSITION,         STRING_TYPE   .nullable(false))
         .column(AGENT_ROLE,         NAME_TYPE     .nullable(false))
         .column(ACT_PROPERTIES,     xmlType       .nullable(false))
         .column(CREATION_TS,        TIMESTAMP_TYPE.nullable(false))
-        .constraints(constraint("PK_"+JOB_TABLE).primaryKey(UUID, ID))
+        .constraints(constraint("PK_"+JOB_TABLE).primaryKey(UUID, STEP_NAME, TRANSITION))
         .execute();
     }
 
     @Override
     public void dropTables(DSLContext context) throws PersistencyException {
         context.dropTableIfExists(JOB_TABLE).execute();
-    }
-
-    public int getLastJobId(DSLContext context, UUID uuid) {
-        Field<Integer> maxID = max(ID);
-        SelectConditionStep<Record1<Integer>> query = context.select(maxID).from(JOB_TABLE).where(UUID.equal(uuid));
-        Integer value = query.fetchOne(maxID);
-        if (value == null) {
-            return -1;
-        }
-        return value;
     }
 }

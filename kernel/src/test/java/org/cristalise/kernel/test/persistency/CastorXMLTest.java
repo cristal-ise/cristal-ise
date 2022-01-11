@@ -249,7 +249,7 @@ public class CastorXMLTest {
             CastorHashMap actProps = new CastorHashMap();
             actProps.setBuiltInProperty(STATE_MACHINE_NAME, "Default");
             actProps.setBuiltInProperty(STATE_MACHINE_VERSION, 0);
-            Job j = new Job(new ItemPath(), "TestStep", "workflow/1", "", "Done", "Admin", new AgentPath(), actProps, new GTimeStamp());
+            Job j = new Job(new ItemPath(), "TestStep", "workflow/1", "", "Done", "Admin", actProps, new GTimeStamp());
 
             ErrorInfo ei = new ErrorInfo(j, ex);
             ErrorInfo eiPrime = (ErrorInfo) marshaller.unmarshall(marshaller.marshall(ei));
@@ -269,8 +269,8 @@ public class CastorXMLTest {
         actProps.setBuiltInProperty(STATE_MACHINE_NAME, "Default");
         actProps.setBuiltInProperty(STATE_MACHINE_VERSION, 0);
 
-        Job j1 = new Job(new ItemPath(), "TestStep",  "workflow/1", "", "Done", "Admin", new AgentPath(), actProps, new GTimeStamp());
-        Job j2 = new Job(new ItemPath(), "TestStep2", "workflow/2", "", "Done", "Admin", new AgentPath(), actProps, new GTimeStamp());
+        Job j1 = new Job(new ItemPath(), "TestStep",  "workflow/1", "", "Done", "Admin", actProps, new GTimeStamp());
+        Job j2 = new Job(new ItemPath(), "TestStep2", "workflow/2", "", "Done", "Admin", actProps, new GTimeStamp());
 
         JobArrayList jobs = new JobArrayList();
         jobs.list.add(j1);

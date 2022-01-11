@@ -26,9 +26,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.stream.Stream;
-
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -226,22 +227,33 @@ public class XMLClusterStorage extends ClusterStorage {
         TreeSet<String> result = new TreeSet<>();
 
         String resource = getResourceName(path);
+        String[] resourceArray = resource.length() > 0 ? resource.split("\\.") : new String[0];
 
         try (Stream<Path> pathes = Files.list(Paths.get(rootDir + "/" + itemPath.getUUID()))) {
-            pathes.filter(p -> p.getFileName().toString().startsWith(resource))
-                  .forEach(p -> {
-                      String fileName = p.getFileName().toString();
-                      String content = resource.length() != 0 ? fileName.substring(resource.length()+1) : fileName.substring(resource.length());
+            pathes.filter(p -> {
+                    if (resourceArray.length == 0) {
+                        return true;
+                    }
+                    else {
+                        String fileName = p.getFileName().toString();
+                        String[] fileNameArray = fileName.split("\\.");
+                        String[] fileNameSubArray = Arrays.copyOfRange(fileNameArray, 0, resourceArray.length);
+                        return Arrays.equals(resourceArray, fileNameSubArray);
+                    }
+                })
+                .forEach(p -> {
+                    String fileName = p.getFileName().toString();
+                    String content = resource.length() != 0 ? fileName.substring(resource.length()+1) : fileName.substring(resource.length());
 
-                      log.trace("getContentsFromFileNames() - resource:'"+resource+"' fileName:'"+fileName+"' content:'"+content+"'");
+                    log.info("getContentsFromFileNames() - resource:'"+resource+"' fileName:'"+fileName+"' content:'"+content+"'");
 
-                      if (content.endsWith(fileExtension)) content = content.substring(0, content.length() - fileExtension.length());
+                    if (content.endsWith(fileExtension)) content = content.substring(0, content.length() - fileExtension.length());
 
-                      int i = content.indexOf('.');
-                      if (i != -1) content = content.substring(0, i);
+                    int i = content.indexOf('.');
+                    if (i != -1) content = content.substring(0, i);
 
-                      result.add(content);
-                  });
+                    result.add(content);
+                });
         }
         return result.toArray(new String[0]);
     }

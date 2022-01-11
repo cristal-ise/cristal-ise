@@ -121,7 +121,7 @@ public class Job implements C2KLocalObject {
      * Constructor for recreating Job from backend
      */
     public Job(ItemPath itemPath, String stepName, String stepPath, String stepType, String transition,
-            String agentRole, AgentPath agentPath, CastorHashMap actProps, GTimeStamp creationDate)
+            String agentRole, CastorHashMap actProps, GTimeStamp creationDate)
     {
         this();
         setItemPath(itemPath);
@@ -130,7 +130,6 @@ public class Job implements C2KLocalObject {
         setStepType(stepType);
         setTransitionName(transition);
         setAgentRole(agentRole);
-        setAgentPath(agentPath);
         setActProps(actProps);
         setCreationDate(creationDate);
     }
