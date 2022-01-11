@@ -32,17 +32,18 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
-import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class BuildOutcomeTest extends XMLUtils {
 
     String dir = "src/test/data/outcomeBuilder";
 
     @Before
     public void setUp() throws Exception {
-        Logger.addLogStream(System.out, 8);
     }
 
     private Map<String,String> getParamsFromCSV(String csvFile) throws Exception {
@@ -87,7 +88,7 @@ public class BuildOutcomeTest extends XMLUtils {
         }
 
         for (String path : records.keySet()) {
-            Logger.msg(path);
+            log.info(path);
             ob.addRecord(StringUtils.substringBefore(path, "["), records.get(path));
         }
     }
@@ -111,7 +112,7 @@ public class BuildOutcomeTest extends XMLUtils {
         ob.addField("/SiteCharacteristicsData/AHOwner",      "mine");
         ob.addField("BuildingTypeRemarks",                   "awsome");
 
-        Logger.msg(ob.getXml());
+        log.info(ob.getXml());
 
         assert XMLUtils.compareXML(getXML(dir, "siteCharacteristicsData_ups"), ob.getXml());
     }
@@ -122,7 +123,7 @@ public class BuildOutcomeTest extends XMLUtils {
 
         buildOutcomeFromCSV(ob, "SiteCharacteristicsData.csv");
 
-        Logger.msg(ob.getXml());
+        log.info(ob.getXml());
 
         assert XMLUtils.compareXML(getXML(dir, "siteCharacteristicsData_csv"), ob.getXml());
     }
@@ -137,7 +138,7 @@ public class BuildOutcomeTest extends XMLUtils {
       // bug #239
       OutcomeBuilder ob = new OutcomeBuilder(xsd, actual);
 
-      Logger.msg(ob.getXml(false)); //at this point the XML is not inline with the XSD, but that acceptable for this test
+      log.info(ob.getXml(false)); //at this point the XML is not inline with the XSD, but that acceptable for this test
 
       assert compareXML(expected, actual.getData());
     }
