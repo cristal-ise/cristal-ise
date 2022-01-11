@@ -23,14 +23,13 @@ package org.cristalise.kernel.test.persistency.outcomeinit;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcomeinit.EmptyOutcomeInitiator;
-import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-/**
- * 
- */
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class EmptyOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
 
     EmptyOutcomeInitiator emptyOI;
@@ -55,7 +54,7 @@ public class EmptyOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
 
         if (!type.equals("Module")) actual.validateAndCheck();
 
-        Logger.msg(actual.getData());
+        log.info(actual.getData());
 
         assert compareXML(expected, actual.getData());
     }

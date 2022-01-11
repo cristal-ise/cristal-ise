@@ -83,7 +83,7 @@ public class TimeField extends StringField {
                 else if (sVal.contains("T")) zdt = ZonedDateTime.parse(sVal);
 
                 if (zdt != null) {
-                    log.debug("setValue() - ZonedDateTime:%s", zdt);
+                    log.debug("setValue() - ZonedDateTime:{}", zdt);
 
                     DateTimeFormatter dtf = DateTimeFormatter.ISO_LOCAL_TIME;
                     setData(zdt.truncatedTo(ChronoUnit.SECONDS).format(dtf));

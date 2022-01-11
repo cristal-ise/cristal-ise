@@ -101,4 +101,19 @@ public class ListOfValuesTest extends XMLUtils {
         log.info(actual);
         assert compareXML(getXML(dir, type), actual);
     }
+
+    @Test
+    public void listOfStrings() throws Exception {
+        String type = "ListOfStrings";
+        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
+
+        builder.addField("OneString", "aString1");
+        builder.addField("OneString", "aString2");
+        builder.addField("OneString", "aString3");
+
+        String actual = builder.getXml();
+        log.info(actual);
+
+        assert compareXML(getXML(dir, type), actual);
+    }
 }

@@ -29,12 +29,11 @@ import java.util.Map;
 import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.persistency.outcomeinit.XPathOutcomeInitiator;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.Logger;
 import org.junit.Test;
 
-/**
- *
- */
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class XPathOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
 
     private void checkUpdatedOutcome(String type, String xpath, String value, String prefix) throws Exception {
@@ -55,7 +54,7 @@ public class XPathOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
         XPathOutcomeInitiator xpathOI = new XPathOutcomeInitiator(prefix);
         String actual = xpathOI.initOutcome(j);
 
-        Logger.msg(actual);
+        log.info(actual);
 
         if(!compareXML(expected, actual)) fail("");
     }
