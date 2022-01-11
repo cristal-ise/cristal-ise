@@ -43,7 +43,7 @@ public class LocalChangeVerticle extends AbstractVerticle {
     public void start(Promise<Void> startPromise) throws Exception {
         vertx.eventBus().consumer(ProxyMessage.ebAddress, message -> {
             Object body = message.body();
-            log.debug("handler() - message.body:{}", body);
+            log.trace("handler() - message.body:{}", body);
 
             boolean publish = Gateway.getProperties().getBoolean("LocalChangeVerticle.publishLocalMessage", false);
 
@@ -70,11 +70,11 @@ public class LocalChangeVerticle extends AbstractVerticle {
             String ebMsg     = msg.getLocalEventBusMessage();
 
             if (publish) {
-                log.trace("handler() - publising to address:{}, msg:{}", ebAddress, ebMsg);
+                log.debug("handler() - publishing to address:{}, msg:{}", ebAddress, ebMsg);
                 vertx.eventBus().publish(ebAddress, ebMsg, opt);
             }
             else {
-                log.trace("handler() - sending to address:{}, msg:{}", ebAddress, ebMsg);
+                log.debug("handler() - sending to address:{}, msg:{}", ebAddress, ebMsg);
                 vertx.eventBus().send(ebAddress, ebMsg, opt);
             }
         }
@@ -88,11 +88,16 @@ public class LocalChangeVerticle extends AbstractVerticle {
 
             if (msg.isClusterStoreMesssage()) {
                 String key = msg.getItemPath().getUUID() + "/" + msg.getPath();
-                log.trace("clearCache() - invalidating entry:{}", key);
+                log.trace("clearCache() - adding entry:{}", key);
                 clearCacheList.add(key);
             }
         }
 
         Gateway.getStorage().clearCache(clearCacheList);
+    }
+
+    @Override
+    public void stop() throws Exception {
+        log.info("stop() - '{}' consumer", ProxyMessage.ebAddress);
     }
 }

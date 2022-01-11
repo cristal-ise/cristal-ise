@@ -34,22 +34,22 @@ import lombok.extern.slf4j.Slf4j;
 public class SchemaCache extends DescriptionObjectCache<Schema> {
 
     @Override
-    public String getTypeCode() {
+    protected String getTypeCode() {
         return BuiltInResources.SCHEMA_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
+    protected String getSchemaName() {
         return BuiltInResources.SCHEMA_RESOURCE.getSchemaName();
     }
 
     @Override
-    public String getTypeRoot() {
+    protected String getTypeRoot() {
         return BuiltInResources.SCHEMA_RESOURCE.getTypeRoot();
     }
 
     @Override
-    public Schema buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected Schema buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             Schema thisSchema = new Schema(name, version, path, data);
             thisSchema.validate();

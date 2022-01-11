@@ -40,7 +40,9 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
  */
 @CompileStatic
 class CompActDefDelegate extends ElemActDefDelegate {
-    
+
+    Boolean generate = false
+
     public CompActDefDelegate(String n, Integer v) {
         activityDef = new CompositeActivityDef()
         activityDef.setName(n)
@@ -72,6 +74,7 @@ class CompActDefDelegate extends ElemActDefDelegate {
     }
 
     def Layout(@DelegatesTo(CompActDefLayoutDelegate) Closure cl) {
+        generate = true
         def delegate = new CompActDefLayoutDelegate((CompositeActivityDef)activityDef)
         delegate.processClosure(cl)
     }

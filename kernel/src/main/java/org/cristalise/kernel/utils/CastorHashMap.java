@@ -111,8 +111,23 @@ public class CastorHashMap extends HashMap<String, Object> {
         return get(prop.getName());
     }
 
+    public Object get(String prop, Object defValue) {
+        Object value = get(prop);
+
+        if (value == null) return defValue; 
+        else               return value;
+    }
+
+    public Object getBuiltInProperty(BuiltInVertexProperties prop, Object defValue) {
+        return get(prop.getName(), defValue);
+    }
+
     public Object getBuiltInProperty(BuiltInEdgeProperties prop) {
         return get(prop.getName());
+    }
+
+    public Object getBuiltInProperty(BuiltInEdgeProperties prop, Object defValue) {
+        return get(prop.getName(), defValue);
     }
 
     public void setBuiltInProperty(BuiltInVertexProperties prop, Object value) {

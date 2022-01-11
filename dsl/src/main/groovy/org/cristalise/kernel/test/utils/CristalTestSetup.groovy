@@ -20,16 +20,13 @@
  */
 package org.cristalise.kernel.test.utils
 
-import java.util.Properties
 import org.cristalise.kernel.process.AbstractMain
-import org.cristalise.kernel.process.Bootstrap
 import org.cristalise.kernel.process.Gateway
-import org.cristalise.kernel.process.auth.Authenticator
+import org.cristalise.kernel.process.StandardClient
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 
 /**
  *
@@ -101,7 +98,7 @@ trait CristalTestSetup {
             if (testProps == null) testProps = new Properties()
             testProps.put(AbstractMain.MAIN_ARG_SKIPBOOTSTRAP, true)
         }
-        Authenticator auth = cristalSetup(config, connect, testProps)
+        cristalSetup(config, connect, testProps)
 
         Gateway.startServer()
         Gateway.runBoostrap();
@@ -109,6 +106,12 @@ trait CristalTestSetup {
         if (!skipBootstrap) {
             waitBootstrapThread()
         }
+    }
+
+    public void clientSetup(String config, String connect, Properties testProps = null) {
+        cristalInit(config, connect, testProps)
+        Gateway.connect()
+        StandardClient.createClientVerticles()
     }
 
     public void cristalSetup(String config, String connect, Properties testProps = null) {

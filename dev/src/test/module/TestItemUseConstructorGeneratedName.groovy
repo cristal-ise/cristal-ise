@@ -1,7 +1,12 @@
+import static org.apache.commons.lang3.StringUtils.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
+import static org.cristalise.kernel.property.BuiltInItemProperties.*;
 
 // this is defined in CrudState.groovy of the dev module
 def states = ['ACTIVE', 'INACTIVE']
@@ -12,9 +17,11 @@ def states = ['ACTIVE', 'INACTIVE']
 
 Schema('TestItemUseConstructorGeneratedName', 0) {
     struct(name:' TestItemUseConstructorGeneratedName', documentation: 'TestItemUseConstructorGeneratedName aggregated data') {
-        field(name: 'Name',        type: 'string')
-        field(name: 'State',       type: 'string', values: states)
+        field(name: 'Name', type: 'string')
+        field(name: 'State', type: 'string', values: states)
+
         field(name: 'Description', type: 'string')
+
     }
 }
 
@@ -23,15 +30,18 @@ Schema('TestItemUseConstructorGeneratedName_Details', 0) {
 
         field(name: 'Name', type: 'string') { dynamicForms (disabled: true, label: 'ID') }
 
+
         field(name: 'Description', type: 'string')
+
     }
 }
 
 
 Activity('TestItemUseConstructorGeneratedName_Update', 0) {
-    Property('OutcomeInit': 'Empty')
+    Property((OUTCOME_INIT): 'Empty')
+
     Schema($testItemUseConstructorGeneratedName_Details_Schema)
-    //Script('CrudEntity_ChangeName', 0)
+    Script('CrudEntity_ChangeName', 0)
 }
 
 Script('TestItemUseConstructorGeneratedName_Aggregate', 0) {
@@ -47,30 +57,34 @@ Script('TestItemUseConstructorGeneratedName_QueryList', 0) {
 }
 
 Activity('TestItemUseConstructorGeneratedName_Aggregate', 0) {
-    Property('OutcomeInit': 'Empty')
-    Property('Agent Role': 'UserCode')
+    Property((OUTCOME_INIT): 'Empty')
+    Property((AGENT_ROLE): 'UserCode')
 
     Schema($testItemUseConstructorGeneratedName_Schema)
     Script($testItemUseConstructorGeneratedName_Aggregate_Script)
 }
 
+
+
 Workflow('TestItemUseConstructorGeneratedName_Workflow', 0) {
-    ElemActDef($testItemUseConstructorGeneratedName_Update_ActivityDef)
-    CompActDef('CrudState_Manage', 0)
+    Layout {
+        AndSplit {
+            LoopInfinitive { Act('Update', $testItemUseConstructorGeneratedName_Update_ActivityDef)  }
+            Block { CompActDef('CrudState_Manage', 0) }
+
+        }
+    }
 }
 
-PropertyDescriptionList('TestItemUseConstructorGeneratedName', 0) {
-    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestItemUseConstructorGeneratedName')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-}
+
 
 Item(name: 'TestItemUseConstructorGeneratedNameFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': '/devtest/TestItemUseConstructorGeneratedNames')
 
-    InmutableProperty('IDPrefix': 'ID')
-    Property('LeftPadSize': '6')
+    InmutableProperty((ID_PREFIX): 'ID')
+    InmutableProperty((LEFT_PAD_SIZE): '6')
+    Property((LAST_COUNT): '0')
 
 
 
@@ -102,4 +116,5 @@ Item(name: 'TestItemUseConstructorGeneratedNameFactory', version: 0, folder: '/d
             Property('Version': 0)
         }
     }
+
 }

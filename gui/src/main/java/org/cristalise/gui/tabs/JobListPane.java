@@ -48,7 +48,6 @@ import org.cristalise.kernel.entity.agent.Job;
 import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.DateUtility;
@@ -60,6 +59,7 @@ import lombok.extern.slf4j.Slf4j;
  * Pane to display all work orders that this agent can execute, and activate them on request from the user.
  * Subscribes to NodeItem for WorkOrder objects.
  */
+@SuppressWarnings("serial")
 @Slf4j
 public class JobListPane extends ItemTabPane implements ActionListener {
 

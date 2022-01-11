@@ -41,6 +41,8 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         def factory = agent.getItem("/$folder/PatientFactory")
         def createItemJob = factory.getJobByName('InstantiateItem', agent)
         def o = createItemJob.getOutcome()
+        // Empty OotcomeInitiator will create this optional node
+        o.removeNodeByXPath('//PropertyList')
 
         List<ItemProxy> patients = []
 
@@ -71,6 +73,8 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         def factory = agent.getItem("/$folder/DoctorFactory")
         def createItemJob = factory.getJobByName('InstantiateItem', agent)
         def o = createItemJob.getOutcome()
+        // Empty OotcomeInitiator will create this optional node
+        o.removeNodeByXPath('//PropertyList')
 
         List<ItemProxy> doctors = []
 
@@ -123,11 +127,11 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         assert depPrime.classProps == 'Type'
         assert depPrime.getMembers().list.size() == 3
         assert depPrime.getMember(0).getChildUUID() == patients[0].getPath().getUUID().toString()
-        assert depPrime.getMember(0).getProperties().size() == 3
+        assert depPrime.getMember(0).getProperties().size() == 6
         assert depPrime.getMember(1).getChildUUID() == patients[1].getPath().getUUID().toString()
-        assert depPrime.getMember(1).getProperties().size() == 3
-        assert depPrime.getMember(2).getChildUUID() == patients[02].getPath().getUUID().toString()
-        assert depPrime.getMember(2).getProperties().size() == 4
+        assert depPrime.getMember(1).getProperties().size() == 6
+        assert depPrime.getMember(2).getChildUUID() == patients[2].getPath().getUUID().toString()
+        assert depPrime.getMember(2).getProperties().size() == 7
 
         CastorHashMap memberUpdate = new CastorHashMap()
         memberUpdate.put("Name", "P3a")
@@ -144,21 +148,21 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         assert depFinal.getMembers().list.size() == 3
 
         assert depFinal.getMember(0).getChildUUID() == patients[0].getPath().getUUID().toString()
-        assert depFinal.getMember(0).getProperties().size() == 3
+        assert depFinal.getMember(0).getProperties().size() == 6
         assert depFinal.getMember(0).getProperties()['Name'] == 'P1'
         assert depFinal.getMember(0).getProperties()['Type'] == 'Patient'
         assert depFinal.getMember(0).getProperties()['Disease'] == 'covid19--'
         // Property 'MemberUpdateSchema' was not added to this member
 
         assert depFinal.getMember(1).getChildUUID() == patients[1].getPath().getUUID().toString()
-        assert depFinal.getMember(1).getProperties().size() == 3
+        assert depFinal.getMember(1).getProperties().size() == 6
         assert depFinal.getMember(1).getProperties()['Name'] == 'P2'
         assert depFinal.getMember(1).getProperties()['Type'] == 'Patient'
         assert depFinal.getMember(1).getProperties()['Disease'] == 'covid19'
         // Property 'MemberUpdateSchema' was not added to this member
 
         assert depFinal.getMember(2).getChildUUID() == patients[2].getPath().getUUID().toString()
-        assert depFinal.getMember(2).getProperties().size() == 4
+        assert depFinal.getMember(2).getProperties().size() == 7
         assert depFinal.getMember(2).getProperties()['Name'] == 'P3a'
         assert depFinal.getMember(2).getProperties()['Type'] == 'Patient'
         assert depFinal.getMember(2).getProperties()['Disease'] == 'covid19+'

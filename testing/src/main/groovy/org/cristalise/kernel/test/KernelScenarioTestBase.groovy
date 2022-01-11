@@ -65,12 +65,12 @@ class KernelScenarioTestBase extends DevItemDSL {
     }
 
     @BeforeClass
-    public static void before() {
+    public static void beforeClass() {
         init('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
     }
 
     @AfterClass
-    public static void after() {
+    public static void afterClass() {
         Gateway.close()
     }
 }

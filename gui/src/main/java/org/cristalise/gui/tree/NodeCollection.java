@@ -23,6 +23,7 @@ package org.cristalise.gui.tree;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
@@ -61,20 +62,29 @@ public class NodeCollection extends Node {
         Vertx vertx = Gateway.getVertx();
         vertx.eventBus().localConsumer(parent.getPath().getUUID() + "/" + COLLECTION, message -> {
             String[] tokens = ((String) message.body()).split(":");
-             String collPath = tokens[0];
+            String collPath = tokens[0];
 
             if (tokens[1].equals("DELETE")) return;
 
             vertx.executeBlocking(promise -> {
                 try {
-                    add(parent.getCollection(collPath));
+                    int idx = collPath.lastIndexOf("/");
+                    String collName = collPath.substring(0, idx);
+
+                    if (collPath.endsWith("/last")) {
+                        add(parent.getCollection(collName));
+                    }
+                    else {
+                        Integer version = new Integer(collPath.substring(idx+1));
+                        add(parent.getCollection(collName, version));
+                    }
                 }
                 catch (ObjectNotFoundException e) {
-                    log.error("", e);
+                    log.error("localConsumer.handler()", e);
                 }
                 promise.complete();
             }, res -> {
-                //
+                log.warn("", res.cause());
             });
         });
     }
@@ -103,37 +113,58 @@ public class NodeCollection extends Node {
     public void add(Collection<? extends CollectionMember> contents) {
         if (!contents.getName().equals(name)) return;
         this.type = contents.getClass().getSimpleName();
-        ArrayList<? extends CollectionMember> newMembers = contents.getMembers().list;
-        ArrayList<? extends CollectionMember> oldMembers;
-        if (thisCollection == null)
-            oldMembers = new ArrayList<CollectionMember>();
-        else
-            oldMembers = thisCollection.getMembers().list;
+        List<? extends CollectionMember> newMembers = contents.getMembers().list;
 
-        ArrayList<Path> currentPaths = new ArrayList<Path>();
+        List<? extends CollectionMember> oldMembers;
+        if (thisCollection == null) oldMembers = new ArrayList<CollectionMember>();
+        else                        oldMembers = thisCollection.getMembers().list;
+
+        List<Integer> currentSlotIds = new ArrayList<>();
         // add any missing paths
         for (CollectionMember newMember : newMembers) {
-            ItemPath itemPath = newMember.getItemPath();
-            if (!oldMembers.contains(newMember) && itemPath != null) {
-                currentPaths.add(itemPath);
-                NodeItem newMemberNode = new NodeItem(itemPath, desktop);
+            if (!oldMembers.contains(newMember)) {
+                currentSlotIds.add(newMember.getID());
+                NodeCollectionMember newMemberNode = new NodeCollectionMember(newMember, desktop);
                 newMemberNode.setCollection(contents, newMember.getID(), parent);
                 newMemberNode.setToolTip(getPropertyToolTip(newMember.getProperties()));
                 add(newMemberNode);
             }
         }
         // remove those no longer present
-        for (Path childPath : childNodes.keySet()) {
-            if (!currentPaths.contains(childPath)) {
-                remove(childPath);
-            }
+        for (Node node : childNodes) {
+            int slotId = ((NodeCollectionMember)node).getMember().getID();
+
+            if (!currentSlotIds.contains(slotId)) remove(slotId);
         }
 
         thisCollection = contents;
-        if (isDependency())
+        if (isDependency()) {
             setToolTip(getPropertyToolTip(((Dependency) contents).getProperties()));
+        }
         end(false);
     }
+    
+
+    public void remove(int slotId) {
+        synchronized(childNodes) {
+            int oldIdx = -1;
+            Path oldPath = null;
+            for (int i = 0; i < childNodes.size(); i++) {
+                int id = ((NodeCollectionMember)childNodes.get(i)).getMember().getID();
+                if (id == slotId) {
+                    oldIdx = i;
+                    oldPath = childNodes.get(i).getPath();
+                }
+            }
+            if (oldIdx != -1) {
+                childNodes.remove(oldIdx);
+                for (NodeSubscriber thisSub : subscribers) {
+                    thisSub.remove(oldPath);
+                }
+            }
+        }
+    }
+
 
     public boolean addMember(ItemPath itemPath) {
         if (!isDependency()) return false;

@@ -244,11 +244,14 @@ public class Gateway extends ProxyManager
         DeploymentOptions options = new DeploymentOptions()
                 .setWorker(ItemVerticle.isWorker)
                 .setInstances(ItemVerticle.instances);
-
         mVertx.deployVerticle(ItemVerticle.class, options);
 
         options.setInstances(getProperties().getInt("JobPusherVerticle.instances", 2));
         mVertx.deployVerticle(JobPusherVerticle.class, options);
+
+        options.setInstances(1);
+        options.setWorker(false);
+        mVertx.deployVerticle(TcpBridgeVerticle.class, options);
     }
 
     /**
@@ -365,6 +368,7 @@ public class Gateway extends ProxyManager
     private static void setup(Authenticator auth) throws CriseVertxException {
         if (mLookup != null) mLookup.close();
 
+        // To use tcpip-bride, the client has to create non-clustered vertx
         createVertx(new VertxOptions(), mC2KProps.getBoolean("Gateway.clusteredVertx", true));
 
         try {

@@ -46,6 +46,7 @@ class Struct {
     List<Attribute> attributes = []
     AnyField anyField = null
 
+    String multiplicityString = null
     String minOccurs = null
     String maxOccurs = null
 
@@ -92,6 +93,8 @@ class Struct {
 
             if (v) maxOccurs = v
             else   maxOccurs = ''
+
+            multiplicityString = m
         }
         else {
             def v = getMultiplicityVal(m)
@@ -101,6 +104,7 @@ class Struct {
                 if (v == 'unbounded') { maxOccurs = v; maxOccurs = ''; }
                 else                  { minOccurs = v; maxOccurs = v; }
             }
+            multiplicityString = m
         }
     }
 }

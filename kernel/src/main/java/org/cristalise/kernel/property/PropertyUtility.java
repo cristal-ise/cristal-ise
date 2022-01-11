@@ -55,7 +55,7 @@ public class PropertyUtility {
      * @param pdlist the list of Properties to search
      * @param name name of the Property to search for
      * @return the defeult value of the property. Can be null.
-     * @deprecated badly named method, use getDefaultValue() instead
+     * @deprecated Badly named method, use getDefaultValue() instead
      */
     static public String getValue(ArrayList<PropertyDescription> pdlist, String name) {
         return getDefaultValue(pdlist, name);
@@ -102,7 +102,9 @@ public class PropertyUtility {
      * @return
      * @throws ObjectNotFoundException
      */
-    public static Property getProperty(ItemPath itemPath, BuiltInItemProperties prop, TransactionKey transactionKey) throws ObjectNotFoundException {
+    public static Property getProperty(ItemPath itemPath, BuiltInItemProperties prop, TransactionKey transactionKey)
+            throws ObjectNotFoundException
+    {
         return getProperty(itemPath, prop.getName(), transactionKey);
     }
 
@@ -114,7 +116,9 @@ public class PropertyUtility {
      * @return
      * @throws ObjectNotFoundException
      */
-    public static Property getProperty(ItemPath itemPath, String propName, TransactionKey transactionKey) throws ObjectNotFoundException {
+    public static Property getProperty(ItemPath itemPath, String propName, TransactionKey transactionKey)
+            throws ObjectNotFoundException
+    {
         try {
             return (Property)Gateway.getStorage().get(itemPath, ClusterType.PROPERTY+"/"+propName, transactionKey);
         }
@@ -132,8 +136,9 @@ public class PropertyUtility {
     static public String getNames(ArrayList<PropertyDescription> pdlist) {
         StringBuffer names = new StringBuffer();
 
-        for (PropertyDescription value : pdlist)
+        for (PropertyDescription value : pdlist) {
             names.append(value.getDefaultValue()).append(" ");
+        }
 
         return names.toString();
     }
@@ -165,7 +170,9 @@ public class PropertyUtility {
      * @return the PropertyDescriptionList
      * @throws ObjectNotFoundException PropertyDescriptionList cannot be retrieved
      */
-    static public PropertyDescriptionList getPropertyDescriptionOutcome(ItemPath itemPath, String descVer, TransactionKey transactionKey) throws ObjectNotFoundException {
+    static public PropertyDescriptionList getPropertyDescriptionOutcome(ItemPath itemPath, String descVer, TransactionKey transactionKey)
+            throws ObjectNotFoundException
+    {
         try {
             //the type of the Item is a PropertyDesc
             if (getProperty(itemPath, TYPE, transactionKey).getValue().equals(PROPERTY_DESC_RESOURCE.getSchemaName())) {
@@ -341,7 +348,7 @@ public class PropertyUtility {
                 return getProperty(item, name, transactionKey).getValue();
             }
         }
-        catch(ObjectNotFoundException e) {
+        catch (ObjectNotFoundException e) {
             //This line should never happen because of the use of checkProperty()
         }
 

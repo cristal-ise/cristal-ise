@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ProxyManager {
 
     private static ItemProxy createProxy(ItemPath itemPath, TransactionKey transactionKey) throws ObjectNotFoundException {
-        log.debug("createProxy() - Item:{}", itemPath);
+        log.trace("createProxy() - Item:{}", itemPath);
 
         if( itemPath instanceof AgentPath ) return new AgentProxy((AgentPath)itemPath, transactionKey);
         else                                return new ItemProxy(itemPath, transactionKey);

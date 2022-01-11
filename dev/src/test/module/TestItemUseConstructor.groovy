@@ -1,7 +1,12 @@
+import static org.apache.commons.lang3.StringUtils.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
+import static org.cristalise.kernel.property.BuiltInItemProperties.*;
 
 // this is defined in CrudState.groovy of the dev module
 def states = ['ACTIVE', 'INACTIVE']
@@ -12,9 +17,11 @@ def states = ['ACTIVE', 'INACTIVE']
 
 Schema('TestItemUseConstructor', 0) {
     struct(name:' TestItemUseConstructor', documentation: 'TestItemUseConstructor aggregated data') {
-        field(name: 'Name',        type: 'string')
-        field(name: 'State',       type: 'string', values: states)
+        field(name: 'Name', type: 'string')
+        field(name: 'State', type: 'string', values: states)
+
         field(name: 'Description', type: 'string')
+
     }
 }
 
@@ -23,15 +30,18 @@ Schema('TestItemUseConstructor_Details', 0) {
 
         field(name: 'Name', type: 'string')
 
+
         field(name: 'Description', type: 'string')
+
     }
 }
 
 
 Activity('TestItemUseConstructor_Update', 0) {
-    Property('OutcomeInit': 'Empty')
+    Property((OUTCOME_INIT): 'Empty')
+
     Schema($testItemUseConstructor_Details_Schema)
-    //Script('CrudEntity_ChangeName', 0)
+    Script('CrudEntity_ChangeName', 0)
 }
 
 Script('TestItemUseConstructor_Aggregate', 0) {
@@ -47,23 +57,26 @@ Script('TestItemUseConstructor_QueryList', 0) {
 }
 
 Activity('TestItemUseConstructor_Aggregate', 0) {
-    Property('OutcomeInit': 'Empty')
-    Property('Agent Role': 'UserCode')
+    Property((OUTCOME_INIT): 'Empty')
+    Property((AGENT_ROLE): 'UserCode')
 
     Schema($testItemUseConstructor_Schema)
     Script($testItemUseConstructor_Aggregate_Script)
 }
 
+
+
 Workflow('TestItemUseConstructor_Workflow', 0) {
-    ElemActDef($testItemUseConstructor_Update_ActivityDef)
-    CompActDef('CrudState_Manage', 0)
+    Layout {
+        AndSplit {
+            LoopInfinitive { Act('Update', $testItemUseConstructor_Update_ActivityDef)  }
+            Block { CompActDef('CrudState_Manage', 0) }
+
+        }
+    }
 }
 
-PropertyDescriptionList('TestItemUseConstructor', 0) {
-    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestItemUseConstructor')
-    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-}
+
 
 Item(name: 'TestItemUseConstructorFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
@@ -99,4 +112,5 @@ Item(name: 'TestItemUseConstructorFactory', version: 0, folder: '/devtest', work
             Property('Version': 0)
         }
     }
+
 }

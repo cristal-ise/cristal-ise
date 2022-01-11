@@ -158,7 +158,7 @@ public class Schema implements DescriptionObject, ErrorHandler {
 
     @Override
     public String getItemID() {
-        if (itemPath == null || itemPath == null || itemPath.getUUID() == null) return "";
+        if (itemPath == null || itemPath.getUUID() == null) return "";
         return itemPath.getUUID().toString();
     }
 

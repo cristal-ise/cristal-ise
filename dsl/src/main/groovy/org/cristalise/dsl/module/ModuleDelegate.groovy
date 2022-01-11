@@ -271,15 +271,18 @@ class ModuleDelegate implements BindingConvention {
      * @return
      */
     public CompositeActivityDef Workflow(Map args, @DelegatesTo(CompActDefDelegate) Closure cl) {
-        def caDef = CompActDefBuilder.build((String)args.name, (Integer)args.version, cl)
+        def caDef = CompActDefBuilder.build(args, cl)
 
         if (args?.generate) {
             if (generateResourceXml) {
                 DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
                 //do not rebuild during export, because LocalObjectLoader will not find new actDefs declared in DSL
                 caDef.export(null, resourceBootDir, true, false)
-                generateWorkflowSVG('target', caDef)
+
+                if (log.isDebugEnabled()) generateWorkflowSVG('target', caDef)
             }
+
+            assert caDef.verify(), args
         }
         else {
             // since the workflow was not generated the XML file must exist

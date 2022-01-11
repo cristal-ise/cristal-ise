@@ -42,6 +42,7 @@ import org.cristalise.kernel.process.Gateway;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
+@SuppressWarnings("serial")
 @Slf4j
 public class CollectionPane extends ItemTabPane {
     JTabbedPane collTabs;
@@ -64,7 +65,16 @@ public class CollectionPane extends ItemTabPane {
 
             vertx.executeBlocking(promise -> {
                 try {
-                    add(sourceItem.getItem().getCollection(collPath));
+                    int idx = collPath.lastIndexOf("/");
+                    String collName = collPath.substring(0, idx);
+
+                    if (collPath.endsWith("/last")) {
+                        add(sourceItem.getItem().getCollection(collName));
+                    }
+                    else {
+                        Integer version = new Integer(collPath.substring(idx+1));
+                        add(sourceItem.getItem().getCollection(collName, version));
+                    }
                 }
                 catch (ObjectNotFoundException e) {
                     log.error("", e);
@@ -114,6 +124,7 @@ public class CollectionPane extends ItemTabPane {
         collTabs.add(contents.getName() + (contents instanceof CollectionDescription ? "*" : ""), thisCollView);
     }
 
+    @SuppressWarnings("unchecked")
     private CollectionView<? extends CollectionMember> findTabForCollName(String collName) {
         CollectionView<? extends CollectionMember> thisCollView = null;
         for (int i = 0; i < collTabs.getTabCount(); i++) {
@@ -138,9 +149,7 @@ public class CollectionPane extends ItemTabPane {
             String collNames = sourceItem.getItem().queryData(ClusterType.COLLECTION + "/all");
             StringTokenizer tok = new StringTokenizer(collNames, ",");
             while (tok.hasMoreTokens()) {
-                Collection<?> thisLastColl = (Collection<?>) sourceItem.getItem()
-                        .getObject(ClusterType.COLLECTION + "/" + tok.nextToken() + "/last");
-                add(thisLastColl);
+                add(sourceItem.getItem().getCollection(tok.nextToken()));
             }
         }
         catch (Exception e) {

@@ -51,8 +51,13 @@ public class ActivitySlotDef extends WfVertexDef {
      */
     public ActivitySlotDef(String name, ActivityDef actDef) {
         setName(name);
-        setBuiltInProperty(NAME, name);
         setTheActivityDef(actDef);
+    }
+
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+        setBuiltInProperty(NAME, name);
     }
 
     /**

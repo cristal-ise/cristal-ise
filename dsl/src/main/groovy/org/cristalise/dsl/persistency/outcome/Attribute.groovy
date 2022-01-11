@@ -24,6 +24,7 @@ import java.time.LocalDate
 import java.time.OffsetDateTime
 import java.time.OffsetTime
 
+import org.apache.commons.lang3.StringUtils
 import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.transform.CompileStatic;
@@ -66,6 +67,8 @@ class Attribute {
     Reference reference = null
     Expression expression = null
 
+    String multiplicityString
+    
     /**
      * Checks if the type is acceptable
      * 
@@ -97,6 +100,8 @@ class Attribute {
             else if (m == "1..1") required = true
             else if (m == "0..1") required = false
             else                  throw new InvalidDataException("Invalid value for attribute multiplicity : '$m'")
+
+            multiplicityString = m
         }
     }
 
@@ -175,7 +180,16 @@ class Attribute {
     public boolean isRequired() {
         return required;
     }
-    
+
+    /**
+     * Remove the 'xs:' prefix from the type string if exists
+     * @return type string without the 'xs:' prefix
+     */
+    public String getDslType() {
+        if (type.startsWith('xs:')) return type.substring(3)
+        else                        return type
+    }
+
     public Class<?> getJavaType() {
         switch(type) {
             case 'xs:string':   return String.class;
@@ -186,5 +200,9 @@ class Attribute {
             case 'xs:time':     return OffsetTime.class;
             case 'xs:dateTime': return OffsetDateTime.class;
         }
+    }
+
+    public String getLabel() {
+        return StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(name), " ")
     }
 }

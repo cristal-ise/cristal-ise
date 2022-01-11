@@ -51,13 +51,13 @@ import org.cristalise.kernel.graph.model.VertexFactory;
 import org.cristalise.kernel.lifecycle.LifecycleVertexOutlineCreator;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.FileStringUtility;
 
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
+@SuppressWarnings("serial")
 @Slf4j
 public class WorkflowPane extends ItemTabPane {
     // Only for the purpose of loading and saving

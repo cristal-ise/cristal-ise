@@ -17,7 +17,7 @@ def detailsSchema = 'TestAgent_Details'
 
 def name  = item.getName()
 def state = item.getProperty('State')
-
+def type  = item.getType()
 
 Outcome details = null
 
@@ -28,10 +28,9 @@ if (item.checkViewpoint(detailsSchema, 'last')) {
 def writer = new StringWriter()
 def xml = new MarkupBuilder(writer)
 
-xml.TestAgent {
+xml."$type" {
     Name(  name  )
     State( state )
-
 
     if (details) {
         details.getRecord().each {field, value ->

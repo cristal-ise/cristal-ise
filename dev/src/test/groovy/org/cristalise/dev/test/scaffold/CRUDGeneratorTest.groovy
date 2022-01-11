@@ -21,11 +21,12 @@
 package org.cristalise.dev.test.scaffold
 
 import org.codehaus.groovy.control.CompilerConfiguration
+import org.cristalise.dev.dsl.item.CRUDItem
 import org.cristalise.dev.scaffold.CRUDGenerator
-import org.cristalise.kernel.process.Gateway
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.Status
 import org.junit.AfterClass
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 
@@ -35,10 +36,20 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class CRUDGeneratorTest {
     static Git gitRepo
+    CRUDGenerator generator
 
     @BeforeClass
     public static void setup() throws Exception {
         gitRepo = Git.open(new File('../.git'));
+    }
+
+    @Before
+    public void before() {
+        generator = new CRUDGenerator(
+            rootDir:         'src/test',
+            resourceRootDir: 'src/test/resources/org/cristalise/devtest/resources/',
+            moduleXmlDir:    'src/test/resources/META-INF/cristal',
+        )
     }
 
     @AfterClass
@@ -46,20 +57,14 @@ class CRUDGeneratorTest {
 
     public boolean getCheckGitStatus() {
         Status gitStatus = gitRepo.status().call()
-        //gitStatus.getModified().each { log.info it }
+        if (!gitStatus.isClean()) gitStatus.getModified().each { log.info('getCheckGitStatus() - changed file:{}', it) }
         return gitStatus.isClean()
     } 
 
     @Test
-    void generateCRUDItemTest()throws Exception {
-        def generator = new CRUDGenerator(
-            rootDir:         'src/test',
-            resourceRootDir: 'src/test/resources/org/cristalise/devtest/resources/',
-            moduleXmlDir:    'src/test/resources/META-INF/cristal',
-        )
-
+    void generateTestItem() throws Exception {
         Map<String, Object> inputs = [
-            item:           'TestItem',
+            item:           new CRUDItem(name: 'TestItem'),
             version:        0,
             moduleNs:       'devtest',
             useConstructor: false,
@@ -69,62 +74,119 @@ class CRUDGeneratorTest {
             moduleFiles:    ['TestItem.groovy']
         ]
 
-        generator.generate(inputs)
+        generator.generateItemDSL(inputs)
+    }
 
-        inputs.with {
-            item = 'TestItemExcel'
-            inputFile = 'TestItemExcel.xlsx'
-            ((List)moduleFiles).add('TestItemExcel.groovy')
-        }
+    @Test
+    void generateTestItemExcel() throws Exception {
+        Map<String, Object> inputs = [
+            item:           new CRUDItem(name: 'TestItemExcel'),
+            version:        0,
+            moduleNs:       'devtest',
+            useConstructor: false,
+            isAgent:        false,
+            generatedName:  false,
+            inputFile:      'TestItemExcel.xlsx'
+        ]
 
-        generator.generate(inputs)
+        generator.generateItemDSL(inputs)
+    }
 
-        inputs.with {
-            inputFile = null
-            item = 'TestItemUseConstructor'
-            useConstructor = true
-            ((List)moduleFiles).add('TestItemUseConstructor.groovy')
-        }
+    @Test
+    void generateTestItemUseConstructor() throws Exception {
+        Map<String, Object> inputs = [
+            item:           new CRUDItem(name: 'TestItemUseConstructor'),
+            version:        0,
+            moduleNs:       'devtest',
+            useConstructor: true,
+            isAgent:        false,
+            generatedName:  false,
+            inputFile:      null
+        ]
 
-        generator.generate(inputs)
+        generator.generateItemDSL(inputs)
+    }
 
-        inputs.with {
-            item = 'TestAgentUseConstructor'
-            isAgent = true
-            ((List)moduleFiles).add('TestAgentUseConstructor.groovy')
-        }
+    
+    @Test
+    void generateTestAgentUseConstructor() throws Exception {
+        Map<String, Object> inputs = [
+            item:           new CRUDItem(name: 'TestAgentUseConstructor'),
+            version:        0,
+            moduleNs:       'devtest',
+            useConstructor: true,
+            isAgent:        true,
+            generatedName:  false,
+            inputFile:      null
+        ]
 
-        generator.generate(inputs)
+        generator.generateItemDSL(inputs)
+    }
 
-        inputs.with {
-            item = 'TestAgent'
-            useConstructor = false
-            ((List)moduleFiles).add('TestAgent.groovy')
-        }
+    @Test
+    void generateTestAgent() throws Exception {
+        Map<String, Object> inputs = [
+            item:           new CRUDItem(name: 'TestAgent'),
+            version:        0,
+            moduleNs:       'devtest',
+            useConstructor: false,
+            isAgent:        true,
+            generatedName:  false,
+            inputFile:      null
+        ]
 
-        generator.generate(inputs, false)
+        generator.generateItemDSL(inputs)
+    }
 
-        inputs.with {
-            item = 'TestItemGeneratedName'
-            isAgent = false
-            generatedName = true
-            ((List)moduleFiles).add('TestItemGeneratedName.groovy')
-        }
+    @Test
+    void generateTestItemGeneratedName() throws Exception {
+        Map<String, Object> inputs = [
+            item:           new CRUDItem(name: 'TestItemGeneratedName'),
+            version:        0,
+            moduleNs:       'devtest',
+            useConstructor: false,
+            isAgent:        false,
+            generatedName:  true,
+            inputFile:      null
+        ]
 
-        generator.generate(inputs)
+        generator.generateItemDSL(inputs)
+    }
 
-        inputs.with {
-            moduleName     = 'DEV Scaffold Test module'
-            resourceURL    = 'org/cristalise/devtest/resources/'
-            item           = 'TestItemUseConstructorGeneratedName'
-            useConstructor = true
+    @Test
+    void generateTestItemUseConstructorGeneratedName() throws Exception {
+        Map<String, Object> inputs = [
+            item:           new CRUDItem(name: 'TestItemUseConstructorGeneratedName'),
+            version:        0,
+            moduleNs:       'devtest',
+            useConstructor: true,
+            isAgent:        false,
+            generatedName:  true,
+            inputFile:      null
+        ]
 
-            ((List)moduleFiles).add('TestItemUseConstructorGeneratedName.groovy')
-        }
+        generator.generateItemDSL(inputs)
+    }
 
-        generator.generate(inputs, true)
+    @Test
+    void generateCRUDModule() throws Exception {
+        def generator  = new CRUDGenerator(rootDir: 'src/test')
+        def scriptText = new File('src/test/data/CRUDTestModule.groovy').text
 
-        assert getCheckGitStatus()
+        generator.generateCRUDModule(scriptText)
+    }
+
+    @Test
+    void generateModule() throws Exception {
+        Map<String, Object> inputs = [
+            moduleName:  'DEV Scaffold Test module',
+            version:     0,
+            resourceURL: 'org/cristalise/devtest/resources/',
+            moduleNs:    'devtest',
+            inputFile:   null
+        ]
+
+        generator.generateModuleDSL(inputs)
 
         CompilerConfiguration cc = new CompilerConfiguration()
         cc.setScriptBaseClass(DelegatingScript.class.getName())
@@ -136,6 +198,6 @@ class CRUDGeneratorTest {
         script.setDelegate(this)
         script.run()
 
-        assert getCheckGitStatus()
+        //assert getCheckGitStatus()
     }
 }

@@ -31,9 +31,12 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +61,7 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +71,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class CompositeActivityDef extends ActivityDef {
-    private ArrayList<ActivityDef> refChildActDef = new ArrayList<ActivityDef>();
+    private List<ActivityDef> refChildActDef = new ArrayList<ActivityDef>();
 
     public CompositeActivityDef() {
         super();
@@ -90,11 +94,11 @@ public class CompositeActivityDef extends ActivityDef {
         setVersion(v);
     }
 
-    public ArrayList<ActivityDef> getRefChildActDef() {
+    public List<ActivityDef> getRefChildActDef() {
         return refChildActDef;
     }
 
-    public void setRefChildActDef(ArrayList<ActivityDef> refChildActDef) {
+    public void setRefChildActDef(List<ActivityDef> refChildActDef) {
         this.refChildActDef = refChildActDef;
     }
 
@@ -334,17 +338,17 @@ public class CompositeActivityDef extends ActivityDef {
         return makeDescCollection(ACTIVITY, transactionKey, refChildActDef.toArray(new ActivityDef[refChildActDef.size()]));
     }
 
-    public ArrayList<ActivityDef> findRefActDefs(GraphModel graph, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        ArrayList<ActivityDef> graphActDefs = new ArrayList<ActivityDef>();
+    public List<ActivityDef> findRefActDefs(GraphModel graph, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        Map<String, ActivityDef> graphActDefs = new LinkedHashMap<>();
         for (Vertex elem : graph.getVertices()) {
             if (elem instanceof ActivitySlotDef) {
                 ActivitySlotDef actSlotDef = (ActivitySlotDef) elem;
                 actSlotDef.setTheActivityDef(null); //enforce getTheActivityDef() to do the full search
                 ActivityDef actDef = actSlotDef.getTheActivityDef(transactionKey);
-                if (!graphActDefs.contains(actDef)) graphActDefs.add(actDef);
+                if (!graphActDefs.containsKey(actDef.getActName())) graphActDefs.put(actDef.getActName(), actDef);
             }
         }
-        return graphActDefs;
+        return new ArrayList<ActivityDef>(graphActDefs.values());
     }
 
     /**
@@ -403,17 +407,20 @@ public class CompositeActivityDef extends ActivityDef {
 
     @Override
     public boolean verify() {
-        boolean err = super.verify();
+        boolean isCorrect = super.verify();
         GraphableVertex[] vChildren = getChildren();
-        
+
         for (int i = 0; i < vChildren.length; i++) {
             WfVertexDef wfvChild = (WfVertexDef) vChildren[i];
             if (!(wfvChild.verify())) {
                 mErrors.add(wfvChild.getName() + ": " + wfvChild.getErrors());
-                err = false;
+                isCorrect = false;
             }
         }
-        return err;
+
+        if (!isCorrect) log.error("verify() - errors:{}", getErrors());
+
+        return isCorrect;
     }
 
     @Override
@@ -434,7 +441,7 @@ public class CompositeActivityDef extends ActivityDef {
      */
     public void export(Writer imports, File dir, boolean shallow, boolean rebuild) throws InvalidDataException, ObjectNotFoundException, IOException {
         if (rebuild) {
-            ArrayList<ActivityDef> rebuiltActDefList = findRefActDefs(getChildrenGraphModel(), null);
+            List<ActivityDef> rebuiltActDefList = findRefActDefs(getChildrenGraphModel(), null);
             setRefChildActDef(rebuiltActDefList);
         }
 
@@ -460,15 +467,15 @@ public class CompositeActivityDef extends ActivityDef {
 
         try {
             // export marshalled compAct
-            String compactXML = Gateway.getMarshaller().marshall(this);
+            String compactXML = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
             if (Gateway.getProperties().getBoolean("Export.replaceActivitySlotDefUUIDWithName", false)) {
                 compactXML = replaceActivitySlotDefUUIDWithName(compactXML);
-            }            
+            }
             FileStringUtility.string2File(new File(new File(dir, tc), getActName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml"), compactXML);
         }
         catch (Exception e) {
             log.error("Couldn't marshall composite activity def " + getActName(), e);
-            throw new InvalidDataException("Couldn't marshall composite activity def " + getActName());
+            throw new InvalidDataException("Couldn't marshall composite activity def " + getActName(), e);
         }
 
         if (imports != null) {
@@ -485,23 +492,48 @@ public class CompositeActivityDef extends ActivityDef {
             throws InvalidDataException, XPathExpressionException, ObjectNotFoundException
     {
         Outcome outcome = new Outcome(compactXML);
-        NodeList nodeList = outcome.getNodesByXPath("/CompositeActivityDef/childrenGraphModel/GraphModelCastorData/ActivitySlotDef/activityDef/text()");
+        NodeList nodeList = outcome.getNodesByXPath("/CompositeActivityDef/childrenGraphModel/GraphModelCastorData/ActivitySlotDef");
 
         for (int i = 0; i < nodeList.getLength(); i++) {
+            Node activityDefNode = ((Node)outcome.evaluateXpath(nodeList.item(i), "activityDef/text()", XPathConstants.NODE));
+            String syskey = activityDefNode.getNodeValue();
+
+            log.debug("replaceActivitySlotDefUUIDWithName(name:{}) - replacing UIID:{}", getActName(), syskey);
+
             try {
-                String syskey = nodeList.item(i).getNodeValue();
                 if (StringUtils.isNotBlank(syskey) && ItemPath.isUUID(syskey)) {
                     ItemPath itemPath = Gateway.getLookup().getItemPath(syskey);
                     String itemName = Gateway.getProxy(itemPath).getName();
-                    nodeList.item(i).setNodeValue(itemName);
+                    activityDefNode.setNodeValue(itemName);
+                    log.debug("replaceActivitySlotDefUUIDWithName(name:{}) - replaced UIID:{} with name:{}", getActName(), syskey, itemName);
                 }
                 else if (StringUtils.isNotBlank(syskey)) {
-                    log.debug("replaceActivitySlotDefUUIDWithName(name:{}) - syskey:{} was not replaced - not null & neither UUID", getActName(), syskey);
+                    log.trace("replaceActivitySlotDefUUIDWithName(name:{}) - UIID:{} was not replaced - not null & neither UUID", getActName(), syskey);
                 }
             }
             catch(Exception e) {
-                log.error("Cannot find item with UIID: "+nodeList.item(i).getNodeValue(), e);
-                throw new ObjectNotFoundException("Cannot find item with UIID: "+nodeList.item(i).getNodeValue());
+                Node actDefNameNode = (Node) outcome.evaluateXpath(nodeList.item(i), "Properties/KeyValuePair[@Key='ActivityDefName']", XPathConstants.NODE);
+                String actDefName = actDefNameNode == null ? null : actDefNameNode.getAttributes().getNamedItem("String").getNodeValue();
+
+                //Try to read 'Name' property if 'ActivityDefName' property was not available
+                if (StringUtils.isBlank(actDefName)) {
+                    actDefName = ((Node) outcome.evaluateXpath(
+                        nodeList.item(i), "Properties/KeyValuePair[@Key='Name']", XPathConstants.NODE)
+                    )
+                    .getAttributes().getNamedItem("String").getNodeValue();
+
+                    //Name property of ActivitySlotDef might be equal with the Name of the ActivityDescription Item
+                    if (!actDefName.contains("_")) actDefName = null;
+                }
+
+                if (StringUtils.isNotBlank(actDefName)) {
+                    activityDefNode.setNodeValue(actDefName);
+                    log.debug("replaceActivitySlotDefUUIDWithName(name:{}) - replaced UIID:{} with name:{}", getActName(), syskey, actDefName);
+                }
+                else {
+                    log.error("replaceActivitySlotDefUUIDWithName() - Cannot find item with UIID:{} with Name property={}", syskey, actDefName, e);
+                    throw new ObjectNotFoundException("Cannot find item with UIID: "+nodeList.item(i).getNodeValue());
+                }
             }
         }
         return outcome.getData(true);

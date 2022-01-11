@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter
 
 import org.cristalise.dev.dsl.DevItemDSL
 import org.cristalise.dev.scaffold.CRUDItemCreator
+import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
@@ -98,6 +99,8 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         agent.getItem('/devtest/TestItemGeneratedNameFactory')
         agent.getItem('/devtest/TestItemUseConstructorFactory')
         agent.getItem('/devtest/TestItemUseConstructorGeneratedNameFactory')
+        agent.getItem('/devtest/CarFactory')
+        agent.getItem('/devtest/ClubMemberFactory')
     }
 
     @Test
@@ -181,12 +184,25 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     @Test
     public void 'Create Item using Update and Generated Name'() {
+        String fatoryPath = "/$folder/TestItemGeneratedNameFactory"
+
         item = creator.createItemWithUpdateAndCheck(
             Description: 'ItemUsingUpdateGenretedName description',
-            "/$folder/TestItemGeneratedNameFactory")
+            fatoryPath)
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
+
+        assert item.name == 'ID000001'
+        ItemProxy factory = agent.getItem(fatoryPath)
+        assert factory.getViewpoint('CrudFactory_NewInstanceDetails', 'last').getOutcome().getField('Name') == 'ID000001'
+
+        item = creator.createItemWithUpdateAndCheck(
+            Description: 'ItemUsingUpdateGenretedName description',
+            fatoryPath)
+
+        assert item.name == 'ID000002'
+        assert factory.getViewpoint('CrudFactory_NewInstanceDetails', 'last').getOutcome().getField('Name') == 'ID000002'
     }
 
     @Test
@@ -239,5 +255,73 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         result = (Map)script.evaluate(inputs)
         expected = '<TestItemExcel_Details><Age>2</Age></TestItemExcel_Details>'
         assert KernelXMLUtility.compareXML(expected, (String)result.TestItemExcel_DetailsXml)
+    }
+
+    @Test
+    public void 'Create Car, Motorcycle and add them to ClubMember and remove Car'() {
+        def car = creator.createItemWithUpdateAndCheck(
+            Name: "Car-$timeStamp",
+            RegistrationPlate: 'IG 94-11',
+            "/$folder/CarFactory")
+
+        def motorcycle = creator.createItemWithUpdateAndCheck(
+            Name: "Motorcycle-$timeStamp",
+            RegistrationPlate: 'JTG 345',
+            "/$folder/MotorcycleFactory")
+
+        def clubMember = creator.createItemWithUpdateAndCheck(
+            Name: "ClubMember-$timeStamp",
+            Email: 'mate@people.hu',
+            "/$folder/ClubMemberFactory")
+
+        assert clubMember.getCollection('Cars').members.list.size() == 0
+        clubMember.getCollection('Motorcycles').members.list.size() == 0
+        car.getCollection('ClubMember').members.list.size() == 0
+        motorcycle.getCollection('ClubMember').members.list.size() == 0
+
+        //Add to Cars
+        def addToCarsJob = clubMember.getJobByName('AddToCars', agent)
+        assert addToCarsJob, "Cannot get Job $addToCarsJob of Item '$clubMember.name'"
+
+        addToCarsJob.getOutcome().setField("MemberName", "Car-$timeStamp",)
+        agent.execute(addToCarsJob)
+
+        def clubMemberCars = (Dependency)clubMember.getCollection('Cars')
+        def carClubMember  = (Dependency)car.getCollection('ClubMember')
+
+        assert clubMemberCars.members.list.size() == 1
+        assert clubMemberCars.getMember(0).itemPath == car.path
+
+        assert carClubMember.members.list.size() == 1
+        assert carClubMember.getMember(0).itemPath == clubMember.path
+
+        //Add to Motorcycles
+        def addToMotorcyclesJob = clubMember.getJobByName('AddToMotorcycles', agent)
+        assert addToMotorcyclesJob, "Cannot get Job $addToCarsJob of Item '$clubMember'"
+
+        addToMotorcyclesJob.getOutcome().setField("MemberName", "Motorcycle-$timeStamp",)
+        agent.execute(addToMotorcyclesJob)
+
+        def clubMemberMotorcycles = (Dependency)clubMember.getCollection('Motorcycles')
+        def motorcycleClubMember  = (Dependency)motorcycle.getCollection('ClubMember')
+
+        assert clubMemberMotorcycles.members.list.size() == 1
+        assert clubMemberMotorcycles.getMember(0).itemPath == motorcycle.path
+
+        assert motorcycleClubMember.members.list.size() == 1
+        assert motorcycleClubMember.getMember(0).itemPath == clubMember.path
+
+        //Remove from Cars
+        def removeFromCarsJob = clubMember.getJobByName('RemoveFromCars', agent)
+        assert removeFromCarsJob, "Cannot get Job $removeFromCarsJob of Item '$clubMember.name'"
+
+        addToCarsJob.getOutcome().setField("MemberSlotId", "0")
+        agent.execute(removeFromCarsJob)
+
+        clubMemberCars = (Dependency)clubMember.getCollection('Cars')
+        carClubMember  = (Dependency)car.getCollection('ClubMember')
+
+        assert clubMemberCars.members.list.size() == 0
+        assert carClubMember.members.list.size() == 0
     }
 }

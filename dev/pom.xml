@@ -204,6 +204,34 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- exec:java configs to execute module generation -->
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>exec-maven-plugin</artifactId>
+              <version>3.0.0</version>
+              <dependencies>
+                <dependency>
+                  <groupId>ch.qos.logback</groupId>
+                  <artifactId>logback-classic</artifactId>
+                  <version>1.2.3</version>
+                </dependency>
+              </dependencies>
+              <executions>
+                <execution>
+                  <id>module</id>
+                  <goals>
+                    <goal>java</goal>
+                  </goals>
+                  <configuration>
+                    <mainClass>org.codehaus.groovy.tools.GroovyStarter</mainClass>
+                    <commandlineArgs>--main groovy.ui.GroovyMain --encoding UTF-8 src/main/module/Module.groovy</commandlineArgs>
+                    <cleanupDaemonThreads>false</cleanupDaemonThreads>
+                    <includePluginDependencies>true</includePluginDependencies>
+                    <includeProjectDependencies>true</includeProjectDependencies>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -219,9 +247,19 @@
             <version>${revision}</version>
         </dependency>
         <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>4.6.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-xpath-outcomeinit</artifactId>
             <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.atteo</groupId>
+            <artifactId>evo-inflector</artifactId>
+            <version>1.2.2</version>
         </dependency>
         <dependency>
             <groupId>org.mozilla</groupId>

@@ -64,13 +64,13 @@ public enum BuiltInVertexProperties {
     DEPENDENCY_CARDINALITY("DependencyCardinality"),
 
     /**
-     * String property. The name of the ... In DSL it is used like this:
+     * String property of Activity specifying he name of the Dependency update by the Activity. In DSL it is used like this:
      *
      * <pre>
      * Activity('User_AddAddress', 0) {
      *   Property(PredefinedStep: 'AddMemberToCollection')
      *   Property(DependencyName: 'Addresses')
-     *   Schema('Address_Detaails', 0)
+     *   Schema('Address_Details', 0)
      * }</pre>
      */
     DEPENDENCY_NAME("DependencyName"),
@@ -85,6 +85,16 @@ public enum BuiltInVertexProperties {
      * String property of Collection specifying the type. It contains one of the values of {@link Collection.Type}
      */
     DEPENDENCY_TYPE("DependencyType"),
+
+    /**
+     * default: false
+     */
+    DEPENDENCY_ALLOW_DUPLICATE_ITEMS("DependencyAllowDuplicateItems"),
+
+    /**
+     * default: false
+     */
+    DEPENDENCY_DISABLE_TYPE_CHECK("DependencyDisableTypeCheck"),
 
     /**
      * String property used in ActivityDef to store the description text
@@ -318,6 +328,12 @@ public enum BuiltInVertexProperties {
     TYPE("Type"),
 
     /**
+     * Boolean property to trigger Outcome validation before creating the entry in the ClusterStore. 
+     * Default value is false, which can be overwritten by the 'Activity.validateOutcome' system property.
+     */
+    VALIDATE_OUTCOME("ValidateOutcome"),
+
+    /**
      * Integer property. It is used in CollectionMember to store the version of DescriptionDependency
      */
     VERSION("Version"),
@@ -360,5 +376,4 @@ public enum BuiltInVertexProperties {
         }
         return null;
     }
-
 }

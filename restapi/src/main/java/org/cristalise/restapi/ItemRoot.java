@@ -181,7 +181,7 @@ public class ItemRoot extends ItemUtils {
      */
     private Script getAggregateScript(ItemProxy item, String name, Integer version) {
         try {
-            return item.getAggregateScript();
+            return item.getAggregateScript(name, version);
         }
         catch (InvalidDataException | ObjectNotFoundException e) {
             return null;

@@ -1,0 +1,17 @@
+{
+  "Group" : [ {
+    "Button" : [ {
+      "label" : "Add",
+      "icon" : "fa-plus",
+      "iconColor" : "icon-green",
+      "activityName" : "AddToClubMember",
+      "actsOnSelected" : false
+    }, {
+      "label" : "Remove",
+      "icon" : "fa-times",
+      "iconColor" : "icon-red",
+      "activityName" : "RemoveFromClubMember",
+      "actsOnSelected" : true
+    } ]
+  } ]
+}

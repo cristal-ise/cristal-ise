@@ -29,36 +29,9 @@ import groovy.xml.MarkupBuilder
 
 
 /**
- * Utility class to create XMLs required to build 'dev' module Items
+ * Utility class to create XMLs from Maps and Lists
  */
 class DevXMLUtility {
-
-    /**
-     * @deprecated USE recordToXML()
-     * @param params
-     * @return the XML string
-     */
-    @Deprecated
-    public static String getNewDevObjectDefXML(params) {
-        def writer = new StringWriter()
-        def xml = new MarkupBuilder(writer)
-
-        writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
-
-        assert params.name, "name must be set"
-        assert params.folder, "folder must be set"
-
-        if(!params.name)   { params.name   = '' }
-        if(!params.folder) { params.folder = '' }
-
-        xml.NewDevObjectDef {
-            ObjectName("$params.name")
-            SubFolder("$params.folder")
-        }
-
-        return writer.toString()
-    }
-
     /**
      * Converts a Map to an XML using dynamic groovy. Support arbitrary level of nested structures 
      * through recursive algorithm. It also supports repeating elements specified as List.

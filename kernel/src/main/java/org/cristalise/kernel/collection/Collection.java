@@ -35,6 +35,8 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.utils.CastorHashMap;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Collections are Item local objects that reference other Items.
  * 
@@ -59,9 +61,31 @@ import org.cristalise.kernel.utils.CastorHashMap;
  * <p>
  * Collections are managed through predefined steps.
  */
+@Slf4j
 abstract public class Collection<E extends CollectionMember> implements C2KLocalObject {
     public enum Type {Bidirectional, Unidirectional}
-    public enum Cardinality {OneToMany, ManyToOne, OneToOne, ManyToMany}
+    public enum Cardinality {
+        OneToMany, ManyToOne, OneToOne, ManyToMany;
+
+        public Cardinality reverse() {
+            switch (this) {
+                case OneToOne:
+                case ManyToMany:
+                    return this;
+
+                case OneToMany:
+                    return ManyToOne;
+
+                case ManyToOne:
+                    return OneToMany;
+
+                default:
+                    log.warn("reverse() - unrecognised value:{}", this);
+                    break;
+            }
+            return null;
+        }
+    }
 
     private int                       mCounter = -1;   // Contains next available Member ID
     protected CollectionMemberList<E> mMembers = new CollectionMemberList<E>();
@@ -150,8 +174,7 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
 
     public boolean contains(ItemPath itemPath) {
         for (E element : mMembers.list) {
-            if (element.getItemPath().equals(itemPath))
-                return true;
+            if (element.getItemPath().equals(itemPath)) return true;
         }
         return false;
     }
@@ -184,20 +207,31 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
     }
 
     /**
-     * Find collection member by integer ID
+     * Find collection member by its integer ID
      * 
-     * @param memberId
-     *            to find
+     * @param memberId to find
      * @return the CollectionMember with that ID
-     * @throws ObjectNotFoundException
-     *             when the ID wasn't found
+     * @throws ObjectNotFoundException when the ID wasn't found
      */
     public E getMember(int memberId) throws ObjectNotFoundException {
         for (E element : mMembers.list) {
-            if (element.getID() == memberId)
-                return element;
+            if (element.getID() == memberId) return element;
         }
         throw new ObjectNotFoundException("Member " + memberId + " not found in " + mName);
+    }
+
+    /**
+     * Find first collection member with the given ItemPath.
+     * 
+     * @param itemPath to find
+     * @return the CollectionMember with that ItemPath
+     * @throws ObjectNotFoundException when the ID wasn't found
+     */
+    public E getMember(ItemPath itemPath) throws ObjectNotFoundException {
+        for (E element : mMembers.list) {
+            if (element.getItemPath().equals(itemPath)) return element;
+        }
+        throw new ObjectNotFoundException("Member " + itemPath + " not found in " + mName);
     }
 
     public CollectionMemberList<E> getMembers() {

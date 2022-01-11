@@ -27,6 +27,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPT
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PREDEFINED_STEP;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VALIDATE_OUTCOME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 
 import java.util.ArrayList;
@@ -56,7 +57,6 @@ import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.WfCastorHashMap;
-import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
@@ -200,7 +200,9 @@ public class Activity extends WfVertex {
                    CannotManageException,
                    InvalidCollectionModification
     {
-        boolean validateOutcome = Gateway.getProperties().getBoolean("Activity.validateOutcome", false);
+        boolean validateOutcomeDefault = Gateway.getProperties().getBoolean("Activity.validateOutcome", false);
+        boolean validateOutcome = (boolean) getBuiltInProperty(VALIDATE_OUTCOME, validateOutcomeDefault);
+
         return request(agent, itemPath, transitionID, requestData, attachmentType, attachment, validateOutcome, transactionKey);
     }
 
@@ -237,10 +239,12 @@ public class Activity extends WfVertex {
         // Verify outcome
         boolean storeOutcome = false;
         if (transition.hasOutcome(getProperties())) {
-            if (StringUtils.isNotBlank(requestData))
+            if (StringUtils.isNotBlank(requestData)) {
                 storeOutcome = true;
-            else if (transition.getOutcome().isRequired())
+            }
+            else if (transition.getOutcome().isRequired()) {
                 throw new InvalidDataException("Transition requires outcome data, but none was given");
+            }
         }
 
         // Get new state
@@ -254,11 +258,7 @@ public class Activity extends WfVertex {
         setState(newState.getId());
         setBuiltInProperty(AGENT_NAME, transition.getReservation(this, agent));
 
-        History hist = null;
-
-        // Enables PredefinedSteps instances to call Activity.request() during bootstrap
-        if (getParent() != null) hist = getWf().getHistory(transactionKey);
-        else                     hist = new History(itemPath, transactionKey);
+        History hist = new History(itemPath, transactionKey);
 
         if (storeOutcome) {
             Schema schema = transition.getSchema(getProperties());
@@ -266,6 +266,8 @@ public class Activity extends WfVertex {
 
             // This is used by PredefinedStep executed during bootstrap
             if (validateOutcome) newOutcome.validateAndCheck();
+
+            executePredefinedSteps(agent, itemPath, newOutcome, transactionKey);
 
             String viewpoint = resolveViewpointName(newOutcome);
             boolean hasAttachment = attachment.length > 0;
@@ -288,8 +290,6 @@ public class Activity extends WfVertex {
             Gateway.getStorage().put(itemPath, new Viewpoint(itemPath, schema, "last", eventID), transactionKey);
 
             updateItemProperties(itemPath, newOutcome, transactionKey);
-
-            executePredefinedSteps(agent, itemPath, newOutcome, transactionKey);
         }
         else {
             updateItemProperties(itemPath, null, transactionKey);
@@ -312,36 +312,39 @@ public class Activity extends WfVertex {
     }
 
     /**
-     * Execute PredefiendSteps using the properties of Activity and the Outcome
+     * Execute PredefiendSteps associated with the Activity using its properties and the Outcome
      * 
-     * @param agent
-     * @param itemPath
-     * @param newOutcome
-     * @param transactionKey
+     * @param agent current Agent requesting the Activity
+     * @param itemPath the current Item
+     * @param newOutcome the Outcome submitted to the Activity
+     * @param transactionKey the key of the current transaction 
      */
     private void executePredefinedSteps(AgentPath agent, ItemPath itemPath, Outcome newOutcome, TransactionKey transactionKey) 
             throws AccessRightsException, InvalidTransitionException, InvalidDataException, ObjectNotFoundException, 
             PersistencyException, ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification
     {
-        String predefStepName = getBuiltInProperty(PREDEFINED_STEP, "").toString();
+        String predefStepProperty = getBuiltInProperty(PREDEFINED_STEP, "").toString();
 
-        if (StringUtils.isNotBlank(predefStepName)) {
-            log.debug("executePredefinedStep(predefStepProperty:{})", predefStepName);
+        if (StringUtils.isNotBlank(predefStepProperty)) {
+            log.debug("executePredefinedStep() - predefStepProperty:{}", predefStepProperty);
 
-            PredefinedStep predefStep = null;
+            for (String predefStepName : StringUtils.split(predefStepProperty, ',')) {
+                PredefinedStep predefStep = PredefinedStep.getStepInstance(predefStepName.trim());
 
-            if (predefStepName.contains("AddMembersToCollection")) {
-                predefStep = new AddMembersToCollection();
-                predefStep.computeUpdates(itemPath, this, newOutcome, transactionKey);
-            }
+                if (predefStep == null) {
+                    log.warn("executePredefinedStep() - SKIPPING Invalid PredefinedStep name:'{}'", predefStepName);
+                }
+                else if (predefStep.outcomeHasValidData(newOutcome)) {
+                    predefStep.mergeProperties(getProperties());
+                    predefStep.computeUpdates(itemPath, this, newOutcome, transactionKey);
 
-            if (predefStep == null) {
-                log.debug("executePredefinedStep(predefStepProperty:{}) - none of PredefinedSteps will be requested", predefStepName);
-                return;
-            }
-
-            for (Entry<ItemPath, String> entry : predefStep.getAutoUpdates().entrySet()) {
-                predefStep.request(agent, entry.getKey(), entry.getValue(), transactionKey);
+                    for (Entry<ItemPath, String> entry : predefStep.getAutoUpdates().entrySet()) {
+                        predefStep.request(agent, entry.getKey(), entry.getValue(), transactionKey);
+                    }
+                }
+                else {
+                    log.debug("executePredefinedStep() - SKIPPING optional PredefinedStep:'{}'", predefStepName);
+                }
             }
         }
     }

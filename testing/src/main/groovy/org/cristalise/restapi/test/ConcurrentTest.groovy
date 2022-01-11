@@ -30,6 +30,8 @@ class ConcurrentTest extends RestapiTestBase {
         def factory = agent.getItem("/$folder/PatientFactory")
         def createItemJob = factory.getJobByName('InstantiateItem', agent)
         def o = createItemJob.getOutcome()
+        // Empty OotcomeInitiator will create this optional node
+        o.removeNodeByXPath('//PropertyList')
 
         List<String> uuids = []
 
@@ -88,6 +90,46 @@ class ConcurrentTest extends RestapiTestBase {
                     log.info "${uuids[idx]} - $result"
                 }
             }
+        }
+
+        pool.shutdown()
+        pool.awaitTermination(10, TimeUnit.MINUTES)
+
+        logout('')
+        Gateway.close()
+    }
+
+    /**
+     * issue #502/#509: Make the initial parsing of Script XML thread-safe
+     */
+    @Test @CompileDynamic
+    public void createPatients_RunAggrageScripts_ParseScript_Concurrently() {
+        init('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
+
+        def patientCount = 10
+        def uuids = setupPatients(patientCount)
+
+        login()
+
+        def pool = Executors.newFixedThreadPool(patientCount+1)
+
+        Script('ClearCache', folder) {
+            script(language: 'groovy') {
+                'org.cristalise.kernel.process.Gateway.getStorage().clearCache(); System.gc();'
+            }
+        }
+        log.info 'finished creating Script: ClearCache'
+
+        patientCount.times { int idx ->
+            pool.submit {
+                2.times {
+                    def result = executeScript(uuids[idx], 'Patient_Aggregate', '{}')
+                    log.info "${uuids[idx]} - $result"
+                }
+            }
+            executeScript(uuids[idx], 'ClearCache', '{}')
+            log.info("Clearing cache...");
+            Thread.sleep(2000)
         }
 
         pool.shutdown()

@@ -31,10 +31,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ItemVerticle extends AbstractVerticle {
 
-    public static final String EB_ADDRESS_PROPERTY    = "ItemVerticle.ebAddress";
-    public static final String IS_WORKER_PROPERTY     = "ItemVerticle.isWorker";
-    public static final String INSTANCES_PROPERTY     = "ItemVerticle.instances";
-    public static final String INCLUDE_DEBUG_PROPERTY = "ItemVerticle.includeDebugInfo";
+    public static final String EB_ADDRESS_PROPERTY     = "ItemVerticle.ebAddress";
+    public static final String IS_WORKER_PROPERTY      = "ItemVerticle.isWorker";
+    public static final String INSTANCES_PROPERTY      = "ItemVerticle.instances";
+    public static final String INCLUDE_DEBUG_PROPERTY  = "ItemVerticle.includeDebugInfo";
+    public static final String REQUEST_TIMEOUT_SECONDS = "ItemVerticle.requestTimeoutSeconds";
 
     /**
      * The address name of the vertx event bus. Use {@value #EB_ADDRESS_PROPERTY} SystemProperty to configure it. 
@@ -56,6 +57,11 @@ public class ItemVerticle extends AbstractVerticle {
      * SystemProperty to configure it. Default value is 'true'
      */
     public static final boolean includeDebug = getProperties().getBoolean(INCLUDE_DEBUG_PROPERTY, true);
+    /**
+     * The number of seconds before a request to an Item times out. Use {@value #REQUEST_TIMEOUT_SECONDS} 
+     * SystemProperty to configure it. Default value is 10
+     */
+    public static final int requestTimeout = getProperties().getInt(REQUEST_TIMEOUT_SECONDS, 10);
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {

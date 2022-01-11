@@ -23,6 +23,8 @@ package org.cristalise.kernel.entity.proxy;
 import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
 import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
 
+import java.util.Arrays;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -48,7 +50,7 @@ public class ProxyMessage {
      */
     private String path  = "";
     /**
-     The type pf the the actual operation
+     The type of the the actual change
      */
     private Type messageType = ADD;
     /**
@@ -67,34 +69,41 @@ public class ProxyMessage {
         setMessageType(type);
     }
 
-    public ProxyMessage(String line) throws InvalidDataException {
-        if (StringUtils.isBlank(line)) throw new InvalidDataException("Blank proxy message");
+    /**
+     * Parses the message string using ':' as separator.
+     * 
+     * @param message the string containing the message
+     * @throws InvalidDataException wrong message format
+     */
+    public ProxyMessage(String message) throws InvalidDataException {
+        if (StringUtils.isBlank(message)) throw new InvalidDataException("Blank proxy message");
 
-        String[] tok = line.split(":", 2);
+        String[] msgSections = message.split(":", 2);
 
-        if (tok.length != 2) {
-            throw new InvalidDataException("String '" + line + "' is not a valid proxy message (i.e. ':' is used as separator");
+        if (msgSections.length != 2) {
+            throw new InvalidDataException("Invalid proxy message (use ':' as separator):'"+Arrays.toString(msgSections)+"'");
         }
 
-        if (tok[0].length() > 0) {
-            if (tok[0].equals("tree")) {
+        if (StringUtils.isNotBlank(msgSections[0])) {
+            if (msgSections[0].equals("tree")) {
                 clusterStoreMesssage = false;
             }
             else {
                 try {
-                    itemPath = new ItemPath(tok[0]);
+                    itemPath = new ItemPath(msgSections[0]);
                 }
                 catch (InvalidItemPathException e) {
-                    throw new InvalidDataException("Item in proxy message " + line + " was not valid");
+                    throw new InvalidDataException("Invalid UUID in proxy message:'"+Arrays.toString(msgSections)+"'", e);
                 }
             }
         }
 
-        path = tok[1];
-
-        if (path.startsWith("-")) {
+        if (msgSections[1].startsWith("-")) {
             messageType = DELETE;
-            path = path.substring(1);
+            path = msgSections[1].substring(1);
+        }
+        else {
+            path = msgSections[1];
         }
     }
 
@@ -117,11 +126,12 @@ public class ProxyMessage {
     }
 
     /**
+     * Constructs the UUID/ClusterType local address to be used to send or publish the change notification messages
      * 
-     * @return
+     * @return returns concatenated string of UUID/ClusterType
      */
     public String getLocalEventBusAddress() {
-        if (clusterStoreMesssage) return itemPath.getUUID() + "/" + getClusterType();
+        if (clusterStoreMesssage) return itemPath.getName() + "/" + getClusterType();
         else                      return "tree";
     }
 

@@ -68,7 +68,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Instantiates ClusterStorages listed in properties file. All read/write requests to storage pass through this object,
  * which can query the capabilities of each declared storage, and channel requests accordingly. Transaction based.
- * It also has a memoryCache to increase performance, use 'Storage.disableCache=true' to disable it.
+ * It also has a memoryCache to increase performance..
  */
 @Slf4j
 public class ClusterStorageManager {
@@ -224,14 +224,14 @@ public class ClusterStorageManager {
      * @return the list of usable storages
      */
     private ArrayList<ClusterStorage> findStorages(ClusterType clusterType, boolean forWrite) {
-        // choose the right cache for readers or writers
-        HashMap<ClusterType, ArrayList<ClusterStorage>> cache;
+        // choose the right storage for readers or writers
+        HashMap<ClusterType, ArrayList<ClusterStorage>> storages;
 
-        if (forWrite) cache = clusterWriters;
-        else          cache = clusterReaders;
+        if (forWrite) storages = clusterWriters;
+        else          storages = clusterReaders;
 
         // check to see if we've been asked to do this before
-        if (cache.containsKey(clusterType)) return cache.get(clusterType);
+        if (storages.containsKey(clusterType)) return storages.get(clusterType);
 
         // not done yet, we'll have to query them all
         log.trace("findStorages() - finding storage for "+clusterType+" forWrite:"+forWrite);
@@ -247,7 +247,7 @@ public class ClusterStorageManager {
                 useableStorages.add(thisStorage);
             }
         }
-        cache.put(clusterType, useableStorages);
+        storages.put(clusterType, useableStorages);
         return useableStorages;
     }
 
@@ -378,7 +378,7 @@ public class ClusterStorageManager {
 
         //No result was found after reading the list of ClusterStorages
         if (result == null) {
-            throw new ObjectNotFoundException("Path "+itemPath+"/"+path+" not found");
+            throw new ObjectNotFoundException("Path "+itemPath.getItemName()+"/"+path+" not found");
         }
 
         return result;
@@ -610,7 +610,7 @@ public class ClusterStorageManager {
      */
     public void clearCache(List<String> fullPathList) {
         log.trace( "clearCache() - removing {} entries", fullPathList.size());
-        cache.invalidate(fullPathList);
+        cache.invalidateAll(fullPathList);
     }
 
     /**
