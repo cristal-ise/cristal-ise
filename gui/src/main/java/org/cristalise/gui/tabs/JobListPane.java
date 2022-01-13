@@ -44,10 +44,10 @@ import javax.swing.table.AbstractTableModel;
 import org.cristalise.gui.ItemDetails;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.entity.agent.JobList;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.DateUtility;
@@ -63,7 +63,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class JobListPane extends ItemTabPane implements ActionListener {
 
-    JobList                 joblist;
+    C2KLocalObjectMap<Job>  joblist;
     JoblistTableModel       model;
     JTable                  eventTable;
     JButton                 startButton = new JButton("<<");
@@ -138,12 +138,13 @@ public class JobListPane extends ItemTabPane implements ActionListener {
         jumpToEnd();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void run() {
         Thread.currentThread().setName("Joblist Pane Builder");
 
         try {
-            joblist = (JobList) sourceItem.getItem().getObject(JOB);
+            joblist = (C2KLocalObjectMap<Job>) sourceItem.getItem().getObject(JOB);
         }
         catch (ObjectNotFoundException e) {
             log.error("", e);
@@ -223,11 +224,10 @@ public class JobListPane extends ItemTabPane implements ActionListener {
             this.startId = startId;
             int count = 0;
             for (String key: joblist.keySet()) {
-                int thisJobId = new Integer(key);
+                Integer thisJobId = new Integer(key);
                 if (count >= startId) {
                     int idx = count - startId;
-                    ids[idx] = thisJobId;
-                    job[idx] = joblist.get(thisJobId);
+                    job[idx] = (Job)joblist.get(thisJobId);
                     itemNames[idx] = "Item Not Found";
                     try {
                         ItemPath ip = job[count - startId].getItemPath();

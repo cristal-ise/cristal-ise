@@ -38,7 +38,7 @@ import org.cristalise.gui.graph.view.SelectedVertexPanel;
 import org.cristalise.gui.tabs.ItemTabPane;
 import org.cristalise.gui.tabs.execution.Executor;
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.lifecycle.instance.Activity;
@@ -205,7 +205,7 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
             StateMachine actSM = mCurrentAct.getStateMachine();
             Job thisJob = new Job(mCurrentAct,
                                   mItem.getPath(),
-                                  actSM.getTransition(transition),
+                                  actSM.getTransition(transition).getName(),
                                   MainFrame.userAgent.getPath(),
                                   "Admin");
             Executor selectedExecutor = (Executor)executors.getSelectedItem();

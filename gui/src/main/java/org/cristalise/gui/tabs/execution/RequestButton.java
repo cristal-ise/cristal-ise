@@ -26,7 +26,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 
 import org.cristalise.gui.MainFrame;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.utils.Logger;
 
 /**

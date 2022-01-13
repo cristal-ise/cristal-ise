@@ -47,7 +47,7 @@ import org.cristalise.gui.tabs.outcome.InvalidSchemaException;
 import org.cristalise.gui.tabs.outcome.OutcomeHandler;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.utils.FileStringUtility;
