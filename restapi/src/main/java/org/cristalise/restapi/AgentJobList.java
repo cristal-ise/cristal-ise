@@ -23,7 +23,6 @@ package org.cristalise.restapi;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
-
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -37,10 +36,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.entity.agent.JobList;
+import org.cristalise.kernel.entity.Job;
+import org.cristalise.kernel.entity.JobArrayList;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.RolePath;
@@ -48,6 +46,10 @@ import org.cristalise.kernel.process.Gateway;
 
 @Path("/agent/{uuid}")
 public class AgentJobList extends ItemUtils {
+    
+    private JobArrayList getPersitentJobs(AgentProxy agent) throws Exception {
+        return (JobArrayList) agent.unmarshall(agent.getViewpoint("JobList", "last").getOutcome().getData());
+    }
 
     @GET
     @Path("job")
@@ -71,19 +73,18 @@ public class AgentJobList extends ItemUtils {
         }
 
         // fetch this batch of events from the RemoteMap
-        JobList jobList;
+        JobArrayList jobList;
         try {
-            jobList = agent.getJobList();
+            jobList = getPersitentJobs(agent); //agent.getJobList();
         }
-        catch (ObjectNotFoundException e) {
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
 
         ArrayList<LinkedHashMap<String, Object>> jobs = new ArrayList<>();
 
         // replace Jobs with their JSON form. Leave any other object (like the nextBatch URI) as they are
-        for (String key : jobList.keySet()) {
-            Job job = jobList.get(key);
+        for (Job job : jobList.list) {
             try {
                 jobs.add(makeJobData(job, job.getItemProxy().getName(), uri));
             }
@@ -111,10 +112,25 @@ public class AgentJobList extends ItemUtils {
         AgentProxy agent = getAgentProxy(uuid, cookie);
 
         try {
-            Job job = (Job) agent.getJobList().get(jobId);
-            return toJSON(makeJobData(job, agent.getName(), uri), cookie).build();
+            JobArrayList jobList = getPersitentJobs(agent);
+            Job job = null;
+            boolean found = false;
+            for (int i = 0; i < jobList.list.size() && !found; i++) {
+                if (jobId.equals(jobList.list.get(i).getClusterPath())) {
+                    job = jobList.list.get(i);
+                    found = true;
+                }
+            }
+            if (job == null) {
+                throw new WebAppExceptionBuilder()
+                .message( "Agent:" + agent + " has no Job with jobId:'"+jobId+"'" )
+                .status( Response.Status.NOT_FOUND )
+                .newCookie(cookie).build();
+            }
+            else
+                return toJSON(makeJobData(job, agent.getName(), uri), cookie).build();
         }
-        catch ( ObjectNotFoundException | ClassCastException e ) {
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }

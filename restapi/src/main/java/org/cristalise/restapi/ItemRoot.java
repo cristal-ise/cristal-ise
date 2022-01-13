@@ -48,7 +48,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.ItemPath;

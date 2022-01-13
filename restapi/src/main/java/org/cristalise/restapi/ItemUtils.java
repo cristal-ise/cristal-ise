@@ -66,7 +66,7 @@ import org.cristalise.kernel.common.InvalidTransitionException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
@@ -411,8 +411,8 @@ public abstract class ItemUtils extends RestHandler {
 
         transitionData.put("name",                job.getTransition().getName());
         transitionData.put("id",                  Integer.valueOf(job.getTransition().getId()));
-        transitionData.put("origin",              job.getOriginStateName());
-        transitionData.put("target",              job.getTargetStateName());
+        transitionData.put("origin",              job.getTransition().getOriginState().getName());
+        transitionData.put("target",              job.getTransition().getTargetState().getName());
         transitionData.put("stateMachine",        job.getActPropString(STATE_MACHINE_NAME));
         transitionData.put("stateMachineVersion", job.getActPropString(STATE_MACHINE_VERSION));
         transitionData.put("stateMachineUrl",     url);
