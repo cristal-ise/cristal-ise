@@ -22,7 +22,7 @@
 package org.cristalise.dev.test.scenario
 
 import org.cristalise.dsl.persistency.outcome.OutcomeBuilder
-import org.cristalise.kernel.entity.agent.Job
+import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.junit.Test

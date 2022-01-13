@@ -38,12 +38,12 @@ class KernelScenarioTestBase extends DevItemDSL {
         CompiledTemplate expr = mvelExpressions.get(templ);
 
         if(expr == null) {
-            log.debug("evalMVELTemplate() - Compiling template for "+templ);
+            log.debug('evalMVELTemplate() - Compiling template for {}', templ);
             expr = TemplateCompiler.compileTemplate( new File(templ) );
             mvelExpressions.put(templ, expr);
         }
         else {
-            log.debug("evalMVELTemplate() - CompiledTemplate was found for "+templ);
+            log.debug('evalMVELTemplate() - CompiledTemplate was found for {}', templ);
         }
 
         return (String) TemplateRuntime.execute(expr, vars);
