@@ -29,7 +29,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -245,7 +244,7 @@ public class XMLClusterStorage extends ClusterStorage {
                     String fileName = p.getFileName().toString();
                     String content = resource.length() != 0 ? fileName.substring(resource.length()+1) : fileName.substring(resource.length());
 
-                    log.info("getContentsFromFileNames() - resource:'"+resource+"' fileName:'"+fileName+"' content:'"+content+"'");
+                    log.trace("getContentsFromFileNames() - resource:'"+resource+"' fileName:'"+fileName+"' content:'"+content+"'");
 
                     if (content.endsWith(fileExtension)) content = content.substring(0, content.length() - fileExtension.length());
 

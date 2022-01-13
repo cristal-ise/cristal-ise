@@ -25,6 +25,7 @@ import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.junit.Assert.assertNotNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -112,7 +113,7 @@ public class JooqClusterStorageTest extends JooqTestConfigurationBase {
         String[] types = Gateway.getStorage().getClusterContents(itemPath, "");
 
         assertThat(Arrays.asList(types), IsIterableContainingInAnyOrder.containsInAnyOrder(
-                "Property", "LifeCycle", "Outcome", "ViewPoint", "AuditTrail"));
+                "Property", "LifeCycle", "Outcome", "ViewPoint", "AuditTrail", "Job"));
     }
 
     @Test
@@ -172,6 +173,17 @@ public class JooqClusterStorageTest extends JooqTestConfigurationBase {
 
         assertNotNull( Gateway.getStorage().get(itemPath, HISTORY+"/0", null) );
         assertNotNull( Gateway.getStorage().get(itemPath, HISTORY+"/9", null) );
+    }
+
+    @Test
+    public void jobClusterTest() throws Exception {
+        String[] contents = Gateway.getStorage().getClusterContents(itemPath, JOB);
+        assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder(
+                "TestStep", "TestStep2"));
+
+        contents = Gateway.getStorage().getClusterContents(itemPath, JOB+"/TestStep");
+        assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder(
+                "Done", "Start"));
     }
 
     @Test
