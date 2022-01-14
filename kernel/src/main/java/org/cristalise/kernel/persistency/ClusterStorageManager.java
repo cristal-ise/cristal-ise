@@ -530,26 +530,59 @@ public class ClusterStorageManager {
     public void remove(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         lockItem(itemPath, transactionKey);
 
-        String fullPath = getFullPath(itemPath, path);
-
         ArrayList<ClusterStorage> writers = findStorages(ClusterStorage.getClusterType(path), true);
         for (ClusterStorage thisWriter : writers) {
             try {
-                log.debug( "delete() - removing {} to {}", fullPath, thisWriter);
+                log.debug( "remove() - removing {}/{} from {}", itemPath, path, thisWriter);
                 thisWriter.delete(itemPath, path, transactionKey);
             }
             catch (PersistencyException e) {
-                log.error("delete() - writer {} could not delete {}", thisWriter, fullPath, e);
+                log.error("remove() - writer {} could not delete {}/{}", thisWriter, itemPath, path, e);
                 throw e;
             }
         }
 
-        cache.invalidate(getFullPath(itemPath, path));
+        clearCache(itemPath, path);
 
         ProxyMessage message = new ProxyMessage(itemPath, path, DELETE);
 
         if (transactionKey != null) keepMessageForLater(message, transactionKey);
         else                        Gateway.sendProxyEvent(message);
+    }
+
+    /**
+     * Removes all objects of a ClusterType
+     *
+     * @param itemPath - Item to delete from
+     * @param cluster - the cluster type
+     * @param transactionKey - locking object
+     *
+     * @throws PersistencyException - when deleting fails
+     */
+    public void removeCluster(ItemPath itemPath, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
+        lockItem(itemPath, transactionKey);
+
+        ArrayList<ClusterStorage> writers = findStorages(ClusterStorage.getClusterType(cluster.getName()), true);
+        for (ClusterStorage thisWriter : writers) {
+            try {
+                log.debug( "removeCluster() - removing {} from {}", cluster, thisWriter);
+                thisWriter.delete(itemPath, cluster, transactionKey);
+            }
+            catch (PersistencyException e) {
+                log.error("removeCluster() - writer {} could not delete {}", thisWriter, cluster, e);
+                throw e;
+            }
+        }
+
+        clearCache(itemPath, cluster);
+
+        //do NOT send ProxyMessage notification about deleted Jobs
+        if (cluster != JOB) {
+            ProxyMessage message = new ProxyMessage(itemPath, cluster.getName(), DELETE);
+
+            if (transactionKey != null) keepMessageForLater(message, transactionKey);
+            else                        Gateway.sendProxyEvent(message);
+        }
     }
 
     /**
@@ -573,16 +606,46 @@ public class ClusterStorageManager {
         }
     }
 
-    public void clearCache(ItemPath itemPath) {
+    /**
+     * 
+     * @param itemPath
+     */
+    public long clearCache(ItemPath itemPath, ClusterType cluster) {
         if (itemPath == null) {
             log.warn("clearCache() - either itemPath was null, NOTHING done");
-            return;
+            return 0;
         }
 
-        Set<String> keys = Sets.filter(cache.asMap().keySet(), Predicates.containsPattern("^"+itemPath.getUUID()));
+        if (cluster == null) {
+            return clearCache(itemPath);
+        }
+        else {
+            return clearCache( "^"+itemPath.getName()+"/"+cluster.getName() );
+        }
+    }
 
-        log.debug( "clearCache({}) - removing {} entries", itemPath, keys.size());
-        cache.invalidateAll(keys);
+    /**
+     * 
+     * @param itemPath
+     */
+    public long clearCache(ItemPath itemPath) {
+        if (itemPath == null) {
+            log.warn("clearCache() - itemPath was null, NOTHING done");
+            return 0;
+        }
+
+        return clearCache("^"+itemPath.getName());
+    }
+
+    /**
+     * 
+     * @param pattern
+     */
+    public long clearCache(String pattern) {
+        log.debug( "clearCache({}) - pattern:{}", pattern);
+
+        Set<String> keys = Sets.filter(cache.asMap().keySet(), Predicates.containsPattern(pattern));
+        return clearCache(new ArrayList<>(keys));
     }
 
     /**
@@ -591,32 +654,39 @@ public class ClusterStorageManager {
      * @param itemPath the item for which the cache should be cleared. Cannot be null.
      * @param path the identifier of the cluster content to be cleared. Cannot not be nul.
      */
-    public void clearCache(ItemPath itemPath, String path) {
+    public long clearCache(ItemPath itemPath, String path) {
         if (itemPath == null || path == null) {
             log.warn("clearCache() - either itemPath or path was null, NOTHING done");
-            return;
+            return 0;
         }
 
         String fullPath = getFullPath(itemPath, path);
         log.trace( "clearCache() - removing {}", fullPath);
         cache.invalidate(fullPath);
+
+        return 1;
     }
 
     /**
      * 
      * @param fullPathList
      */
-    public void clearCache(List<String> fullPathList) {
-        log.trace( "clearCache() - removing {} entries", fullPathList.size());
+    public long clearCache(List<String> fullPathList) {
+        log.trace( "clearCache() - removing #{} entries", fullPathList.size());
         cache.invalidateAll(fullPathList);
+        
+        return fullPathList.size();
     }
 
     /**
      * Clear entire cache
      */
-    public void clearCache() {
-        log.trace( "clearCache() - clearing entire cache, {} entities.", cache.size());
+    public long clearCache() {
+        long size= cache.size();
+        log.trace( "clearCache() - clearing entire cache #{} enries.", size);
         cache.invalidateAll();
+
+        return size;
     }
 
     /**

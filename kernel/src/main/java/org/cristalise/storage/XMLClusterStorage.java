@@ -145,7 +145,7 @@ public class XMLClusterStorage extends ClusterStorage {
 
     @Override
     public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
-        throw new PersistencyException("UNIMPLEMENTED funnction");
+        throw new PersistencyException("UNIMPLEMENTED function");
     }
 
     @Override
@@ -188,6 +188,11 @@ public class XMLClusterStorage extends ClusterStorage {
             log.error("", e);
             throw new PersistencyException("XMLClusterStorage.put() - Could not write " + getPath(obj) + " to " + itemPath);
         }
+    }
+
+    @Override
+    public void delete(ItemPath itemPath, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
+        delete(itemPath, cluster.getName(), transactionKey);
     }
 
     @Override

@@ -448,6 +448,11 @@ public class JooqClusterStorage extends ClusterStorage {
     }
 
     @Override
+    public void delete(ItemPath itemPath, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
+        delete(itemPath, cluster.getName(), transactionKey);
+    }
+
+    @Override
     public void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         if (!JooqDataSourceHandler.getDataSource().isAutoCommit() && transactionKey == null) {
             throw new PersistencyException("transactionKey cannot be null when autoCommit is false");

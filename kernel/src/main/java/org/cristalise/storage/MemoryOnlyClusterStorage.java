@@ -119,6 +119,19 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
     }
 
     @Override
+    public void delete(ItemPath thisItem, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
+        Map<String, C2KLocalObject> sysKeyMemCache = memoryCache.get(thisItem);
+        if (sysKeyMemCache != null) {
+            synchronized (sysKeyMemCache) {
+                sysKeyMemCache.keySet().removeIf(key -> key.startsWith(cluster.getName()));
+                if (sysKeyMemCache.isEmpty()) {
+                    memoryCache.remove(thisItem);
+                }
+            }
+        }
+    }
+
+    @Override
     public void delete(ItemPath thisItem, String path, TransactionKey transactionKey) throws PersistencyException {
         Map<String, C2KLocalObject> sysKeyMemCache = memoryCache.get(thisItem);
         if (sysKeyMemCache != null) {

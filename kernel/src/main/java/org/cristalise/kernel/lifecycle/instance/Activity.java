@@ -57,7 +57,6 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
@@ -288,8 +287,6 @@ public class Activity extends WfVertex {
         }
 
         boolean breakPoint = (Boolean) getBuiltInProperty(BREAKPOINT, Boolean.FALSE);
-
-        // regardless of state, refresh persistent Jobs
 
         if (newState.isFinished() && !oldState.isFinished() && !breakPoint) {
             runNext(agent, itemPath, transactionKey);
@@ -631,18 +628,18 @@ public class Activity extends WfVertex {
      * Calculates the lists of jobs for the activity and its children (cf org.cristalise.kernel.entity.Job)
      */
     public List<Job> calculateJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
-            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException
+            throws ObjectNotFoundException, InvalidDataException
     {
         return calculateJobsBase(agent, itemPath, false);
     }
 
     public List<Job> calculateAllJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
-            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException {
+            throws ObjectNotFoundException, InvalidDataException {
         return calculateJobsBase(agent, itemPath, true);
     }
 
     private List<Job> calculateJobsBase(AgentPath agent, ItemPath itemPath, boolean includeInactive)
-            throws ObjectNotFoundException, InvalidDataException, InvalidItemPathException
+            throws ObjectNotFoundException, InvalidDataException
     {
         log.trace("calculateJobsBase() - act:" + getPath());
         List<Job> jobs = new ArrayList<Job>();

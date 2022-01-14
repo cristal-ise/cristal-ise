@@ -290,6 +290,11 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
+    public void delete(ItemPath itemPath, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
+        throw new PersistencyException("UNIMPLEMENTED funnctionality");
+    }
+
+    @Override
     public void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         Collection itemColl = getItemCollection(itemPath, false);
         if (itemColl == null) return;
