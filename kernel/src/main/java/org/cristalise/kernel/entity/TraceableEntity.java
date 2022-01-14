@@ -32,6 +32,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.instance.Activity;
+import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
@@ -200,8 +201,17 @@ public class TraceableEntity implements Item {
         byte[] bytes = ArrayUtils.toPrimitive(attachment.toArray(new Byte[0]));
         String finalOutcome = lifeCycle.requestAction(agent.getPath(), stepPath, item.getPath(), transitionID, requestData, fileName, bytes, transactionKey);
 
-        // store the workflow if we've changed the state of the domain wf
-        if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(item.getPath(), lifeCycle, transactionKey);
+        // store the workflow and the Jobs if we've changed the state of the domain workflow
+        if ( ! stepPath.startsWith("workflow/predefined")) {
+            mStorage.put(item.getPath(), lifeCycle, transactionKey);
+
+            mStorage.removeCluster(item.getPath(), ClusterType.JOB, transactionKey);
+
+            ArrayList<Job> newJobs = ((CompositeActivity)lifeCycle.search("workflow/domain")).calculateJobs(agent.getPath(), item.getPath(), true);
+            for (Job newJob: newJobs) {
+                mStorage.put(item.getPath(), newJob, transactionKey);
+            }
+        }
 
         // remove entity path if transaction was successful
         if (stepPath.equals("workflow/predefined/Erase")) {
