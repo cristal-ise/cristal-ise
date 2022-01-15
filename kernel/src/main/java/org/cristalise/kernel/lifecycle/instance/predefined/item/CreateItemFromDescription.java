@@ -29,7 +29,7 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.*;
 import static org.cristalise.kernel.property.PropertyUtility.*;
 
 import java.io.IOException;
-
+import java.util.ArrayList;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.CollectionDescription;
@@ -41,6 +41,7 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
@@ -521,20 +522,24 @@ public class CreateItemFromDescription extends PredefinedStep {
         }
 
         // create wf
-        Workflow lc = null;
+        Workflow wf = null;
         PredefinedStepContainer cont = (item instanceof AgentPath) ? new AgentPredefinedStepContainer() : new ItemPredefinedStepContainer();
 
         if (ca == null) {
             // FIXME check if this could be a real error
             log.warn("storeItem({}) - CompositeActivity was null. Creating workflow with empty domain CompAct.", item);
-            lc = new Workflow(new CompositeActivity(), cont);
+            wf = new Workflow(new CompositeActivity(), cont);
         }
         else {
-            lc = new Workflow(ca, cont);
+            wf = new Workflow(ca, cont);
         }
 
-        // All objects are in place, initialize the workflow
-        lc.initialise(item, agent, transactionKey);
-        Gateway.getStorage().put(item, lc, transactionKey);
+        // All objects are in place, initialize the workflow ...
+        wf.initialise(item, agent, transactionKey);
+        Gateway.getStorage().put(item, wf, transactionKey);
+
+        //... and store the Jobs
+        ArrayList<Job> newJobs = ((CompositeActivity)wf.search("workflow/domain")).calculateJobs(agent, item, true);
+        for (Job newJob: newJobs) Gateway.getStorage().put(item, newJob, transactionKey);
     }
 }
