@@ -18,40 +18,24 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-/*
- * StatusPane.java
- *
- * Created on March 20, 2001, 3:30 PM
- */
-
 package org.cristalise.gui.tabs;
 
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
-import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
-
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
 import javax.swing.Box;
-import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
-
 import org.cristalise.gui.ItemDetails;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
-import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.DateUtility;
-
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
@@ -61,41 +45,17 @@ import lombok.extern.slf4j.Slf4j;
  */
 @SuppressWarnings("serial")
 @Slf4j
-public class JobListPane extends ItemTabPane implements ActionListener {
+public class JobListPane extends ItemTabPane {
 
     C2KLocalObjectMap<Job>  joblist;
     JoblistTableModel       model;
     JTable                  eventTable;
-    JButton                 startButton = new JButton("<<");
-    JButton                 prevButton  = new JButton("<");
-    JButton                 nextButton  = new JButton(">");
-    JButton                 endButton   = new JButton(">>");
     public static final int SIZE        = 30;
     int                     currentSize = SIZE;
 
     public JobListPane() {
-        super("Job List", "Agent Job List");
+        super("Job List", "Job List");
         initPanel();
-
-        // add buttons
-        Box navBox = Box.createHorizontalBox();
-        navBox.add(startButton);
-        navBox.add(prevButton);
-        navBox.add(nextButton);
-        navBox.add(endButton);
-
-        // setup buttons
-        // startButton.setEnabled(false); nextButton.setEnabled(false);
-        // prevButton.setEnabled(false); endButton.setEnabled(false);
-        startButton.setActionCommand("start");
-        startButton.addActionListener(this);
-        prevButton.setActionCommand("prev");
-        prevButton.addActionListener(this);
-        nextButton.setActionCommand("next");
-        nextButton.addActionListener(this);
-        endButton.setActionCommand("end");
-        endButton.addActionListener(this);
-        add(navBox);
 
         add(Box.createVerticalStrut(5));
 
@@ -135,7 +95,7 @@ public class JobListPane extends ItemTabPane implements ActionListener {
 
     @Override
     public void reload() {
-        jumpToEnd();
+
     }
 
     @SuppressWarnings("unchecked")
@@ -152,96 +112,17 @@ public class JobListPane extends ItemTabPane implements ActionListener {
 
         model = new JoblistTableModel();
         eventTable.setModel(model);
-
-        jumpToEnd();
-    }
-
-    public void jumpToEnd() {
-        int lastEvent = joblist.getLastId();
-        int firstEvent = 0;
-        currentSize = SIZE;
-        if (lastEvent > currentSize) firstEvent = lastEvent - currentSize + 1;
-        if (lastEvent < currentSize) currentSize = lastEvent + 1;
-        log.debug("jumpToEnd() - init table start " + firstEvent + " for " + currentSize);
-        model.setView(firstEvent, currentSize);
     }
 
     public void add(Job contents) {
         reload();
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (e.getActionCommand().equals("end")) {
-            jumpToEnd();
-            return;
-        }
-
-        int lastEvent = joblist.getLastId();
-        int startEvent = model.getStartId();
-        if (e.getActionCommand().equals("start")) {
-            currentSize = SIZE;
-            startEvent = 0;
-        }
-        else if (e.getActionCommand().equals("prev")) {
-            currentSize = SIZE;
-            startEvent -= currentSize;
-            if (startEvent < 0) startEvent = 0;
-        }
-        else if (e.getActionCommand().equals("next")) {
-            currentSize = SIZE;
-            startEvent += currentSize;
-            if (startEvent > lastEvent)
-                startEvent = lastEvent - currentSize + 1;
-        }
-        else { // unknown action
-            return;
-        }
-
-        model.setView(startEvent, currentSize);
-    }
-
     private class JoblistTableModel extends AbstractTableModel {
         Job[]     job;
-        Integer[] ids;
         String[]  itemNames;
-        int       loaded  = 0;
-        int       startId = 0;
 
         public JoblistTableModel() {
-            job = new Job[0];
-            ids = new Integer[0];
-        }
-
-        public int getStartId() {
-            return startId;
-        }
-
-        public void setView(int startId, int size) {
-            job = new Job[size];
-            ids = new Integer[size];
-            itemNames = new String[size];
-            this.startId = startId;
-            int count = 0;
-            for (String key: joblist.keySet()) {
-                Integer thisJobId = new Integer(key);
-                if (count >= startId) {
-                    int idx = count - startId;
-                    job[idx] = (Job)joblist.get(thisJobId);
-                    itemNames[idx] = "Item Not Found";
-                    try {
-                        ItemPath ip = job[count - startId].getItemPath();
-                        itemNames[idx] = ((Property) Gateway.getStorage().get(ip, PROPERTY+"/Name", null)).getValue();
-                    }
-                    catch (Exception ex) {
-                        log.error("", ex);
-                    }
-                }
-                count++;
-                loaded = count - startId;
-                if (count > (startId + size)) break;
-            }
-            fireTableStructureChanged();
         }
 
         /**
@@ -250,8 +131,6 @@ public class JobListPane extends ItemTabPane implements ActionListener {
         @Override
         public Class<?> getColumnClass(int columnIndex) {
             switch (columnIndex) {
-                case 0:
-                    return Integer.class;
                 default:
                     return String.class;
             }
@@ -285,7 +164,8 @@ public class JobListPane extends ItemTabPane implements ActionListener {
          */
         @Override
         public int getRowCount() {
-            return loaded;
+            if (job != null) return job.length;
+            else return 0;
         }
 
         /**
@@ -297,7 +177,7 @@ public class JobListPane extends ItemTabPane implements ActionListener {
                 return "";
             try {
                 switch (columnIndex) {
-                    case 0: return ids[rowIndex];
+                    case 0: return job[rowIndex].getClusterPath();
                     case 1: return itemNames[rowIndex];
                     case 2: return job[rowIndex].getStepName();
                     case 3: return job[rowIndex].getTransition().getName();

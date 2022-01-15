@@ -48,6 +48,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ItemDetails extends JPanel implements ChangeListener, Runnable {
+    private static final long serialVersionUID = -1095767862077195899L;
+
     protected JTabbedPane                   myTabbedPane = new JTabbedPane(SwingConstants.TOP);
     protected JPanel                        itemTitlePanel;
     private ItemTabManager                  desktopManager;

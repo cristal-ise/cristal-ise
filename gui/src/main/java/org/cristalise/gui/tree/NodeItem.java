@@ -227,6 +227,7 @@ public class NodeItem extends Node implements Transferable {
         requiredTabs.add("History");
         requiredTabs.add("Viewpoint");
         requiredTabs.add("Workflow");
+        requiredTabs.add("JobList");
         return requiredTabs;
 
     }
