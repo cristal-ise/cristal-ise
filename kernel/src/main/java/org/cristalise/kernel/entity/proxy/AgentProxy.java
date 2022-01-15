@@ -21,7 +21,6 @@
 package org.cristalise.kernel.entity.proxy;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SIMPLE_ELECTRONIC_SIGNATURE;
-import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -494,29 +493,5 @@ public class AgentProxy extends ItemProxy {
 
     public RolePath[] getRoles() {
         return Gateway.getLookup().getRoles(getPath(), transactionKey);
-    }
-
-    /**
-     * Retrieves single persistent Job of the Agent.
-     * 
-     * @param id of the persistent Job
-     * @return persistent Job of the Agent
-     * @throws ObjectNotFoundException there is no persistent Job for the given id
-     */
-    public Job getJob(String id) throws ObjectNotFoundException {
-        return getJob(id, null);
-    }
-
-    /**
-     * Retrieves single persistent Job of the Agent. This method can be used in server side Script 
-     * to find uncommitted changes during the active transaction.
-     * 
-     * @param id of the Job
-     * @param transKey the transaction key
-     * @return persistent Job of the Agent
-     * @throws ObjectNotFoundException there is no Job for the given id
-     */
-    public Job getJob(String id, TransactionKey transKey) throws ObjectNotFoundException {
-        return (Job) getObject(JOB+"/"+id, transKey == null ? transactionKey : transKey);
     }
 }

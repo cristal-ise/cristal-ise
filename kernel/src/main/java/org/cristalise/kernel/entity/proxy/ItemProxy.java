@@ -22,6 +22,7 @@ package org.cristalise.kernel.entity.proxy;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
@@ -1401,6 +1402,30 @@ public class ItemProxy {
      */
     public History getHistory(TransactionKey transKey) throws ObjectNotFoundException {
         return (History) getObject(HISTORY, transKey == null ? transactionKey : transKey);
+    }
+
+    /**
+     * Retrieves single persistent Job.
+     * 
+     * @param id of the persistent Job
+     * @return persistent Job of the Item
+     * @throws ObjectNotFoundException there is no persistent Job for the given id
+     */
+    public Job getJob(String id) throws ObjectNotFoundException {
+        return getJob(id, null);
+    }
+
+    /**
+     * Retrieves single persistent Job. This method can be used in server side Script 
+     * to find uncommitted changes during the active transaction.
+     * 
+     * @param id of the Job
+     * @param transKey the transaction key
+     * @return persistent Job of the Item
+     * @throws ObjectNotFoundException there is no Job for the given id
+     */
+    public Job getJob(String id, TransactionKey transKey) throws ObjectNotFoundException {
+        return (Job) getObject(JOB+"/"+id, transKey == null ? transactionKey : transKey);
     }
 
     /**
