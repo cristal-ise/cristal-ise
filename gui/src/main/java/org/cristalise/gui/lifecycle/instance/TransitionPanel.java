@@ -24,15 +24,13 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Map;
-
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.graph.view.SelectedVertexPanel;
 import org.cristalise.gui.tabs.ItemTabPane;
@@ -48,16 +46,9 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.utils.Logger;
 
 
-/**************************************************************************
- *
- * $Revision: 1.8 $
- * $Date: 2005/09/07 13:46:31 $
- *
- * Copyright (C) 2003 CERN - European Organization for Nuclear Research
- * All rights reserved.
- **************************************************************************/
-
 public class TransitionPanel extends SelectedVertexPanel implements ActionListener {
+    private static final long serialVersionUID = -4718182338463317755L;
+
     protected Activity mCurrentAct;
     protected GridBagLayout gridbag;
     protected GridBagConstraints c;
@@ -155,7 +146,7 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
         active.setSelected(mCurrentAct.active);
         active.setEnabled(true);
         Logger.msg(1, "Retrieving possible transitions for activity "+mCurrentAct.getName());
-        Map<Transition, String> transitions;
+        List<Transition> transitions;
 		try {
 			transitions = mCurrentAct.getStateMachine().getPossibleTransitions(mCurrentAct, MainFrame.userAgent.getPath());
 		} catch (Exception e) {
@@ -169,7 +160,7 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
             return;
         }
         
-        for (Transition trans:transitions.keySet()) {
+        for (Transition trans:transitions) {
         	boolean hasOutcome = trans.hasOutcome(mCurrentAct.getProperties());
             if (!hasOutcome || (hasOutcome && !trans.getOutcome().isRequired())) {
                 JButton thisTrans = new JButton(trans.getName());
@@ -216,7 +207,6 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
             Logger.error(ex);
             JOptionPane.showMessageDialog(null, ex.getMessage(), className, JOptionPane.ERROR_MESSAGE);
         }
-
     }
 
     @Override

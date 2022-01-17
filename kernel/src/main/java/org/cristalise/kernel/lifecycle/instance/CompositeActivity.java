@@ -220,7 +220,7 @@ public class CompositeActivity extends Activity {
                 Transition autoStart = null;
                 //see if there's only one that isn't terminating
                 try {
-                    for (Transition transition : getStateMachine().getPossibleTransitions(this, agent).keySet()) {
+                    for (Transition transition : getStateMachine().getPossibleTransitions(this, agent)) {
                         if (!transition.isFinishing()) {
                             if (autoStart == null)
                                 autoStart = transition;
@@ -273,7 +273,7 @@ public class CompositeActivity extends Activity {
         if (!isFinished()) {
             Transition trans = null;
             try {
-                for (Transition possTran : getStateMachine().getPossibleTransitions(this, agent).keySet()) {
+                for (Transition possTran : getStateMachine().getPossibleTransitions(this, agent)) {
                     // Find the next transition for automatic procedure. A non-finishing transition will override a finishing one,
                     // but otherwise having more than one possible means we cannot proceed. Transition enablement should filter before this point.
 
