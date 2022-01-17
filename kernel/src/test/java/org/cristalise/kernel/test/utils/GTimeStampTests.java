@@ -51,7 +51,7 @@ public class GTimeStampTests {
 
     @Test
     public void testGTimeStamp_to_SqlTimestamp() throws Exception {
-        GTimeStamp ts1 = new GTimeStamp(2001, 11, 18, 13, 11, 0, 0);
+        GTimeStamp ts1 = new GTimeStamp(2001, 11, 18, 13, 11, 0, 0, 0);
 
         Timestamp sqlTs1 = DateUtility.toSqlTimestamp(ts1);
         assertSqlTimestamp(2001, 11, 18, 13, 11, 0, sqlTs1); //hour is the same
@@ -62,7 +62,7 @@ public class GTimeStampTests {
 
     @Test
     public void testGTimeStamp_to_SqlTimestamp_wihtOffset() throws Exception {
-        GTimeStamp ts1 = new GTimeStamp(2001, 11, 18, 13, 11, 0, 3600000);
+        GTimeStamp ts1 = new GTimeStamp(2001, 11, 18, 13, 11, 0, 0, 3600000);
 
         Timestamp sqlTs1 = DateUtility.toSqlTimestamp(ts1);
         assertSqlTimestamp(2001, 11, 18, 12, 11, 0, sqlTs1); //one hour difference
@@ -73,13 +73,13 @@ public class GTimeStampTests {
 
     @Test
     public void testSqlTimeStamp_to_utcString() throws Exception {
-        GTimeStamp ts1 = new GTimeStamp(2001, 11, 18, 13, 11, 0, 0);
+        GTimeStamp ts1 = new GTimeStamp(2001, 11, 18, 13, 11, 0, 0, 0);
         assertEquals("2001-11-18T13:11:00Z", DateUtility.timeStampToUtcString(ts1));
     }
 
     @Test
     public void testSqlTimeStamp_to_utcString_withOffset() throws Exception {
-        GTimeStamp ts = new GTimeStamp(2001, 11, 18, 13, 11, 0, 3600000);
+        GTimeStamp ts = new GTimeStamp(2001, 11, 18, 13, 11, 0, 0,3600000);
         assertEquals("2001-11-18T12:11:00Z", DateUtility.timeStampToUtcString(ts));
     }
 }

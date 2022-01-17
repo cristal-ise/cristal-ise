@@ -43,6 +43,7 @@ public class DateUtility {
         date.mHour       = now.mHour;
         date.mMinute     = now.mMinute;
         date.mSecond     = now.mSecond;
+        date.mNano       = now.mNano;
         date.mTimeOffset = now.mTimeOffset;
 
         return date;
@@ -57,8 +58,9 @@ public class DateUtility {
                                now.getHour(),
                                now.getMinute(),
                                now.getSecond(),
+                               now.getNano(),
                                //store millisecond for backward compability (originally java Calendar was used)
-                               now.getOffset().getTotalSeconds()*1000 ); 
+                               now.getOffset().getTotalSeconds()*1000);
     }
 
     public static String getSQLFormat(GTimeStamp timeStamp) {
@@ -77,6 +79,8 @@ public class DateUtility {
 
         if (timeStamp.mSecond < 10) time.append("0");
         time.append(timeStamp.mSecond);
+
+        time.append(".").append(timeStamp.mNano);
 
         return time.toString();
     }
@@ -107,7 +111,7 @@ public class DateUtility {
 
     public static long diff(GTimeStamp date1, GTimeStamp date2) {
         GTimeStamp tmp = new GTimeStamp(date1.mYear, date1.mMonth, date1.mDay, 
-                                        date1.mHour, date1.mMinute, date1.mSecond, date1.mTimeOffset);
+                                        date1.mHour, date1.mMinute, date1.mSecond, date1.mNano, date1.mTimeOffset);
 
         while (tmp.mYear - date2.mYear < 0) {
             while (tmp.mMonth < 13) {
@@ -141,7 +145,7 @@ public class DateUtility {
     }
 
     public static GTimeStamp parseTimeString(String time) throws InvalidDataException {
-        if (time.length() == 19) {
+        if (time.length() == 23) {
             return new GTimeStamp(
                     Integer.parseInt(time.substring(0,4)),
                     Integer.parseInt(time.substring(5,7)),
@@ -149,6 +153,17 @@ public class DateUtility {
                     Integer.parseInt(time.substring(11,13)),
                     Integer.parseInt(time.substring(14,16)),
                     Integer.parseInt(time.substring(17,19)),
+                    Integer.parseInt(time.substring(20,23)),
+                    0);
+        } else if (time.length() == 19) {
+            return new GTimeStamp(
+                    Integer.parseInt(time.substring(0,4)),
+                    Integer.parseInt(time.substring(5,7)),
+                    Integer.parseInt(time.substring(8,10)),
+                    Integer.parseInt(time.substring(11,13)),
+                    Integer.parseInt(time.substring(14,16)),
+                    Integer.parseInt(time.substring(17,19)),
+                    0,
                     0);
         }
         else if (time.length() == 14) {
@@ -160,6 +175,7 @@ public class DateUtility {
                     Integer.parseInt(time.substring(8,10)),
                     Integer.parseInt(time.substring(10,12)),
                     Integer.parseInt(time.substring(12,14)),
+                    0,
                     0);
         }
         else
@@ -184,6 +200,8 @@ public class DateUtility {
         if (timeStamp.mSecond<10) time.append("0");
         time.append(timeStamp.mSecond);
 
+        time.append(".").append(timeStamp.mNano);
+
         return time.toString();
     }
 
@@ -195,7 +213,7 @@ public class DateUtility {
                 ts.mHour, 
                 ts.mMinute, 
                 ts.mSecond, 
-                0,
+                ts.mNano,
                 ZoneOffset.ofTotalSeconds(ts.mTimeOffset/1000));
     }
 
@@ -206,13 +224,14 @@ public class DateUtility {
                 ts.getDayOfMonth(), 
                 ts.getHour(), 
                 ts.getMinute(), 
-                ts.getSecond(), 
+                ts.getSecond(),
+                ts.getNano(),
                 ts.getOffset().getTotalSeconds()*1000);
     }
 
     @SuppressWarnings("deprecation")
     public static GTimeStamp fromSqlTimestamp(Timestamp ts) {
-        return new GTimeStamp(ts.getYear()+1900, ts.getMonth()+1, ts.getDate(), ts.getHours(), ts.getMinutes(), ts.getSeconds(), 0);
+        return new GTimeStamp(ts.getYear()+1900, ts.getMonth()+1, ts.getDate(), ts.getHours(), ts.getMinutes(), ts.getSeconds(), ts.getNanos(), 0);
     }
 
     public static Timestamp toSqlTimestamp(GTimeStamp gts) {
