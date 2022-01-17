@@ -279,7 +279,7 @@ public class StateMachine implements DescriptionObject {
         for (Transition possTrans: currentState.getPossibleTransitions().values()) {
             try {
                 if (possTrans.isEnabled(act)) {
-                    possTrans.getPerformingRole(act, agent);
+                    possTrans.checkPerformingRole(act, agent);
                     returnList.add(possTrans);
                 }
                 else log.trace("getPossibleTransitions() - DISABLED trans:"+possTrans+" act:"+act.getName());
@@ -298,7 +298,7 @@ public class StateMachine implements DescriptionObject {
         State currentState = getState(act.getState());
 
         if (transition.originState.equals(currentState)) {
-            transition.getPerformingRole(act, agent);
+            transition.checkPerformingRole(act, agent);
             return transition.targetState;
         }
         else {

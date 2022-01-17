@@ -100,15 +100,15 @@ public class AgentPath extends ItemPath {
         return Gateway.getLookup().getRoles(this, transactionKey);
     }
 
-    public RolePath getFirstMatchingRole(List<RolePath> roles) {
-        return getFirstMatchingRole(roles, null);
+    public boolean hasMatchingRole(List<RolePath> roles) {
+        return hasMatchingRole(roles, null);
     }
 
-    public RolePath getFirstMatchingRole(List<RolePath> roles, TransactionKey transactionKey) {
+    public boolean hasMatchingRole(List<RolePath> roles, TransactionKey transactionKey) {
         for (RolePath role : roles) {
-            if (Gateway.getLookup().hasRole(this, role, transactionKey)) return role;
+            if (Gateway.getLookup().hasRole(this, role, transactionKey)) return true;
         }
-        return null;
+        return false;
     }
 
     public boolean hasRole(RolePath role) {

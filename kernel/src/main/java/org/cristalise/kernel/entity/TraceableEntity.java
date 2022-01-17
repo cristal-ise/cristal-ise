@@ -335,7 +335,7 @@ public class TraceableEntity implements Item {
                     Activity act = (Activity) wf.search(j.getStepPath());
                     if (secMan.checkPermissions(agent.getPath(), act, item.getPath(), null)) {
                         try {
-                            j.getTransition().getPerformingRole(act, agent.getPath());
+                            j.getTransition().checkPerformingRole(act, agent.getPath());
                             jobBag.list.add(j);
                         }
                         catch (AccessRightsException e) {

@@ -130,7 +130,7 @@ public class Transition {
         return allFound;
     }
 
-    public String getPerformingRole(Activity act, AgentPath agent) throws ObjectNotFoundException, AccessRightsException {
+    public void checkPerformingRole(Activity act, AgentPath agent) throws ObjectNotFoundException, AccessRightsException {
         // check available
         if (!isEnabled(act))
             throw new AccessRightsException("Trans:" + toString() + " is disabled by the '" + enabledProp + "' property.");
@@ -159,19 +159,10 @@ public class Transition {
         }
 
         if (roles.size() != 0) {
-            RolePath matchingRole = agent.getFirstMatchingRole(roles);
-
-            if (matchingRole != null) {
-                return matchingRole.getName();
-            }
-            else if (agent.hasRole(ADMIN_ROLE.getName())) {
-                return ADMIN_ROLE.getName();
-            }
-            else {
+            if (!agent.hasMatchingRole(roles) && !agent.hasRole(ADMIN_ROLE.getName())) {
                 throw new AccessRightsException("Agent '" + agent.getAgentName() + "' does not hold a suitable role '" + act.getCurrentAgentRole() + "' for the activity " + act.getName());
             }
         }
-        else return null;
     }
 
     private void checkOwner(Activity act, AgentPath agent, boolean override) throws AccessRightsException {

@@ -32,7 +32,6 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Vector;
 import javax.xml.xpath.XPathExpressionException;
@@ -217,14 +216,14 @@ public class Activity extends WfVertex {
     {
         if (log.isTraceEnabled()) {
             StateMachine sm = getStateMachine();
-            log.trace("request() - path:{} state:{} transition:{}", getPath(), sm.getState(getState()), sm.getTransition(transitionID));
+            log.trace("request() - item:{} path:{} state:{} transition:{}", itemPath.getItemName(), getPath(), sm.getState(getState()), sm.getTransition(transitionID));
         }
 
         // Find requested transition
         Transition transition = getStateMachine().getTransition(transitionID);
 
         // Check if the transition is possible
-        String usedRole = transition.getPerformingRole(this, agent);
+        transition.checkPerformingRole(this, agent);
 
         // Verify outcome
         boolean storeOutcome = false;
@@ -262,7 +261,7 @@ public class Activity extends WfVertex {
             String viewpoint = resolveViewpointName(newOutcome);
             boolean hasAttachment = attachment.length > 0;
 
-            int eventID = hist.addEvent(agent, usedRole, getName(), getPath(), getType(),
+            int eventID = hist.addEvent(agent, null/*usedRole*/, getName(), getPath(), getType(),
                     schema, getStateMachine(), transitionID, viewpoint, hasAttachment).getID();
             newOutcome.setID(eventID);
 
@@ -283,7 +282,7 @@ public class Activity extends WfVertex {
         }
         else {
             updateItemProperties(itemPath, null, transactionKey);
-            hist.addEvent(agent, usedRole, getName(), getPath(), getType(), getStateMachine(), transitionID);
+            hist.addEvent(agent, null/*usedRole*/, getName(), getPath(), getType(), getStateMachine(), transitionID);
         }
 
         boolean breakPoint = (Boolean) getBuiltInProperty(BREAKPOINT, Boolean.FALSE);

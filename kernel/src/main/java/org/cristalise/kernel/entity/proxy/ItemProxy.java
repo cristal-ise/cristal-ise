@@ -295,7 +295,7 @@ public class ItemProxy {
                 Activity act = (Activity) getWorkflow().search(j.getStepPath());
                 if (secMan.checkPermissions(agentPath, act, agentPath, null)) {
                     try {
-                        j.getTransition().getPerformingRole(act, agentPath);
+                        j.getTransition().checkPerformingRole(act, agentPath);
                         jobBag.list.add(j);
                     }
                     catch (AccessRightsException e) {
