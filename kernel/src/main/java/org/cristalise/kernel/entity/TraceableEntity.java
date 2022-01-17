@@ -188,10 +188,12 @@ public class TraceableEntity implements Item {
 
         if (act != null) {
             if (secMan.isShiroEnabled() && !secMan.checkPermissions(agent.getPath(), act, item.getPath(), transactionKey)) {
+                String errorMsg = "'" + agent.getName() + "' is NOT permitted to execute step:" + stepPath;
                 if (log.isTraceEnabled()) {
+                    log.error(errorMsg);
                     for (RolePath role : agent.getRoles()) log.error(role.dump());
                 }
-                throw new AccessRightsException("'" + agent.getName() + "' is NOT permitted to execute step:" + stepPath);
+                throw new AccessRightsException(errorMsg);
             }
         }
         else {
@@ -302,6 +304,7 @@ public class TraceableEntity implements Item {
      * 
      */
     @Override
+    @Deprecated
     public void queryLifeCycle(String itemUuid, String agentUuid, boolean filter, Handler<AsyncResult<String>> returnHandler) {
         ItemProxy item = null;
         AgentProxy agent = null;
@@ -321,16 +324,11 @@ public class TraceableEntity implements Item {
 
         try {
             Workflow wf = (Workflow) mStorage.get(item.getPath(), ClusterType.LIFECYCLE + "/workflow", null);
-
-            JobArrayList jobBag = new JobArrayList();
-//            CompositeActivity domainWf = (CompositeActivity) wf.search("workflow/domain");
-//            ArrayList<Job> jobs = filter ? 
-//                    domainWf.calculateJobs(agent.getPath(), item.getPath(), true) : domainWf.calculateAllJobs(agent.getPath(), item.getPath(), true);
-
             @SuppressWarnings("unchecked")
             C2KLocalObjectMap<Job> jobs = (C2KLocalObjectMap<Job>)mStorage.get(item.getPath(), ClusterType.JOB.getName(), null);
 
             SecurityManager secMan = Gateway.getSecurityManager();
+            JobArrayList jobBag = new JobArrayList();
 
             if (secMan.isShiroEnabled()) {
                 for (Job j : jobs.values()) {

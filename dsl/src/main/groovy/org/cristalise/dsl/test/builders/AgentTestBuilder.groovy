@@ -87,7 +87,7 @@ class AgentTestBuilder extends AgentBuilder {
         Collection<Job> currentJobs = jobList.values();
         assert expectedJob && currentJobs
         assert currentJobs.find { Job j ->
-            j.stepName == expectedJob.stepName && j.agentRole == expectedJob.agentRole && j.transition.name == expectedJob.transitionName
+            j.stepName == expectedJob.stepName && j.transition.name == expectedJob.transitionName
         }//, "Cannot find Job: ${expectedJob.stepName} , ${expectedJob.agentRole} , ${expectedJob.transitionName}"
     }
 
@@ -100,7 +100,6 @@ class AgentTestBuilder extends AgentBuilder {
             assert jobMap && jobMap.stepName && jobMap.agentRole && jobMap.transitionName
             assert currentJobs.find { Job job ->
                     job.stepName == jobMap.stepName &&
-                    job.agentRole == jobMap.agentRole &&
                     job.transition.name == jobMap.transitionName
             }, "Cannot find Job: ${jobMap.stepName} , ${jobMap.agentRole} , ${jobMap.transitionName}"
         }

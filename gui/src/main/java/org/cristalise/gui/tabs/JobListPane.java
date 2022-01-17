@@ -35,7 +35,6 @@ import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.DateUtility;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
@@ -95,7 +94,8 @@ public class JobListPane extends ItemTabPane {
 
     @Override
     public void reload() {
-
+        Gateway.getStorage().clearCache(parent.getItemPath(), JOB);
+        joblist.keySet();
     }
 
     @SuppressWarnings("unchecked")
@@ -112,6 +112,8 @@ public class JobListPane extends ItemTabPane {
 
         model = new JoblistTableModel();
         eventTable.setModel(model);
+        reload();
+        model.setView();
     }
 
     public void add(Job contents) {
@@ -119,10 +121,15 @@ public class JobListPane extends ItemTabPane {
     }
 
     private class JoblistTableModel extends AbstractTableModel {
-        Job[]     job;
-        String[]  itemNames;
+        Job[]     jobArray;
 
         public JoblistTableModel() {
+        }
+
+        public void setView() {
+            jobArray = new Job[joblist.size()];
+            int i = 0;
+            for (String key : joblist.keySet()) jobArray[i++] = joblist.get(key);
         }
 
         /**
@@ -141,7 +148,7 @@ public class JobListPane extends ItemTabPane {
          */
         @Override
         public int getColumnCount() {
-            return 5;
+            return 3;
         }
 
         /**
@@ -151,10 +158,8 @@ public class JobListPane extends ItemTabPane {
         public String getColumnName(int columnIndex) {
             switch (columnIndex) {
                 case 0: return "ID";
-                case 1: return "Subject";
-                case 2: return "Activity";
-                case 3: return "Transition";
-                case 4: return "Date";
+                case 1: return "Activity";
+                case 2: return "Transition";
                 default: return "";
             }
         }
@@ -164,7 +169,7 @@ public class JobListPane extends ItemTabPane {
          */
         @Override
         public int getRowCount() {
-            if (job != null) return job.length;
+            if (jobArray != null) return jobArray.length;
             else return 0;
         }
 
@@ -173,15 +178,13 @@ public class JobListPane extends ItemTabPane {
          */
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            if (job.length <= rowIndex || job[rowIndex] == null)
+            if (jobArray.length <= rowIndex || jobArray[rowIndex] == null)
                 return "";
             try {
                 switch (columnIndex) {
-                    case 0: return job[rowIndex].getClusterPath();
-                    case 1: return itemNames[rowIndex];
-                    case 2: return job[rowIndex].getStepName();
-                    case 3: return job[rowIndex].getTransition().getName();
-                    case 4: return DateUtility.timeToString(job[rowIndex].getCreationDate());
+                    case 0: return jobArray[rowIndex].getClusterPath();
+                    case 1: return jobArray[rowIndex].getStepName();
+                    case 2: return jobArray[rowIndex].getTransitionName();
                     default: return "";
                 }
             }
@@ -199,7 +202,7 @@ public class JobListPane extends ItemTabPane {
         }
 
         public Job getJobAtRow(int rowIndex) {
-            return job[rowIndex];
+            return jobArray[rowIndex];
         }
 
     }

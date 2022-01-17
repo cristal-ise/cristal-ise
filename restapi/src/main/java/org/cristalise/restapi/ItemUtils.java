@@ -84,7 +84,9 @@ import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.property.BuiltInItemProperties;
 import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
@@ -159,10 +161,10 @@ public abstract class ItemUtils extends RestHandler {
 
     protected AgentProxy getAgentProxy(String uuid, NewCookie cookie) {
         try {
-            ItemPath itemPath = Gateway.getLookup().getItemPath(uuid);
-            return Gateway.getAgentProxy((AgentPath)itemPath);
+            AgentPath agentPath = Gateway.getLookup().getAgentPath(uuid);
+            return Gateway.getAgentProxy(agentPath);
         }
-        catch(InvalidItemPathException | ObjectNotFoundException e) {
+        catch(ObjectNotFoundException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -351,8 +353,8 @@ public abstract class ItemUtils extends RestHandler {
 
         String agentName = job.getAgentName();
         if (StringUtils.isNotBlank(agentName)) jobData.put("agent", agentName);
-        jobData.put("role", job.getAgentRole());
 
+        jobData.put("role",       job.getRoleOverride());
         jobData.put("item",       getJobItemData(job, itemName, uri));
         jobData.put("activity",   getJobActivityData(job, itemName, uri));
         jobData.put("transition", getJobTransitionData(job, itemName, uri));
@@ -369,11 +371,10 @@ public abstract class ItemUtils extends RestHandler {
         LinkedHashMap<String, Object> itemData = new LinkedHashMap<String, Object>();
         itemData.put("uuid", job.getItemUUID());
         itemData.put("name", itemName);
-        try {
-            String type = job.getItem().getType();
-            if (StringUtils.isNotBlank(type)) itemData.put("type", type);
-        }
-        catch (InvalidDataException e1) {}
+
+        String type = PropertyUtility.getPropertyValue(job.getItemPath(), BuiltInItemProperties.TYPE, "", null);
+        if (StringUtils.isNotBlank(type)) itemData.put("type", type);
+
         itemData.put("url", getItemURI(uri, job.getItemUUID()));
 
         return itemData;

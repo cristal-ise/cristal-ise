@@ -643,13 +643,12 @@ public class Activity extends WfVertex {
     {
         log.trace("calculateJobsBase() - act:" + getPath());
         List<Job> jobs = new ArrayList<Job>();
-        Map<Transition, String> transitions;
         if ((includeInactive || getActive()) && !getName().equals("domain")) {
-            transitions = getStateMachine().getPossibleTransitions(this, agent);
+            Map<Transition, String> transitions = getStateMachine().getPossibleTransitions(this, agent);
             log.trace("calculateJobsBase() - Got " + transitions.size() + " transitions.");
             for (Transition transition : transitions.keySet()) {
                 log.trace("calculateJobsBase() - Creating Job object for transition " + transition.getName());
-                jobs.add(new Job(this, itemPath, transition.getName(), agent, transitions.get(transition)));
+                jobs.add(new Job(this, itemPath, transition.getName(), agent, transition.getRoleOverride()));
             }
         }
         return jobs;

@@ -24,21 +24,16 @@ import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
-
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-
-import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
@@ -47,7 +42,6 @@ import org.jooq.DataType;
 import org.jooq.Field;
 import org.jooq.Record;
 import org.jooq.Table;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -59,9 +53,8 @@ public class JooqJobHandler extends JooqHandler {
     static final Field<String>    STEP_PATH         = field(name("STEP_PATH"),         String.class);
     static final Field<String>    STEP_TYPE         = field(name("STEP_TYPE"),         String.class);
     static final Field<String>    TRANSITION        = field(name("TRANSITION"),        String.class);
-    static final Field<String>    AGENT_ROLE        = field(name("AGENT_ROLE"),        String.class);
+    static final Field<String>    ROLE_OVERRIDE     = field(name("ROLE_OVERRIDE"),     String.class);
     static final Field<String>    ACT_PROPERTIES    = field(name("ACT_PROPERTIES"),    String.class);
-    static final Field<Timestamp> CREATION_TS       = field(name("CREATION_TS"),       Timestamp.class);
 
     //static final Field<OffsetDateTime> CREATION_TS = field(name("CREATION_TS"), OffsetDateTime.class);
 
@@ -118,7 +111,7 @@ public class JooqJobHandler extends JooqHandler {
             actPropsXML = Gateway.getMarshaller().marshall(job.getActProps());
         }
         catch (Exception ex) {
-            log.error("", ex);
+            log.error("insert()", ex);
             throw new PersistencyException(ex.getMessage());
         }
 
@@ -129,9 +122,8 @@ public class JooqJobHandler extends JooqHandler {
                 .set(STEP_PATH,         job.getStepPath())
                 .set(STEP_TYPE,         job.getStepType())
                 .set(TRANSITION,        job.getTransitionName())
-                .set(AGENT_ROLE,        job.getAgentRole())
+                .set(ROLE_OVERRIDE,     job.getRoleOverride())
                 .set(ACT_PROPERTIES,    actPropsXML)
-                .set(CREATION_TS,       DateUtility.toSqlTimestamp(job.getCreationDate()))
                 .execute();
     }
 
@@ -143,21 +135,17 @@ public class JooqJobHandler extends JooqHandler {
             try {
                 CastorHashMap actProps = (CastorHashMap)Gateway.getMarshaller().unmarshall(result.get(ACT_PROPERTIES));
 
-                GTimeStamp ts = DateUtility.fromSqlTimestamp( result.get(CREATION_TS));
-                //GTimeStamp ts = DateUtility.fromOffsetDateTime( result.get(CREATION_TS));
-
                 return new Job(
                         new ItemPath(uuid),
                         result.get(STEP_NAME),
                         result.get(STEP_PATH),
                         result.get(STEP_TYPE),
                         result.get(TRANSITION),
-                        result.get(AGENT_ROLE),
-                        actProps,
-                        ts);
+                        result.get(ROLE_OVERRIDE),
+                        actProps);
             }
             catch (Exception ex) {
-                log.error("", ex);
+                log.error("fetch()", ex);
                 throw new PersistencyException(ex.getMessage());
             }
         }
@@ -175,9 +163,8 @@ public class JooqJobHandler extends JooqHandler {
         .column(STEP_PATH,          STRING_TYPE   .nullable(false))
         .column(STEP_TYPE,          NAME_TYPE     .nullable(false))
         .column(TRANSITION,         STRING_TYPE   .nullable(false))
-        .column(AGENT_ROLE,         NAME_TYPE     .nullable(false))
+        .column(ROLE_OVERRIDE,      NAME_TYPE     .nullable(true))
         .column(ACT_PROPERTIES,     xmlType       .nullable(false))
-        .column(CREATION_TS,        TIMESTAMP_TYPE.nullable(false))
         .constraints(constraint("PK_"+JOB_TABLE).primaryKey(UUID, STEP_NAME, TRANSITION))
         .execute();
     }

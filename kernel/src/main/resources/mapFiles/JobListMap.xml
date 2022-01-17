@@ -39,19 +39,15 @@
     <field name="stepPath" type="string" direct="false" get-method="getStepPath" set-method="setStepPath">
       <bind-xml name="StepPath" node="attribute" />
     </field>
-    <field name="mAgentPath" type="string" direct="false" get-method="getAgentUUID" set-method="setAgentUUID">
+    <field name="agentPath" type="string" direct="false" get-method="getAgentUUID" set-method="setAgentUUID">
       <bind-xml name="AgentUUID" node="attribute" />
     </field>
-    <field name="agentRole" type="string" direct="false" get-method="getAgentRole" set-method="setAgentRole">
-      <bind-xml name="AgentRole" node="attribute" />
+    <field name="roleOverride" type="string" direct="false" get-method="getRoleOverride" set-method="setRoleOverride">
+      <bind-xml name="RoleOverride" node="attribute" />
     </field>
     <field name="actProps" type="org.cristalise.kernel.utils.KeyValuePair" collection="array" container="false"
       direct="false" get-method="getKeyValuePairs" set-method="setKeyValuePairs">
       <bind-xml name="ActProps" node="element" />
-    </field>
-    <field name="creationDate" type="org.cristalise.kernel.common.GTimeStamp" direct="false"
-      get-method="getCreationDate" set-method="setCreationDate">
-      <bind-xml name="CreationDate" node="element" />
     </field>
   </class>
   <class name="org.cristalise.kernel.entity.JobArrayList">

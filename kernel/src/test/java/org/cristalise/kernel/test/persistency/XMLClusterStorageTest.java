@@ -24,6 +24,7 @@ import static org.cristalise.kernel.persistency.ClusterType.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
@@ -113,10 +114,12 @@ public class XMLClusterStorageTest {
     }
 
     private void checkJobs(ClusterStorage importCluster) throws PersistencyException {
-        assertNotNull( importCluster.get(itemPath, JOB+"/TestStep/Done", null) );
         Job aJob = (Job)importCluster.get(itemPath, JOB+"/TestStep/Done", null);
+        assertNotNull(aJob);
         assertEquals("TestStep", aJob.getStepName());
         assertEquals("Done", aJob.getTransitionName());
+        assertEquals("Admin", aJob.getRoleOverride());
+        assertEquals("da8c7b53-f0ab-4532-9773-64233c536415", aJob.getAgentUUID());
         assertNotNull(aJob.getTransition());
         assertEquals(aJob.getTransitionName(), aJob.getTransition().getName());
 
@@ -124,6 +127,8 @@ public class XMLClusterStorageTest {
         aJob = (Job)importCluster.get(itemPath, JOB+"/TestStep/Start", null);
         assertEquals("TestStep", aJob.getStepName());
         assertEquals("Start", aJob.getTransitionName());
+        assertNull(aJob.getRoleOverride());
+        assertEquals("da8c7b53-f0ab-4532-9773-64233c536415", aJob.getAgentUUID());
         assertNotNull(aJob.getTransition());
         assertEquals(aJob.getTransitionName(), aJob.getTransition().getName());
 
@@ -131,6 +136,8 @@ public class XMLClusterStorageTest {
         aJob = (Job)importCluster.get(itemPath, JOB+"/TestStep2/Start", null);
         assertEquals("TestStep2", aJob.getStepName());
         assertEquals("Start", aJob.getTransitionName());
+        assertNull(aJob.getRoleOverride());
+        assertNull(aJob.getAgentUUID());
         assertNotNull(aJob.getTransition());
         assertEquals(aJob.getTransitionName(), aJob.getTransition().getName());
     }

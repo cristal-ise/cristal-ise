@@ -137,16 +137,6 @@ public class ActivityViewer extends JPanel implements Runnable {
             add(descBox);
         }
 
-
-// agentid
-        String roleName = firstJob.getAgentRole();
-        if (roleName!= null && roleName.length()>0) {
-            c.gridy++;
-            JLabel role = new JLabel("Agent Role: "+roleName);
-            gridbag.setConstraints(role, c);
-            add(role);
-        }
-
         c.gridy++;
         c.anchor = GridBagConstraints.EAST;
         gridbag.setConstraints(outcomeButtons, c);

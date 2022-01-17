@@ -24,14 +24,11 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NA
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.OUTCOME_INIT;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.PropertyUtility.getPropertyValue;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -53,10 +50,8 @@ import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.ErrorInfo;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -72,13 +67,12 @@ public class Job implements C2KLocalObject {
     private String         transitionName;
     private String         stepPath;
     private String         stepType;
-    private String         agentRole;
-    private AgentPath      agentPath;
+    private String         roleOverride;
     private CastorHashMap  actProps = new CastorHashMap();
-    private GTimeStamp     creationDate;
 
     // Non-persistent fields
     private ErrorInfo  error;
+    private AgentPath  agentPath;
 
     private Outcome           outcome = null;
     private OutcomeAttachment attachment = null;
@@ -92,15 +86,13 @@ public class Job implements C2KLocalObject {
      * Empty constructor required for Castor
      */
     public Job() {
-//        id = -1;
-        setCreationDate(DateUtility.getNow());
         setActProps(new CastorHashMap());
     }
 
     /**
      * Main constructor to create Job during workflow enactment
      */
-    public Job(Activity act, ItemPath itemPath, String transition, AgentPath agent, String role)
+    public Job(Activity act, ItemPath itemPath, String transition, AgentPath agent, String roleOverride)
             throws InvalidDataException, ObjectNotFoundException
     {
         this();
@@ -110,18 +102,16 @@ public class Job implements C2KLocalObject {
         setStepName(act.getName());
         setStepType(act.getType());
         setAgentPath(agent);
-        setAgentRole(role);
+        setRoleOverride(roleOverride);
 
         setActPropsAndEvaluateValues(act);
-
-        getItem();
     }
 
     /**
      * Constructor for recreating Job from backend
      */
     public Job(ItemPath itemPath, String stepName, String stepPath, String stepType, String transition,
-            String agentRole, CastorHashMap actProps, GTimeStamp creationDate)
+            String roleOverride, CastorHashMap actProps)
     {
         this();
         setItemPath(itemPath);
@@ -129,9 +119,8 @@ public class Job implements C2KLocalObject {
         setStepPath(stepPath);
         setStepType(stepType);
         setTransitionName(transition);
-        setAgentRole(agentRole);
+        setRoleOverride(roleOverride);
         setActProps(actProps);
-        setCreationDate(creationDate);
     }
 
     public void setItemPath(ItemPath path) {
@@ -144,15 +133,6 @@ public class Job implements C2KLocalObject {
 
     public String getItemUUID() {
         return getItemPath().getUUID().toString();
-    }
-
-    public ItemProxy getItem() throws InvalidDataException {
-        try {
-            return getItemProxy();
-        }
-        catch (InvalidItemPathException | ObjectNotFoundException e) {
-            throw new InvalidDataException(e);
-        }
     }
 
     public Transition getTransition() {
@@ -422,10 +402,11 @@ public class Job implements C2KLocalObject {
     public Outcome getOutcome() throws InvalidDataException, ObjectNotFoundException {
         if (outcome == null && hasOutcome()) {
             boolean useViewpoint = Gateway.getProperties().getBoolean("OutcomeInit.jobUseViewpoint", false);
+            ItemProxy item = Gateway.getProxy(itemPath);
 
             // check viewpoint first if exists
             if (useViewpoint) {
-                if (getItem().checkViewpoint(getSchema().getName(), getValidViewpointName())) {
+                if (item.checkViewpoint(getSchema().getName(), getValidViewpointName())) {
                     Outcome tempOutcome = getLastOutcome();
                     outcome = new Outcome(tempOutcome.getData(), tempOutcome.getSchema());
                 }
@@ -516,7 +497,7 @@ public class Job implements C2KLocalObject {
         for(Map.Entry<String, Object> entry: act.getProperties().entrySet()) {
             try {
                 Object newVal = act.evaluatePropertyValue(null, entry.getValue(), null);
-                if(newVal != null) actProps.put(entry.getKey(), newVal);
+                if(newVal != null) actProps.put(entry.getKey(), newVal, false);
             }
             catch (InvalidDataException | PersistencyException | ObjectNotFoundException e) {
                 log.error("setActPropsAndEvaluateValues() - error evaluating act property '{}:{}'", entry.getKey(), entry.getValue(), e);

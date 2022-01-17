@@ -140,19 +140,13 @@ public class Transition {
             throw new AccessRightsException("Activity must be active to perform trans:"+ toString());
 
         String overridingRole = getRoleOverride(act.getProperties());
-        boolean override = overridingRole != null;
-        boolean isOwner = false, isOwned = true;
 
-        // Check agent name
-        String agentName = act.getCurrentAgentName();
-        if (StringUtils.isNotBlank(agentName)) {
-            if (agent.getAgentName().equals(agentName)) isOwner = true;
-        }
-        else isOwned = false;
+        checkOwner(act, agent, overridingRole != null);
 
         List<RolePath> roles = new ArrayList<RolePath>();
+
         // determine transition role
-        if (override) {
+        if (overridingRole != null) {
             roles.add(Gateway.getLookup().getRolePath(overridingRole));
         }
         else {
@@ -164,21 +158,38 @@ public class Transition {
             }
         }
 
-        // Decide the access
-        if (isOwned && !override && !isOwner)
-            throw new AccessRightsException("Agent '" + agent.getAgentName() + "' cannot perform this trans:"+toString()+" because the activity '" + act.getName() + "' is currently owned by " + agentName);
-
         if (roles.size() != 0) {
             RolePath matchingRole = agent.getFirstMatchingRole(roles);
 
-            if (matchingRole != null) 
+            if (matchingRole != null) {
                 return matchingRole.getName();
-            else if (agent.hasRole(ADMIN_ROLE.getName())) 
+            }
+            else if (agent.hasRole(ADMIN_ROLE.getName())) {
                 return ADMIN_ROLE.getName();
-            else
+            }
+            else {
                 throw new AccessRightsException("Agent '" + agent.getAgentName() + "' does not hold a suitable role '" + act.getCurrentAgentRole() + "' for the activity " + act.getName());
+            }
         }
         else return null;
+    }
+
+    private void checkOwner(Activity act, AgentPath agent, boolean override) throws AccessRightsException {
+        boolean isOwner = false, isOwned = true;
+
+        // Check agent name
+        String agentName = act.getCurrentAgentName();
+
+        if (StringUtils.isNotBlank(agentName)) {
+            if (agent.getAgentName().equals(agentName)) isOwner = true;
+        }
+        else isOwned = false;
+
+        // Decide the access
+        if (isOwned && !override && !isOwner) {
+            throw new AccessRightsException("Agent '"+agent.getAgentName()+"' cannot perform this trans:"+toString()+
+                    " because the activity '" + act.getName() + "' is currently owned by " + agentName);
+        }
     }
 
     public String getReservation(Activity act, AgentPath agent) {

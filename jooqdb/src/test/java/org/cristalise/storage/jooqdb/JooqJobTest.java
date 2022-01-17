@@ -23,17 +23,14 @@ package org.cristalise.storage.jooqdb;
 import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
 import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
 import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.util.Arrays;
 import java.util.UUID;
-
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.storage.jooqdb.clusterStore.JooqJobHandler;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.After;
@@ -77,8 +74,8 @@ public class JooqJobTest extends StorageTestBase {
         Assert.assertEquals(expected.getStepName(),        actual.getStepName());
         Assert.assertEquals(expected.getStepPath(),        actual.getStepPath());
         Assert.assertEquals(expected.getStepType(),        actual.getStepType());
-
-        compareTimestramps(actual.getCreationDate(), expected.getCreationDate());
+        Assert.assertEquals(expected.getRoleOverride(),    actual.getRoleOverride());
+        Assert.assertNull(actual.getAgentPath());
     }
 
     private Job createJob(UUID itemUUID, int idx) throws InvalidItemPathException {
@@ -93,8 +90,7 @@ public class JooqJobTest extends StorageTestBase {
                 "stepType"+idx,
                 transition,
                 "admin",
-                actProps, 
-                DateUtility.getNow());
+                actProps);
     }
 
     @Test

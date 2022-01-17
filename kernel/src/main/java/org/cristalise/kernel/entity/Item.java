@@ -69,6 +69,7 @@ public interface Item {
      * @param filter If true, then only Activities which are currently active will be included.
      * @param returnHandler vert.x way to return the marshaled {@link org.cristalise.kernel.entity.JobArrayList JobArrayList}
      *                      or Exception
+     * @deprecated
      **/
     public void queryLifeCycle(String itemUuid, String agentUuid, boolean filter, Handler<AsyncResult<String>> returnHandler);
 }

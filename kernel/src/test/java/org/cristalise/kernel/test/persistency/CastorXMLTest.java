@@ -32,11 +32,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
 import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
 import org.cristalise.kernel.collection.Dependency;
-import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.JobArrayList;
 import org.cristalise.kernel.entity.imports.ImportAgent;
@@ -106,6 +107,12 @@ public class CastorXMLTest {
         }
 
         return !diffIdentical.hasDifferences();
+    }
+
+    @Test
+    public void testMapFiles() throws Exception {
+        //TODO: this test needs to be rewritten
+        new CastorXMLUtility(Gateway.getResource(), Gateway.getProperties(), Gateway.getResource().getKernelResourceURL("mapFiles/"));
     }
 
     @Test @Ignore("Castor XML mapping is not done for Script")
@@ -249,7 +256,7 @@ public class CastorXMLTest {
             CastorHashMap actProps = new CastorHashMap();
             actProps.setBuiltInProperty(STATE_MACHINE_NAME, "Default");
             actProps.setBuiltInProperty(STATE_MACHINE_VERSION, 0);
-            Job j = new Job(new ItemPath(), "TestStep", "workflow/1", "", "Done", "Admin", actProps, new GTimeStamp());
+            Job j = new Job(new ItemPath(), "TestStep", "workflow/1", "", "Done", "Admin", actProps);
 
             ErrorInfo ei = new ErrorInfo(j, ex);
             ErrorInfo eiPrime = (ErrorInfo) marshaller.unmarshall(marshaller.marshall(ei));
@@ -269,8 +276,8 @@ public class CastorXMLTest {
         actProps.setBuiltInProperty(STATE_MACHINE_NAME, "Default");
         actProps.setBuiltInProperty(STATE_MACHINE_VERSION, 0);
 
-        Job j1 = new Job(new ItemPath(), "TestStep",  "workflow/1", "", "Done", "Admin", actProps, new GTimeStamp());
-        Job j2 = new Job(new ItemPath(), "TestStep2", "workflow/2", "", "Done", "Admin", actProps, new GTimeStamp());
+        Job j1 = new Job(new ItemPath(), "TestStep",  "workflow/1", "", "Done", "Admin", actProps);
+        Job j2 = new Job(new ItemPath(), "TestStep2", "workflow/2", "", "Done", "Admin", actProps);
 
         JobArrayList jobs = new JobArrayList();
         jobs.list.add(j1);
@@ -284,6 +291,8 @@ public class CastorXMLTest {
 
         Outcome jobsOutcome = new Outcome("/Outcome/JobArrayList/0/0", marshaller.marshall(jobs));
         jobsOutcome.validateAndCheck();
+
+        marshaller.unmarshall(marshaller.marshall(jobsPrime.list.get(0).getActProps()));
     }
 
     @Test
@@ -416,5 +425,16 @@ public class CastorXMLTest {
         itemPrime = (ImportItem) marshaller.unmarshall(marshaller.marshall(item));
         assertReflectionEquals(item, itemPrime);
         assertNotNull(itemPrime.getVersion());
+    }
+
+    @Test
+    public void testCastorHashMap() throws Exception {
+        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        String chmOrigXml = new String(Files.readAllBytes(Paths.get("src/test/data/ActPropsTest.xml")));
+        CastorHashMap chmOrig = (CastorHashMap) marshaller.unmarshall(chmOrigXml);
+
+        assertEquals(16, chmOrig.size());
+
+        compareXML(chmOrigXml, marshaller.marshall(chmOrig));
     }
 }

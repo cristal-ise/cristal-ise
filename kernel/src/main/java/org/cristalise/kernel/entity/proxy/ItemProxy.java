@@ -29,14 +29,11 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
@@ -58,6 +55,7 @@ import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.JobArrayList;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
+import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.WriteProperty;
 import org.cristalise.kernel.lookup.AgentPath;
@@ -74,13 +72,9 @@ import org.cristalise.kernel.property.BuiltInItemProperties;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
+import org.cristalise.kernel.security.SecurityManager;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
-
 import com.google.errorprone.annotations.Immutable;
-
 import io.vertx.core.AsyncResult;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -279,73 +273,43 @@ public class ItemProxy {
      * @throws ObjectNotFoundException data was invalid
      */
     public List<Job> getJobs(AgentPath agentPath) throws CriseVertxException {
-        return getJobs(agentPath, false);
+        return getJobsForAgent(agentPath);
     }
 
     /**
-     * 
-     * @param result
-     * @param agentPath
-     * @param futureResult
-     */
-    private void asyncHandleGetJobs(AsyncResult<String> result, CompletableFuture<List<Job>> futureResult) {
-        if (result.succeeded()) {
-            String returnString = result.result();
-            log.trace("getJobsHandler() - received:{}", returnString);
-            try {
-                JobArrayList thisJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(returnString);
-                futureResult.complete(thisJobList.list);
-            }
-            catch (MarshalException | ValidationException | IOException | MappingException e) {
-                futureResult.completeExceptionally(e);
-            }
-        }
-        else {
-            futureResult.completeExceptionally(result.cause());
-        }
-    }
-
-    /**
-     * Get the list of Jobs of the Item that can be executed by the Agent
+     * Returns a set of Jobs for this Agent on this Item. Each Job represents a possible transition of a particular 
+     * Activity in the Item's lifecycle.
      *
-     * @param agentPath the Agent requesting the job
-     * @param filter if true, then only Activities which are currently active will be included.
+     * @param agentPath the Agent requesting the jobs
      * @return list of Jobs
      * @throws AccessRightsException Agent does not the rights to execute this operation
      * @throws PersistencyException there was a database problems during this operations
      * @throws ObjectNotFoundException data was invalid
      */
-    private List<Job> getJobs(AgentPath agentPath, boolean filter) throws CriseVertxException {
-        log.debug("getJobs() - item:{} agent:{}", mItemPath.getItemName(), agentPath.getAgentName());
+    private List<Job> getJobsForAgent(AgentPath agentPath) throws CriseVertxException {
+        JobArrayList jobBag = new JobArrayList();
+        SecurityManager secMan = Gateway.getSecurityManager();
 
-        try {
-            CompletableFuture<List<Job>> futureResult = new CompletableFuture<>();
-
-            Thread thread = new Thread("getJobs-"+this) {
-                public void run() {
-                    getItem().queryLifeCycle(
-                            mItemPath.toString(),
-                            agentPath.toString(),
-                            filter,
-                            (result) -> { asyncHandleGetJobs(result, futureResult); }
-                    );
+        if (secMan.isShiroEnabled()) {
+            for (Job j : getJobs().values()) {
+                Activity act = (Activity) getWorkflow().search(j.getStepPath());
+                if (secMan.checkPermissions(agentPath, act, agentPath, null)) {
+                    try {
+                        j.getTransition().getPerformingRole(act, agentPath);
+                        jobBag.list.add(j);
+                    }
+                    catch (AccessRightsException e) {
+                        // AccessRightsException is thrown if Job requires specific Role that agent does not have
+                    }
                 }
-            };
+            }
+        }
+        else {
+            jobBag.list = (ArrayList<Job>) getJobs().values();
+        }
 
-            thread.start();
-
-            return futureResult.get(ItemVerticle.requestTimeout, SECONDS);
-        }
-        catch (ExecutionException e) {
-            String msg = "item:" + this + " agent:" + agentPath.getAgentName();
-            log.error("getJobs() - {}", msg, e);
-            throw CriseVertxException.convertFutureException(e);
-        }
-        catch (Throwable e) {
-            String msg = "item:" + this + " agent:" + agentPath.getAgentName();
-            log.error("getJobs() - Error while waiting {}", msg, e);
-            throw new CannotManageException("Error while waiting for getJobs() - " + msg, e);
-        }
+        log.info("getJobs(" + this + ") - Returning " + jobBag.list.size() + " jobs.");
+        return jobBag.list;
     }
 
     /**
@@ -355,7 +319,7 @@ public class ItemProxy {
      * @return list of Jobs
      */
     public List<Job> getJobs(AgentProxy agent) throws CriseVertxException {
-        return getJobs(agent.getPath(), true);
+        return getJobsForAgent(agent.getPath());
     }
 
     /**
@@ -369,7 +333,7 @@ public class ItemProxy {
     public List<Job> getJobs(AgentPath agent, String stepPath) throws CriseVertxException {
         List<Job> resultJobs = new ArrayList<>();
 
-        for (Job job : getJobs(agent, true)) {
+        for (Job job : getJobsForAgent(agent)) {
             if (job.getStepPath().equals(stepPath)) resultJobs.add(job);
         }
         return resultJobs;
@@ -385,7 +349,7 @@ public class ItemProxy {
      * @throws PersistencyException
      */
     private Job getJobByName(String actName, AgentPath agent) throws CriseVertxException {
-        for (Job job : getJobs(agent, true)) {
+        for (Job job : getJobsForAgent(agent)) {
             if (job.getStepName().equals(actName) && job.getTransition().isFinishing())
                 return job;
         }
@@ -943,7 +907,7 @@ public class ItemProxy {
      * @throws PersistencyException Error loading the relevant objects
      */
     public Job getJobByTransitionName(String actName, String transName, AgentPath agentPath) throws CriseVertxException {
-        for (Job job : getJobs(agentPath, true)) {
+        for (Job job : getJobsForAgent(agentPath)) {
             if (job.getTransition().getName().equals(transName)) {
                 if ((actName.contains("/") && job.getStepPath().equals(actName)) || job.getStepName().equals(actName))
                     return job;
@@ -1426,6 +1390,33 @@ public class ItemProxy {
      */
     public Job getJob(String id, TransactionKey transKey) throws ObjectNotFoundException {
         return (Job) getObject(JOB+"/"+id, transKey == null ? transactionKey : transKey);
+    }
+
+    /**
+     * Retrieves the complete list of Jobs of the Item.
+     * 
+     * @return C2KLocalObjectMap of Jobs
+     */
+    public C2KLocalObjectMap<Job> getJobs() {
+        return getJobs((TransactionKey)null);
+    }
+
+    /**
+     * Retrieves the complete list of Jobs of the Item. This method can be used in server side Script 
+     * to find uncommitted changes during the active transaction.
+     * 
+     * @param transKey the transaction key
+     * @return C2KLocalObjectMap of Jobs
+     */
+    @SuppressWarnings("unchecked")
+    public C2KLocalObjectMap<Job> getJobs(TransactionKey transKey) {
+        try {
+            return (C2KLocalObjectMap<Job>) getObject(JOB, transKey == null ? transactionKey : transKey);
+        }
+        catch (ObjectNotFoundException e) {
+            //This case should never happen
+            return new C2KLocalObjectMap<Job>(mItemPath, JOB, transactionKey);
+        }
     }
 
     /**
