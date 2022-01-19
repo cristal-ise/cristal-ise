@@ -28,6 +28,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 //import java.util.Calendar;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -146,6 +147,7 @@ public class DateUtility {
 
     public static GTimeStamp parseTimeString(String time) throws InvalidDataException {
         if (time.length() == 23) {
+            int ms = Integer.parseInt(time.substring(20,23));
             return new GTimeStamp(
                     Integer.parseInt(time.substring(0,4)),
                     Integer.parseInt(time.substring(5,7)),
@@ -153,7 +155,7 @@ public class DateUtility {
                     Integer.parseInt(time.substring(11,13)),
                     Integer.parseInt(time.substring(14,16)),
                     Integer.parseInt(time.substring(17,19)),
-                    Integer.parseInt(time.substring(20,23)),
+                    (int) TimeUnit.MILLISECONDS.toNanos(ms),
                     0);
         } else if (time.length() == 19) {
             return new GTimeStamp(
