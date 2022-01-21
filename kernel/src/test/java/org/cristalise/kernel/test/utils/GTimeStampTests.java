@@ -79,13 +79,13 @@ public class GTimeStampTests {
 
     @Test
     public void testSqlTimeStamp_to_utcString_withOffset() throws Exception {
-        GTimeStamp ts = new GTimeStamp(2001, 11, 18, 13, 11, 0, 0,3600000);
+        GTimeStamp ts = new GTimeStamp(2001, 11, 18, 13, 11, 0, 0, 3600000);
         assertEquals("2001-11-18T12:11:00Z", DateUtility.timeStampToUtcString(ts));
     }
 
     @Test
     public void testSqlTimeStamp_to_utcString_withNano() throws Exception {
-        GTimeStamp ts = new GTimeStamp(2001, 11, 18, 13, 11, 0, 89000000,0);
+        GTimeStamp ts = new GTimeStamp(2001, 11, 18, 13, 11, 0, 89000000, 0);
         assertEquals("2001-11-18T13:11:00.089Z", DateUtility.timeStampToUtcString(ts));
     }
 }
