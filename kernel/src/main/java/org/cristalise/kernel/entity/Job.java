@@ -134,16 +134,20 @@ public class Job implements C2KLocalObject {
     public String getItemUUID() {
         return getItemPath().getUUID().toString();
     }
-
-    public Transition getTransition() {
+    
+    public StateMachine getStateMachine() {
         try {
-            StateMachine sm = LocalObjectLoader.getStateMachine(actProps);
-            return sm.getTransition(transitionName);
+            return LocalObjectLoader.getStateMachine(actProps);
         }
         catch (Exception e) {
             log.error("Cannot retrieve state machine for actProps:{}", actProps, e);
             return null;
         }
+    }
+
+    public Transition getTransition() {
+        StateMachine sm = getStateMachine();
+        return sm != null ? sm.getTransition(transitionName) : null;
     }
 
     /**
@@ -220,7 +224,6 @@ public class Job implements C2KLocalObject {
         return null;
     }
 
-    @Deprecated
     public String getScriptName() {
         try {
             return getScript().getName();
@@ -230,7 +233,6 @@ public class Job implements C2KLocalObject {
         }
     }
 
-    @Deprecated
     public int getScriptVersion() throws InvalidDataException {
         try {
             return getScript().getVersion();

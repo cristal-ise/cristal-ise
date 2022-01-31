@@ -21,15 +21,11 @@
 package org.cristalise.gui.tabs;
 
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import javax.swing.Box;
-import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import org.cristalise.gui.ItemDetails;
-import org.cristalise.gui.MainFrame;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
@@ -62,9 +58,6 @@ public class JobListPane extends ItemTabPane {
         eventTable = new JTable();
         JScrollPane eventScroll = new JScrollPane(eventTable);
         add(eventScroll);
-
-        // detect double clicked jobs
-        eventTable.addMouseListener(new JobListMouseListener());
     }
     
     @Override
@@ -110,9 +103,10 @@ public class JobListPane extends ItemTabPane {
             log.error("", e);
         }
 
+        reload();
+
         model = new JoblistTableModel();
         eventTable.setModel(model);
-        reload();
         model.setView();
     }
 
@@ -130,6 +124,7 @@ public class JobListPane extends ItemTabPane {
             jobArray = new Job[joblist.size()];
             int i = 0;
             for (String key : joblist.keySet()) jobArray[i++] = joblist.get(key);
+            fireTableStructureChanged();
         }
 
         /**
@@ -148,7 +143,7 @@ public class JobListPane extends ItemTabPane {
          */
         @Override
         public int getColumnCount() {
-            return 3;
+            return 5;
         }
 
         /**
@@ -157,9 +152,11 @@ public class JobListPane extends ItemTabPane {
         @Override
         public String getColumnName(int columnIndex) {
             switch (columnIndex) {
-                case 0: return "ID";
-                case 1: return "Activity";
-                case 2: return "Transition";
+                case 0: return "Activity";
+                case 1: return "Transition";
+                case 2: return "Schema";
+                case 3: return "Script";
+                case 4: return "StateMachine";
                 default: return "";
             }
         }
@@ -169,8 +166,7 @@ public class JobListPane extends ItemTabPane {
          */
         @Override
         public int getRowCount() {
-            if (jobArray != null) return jobArray.length;
-            else return 0;
+            return jobArray != null ? jobArray.length : 0;
         }
 
         /**
@@ -178,17 +174,23 @@ public class JobListPane extends ItemTabPane {
          */
         @Override
         public Object getValueAt(int rowIndex, int columnIndex) {
-            if (jobArray.length <= rowIndex || jobArray[rowIndex] == null)
+            if (jobArray.length <= rowIndex || jobArray[rowIndex] == null) {
+                log.warn("JoblistTableModel.getValueAt() - INVALID rowIndex:{}", rowIndex);
                 return "";
+            }
+
             try {
                 switch (columnIndex) {
-                    case 0: return jobArray[rowIndex].getClusterPath();
-                    case 1: return jobArray[rowIndex].getStepName();
-                    case 2: return jobArray[rowIndex].getTransitionName();
+                    case 0: return jobArray[rowIndex].getStepName();
+                    case 1: return jobArray[rowIndex].getTransitionName();
+                    case 2: return jobArray[rowIndex].getSchema() != null ? jobArray[rowIndex].getSchemaName() : "";
+                    case 3: return jobArray[rowIndex].getScript() != null ? jobArray[rowIndex].getScriptName() : "";
+                    case 4: return jobArray[rowIndex].getStateMachine() != null ? jobArray[rowIndex].getStateMachine().name : "";
                     default: return "";
                 }
             }
             catch (Exception e) {
+                log.warn("JoblistTableModel.getValueAt() - rowIndex:{} columnIndex:{}", rowIndex, columnIndex, e);
                 return null;
             }
         }
@@ -199,28 +201,6 @@ public class JobListPane extends ItemTabPane {
         @Override
         public boolean isCellEditable(int rowIndex, int columnIndex) {
             return false;
-        }
-
-        public Job getJobAtRow(int rowIndex) {
-            return jobArray[rowIndex];
-        }
-
-    }
-
-    private class JobListMouseListener extends MouseAdapter {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            super.mouseClicked(e);
-            if (e.getClickCount() == 2) {
-                Job selectedJob = model.getJobAtRow(eventTable.getSelectedRow());
-                try {
-                    MainFrame.itemFinder.pushNewKey(selectedJob.getItemProxy().getName());
-                }
-                catch (Exception ex) {
-                    log.error("", ex);
-                    JOptionPane.showMessageDialog(null, "No Item Found", "Job references an unknown item", JOptionPane.ERROR_MESSAGE);
-                }
-            }
         }
     }
 }
