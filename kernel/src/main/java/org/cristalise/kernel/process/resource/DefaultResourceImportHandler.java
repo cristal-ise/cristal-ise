@@ -374,7 +374,8 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
         CompositeActivity ca = null;
 
         try {
-            ca = (CompositeActivity) ((CompositeActivityDef)LocalObjectLoader.getCompActDef(getWorkflowName(), version, transactionKey)).instantiate(transactionKey);
+            CompositeActivityDef caDef = LocalObjectLoader.getCompActDef(getWorkflowName(), version, transactionKey);
+            ca = (CompositeActivity) caDef.instantiate(transactionKey);
         }
         catch (ObjectNotFoundException ex) {
             // FIXME check if this could be a real error

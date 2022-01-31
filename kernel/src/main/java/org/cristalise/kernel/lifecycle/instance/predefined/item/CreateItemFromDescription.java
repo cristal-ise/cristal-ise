@@ -514,7 +514,7 @@ public class CreateItemFromDescription extends PredefinedStep {
             Gateway.getStorage().put(item, initViewpoint, transactionKey);
         }
 
-        // init collections
+        // store collections
         if (colls != null) {
             for (Collection<?> thisColl : colls.list) {
                 Gateway.getStorage().put(item, thisColl, transactionKey);
@@ -534,12 +534,16 @@ public class CreateItemFromDescription extends PredefinedStep {
             wf = new Workflow(ca, cont);
         }
 
-        // All objects are in place, initialize the workflow ...
+        // All objects are in place, initialize the workflow
         wf.initialise(item, agent, transactionKey);
-        Gateway.getStorage().put(item, wf, transactionKey);
 
-        //... and store the Jobs
+        // store the Jobs
         ArrayList<Job> newJobs = ((CompositeActivity)wf.search("workflow/domain")).calculateJobs(agent, item, true);
-        for (Job newJob: newJobs) Gateway.getStorage().put(item, newJob, transactionKey);
+        for (Job newJob: newJobs) {
+            Gateway.getStorage().put(item, newJob, transactionKey);
+        }
+
+        // store the workflow
+        Gateway.getStorage().put(item, wf, transactionKey);
     }
 }
