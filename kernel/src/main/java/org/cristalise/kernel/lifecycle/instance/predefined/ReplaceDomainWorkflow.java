@@ -22,7 +22,7 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -81,6 +81,8 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
         ArrayList<Job> newJobs = ((CompositeActivity)lifeCycle.search("workflow/domain")).calculateJobs(agent, item, true);
         for (Job newJob: newJobs) {
             Gateway.getStorage().put(item, newJob, transactionKey);
+
+            if (StringUtils.isNotBlank(newJob.getRoleOverride())) newJob.sendToRoleChannel();
         }
 
         return requestData;

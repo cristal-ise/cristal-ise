@@ -24,6 +24,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -212,6 +213,7 @@ public class TraceableEntity implements Item {
             ArrayList<Job> newJobs = ((CompositeActivity)lifeCycle.search("workflow/domain")).calculateJobs(agent.getPath(), item.getPath(), true);
             for (Job newJob: newJobs) {
                 mStorage.put(item.getPath(), newJob, transactionKey);
+                if (StringUtils.isNotBlank(newJob.getRoleOverride())) newJob.sendToRoleChannel();
             }
         }
 

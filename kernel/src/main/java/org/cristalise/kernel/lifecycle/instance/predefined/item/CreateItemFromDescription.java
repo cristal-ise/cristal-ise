@@ -20,16 +20,25 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.item;
 
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.equalsAny;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.leftPad;
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE;
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
-import static org.cristalise.kernel.property.BuiltInItemProperties.*;
-import static org.cristalise.kernel.property.PropertyUtility.*;
-
+import static org.cristalise.kernel.property.BuiltInItemProperties.CREATOR;
+import static org.cristalise.kernel.property.BuiltInItemProperties.ID_PREFIX;
+import static org.cristalise.kernel.property.BuiltInItemProperties.LAST_COUNT;
+import static org.cristalise.kernel.property.BuiltInItemProperties.LEFT_PAD_SIZE;
+import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+import static org.cristalise.kernel.property.PropertyUtility.getPropertyDescriptionOutcome;
+import static org.cristalise.kernel.property.PropertyUtility.getPropertyValue;
+import static org.cristalise.kernel.property.PropertyUtility.writeProperty;
 import java.io.IOException;
 import java.util.ArrayList;
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.CollectionDescription;
@@ -66,7 +75,6 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -541,6 +549,8 @@ public class CreateItemFromDescription extends PredefinedStep {
         ArrayList<Job> newJobs = ((CompositeActivity)wf.search("workflow/domain")).calculateJobs(agent, item, true);
         for (Job newJob: newJobs) {
             Gateway.getStorage().put(item, newJob, transactionKey);
+
+            if (StringUtils.isNotBlank(newJob.getRoleOverride())) newJob.sendToRoleChannel();
         }
 
         // store the workflow

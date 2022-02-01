@@ -24,6 +24,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NA
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.OUTCOME_INIT;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.PropertyUtility.getPropertyValue;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +53,9 @@ import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.exolab.castor.mapping.MappingException;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.ValidationException;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +65,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Getter @Setter @Slf4j
 public class Job implements C2KLocalObject {
+    public static final String ebAddress = "cristalise-jobs";
+
     // Persistent fields
     private ItemPath       itemPath;
     private String         stepName;
@@ -572,6 +578,26 @@ public class Job implements C2KLocalObject {
         }
 
         return result;
+    }
+
+    public void sendToRoleChannel() {
+        if (StringUtils.isNotBlank(getRoleOverride())) {
+            try {
+                String jobXml = Gateway.getMarshaller().marshall(this);
+
+                String[] roleOverrides = getRoleOverride().split(",");
+
+                for (String role : roleOverrides) {
+                    Gateway.getVertx().eventBus().send(ebAddress+"/"+role, jobXml);
+                }
+            }
+            catch (MarshalException | ValidationException | IOException | MappingException e) {
+                log.error("sendToRoleChannel() - could not sends job:{}", this, e);
+            }
+        }
+        else {
+            log.warn("sendToRoleChannel() - blank roleOverride - could not sends job:{}", this);
+        }
     }
 
     @Override
