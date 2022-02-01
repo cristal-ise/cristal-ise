@@ -26,17 +26,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
 import org.cristalise.gui.ItemDetails;
-import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.Job;
-import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.process.Gateway;
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Pane to display all work orders that this agent can execute, and activate them on request from the user.
- * Subscribes to NodeItem for WorkOrder objects.
+ * Pane to display all Jobs available in the Item. Jobs are persistent in the ClusterStorage.
  */
 @SuppressWarnings("serial")
 @Slf4j
@@ -45,8 +42,6 @@ public class JobListPane extends ItemTabPane {
     C2KLocalObjectMap<Job>  joblist;
     JoblistTableModel       model;
     JTable                  eventTable;
-    public static final int SIZE        = 30;
-    int                     currentSize = SIZE;
 
     public JobListPane() {
         super("Job List", "Job List");
@@ -66,21 +61,11 @@ public class JobListPane extends ItemTabPane {
 
         Vertx vertx = Gateway.getVertx();
         vertx.eventBus().localConsumer(parent.getItemPath().getUUID() + "/" + JOB, message -> {
-            String[] tokens = ((String) message.body()).split(":");
-            String jobId = tokens[0];
-
-            if (tokens[1].equals("DELETE")) return;
-
             vertx.executeBlocking(promise -> {
-                try {
-                    add(((AgentProxy)sourceItem.getItem()).getJob(jobId));
-                }
-                catch (ObjectNotFoundException e) {
-                    log.error("", e);
-                }
+                reload();
                 promise.complete();
-            }, res -> {
-                //
+            }, result -> {
+                if (result.failed()) log.warn("", result.cause());
             });
         });
     }
@@ -88,42 +73,28 @@ public class JobListPane extends ItemTabPane {
     @Override
     public void reload() {
         Gateway.getStorage().clearCache(parent.getItemPath(), JOB);
-        joblist.keySet();
+        if (model != null) model.setView();
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void run() {
         Thread.currentThread().setName("Joblist Pane Builder");
 
-        try {
-            joblist = (C2KLocalObjectMap<Job>) sourceItem.getItem().getObject(JOB);
-        }
-        catch (ObjectNotFoundException e) {
-            log.error("", e);
-        }
-
-        reload();
+        joblist = sourceItem.getItem().getJobs();
 
         model = new JoblistTableModel();
         eventTable.setModel(model);
         model.setView();
     }
 
-    public void add(Job contents) {
-        reload();
-    }
-
     private class JoblistTableModel extends AbstractTableModel {
-        Job[]     jobArray;
-
-        public JoblistTableModel() {
-        }
+        Job[] jobArray;
 
         public void setView() {
-            jobArray = new Job[joblist.size()];
-            int i = 0;
-            for (String key : joblist.keySet()) jobArray[i++] = joblist.get(key);
+            jobArray = joblist.values().toArray(new Job[0]);
+
+            log.debug("JoblistTableModel.setView() - jobArray.length:{}", jobArray.length);
+
             fireTableStructureChanged();
         }
 
@@ -132,10 +103,7 @@ public class JobListPane extends ItemTabPane {
          */
         @Override
         public Class<?> getColumnClass(int columnIndex) {
-            switch (columnIndex) {
-                default:
-                    return String.class;
-            }
+            return String.class;
         }
 
         /**
@@ -143,7 +111,7 @@ public class JobListPane extends ItemTabPane {
          */
         @Override
         public int getColumnCount() {
-            return 5;
+            return 6;
         }
 
         /**
@@ -157,6 +125,7 @@ public class JobListPane extends ItemTabPane {
                 case 2: return "Schema";
                 case 3: return "Script";
                 case 4: return "StateMachine";
+                case 5: return "RoleOverride";
                 default: return "";
             }
         }
@@ -186,21 +155,14 @@ public class JobListPane extends ItemTabPane {
                     case 2: return jobArray[rowIndex].getSchema() != null ? jobArray[rowIndex].getSchemaName() : "";
                     case 3: return jobArray[rowIndex].getScript() != null ? jobArray[rowIndex].getScriptName() : "";
                     case 4: return jobArray[rowIndex].getStateMachine() != null ? jobArray[rowIndex].getStateMachine().name : "";
+                    case 5: return jobArray[rowIndex].getRoleOverride();
                     default: return "";
                 }
             }
             catch (Exception e) {
                 log.warn("JoblistTableModel.getValueAt() - rowIndex:{} columnIndex:{}", rowIndex, columnIndex, e);
-                return null;
+                return "";
             }
-        }
-
-        /**
-         * @see javax.swing.table.TableModel#isCellEditable(int, int)
-         */
-        @Override
-        public boolean isCellEditable(int rowIndex, int columnIndex) {
-            return false;
         }
     }
 }
