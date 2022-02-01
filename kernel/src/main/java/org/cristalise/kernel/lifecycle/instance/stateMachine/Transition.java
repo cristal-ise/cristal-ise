@@ -132,12 +132,14 @@ public class Transition {
 
     public void checkPerformingRole(Activity act, AgentPath agent) throws ObjectNotFoundException, AccessRightsException {
         // check available
-        if (!isEnabled(act))
-            throw new AccessRightsException("Trans:" + toString() + " is disabled by the '" + enabledProp + "' property.");
+        if (!isEnabled(act)) {
+            throw new AccessRightsException("Trans:"+this+" is disabled by the '"+enabledProp+"' property.");
+        }
 
         // check active
-        if (isRequiresActive() && !act.getActive())
-            throw new AccessRightsException("Activity must be active to perform trans:"+ toString());
+        if (isRequiresActive() && !act.getActive()) {
+            throw new AccessRightsException("Activity:"+act.getName()+" must be active to perform trans:"+this);
+        }
 
         String overridingRole = getRoleOverride(act.getProperties());
 
@@ -178,7 +180,7 @@ public class Transition {
 
         // Decide the access
         if (isOwned && !override && !isOwner) {
-            throw new AccessRightsException("Agent '"+agent.getAgentName()+"' cannot perform this trans:"+toString()+
+            throw new AccessRightsException("Agent '"+agent.getAgentName()+"' cannot perform this trans:"+this+
                     " because the activity '" + act.getName() + "' is currently owned by " + agentName);
         }
     }

@@ -278,7 +278,7 @@ public class ItemProxy {
 
     /**
      * Returns a set of Jobs for this Agent on this Item. Each Job represents a possible transition of a particular 
-     * Activity in the Item's lifecycle.
+     * Activity/Step in the Item's lifecycle.
      *
      * @param agentPath the Agent requesting the jobs
      * @return list of Jobs
@@ -290,6 +290,10 @@ public class ItemProxy {
         JobArrayList jobBag = new JobArrayList();
         SecurityManager secMan = Gateway.getSecurityManager();
 
+        // Make sure that the latest Jobs and Workflow is used for this calculation
+        Gateway.getStorage().clearCache(getPath(), ClusterType.JOB);
+        Gateway.getStorage().clearCache(getPath(), ClusterType.LIFECYCLE);
+
         if (secMan.isShiroEnabled()) {
             for (Job j : getJobs().values()) {
                 Activity act = (Activity) getWorkflow().search(j.getStepPath());
@@ -300,6 +304,7 @@ public class ItemProxy {
                     }
                     catch (AccessRightsException e) {
                         // AccessRightsException is thrown if Job requires specific Role that agent does not have
+                        log.info("getJobsForAgent()", e);
                     }
                 }
             }
@@ -308,7 +313,7 @@ public class ItemProxy {
             jobBag.list = (ArrayList<Job>) getJobs().values();
         }
 
-        log.info("getJobs(" + this + ") - Returning " + jobBag.list.size() + " jobs.");
+        log.info("getJobsForAgent() - {} returning #{} jobs for agent:", this, jobBag.list.size(), agentPath.getAgentName());
         return jobBag.list;
     }
 
