@@ -97,7 +97,7 @@ class DevItemUtility {
      * @return
      */
     public Job getDoneJob(ItemProxy proxy, String actName) {
-        log.info('getDoneJob() - proxy:{} actName:{}', proxy.name, actName)
+        log.info('getDoneJob() - proxy:{} actName:{}', proxy, actName)
         Job j = proxy.getJobByName(actName, agent)
         assert j && j.getStepName() == actName && j.transition.name == "Done"
         return j

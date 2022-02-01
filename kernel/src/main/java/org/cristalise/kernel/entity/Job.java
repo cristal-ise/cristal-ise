@@ -603,13 +603,13 @@ public class Job implements C2KLocalObject {
     @Override
     public String toString() {
         //enable to use toString even if Lookup is not configured in Gateway
-        String agent = agentPath.toString();
-        if (Gateway.getLookup() != null) agent = agentPath.getAgentName();
+        String agent = agentPath != null ? agentPath.toString() : null;
+        if (agentPath != null && Gateway.getLookup() != null) agent = agentPath.getAgentName();
 
         //enable to use toString even if ClusterStorage is not configured in Gateway
         String item = itemPath.toString();
         if (Gateway.getStorage() != null) item = getPropertyValue(itemPath, NAME, item, null);
 
-        return "[item:"+item+" step:"+stepName+" trans:"+getTransition()+" agent:"+agent+"]";
+        return "[item:"+item+" step:"+stepName+" trans:"+getTransition()+(agent!=null?" agent:"+agent:"")+"]";
     }
 }
