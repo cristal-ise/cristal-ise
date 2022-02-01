@@ -1,7 +1,8 @@
 <cristalscript>
   <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
   <output name="CarXML" type="java.lang.String"/>
-  <script language="groovy" name="Car_Aggregate"><![CDATA[ import org.cristalise.kernel.persistency.outcome.Outcome
+  <script language="groovy" name="Car_Aggregate">
+    <![CDATA[ import org.cristalise.kernel.persistency.outcome.Outcome
 
 import groovy.xml.MarkupBuilder
 
@@ -44,5 +45,6 @@ xml."$type" {
 
 //check if this variable was defined as output
 CarXML = writer.toString()
- ]]></script>
+ ]]>
+  </script>
 </cristalscript>
