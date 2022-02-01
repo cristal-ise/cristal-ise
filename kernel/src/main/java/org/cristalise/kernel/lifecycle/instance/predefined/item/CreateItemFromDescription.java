@@ -63,6 +63,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
@@ -544,6 +545,8 @@ public class CreateItemFromDescription extends PredefinedStep {
 
         // All objects are in place, initialize the workflow
         wf.initialise(item, agent, transactionKey);
+
+        Gateway.getStorage().removeCluster(item, ClusterType.JOB, transactionKey);
 
         // store the Jobs
         ArrayList<Job> newJobs = ((CompositeActivity)wf.search("workflow/domain")).calculateJobs(agent, item, true);
