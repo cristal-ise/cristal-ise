@@ -20,7 +20,8 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.ListIterator;
 
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -31,6 +32,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.TransactionKey;
@@ -74,10 +76,21 @@ public class Erase extends PredefinedStep {
      * @throws CannotManageException
      */
     private void removeAliases(ItemPath item, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
-        Iterator<Path> domPaths = Gateway.getLookup().searchAliases(item, transactionKey);
+        PagedResult domPaths = Gateway.getLookup().searchAliases(item, 0, 100, transactionKey);
 
-        while (domPaths.hasNext()) {
-            DomainPath path = (DomainPath) domPaths.next();
+        if (domPaths.maxRows > domPaths.rows.size()) {
+            throw new CannotManageException("Item:"+item.getItemName()+" has more than 100 DomainPath aliases");
+        }
+
+        // sort DomainPathes alphabetically
+        Collections.sort(domPaths.rows, (o1, o2) -> (o1.getStringPath().compareTo(o2.getStringPath())));
+
+        ListIterator<Path> listIter = domPaths.rows.listIterator(domPaths.rows.size());
+
+        // Delete the DomainPathes in reverse alphabetical order to avoid 'Path is not a leaf error'
+        while (listIter.hasPrevious()) {
+            DomainPath path = (DomainPath) listIter.previous();
+            log.info("removeAliases() - path:{}", path);
             Gateway.getLookupManager().delete(path, transactionKey);
         }
     }
@@ -102,7 +115,7 @@ public class Erase extends PredefinedStep {
             }
         }
         catch (InvalidItemPathException e) {
-            //this is actually never happens, new AgentPath(item) deos not throw InvalidAgentPathException
+            //this is actually never happens, new AgentPath(item) does not throw InvalidAgentPathException
             //but the exception is needed for 'backward compability'
         }
     }

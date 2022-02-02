@@ -217,7 +217,9 @@ public class JooqLookupManager implements LookupManager {
         log.debug("delete() - path:"+path);
 
         try {
-            if (getChildren(path, transactionKey).hasNext()) throw new ObjectCannotBeUpdated("Path is not a leaf");
+            if (getChildren(path, transactionKey).hasNext()) {
+                throw new ObjectCannotBeUpdated("Path '"+path+"' is not a leaf");
+            }
 
             DSLContext context = retrieveContext(transactionKey);
 
@@ -393,8 +395,8 @@ public class JooqLookupManager implements LookupManager {
             log.debug("getChildren() - pattern:" + pattern);
 
             if      (path instanceof ItemPath) return new ArrayList<Path>().iterator(); //empty iterator
-            else if (path instanceof RolePath) return roles  .findByRegex(context, pattern ).iterator();
-            else                               return domains.findByRegex(context, pattern ).iterator();
+            else if (path instanceof RolePath) return roles  .findByRegex(context, pattern).iterator();
+            else                               return domains.findByRegex(context, pattern).iterator();
         }
         catch (Exception e) {
             log.error("getChildren()", e);
