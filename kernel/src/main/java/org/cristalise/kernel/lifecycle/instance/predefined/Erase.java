@@ -61,7 +61,7 @@ public class Erase extends PredefinedStep {
 
         removeAliases(item, transactionKey);
         removeRolesIfAgent(item, transactionKey);
-        Gateway.getStorage().removeCluster(item, "", transactionKey); //removes all clusters
+        Gateway.getStorage().removeCluster(item, transactionKey);
 
         log.info("Done item:"+item);
 
@@ -75,7 +75,7 @@ public class Erase extends PredefinedStep {
      * @throws ObjectCannotBeUpdated
      * @throws CannotManageException
      */
-    private void removeAliases(ItemPath item, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
+    protected void removeAliases(ItemPath item, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
         PagedResult domPaths = Gateway.getLookup().searchAliases(item, 0, 100, transactionKey);
 
         if (domPaths.maxRows > domPaths.rows.size()) {
@@ -103,7 +103,7 @@ public class Erase extends PredefinedStep {
      * @throws ObjectNotFoundException
      * @throws CannotManageException
      */
-    private void removeRolesIfAgent(ItemPath item, TransactionKey transactionKey) throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException, CannotManageException {
+    protected void removeRolesIfAgent(ItemPath item, TransactionKey transactionKey) throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException, CannotManageException {
         try {
             AgentPath targetAgent = new AgentPath(item);
             
