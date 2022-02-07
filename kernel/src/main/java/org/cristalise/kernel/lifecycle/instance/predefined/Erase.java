@@ -90,7 +90,7 @@ public class Erase extends PredefinedStep {
         // Delete the DomainPathes in reverse alphabetical order to avoid 'Path is not a leaf error'
         while (listIter.hasPrevious()) {
             DomainPath path = (DomainPath) listIter.previous();
-            log.info("removeAliases() - path:{}", path);
+            log.debug("removeAliases() - path:{}", path);
             Gateway.getLookupManager().delete(path, transactionKey);
         }
     }

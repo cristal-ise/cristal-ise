@@ -81,7 +81,7 @@ public class BulkErase extends Erase {
 
             sf.setRecordsFound(result.maxRows);
 
-            log.info("runActivityLogic() - deleted #{} items", sf.getRecordsFound());
+            log.info("runActivityLogic() - deleted #{} items - filter:{}", sf.getRecordsFound(), sf);
 
             return Gateway.getMarshaller().marshall(sf);
         }
