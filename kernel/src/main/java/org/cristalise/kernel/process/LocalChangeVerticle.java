@@ -65,11 +65,11 @@ public class LocalChangeVerticle extends AbstractVerticle {
         DeliveryOptions opt = new DeliveryOptions().setLocalOnly(true);
 
         if (publish) {
-            log.debug("publishOrSendLocalMessages() - publishing ProxyMessage to address:{}", ProxyMessage.ebLocalAddress);
+            log.debug("publishOrSendLocalMessages() - publishing #{} ProxyMessages to address:{}", messageArray.size(), ProxyMessage.ebLocalAddress);
             vertx.eventBus().publish(ProxyMessage.ebLocalAddress, messageArray, opt);
         }
         else {
-            log.debug("publishOrSendLocalMessages() - sending ProxyMessage to address:{}", ProxyMessage.ebLocalAddress);
+            log.debug("publishOrSendLocalMessages() - sending #{} ProxyMessages to address:{}", messageArray.size(), ProxyMessage.ebLocalAddress);
             vertx.eventBus().send(ProxyMessage.ebLocalAddress, messageArray, opt);
         }
 
