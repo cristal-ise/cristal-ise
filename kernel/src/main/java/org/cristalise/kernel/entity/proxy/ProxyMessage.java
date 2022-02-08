@@ -40,6 +40,7 @@ public class ProxyMessage {
 
     public enum Type {ADD, DELETE};
     public static final String ebAddress = "cristalise-proxyMessage";
+    public static final String ebLocalAddress = "cristalise-localProxyMessage";
 
     /**
      * The reference of the changed Item. Can be null for messages of Lookup changes
@@ -117,8 +118,8 @@ public class ProxyMessage {
     }
 
     /**
-     * 
-     * @return
+     * The key of the object within the Cluster
+     * @return the ClusterPath without the ClusterType prefix
      */
     public String getObjectKey() {
         if (clusterStoreMesssage) return path.substring(path.indexOf('/') + 1);
