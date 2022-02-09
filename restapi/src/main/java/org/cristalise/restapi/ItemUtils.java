@@ -28,7 +28,6 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MA
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -43,14 +42,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Aggregation;
 import org.cristalise.kernel.collection.AggregationMember;
@@ -72,7 +69,6 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
-import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -94,9 +90,7 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.XML;
-
 import com.google.common.io.ByteStreams;
-
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -161,10 +155,9 @@ public abstract class ItemUtils extends RestHandler {
 
     protected AgentProxy getAgentProxy(String uuid, NewCookie cookie) {
         try {
-            AgentPath agentPath = Gateway.getLookup().getAgentPath(uuid);
-            return Gateway.getAgentProxy(agentPath);
+            return (AgentProxy) getProxy(uuid, cookie);
         }
-        catch(ObjectNotFoundException e) {
+        catch(ClassCastException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }

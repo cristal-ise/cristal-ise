@@ -23,7 +23,9 @@ package org.cristalise.restapi;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -51,7 +53,9 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
@@ -298,6 +302,7 @@ public class ItemRoot extends ItemUtils {
 
         itemSummary.put("uuid", uuid);
         itemSummary.put("hasMasterOutcome", false);
+        itemSummary.put("isAgent", item.getPath() instanceof AgentPath);
 
         try {
             String type = item.getType();
@@ -328,7 +333,6 @@ public class ItemRoot extends ItemUtils {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
-
 
     @GET
     @Path("job")
@@ -570,5 +574,26 @@ public class ItemRoot extends ItemUtils {
         }
 
         throw new InvalidDataException("Must specify transition name");
+    }
+
+    @GET
+    @Path("roles")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getRoles(
+            @PathParam("uuid")       String  uuid,
+            @CookieParam(COOKIENAME) Cookie  authCookie,
+            @Context                 UriInfo uri)
+    {
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        AgentProxy agent = getAgentProxy(uuid, cookie);
+
+        RolePath[] roles = Gateway.getLookup().getRoles(agent.getPath());
+        LinkedHashMap<String, URI> roleData = new LinkedHashMap<String, URI>();
+
+        for (RolePath role : roles) {
+            roleData.put(role.getName(), uri.getBaseUriBuilder().path("role").path(role.getName()).build());
+        }
+
+        return toJSON(roleData, cookie).build();
     }
 }
