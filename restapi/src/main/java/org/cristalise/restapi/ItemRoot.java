@@ -323,6 +323,10 @@ public class ItemRoot extends ItemUtils {
             itemSummary.put("history",     getItemURI(uri, item, "history"));
             itemSummary.put("outcome",     getItemURI(uri, item, "outcome"));
             itemSummary.put("attachment",  getItemURI(uri, item, "attachment"));
+            itemSummary.put("job",         getItemURI(uri, item, "job"));
+            if (item.getPath() instanceof AgentPath) {
+                itemSummary.put("roles", getItemURI(uri, item, "roles"));
+            }
 
             return toJSON(itemSummary, cookie).build();
         }
@@ -363,17 +367,15 @@ public class ItemRoot extends ItemUtils {
             throw new WebAppExceptionBuilder("Error loading joblist", e, null, cookie).build();
         }
 
-        String itemName = item.getName();
-
         if (jobList != null) {
             ArrayList<Object> jobListData = new ArrayList<Object>();
 
-            for (Job j : jobList) jobListData.add(makeJobData(j, itemName, uri));
+            for (Job j : jobList) jobListData.add(makeJobData(j, item, uri));
 
             return toJSON(jobListData, cookie).build();
         }
         else if (job != null) {
-            return toJSON(makeJobData(job, itemName, uri), cookie).build();
+            return toJSON(makeJobData(job, item, uri), cookie).build();
         }
         else {
             throw new WebAppExceptionBuilder().message("No job found for actName:" + activityName + " transName:" + transitionName)

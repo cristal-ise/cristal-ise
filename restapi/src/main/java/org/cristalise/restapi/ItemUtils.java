@@ -116,7 +116,15 @@ public abstract class ItemUtils extends RestHandler {
     protected static URI getItemURI(UriInfo uri, UUID item, Object...path) {
         UriBuilder builder = uri.getBaseUriBuilder().path("item").path(item.toString());
 
-        for (Object name: path) builder.path(name.toString());
+        for (Object name: path) {
+            if (name instanceof String && ((String)name).startsWith("?")) {
+                String[] queryParam = ((String)name).substring(1).split("=");
+                builder.queryParam(queryParam[0], queryParam[1]);
+            }
+            else {
+                builder.path(name.toString());
+            }
+        }
 
         return builder.build();
     }
@@ -341,18 +349,21 @@ public abstract class ItemUtils extends RestHandler {
         return eventData;
     }
 
-    protected LinkedHashMap<String, Object> makeJobData(Job job, String itemName, UriInfo uri) {
+    protected LinkedHashMap<String, Object> makeJobData(Job job, ItemProxy item, UriInfo uri) {
         LinkedHashMap<String, Object> jobData = new LinkedHashMap<String, Object>();
+        String itemName = item.getName();
 
         String agentName = job.getAgentName();
         if (StringUtils.isNotBlank(agentName)) jobData.put("agent", agentName);
 
-        jobData.put("role",       job.getRoleOverride());
-        jobData.put("item",       getJobItemData(job, itemName, uri));
-        jobData.put("activity",   getJobActivityData(job, itemName, uri));
-        jobData.put("transition", getJobTransitionData(job, itemName, uri));
+        jobData.put("roleOverride", job.getRoleOverride());
+        jobData.put("item",         getJobItemData(job, itemName, uri));
+        jobData.put("activity",     getJobActivityData(job, itemName, uri));
+        jobData.put("transition",   getJobTransitionData(job, itemName, uri));
 
-        if (job.hasOutcome()) jobData.put("outcome", getJobOutcomeData(job, itemName, uri));
+        if (job.hasOutcome()) {
+            jobData.put("outcome", getJobOutcomeData(job, item, uri));
+        }
 
         String attachmentType = job.getActPropString(ATTACHMENT_MIME_TYPES);
         if (StringUtils.isNotBlank(attachmentType)) jobData.put("attachmentMimeTypes", attachmentType);
@@ -397,7 +408,7 @@ public abstract class ItemUtils extends RestHandler {
     protected LinkedHashMap<String, Object> getJobTransitionData(Job job, String itemName, UriInfo uri) {
         LinkedHashMap<String, Object> transitionData = new LinkedHashMap<String, Object>();
 
-        Object url = uri.getBaseUriBuilder()
+        URI url = uri.getBaseUriBuilder()
                 .path("stateMachine")
                 .path(job.getActPropString(STATE_MACHINE_NAME))
                 .path(job.getActPropString(STATE_MACHINE_VERSION))
@@ -414,18 +425,22 @@ public abstract class ItemUtils extends RestHandler {
         return transitionData;
     }
 
-    protected LinkedHashMap<String, Object> getJobOutcomeData(Job job, String itemName, UriInfo uri) {
+    protected LinkedHashMap<String, Object> getJobOutcomeData(Job job, ItemProxy item, UriInfo uri) {
         LinkedHashMap<String, Object> outcomeData = new LinkedHashMap<String, Object>();
 
         try {
-            outcomeData.put("required",      job.isOutcomeRequired());
-            outcomeData.put("schema",        job.getSchema().getName());
-            outcomeData.put("schemaVersion", job.getSchema().getVersion());
-            outcomeData.put("schemaUrl",     uri.getBaseUriBuilder().path("schema").path(job.getSchema().getName()).path(String.valueOf(job.getSchema().getVersion())).build());
+            URI schemaUrl = uri.getBaseUriBuilder().path("schema").path(job.getSchema().getName()).path(String.valueOf(job.getSchema().getVersion())).build();
+            URI formUrl = getItemURI(uri, item, "job", "formTemplate", job.getStepPath(), "?transition="+job.getTransitionName());
+
+            outcomeData.put("required",        job.isOutcomeRequired());
+            outcomeData.put("schema",          job.getSchema().getName());
+            outcomeData.put("schemaVersion",   job.getSchema().getVersion());
+            outcomeData.put("schemaUrl",       schemaUrl);
+            outcomeData.put("formTemplateUrl", formUrl);
         }
         catch (InvalidDataException | ObjectNotFoundException e) {
-            log.error("Schema not found", e);
-            outcomeData.put("schema", "Schema not found");
+            log.error("Schema/Transition not found", e);
+            outcomeData.put("schema", "Schema/Transitio not found:"+e.getMessage());
         }
 
         return outcomeData;
