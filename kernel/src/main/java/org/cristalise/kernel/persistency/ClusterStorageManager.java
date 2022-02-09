@@ -586,6 +586,19 @@ public class ClusterStorageManager {
     }
 
     /**
+     * Removes all data associated with the item
+     *
+     * @param itemPath - Item to be deleted
+     * @param transactionKey - locking object
+     *
+     * @throws PersistencyException - when deleting fails
+     */
+    public void removeCluster(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
+        //TODO: replace this ClusterStoraeg API call with more efficient version
+        removeCluster(itemPath, "", transactionKey);
+    }
+
+    /**
      * Removes all child objects from the given path for all writers
      *
      * @param itemPath - Item to delete from

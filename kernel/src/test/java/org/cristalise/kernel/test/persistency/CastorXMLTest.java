@@ -51,6 +51,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.lookup.SearchFilter;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
@@ -436,5 +437,23 @@ public class CastorXMLTest {
         assertEquals(16, chmOrig.size());
 
         compareXML(chmOrigXml, marshaller.marshall(chmOrig));
+    }
+
+    @Test
+    public void testCastorSearchFilter() throws Exception {
+        CastorXMLUtility marshaller = Gateway.getMarshaller();
+
+        SearchFilter sf = new SearchFilter();
+        sf.setSearchRoot("/integTest/Doctors");
+        sf.getProperties().add(new Property("Type", "Doctor"));
+        sf.getProperties().add(new Property("State", "Active"));
+        sf.setRecordsFound(12);
+
+        SearchFilter sfPrime = (SearchFilter) marshaller.unmarshall(marshaller.marshall(sf));
+
+        assertReflectionEquals(sf, sfPrime);
+
+        Schema schema = LocalObjectLoader.getSchema("SearchFilter", 0);
+        new Outcome(marshaller.marshall(sf), schema).validateAndCheck();
     }
 }

@@ -118,8 +118,8 @@ public class ProxyMessage {
     }
 
     /**
-     * 
-     * @return
+     * The key of the object within the Cluster
+     * @return the ClusterPath without the ClusterType prefix
      */
     public String getObjectKey() {
         if (clusterStoreMesssage) return path.substring(path.indexOf('/') + 1);
