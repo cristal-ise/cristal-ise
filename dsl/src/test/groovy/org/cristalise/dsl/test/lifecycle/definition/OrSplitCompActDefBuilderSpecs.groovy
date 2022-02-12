@@ -292,4 +292,25 @@ class OrSplitCompActDefBuilderSpecs extends Specification implements CristalTest
         caDef.verify()
         caDef.childrenGraphModel.vertices.length == 10
     }
+
+    def 'OrSplit can be used to skip a Loop'() {
+        when:
+        def right = new ActivityDef('right', 0)
+
+        caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-OrSplitWithLoopAndEmptyBlock', version: 0) {
+            Layout {
+                OrSplit(groovy: 'right') {
+                    Loop(Alias: 'right') { Act(right) }
+                    Block(Alias: 'left')  { /* EMPTY BLOCK*/ }
+                }
+            }
+        }
+        def orSplitDef = caDef.getChildren().find { it instanceof OrSplitDef }
+
+        then:
+        caDef.verify()
+        caDef.childrenGraphModel.vertices.length == 6
+
+        orSplitDef.getOutEdges().collect {((GraphableEdge)it).getBuiltInProperty(ALIAS)} == ['right', 'left']
+    }
 }
