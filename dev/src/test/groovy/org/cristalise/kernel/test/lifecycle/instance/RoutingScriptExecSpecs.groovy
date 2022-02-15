@@ -1,3 +1,23 @@
+/**
+ * This file is part of the CRISTAL-iSE Development Module.
+ * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * http://www.fsf.org/licensing/licenses/lgpl.html
+ */
 package org.cristalise.kernel.test.lifecycle.instance;
 
 import org.cristalise.dsl.persistency.outcome.OutcomeBuilder
@@ -17,7 +37,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
 
     def setupSpec() {
         //skips boostrap!!!
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true)
+        inMemoryServer(null, true)
         wfBuilder = new WorkflowTestBuilder()
     }
 
@@ -41,7 +61,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
             javascript { "new java.lang.Integer(counter % 2);" }
         }
 
-        def schema = SchemaBuilder.create(module, schemaName, 0, "src/main/data/${schemaName}.xsd")
+        def schema = SchemaBuilder.create(module, schemaName, 0, "src/test/data/${schemaName}.xsd")
 
         wfBuilder.buildAndInitWf() {
             ElemAct("first") {
@@ -77,7 +97,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
             javascript { "new java.lang.Integer(counter % 2);" }
         }
 
-        def schema = SchemaBuilder.create(module, schemaName, 0, "src/main/data/${schemaName}.xsd")
+        def schema = SchemaBuilder.create(module, schemaName, 0, "src/test/data/${schemaName}.xsd")
 
         wfBuilder.buildAndInitWf() {
             ElemAct("first") {
@@ -113,7 +133,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
             javascript { "counter < 10;" }
         }
 
-        def schema = SchemaBuilder.create(module, schemaName, 0, "src/main/data/${schemaName}.xsd")
+        def schema = SchemaBuilder.create(module, schemaName, 0, "src/test/data/${schemaName}.xsd")
 
         wfBuilder.buildAndInitWf {
             Loop(RoutingScriptName: 'CounterScript03', RoutingScriptVersion: 0) {
@@ -150,7 +170,7 @@ class RoutingScriptExecSpecs extends Specification implements CristalTestSetup {
             javascript { "new java.lang.Integer(counter % 2);" }
         }
 
-        def schema = SchemaBuilder.create(module, schemaName, 0, "src/main/data/${schemaName}.xsd")
+        def schema = SchemaBuilder.create(module, schemaName, 0, "src/test/data/${schemaName}.xsd")
 
         wfBuilder.buildAndInitWf() {
             ElemAct("first") {
