@@ -82,7 +82,7 @@ trait CristalTestSetup {
 
     public void inMemoryServer(String conf, String clc, Properties testProps = null, boolean skipBootstrap = false) {
         if (!testProps) testProps = new Properties()
-        testProps.put('Gateway.clusteredVertx', true);
+        if (!testProps.containsKey('Gateway.clusteredVertx')) testProps.put('Gateway.clusteredVertx', false);
 
         serverSetup(conf, clc, testProps, skipBootstrap)
     }

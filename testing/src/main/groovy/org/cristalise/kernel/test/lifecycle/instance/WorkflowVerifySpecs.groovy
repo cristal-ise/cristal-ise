@@ -34,7 +34,7 @@ class WorkflowVerifySpecs extends Specification implements CristalTestSetup {
     static WorkflowTestBuilder wfBuilder
 
     def setupSpec() {
-        inMemorySetup('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc')
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true)
         wfBuilder = new WorkflowTestBuilder()
     }
 
