@@ -30,14 +30,14 @@ import java.util.Iterator;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import org.cristalise.gui.tabs.outcome.form.field.EditField;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.AttributeDecl;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
+import lombok.extern.slf4j.Slf4j;
 
-
+@Slf4j
 public class AttributeList extends JPanel {
 
     ArrayList<EditField> attrSet = new ArrayList<EditField>();
@@ -76,7 +76,7 @@ public class AttributeList extends JPanel {
         for (Enumeration<?> fields = content.getAttributeDecls(); fields.hasMoreElements();) {
             c.gridy = 0;
             thisDecl = (AttributeDecl)fields.nextElement();
-            Logger.msg(8, "Includes Attribute "+thisDecl.getName());
+            log.debug("Includes Attribute "+thisDecl.getName());
 
             // read help
             String helpText = null;
@@ -114,7 +114,7 @@ public class AttributeList extends JPanel {
     public void setInstance(Element data) throws StructuralException {
         this.myElement = data;
         for (EditField thisField : attrSet) {
-            Logger.msg(8, "Populating Attribute "+thisField.getName());
+            log.debug("Populating Attribute "+thisField.getName());
             Attr thisAttr = myElement.getAttributeNode(thisField.getName());
             if (thisAttr == null)
                 thisAttr = newAttribute(myElement, (AttributeDecl)thisField.getModel());

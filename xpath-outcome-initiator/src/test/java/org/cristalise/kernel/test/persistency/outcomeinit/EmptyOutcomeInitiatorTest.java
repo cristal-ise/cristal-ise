@@ -23,7 +23,6 @@ package org.cristalise.kernel.test.persistency.outcomeinit;
 import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcomeinit.EmptyOutcomeInitiator;
-import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -54,8 +53,6 @@ public class EmptyOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
         Outcome actual = emptyOI.initOutcomeInstance(j);
 
         if (!type.equals("Module")) actual.validateAndCheck();
-
-        Logger.msg(actual.getData());
 
         assert compareXML(expected, actual.getData());
     }

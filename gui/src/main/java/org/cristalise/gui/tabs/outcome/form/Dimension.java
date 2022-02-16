@@ -48,13 +48,13 @@ import org.cristalise.gui.DomainKeyConsumer;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tabs.outcome.OutcomeException;
 import org.cristalise.kernel.lookup.DomainPath;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.exolab.castor.xml.schema.Particle;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import lombok.extern.slf4j.Slf4j;
 
-
+@Slf4j
 public class Dimension extends OutcomeStructure implements ActionListener {
 
     DimensionTableModel tableModel;
@@ -102,7 +102,7 @@ public class Dimension extends OutcomeStructure implements ActionListener {
         // decide whether a table or tabs
         try {
             tableModel = new DimensionTableModel(model, readOnly);
-            Logger.msg(8, "DIM "+model.getName()+" - Will be a table");
+            log.debug("DIM "+model.getName()+" - Will be a table");
             if (help != null) {
             	add(makeLabel(null, help), position);
             	position.gridy++;
@@ -125,7 +125,7 @@ public class Dimension extends OutcomeStructure implements ActionListener {
 
         } catch (StructuralException e) {
             // use tabs
-            Logger.msg(8, "DIM "+model.getName()+" - Will be tabs: "+e.getMessage());
+            log.debug("DIM "+model.getName()+" - Will be tabs: "+e.getMessage());
             mode = TABS;
             tabs = new JTabbedPane();
             gridbag.setConstraints(tabs, position);
@@ -159,8 +159,7 @@ public class Dimension extends OutcomeStructure implements ActionListener {
 
     @Override
 	public void addInstance(Element myElement, Document parentDoc) throws OutcomeException {
-        if (Logger.doLog(6))
-            Logger.msg(6, "DIM - adding instance "+ (elements.size()+1) +" for "+myElement.getTagName());
+        log.debug("DIM - adding instance "+ (elements.size()+1) +" for "+myElement.getTagName());
         if (parent == null) setParentElement((Element)myElement.getParentNode());
         // if table, pass to table model
         if (mode == TABLE) {
@@ -196,7 +195,7 @@ public class Dimension extends OutcomeStructure implements ActionListener {
             tabs.addChangeListener(newInstance);
         } catch (OutcomeException e) {
             // shouldn't happen, we've already done it once
-            Logger.error(e);
+            log.error("",e);
         }
         return newInstance;
     }
@@ -356,7 +355,7 @@ public class Dimension extends OutcomeStructure implements ActionListener {
             int row = getSelectedRow();
             if (cellEditor != null)
                 cellEditor.stopCellEditing();
-            Logger.msg(8, "Pushing "+name+" to table at "+row+","+col);
+            log.debug("Pushing "+name+" to table at "+row+","+col);
             if (col > -1 && row > -1) {
                 if (dataModel.getValueAt(row, col).toString().length()==0)
                     dataModel.setValueAt(name, row, col);
@@ -371,7 +370,7 @@ public class Dimension extends OutcomeStructure implements ActionListener {
                     }
                 }
                 if (row+1 < getRowCount()) {
-                    Logger.msg(8, "Shifting selection to row "+(row+1));
+                    log.debug("Shifting selection to row "+(row+1));
                     changeSelection(row+1, col, false, false);
                 }
             }

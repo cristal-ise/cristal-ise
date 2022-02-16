@@ -4,7 +4,6 @@ import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.ClusterStorage
 import org.cristalise.kernel.property.Property
-import org.cristalise.kernel.utils.Logger
 import org.cristalise.storage.InMemoryPropertyClusterStorage
 import org.junit.After
 import org.junit.Before
@@ -25,8 +24,6 @@ class PropertyClusterStorageTests {
 
     @Before
     public void init() {
-        Logger.addLogStream(System.out, 8);
-
         propClusterStore = new InMemoryPropertyClusterStorage()
 
         itemPath0 = new ItemPath(uuid0.toString())

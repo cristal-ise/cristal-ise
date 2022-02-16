@@ -24,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
-import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -34,7 +33,6 @@ public class ViewTemplateTest extends XMLUtils {
 
     @Before
     public void setUp() throws Exception {
-        Logger.addLogStream(System.out, 8);
     }
 
     @Test
@@ -42,8 +40,6 @@ public class ViewTemplateTest extends XMLUtils {
         OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD(dir, "SiteCharacteristicsData")), false);
 
         String template = ob.exportViewTemplate();
-
-        Logger.msg(template);
 
         assert StringUtils.isNotBlank(template);
     }

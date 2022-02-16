@@ -19,6 +19,7 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 package org.cristalise.gui;
+
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -49,12 +50,9 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-/**
- * @version $Revision: 1.83 $ $Date: 2005/09/12 14:56:19 $
- * @author  $Author: abranson $
- */
+@Slf4j
 public class MainFrame extends javax.swing.JFrame {
     public static TreeBrowser domBrowser;
     public static TreeBrowser roleBrowser;
@@ -62,7 +60,7 @@ public class MainFrame extends javax.swing.JFrame {
     public static ItemFinder itemFinder;
     protected MenuBuilder menuBuilder;
     public static Properties prefs = new Properties();
-    
+
     public static ProgressReporter progress;
     public String logoURL;
     public static AgentProxy userAgent;
@@ -74,33 +72,33 @@ public class MainFrame extends javax.swing.JFrame {
 
     static {
         xmlChooser = new JFileChooser();
-        xmlChooser.addChoosableFileFilter(
-            new javax.swing.filechooser.FileFilter() {
-                @Override
-				public String getDescription() {
-                    return "XML Files";
+        xmlChooser.addChoosableFileFilter(new javax.swing.filechooser.FileFilter() {
+            @Override
+            public String getDescription() {
+                return "XML Files";
+            }
+
+            @Override
+            public boolean accept(File f) {
+                if (f.isDirectory() || (f.isFile() && f.getName().endsWith(".xml"))) {
+                    return true;
                 }
-                @Override
-				public boolean accept(File f) {
-                    if (f.isDirectory() || (f.isFile() && f.getName().endsWith(".xml"))) {
-                        return true;
-                    }
-                    return false;
-                }
-            });
+                return false;
+            }
+        });
     }
+
     /** Creates new gui client for Cristal2 */
 
     public MainFrame() {
 
         // Load gui preferences
         try {
-            FileInputStream prefsfile =
-                new FileInputStream("cristal.preferences");
+            FileInputStream prefsfile = new FileInputStream("cristal.preferences");
             prefs.load(prefsfile);
             prefsfile.close();
         } catch (IOException e) {
-            Logger.msg(2, "Creating new preference file");
+            log.info("Creating new preference file");
         }
 
         // set look & feel from pref
@@ -128,44 +126,40 @@ public class MainFrame extends javax.swing.JFrame {
             imageHolder = ImageLoader.findImage(logoURL);
         }
 
-        LoginBox login =
-            new LoginBox(
-                5,
-                Gateway.getProperties().getString("Name"),
-                getPref("lastUser."+Gateway.getCentreId(), null),
-                bottomMessage,
-                imageHolder, this);
+        LoginBox login = new LoginBox(5, Gateway.getProperties().getString("Name"),
+                getPref("lastUser." + Gateway.getCentreId(), null), bottomMessage, imageHolder,
+                this);
 
         login.setVisible(true);
     }
 
     public void mainFrameShow() {
-        prefs.setProperty("lastUser."+Gateway.getCentreId(), userAgent.getName());
+        prefs.setProperty("lastUser." + Gateway.getCentreId(), userAgent.getName());
         isAdmin = userAgent.getPath().hasRole("Admin");
         GridBagLayout gridbag = new GridBagLayout();
         getContentPane().setLayout(gridbag);
 
-        this.setTitle(
-                userAgent.getName()+"@"+Gateway.getProperties().getString("Name") + " - Cristal");
+        this.setTitle(userAgent.getName() + "@" + Gateway.getProperties().getString("Name")
+                + " - Cristal");
 
         String iconFile = Gateway.getProperties().getString("AppIcon");
         if (iconFile != null)
             this.setIconImage(ImageLoader.findImage(iconFile).getImage());
 
-        //preload loading image
+        // preload loading image
         ImageLoader.findImage("loading.gif");
         // close listener
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override
-			public void windowClosing(java.awt.event.WindowEvent evt) {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
                 exitForm();
             }
         });
         // initialise the desktop manager
         myDesktopManager = new ItemTabManager();
 
-        //get the menu bar and add it to the frame
+        // get the menu bar and add it to the frame
         menuBuilder = new MenuBuilder(this);
         setJMenuBar(menuBuilder);
 
@@ -207,74 +201,63 @@ public class MainFrame extends javax.swing.JFrame {
         gridbag.setConstraints(progress, c);
         getContentPane().add(progress);
         pack();
-        
+
         String paneSize = getPref("WindowSize", null);
         if (paneSize != null) {
             StringTokenizer tok = new StringTokenizer(paneSize, ",");
             Dimension window = new Dimension();
-            window.setSize(
-                Integer.parseInt(tok.nextToken()),
-                Integer.parseInt(tok.nextToken()));
+            window.setSize(Integer.parseInt(tok.nextToken()), Integer.parseInt(tok.nextToken()));
             this.setSize(window);
         }
         String panePos = getPref("WindowPosition", null);
         if (panePos != null) {
             StringTokenizer tok = new StringTokenizer(panePos, ",");
             Point window =
-                new Point(
-                    Integer.parseInt(tok.nextToken()),
-                    Integer.parseInt(tok.nextToken()));
+                    new Point(Integer.parseInt(tok.nextToken()), Integer.parseInt(tok.nextToken()));
             this.setLocation(window);
         }
         super.toFront();
         this.validate();
         this.setVisible(true);
     }
+
     public static String getPref(String name, String defaultValue) {
         return prefs.getProperty(name, defaultValue);
     }
+
     public static void setPref(String name, String value) {
         prefs.setProperty(name, value);
     }
+
     // things to do on exit
     public void exitForm() {
         // save window sizing
-        setPref(
-            "WindowSize",
-            (int) (this.getSize().getWidth())
-                + ","
-                + (int) (this.getSize().getHeight()));
-        setPref(
-            "WindowPosition",
-            (int) (this.getLocation().getX())
-                + ","
-                + (int) (this.getLocation().getY()));
-        setPref(
-            "Style",
-            UIManager.getLookAndFeel().getClass().getName());
-        setPref(
-            "SplitPanePosition",
-            String.valueOf(splitPane.getDividerLocation()));
+        setPref("WindowSize",
+                (int) (this.getSize().getWidth()) + "," + (int) (this.getSize().getHeight()));
+        setPref("WindowPosition",
+                (int) (this.getLocation().getX()) + "," + (int) (this.getLocation().getY()));
+        setPref("Style", UIManager.getLookAndFeel().getClass().getName());
+        setPref("SplitPanePosition", String.valueOf(splitPane.getDividerLocation()));
         // save preferences file
         try {
-            FileOutputStream prefsfile =
-                new FileOutputStream("cristal.preferences", false);
+            FileOutputStream prefsfile = new FileOutputStream("cristal.preferences", false);
             prefs.store(prefsfile, "Cristal 2");
             prefsfile.close();
         } catch (Exception e) {
-            Logger.warning(
-                "Could not write to preferences file. Preferences have not been updated.");
+            log.warn("Could not write to preferences file. Preferences have not been updated.");
         }
         this.dispose();
         AbstractMain.shutdown(0);
     }
 
     public void toggleTree() {
-    	boolean showTree = getPref("ShowTree", "true").equals("false");
+        boolean showTree = getPref("ShowTree", "true").equals("false");
         setPref("ShowTree", String.valueOf(showTree));
-        if (!showTree) splitPanePos = splitPane.getDividerLocation();
+        if (!showTree)
+            splitPanePos = splitPane.getDividerLocation();
         getSplitPanel().getLeftComponent().setVisible(showTree);
-        if (showTree) getSplitPanel().setDividerLocation(splitPanePos);
+        if (showTree)
+            getSplitPanel().setDividerLocation(splitPanePos);
         getSplitPanel().validate();
     }
 
@@ -293,21 +276,21 @@ public class MainFrame extends javax.swing.JFrame {
                 String pluginName = tok.nextToken();
                 try {
                     Class<?> pluginClass = Class.forName(pluginName);
-                    Executor domainExecutor = (Executor)pluginClass.newInstance();
+                    Executor domainExecutor = (Executor) pluginClass.newInstance();
                     plugins.addItem(domainExecutor);
                 } catch (Exception ex) {
-                    Logger.error("Could not load the executor plugin "+pluginName);
+                    log.error("Could not load the executor plugin " + pluginName, ex);
                 }
             }
         }
         return plugins;
     }
-    protected JSplitPane getSplitPanel()
-    {
-        //  create the split pane, and add the Tree to it.
-        if (splitPane == null)
-        {
-            splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, treePanel, myDesktopManager);
+
+    protected JSplitPane getSplitPanel() {
+        // create the split pane, and add the Tree to it.
+        if (splitPane == null) {
+            splitPane =
+                    new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, true, treePanel, myDesktopManager);
             splitPane.setDividerSize(5);
             splitPanePos = Integer.parseInt(getPref("SplitPanePosition", "200"));
             splitPane.setDividerLocation(splitPanePos);
@@ -315,13 +298,12 @@ public class MainFrame extends javax.swing.JFrame {
         return splitPane;
     }
 
-	static public void exceptionDialog(Exception ex)
-	{
-        Logger.error(ex);
+    static public void exceptionDialog(Exception ex) {
+        log.error("", ex);
 
-		String className = ex.getClass().getSimpleName();
-		String error = ex.getMessage();
-		JOptionPane.showMessageDialog(null, error, className, JOptionPane.ERROR_MESSAGE);
-	}
+        String className = ex.getClass().getSimpleName();
+        String error = ex.getMessage();
+        JOptionPane.showMessageDialog(null, error, className, JOptionPane.ERROR_MESSAGE);
+    }
 
 }

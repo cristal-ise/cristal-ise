@@ -27,20 +27,12 @@ import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.utils.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPEntry;
+import lombok.extern.slf4j.Slf4j;
 
-/**************************************************************************
- *
- * $Revision: 1.3 $
- * $Date: 2006/03/03 13:52:21 $
- *
- * Copyright (C) 2003 CERN - European Organization for Nuclear Research
- * All rights reserved.
- **************************************************************************/
-
+@Slf4j
 public class LDAPPropertyManager {
     /**
      *
@@ -104,7 +96,6 @@ public class LDAPPropertyManager {
     public void deleteProperty(ItemPath thisItem, String name) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         LDAPEntry entityEntry = LDAPLookupUtils.getEntry(auth.getAuthObject(), ldap.getFullDN(thisItem));
         Property prop = getProperty(entityEntry, name);
-        Logger.msg(6, "LDAPLookupUtils.deleteProperty("+name+") - Deleting property");
         LDAPLookupUtils.removeAttributeValue(auth.getAuthObject(), entityEntry, "cristalprop", getPropertyAttrValue(prop));
     }
     
@@ -122,12 +113,10 @@ public class LDAPPropertyManager {
         LDAPEntry entityEntry = LDAPLookupUtils.getEntry(auth.getAuthObject(), ldap.getFullDN(thisItem));
         try {
         	Property oldProp = getProperty(entityEntry, prop.getName());
-            Logger.msg(6, "LDAPLookupUtils.setProperty("+prop.getName()+") - Removing old value '"+oldProp.getValue()+"'");
             LDAPLookupUtils.removeAttributeValue(auth.getAuthObject(), entityEntry, "cristalprop", getPropertyAttrValue(oldProp));
         } catch (ObjectNotFoundException ex) {
-            Logger.msg(6, "LDAPLookupUtils.setProperty("+prop.getName()+") - creating new property.");
+            //Logger.msg(6, "LDAPLookupUtils.setProperty("+prop.getName()+") - creating new property.");
         }
-        Logger.msg(6, "LDAPLookupUtils.setProperty("+prop.getName()+") - setting to '"+prop.getValue()+"'");
         LDAPLookupUtils.addAttributeValue(auth.getAuthObject(), entityEntry, "cristalprop", getPropertyAttrValue(prop));
     }
 
@@ -142,20 +131,19 @@ public class LDAPPropertyManager {
         for (Enumeration<?> e = props.getStringValues(); name==null && e.hasMoreElements();) {
             String attrVal = (String)e.nextElement();
             if (attrVal.toLowerCase().startsWith(propPrefix.toLowerCase())) {
-            	name = attrVal.substring(0, propPrefix.length()-1);
+                name = attrVal.substring(0, propPrefix.length()-1);
                 val = attrVal.substring(propPrefix.length());
                 mutable = true; break;
             }
             
             if (attrVal.toLowerCase().startsWith(roPropPrefix.toLowerCase())) {
-            	name = attrVal.substring(1, roPropPrefix.length()-1);
+                name = attrVal.substring(1, roPropPrefix.length()-1);
                 val = attrVal.substring(roPropPrefix.length());
                 mutable = false; break;
             }
         }
         if (name == null) 
-        	throw new ObjectNotFoundException("Property "+propName+" does not exist");
-        Logger.msg(6, "Loaded "+(mutable?"":"Non-")+"Mutable Property: "+name+"="+val);
+            throw new ObjectNotFoundException("Property "+propName+" does not exist");
         return new Property(name, val, mutable);
     }
 

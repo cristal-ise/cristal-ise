@@ -27,22 +27,12 @@ import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-
-/**************************************************************************
- *
- * $Revision: 1.1 $
- * $Date: 2004/08/10 07:56:08 $
- *
- * Copyright (C) 2003 CERN - European Organization for Nuclear Research
- * All rights reserved.
- **************************************************************************/
-
-
+@Slf4j
 public abstract class CollectionView<M extends CollectionMember> extends JPanel {
 
-	protected Collection<M> thisColl;
+    protected Collection<M> thisColl;
     protected ItemProxy item;
 
     public CollectionView() {
@@ -54,22 +44,18 @@ public abstract class CollectionView<M extends CollectionMember> extends JPanel 
     }
 
     public abstract void setCollection(Collection<M> coll);
-    
+
     public Collection<? extends CollectionMember> getCollection() {
-    	return thisColl;
+        return thisColl;
     }
 
-    protected void saveCollection()
-    {
-        try
-        {
+    protected void saveCollection() {
+        try {
             String[] params = new String[1];
             params[0] = Gateway.getMarshaller().marshall(thisColl);
             MainFrame.userAgent.execute(item, "AddC2KObject", params);
-        }
-        catch (Exception e)
-        {
-            Logger.error(e);
+        } catch (Exception e) {
+            log.error("", e);
         }
     }
 }
