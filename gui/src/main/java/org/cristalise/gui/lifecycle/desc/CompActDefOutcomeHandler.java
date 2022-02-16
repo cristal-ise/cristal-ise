@@ -49,26 +49,15 @@ import org.cristalise.kernel.lifecycle.LifecycleVertexOutlineCreator;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-
-/**************************************************************************
- *
- * $Revision: 1.14 $
- * $Date: 2005/09/07 13:46:31 $
- *
- * Copyright (C) 2003 CERN - European Organization for Nuclear Research
- * All rights reserved.
- **************************************************************************/
-
-public class CompActDefOutcomeHandler
-    extends JPanel
-    implements OutcomeHandler {
+@Slf4j
+public class CompActDefOutcomeHandler extends JPanel implements OutcomeHandler {
 
     protected JButton mLoadButton = new JButton(ImageLoader.findImage("graph/load.png"));
     protected JButton mLayoutButton = new JButton(ImageLoader.findImage("graph/autolayout.png"));
-	protected JButton mZoomOutButton = new JButton(ImageLoader.findImage("graph/zoomout.png"));
-    protected JButton[] mOtherToolBarButtons = { mZoomOutButton, mLayoutButton, mLoadButton };
+    protected JButton mZoomOutButton = new JButton(ImageLoader.findImage("graph/zoomout.png"));
+    protected JButton[] mOtherToolBarButtons = {mZoomOutButton, mLayoutButton, mLoadButton};
 
     protected CompositeActivityDef mCompActDef = null;
     protected WfEdgeDefFactory mWfEdgeDefFactory = new WfEdgeDefFactory();
@@ -83,19 +72,12 @@ public class CompActDefOutcomeHandler
         super();
         mPropertyPanel = loadPropertyPanel();
         mPropertyPanel.createLayout(new FindActDefPanel());
-        mEditorPanel =
-            new EditorPanel(
-                mWfEdgeDefFactory,
-                mWfVertexDefFactory,
-                new LifecycleVertexOutlineCreator(),
-                true,
-                mOtherToolBarButtons,
-        		new WfDefGraphPanel(new WfDirectedEdgeDefRenderer(),
-		new WfVertexDefRenderer()));
+        mEditorPanel = new EditorPanel(mWfEdgeDefFactory, mWfVertexDefFactory,
+                new LifecycleVertexOutlineCreator(), true, mOtherToolBarButtons,
+                new WfDefGraphPanel(new WfDirectedEdgeDefRenderer(), new WfVertexDefRenderer()));
     }
 
-    protected void createLayout()
-    {
+    protected void createLayout() {
         mLoadButton.setToolTipText("Load from local file");
         mLayoutButton.setToolTipText("Auto-Layout");
         mZoomOutButton.setToolTipText("Zoom Out");
@@ -112,59 +94,57 @@ public class CompActDefOutcomeHandler
         mSplitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, mEditorPanel, mPropertyPanel);
         mSplitPane.setDividerSize(5);
         if (mCompActDef != null) {
-			int minWidth = mCompActDef.getChildrenGraphModel().getWidth()+20;
-			int editWidth = (int)mEditorPanel.getPreferredSize().getWidth();
-			if (editWidth > minWidth) minWidth = editWidth;
-			if (mSplitPane.getDividerLocation() < minWidth) mSplitPane.setDividerLocation(minWidth);
+            int minWidth = mCompActDef.getChildrenGraphModel().getWidth() + 20;
+            int editWidth = (int) mEditorPanel.getPreferredSize().getWidth();
+            if (editWidth > minWidth)
+                minWidth = editWidth;
+            if (mSplitPane.getDividerLocation() < minWidth)
+                mSplitPane.setDividerLocation(minWidth);
         }
         gridbag.setConstraints(mSplitPane, c);
         add(mSplitPane);
         revalidate();
     }
 
-    protected void createListeners()
-    {
+    protected void createListeners() {
         mLoadButton.addActionListener(new ActionListener() {
             @Override
-			public void actionPerformed(ActionEvent ae) {
+            public void actionPerformed(ActionEvent ae) {
                 File selectedFile = null;
 
                 int returnValue = MainFrame.xmlChooser.showOpenDialog(null);
 
-                switch (returnValue)
-                {
-                    case JFileChooser.APPROVE_OPTION :
+                switch (returnValue) {
+                    case JFileChooser.APPROVE_OPTION:
                         selectedFile = MainFrame.xmlChooser.getSelectedFile();
                         try {
                             String newWf = FileStringUtility.file2String(selectedFile);
                             setOutcome(newWf);
                             setUpGraphEditor();
                         } catch (Exception e) {
-                        	MainFrame.exceptionDialog(e);
+                            MainFrame.exceptionDialog(e);
                         }
-                    case JFileChooser.CANCEL_OPTION :
-                    case JFileChooser.ERROR_OPTION :
+                    case JFileChooser.CANCEL_OPTION:
+                    case JFileChooser.ERROR_OPTION:
 
-                    default :
+                    default:
                 }
             }
         });
 
         mLayoutButton.addActionListener(new ActionListener() {
             @Override
-			public void actionPerformed(ActionEvent ae) {
+            public void actionPerformed(ActionEvent ae) {
                 DefaultGraphLayoutGenerator.layoutGraph(mEditorPanel.mGraphModelManager.getModel());
             }
         });
-        
-		mZoomOutButton.addActionListener(new ActionListener()
-		{
-			@Override
-			public void actionPerformed(ActionEvent ae)
-			{
-				mEditorPanel.mGraphModelManager.zoomOut();
-			}
-		});
+
+        mZoomOutButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                mEditorPanel.mGraphModelManager.zoomOut();
+            }
+        });
     }
 
     public void setUpGraphEditor() {
@@ -180,64 +160,70 @@ public class CompActDefOutcomeHandler
      *
      */
     @Override
-	public void setOutcome(String outcome) throws InvalidOutcomeException {
+    public void setOutcome(String outcome) throws InvalidOutcomeException {
         try {
-            CompositeActivityDef newAct = (CompositeActivityDef)Gateway.getMarshaller().unmarshall(outcome);
+            CompositeActivityDef newAct =
+                    (CompositeActivityDef) Gateway.getMarshaller().unmarshall(outcome);
             if (mCompActDef != null)
                 newAct.setName(mCompActDef.getName());
             mCompActDef = newAct;
             if (mSplitPane != null) {
-        		int minWidth = mCompActDef.getChildrenGraphModel().getWidth()+20;
-        		if (mSplitPane.getDividerLocation() < minWidth) mSplitPane.setDividerLocation(minWidth);
+                int minWidth = mCompActDef.getChildrenGraphModel().getWidth() + 20;
+                if (mSplitPane.getDividerLocation() < minWidth)
+                    mSplitPane.setDividerLocation(minWidth);
             }
         } catch (Exception ex) {
-            Logger.error(ex);
+            log.error("",ex);
             throw new InvalidOutcomeException(ex.getMessage());
         }
     }
+
     /**
      *
      */
     @Override
-	public void setDescription(String description)
-        throws InvalidSchemaException {
+    public void setDescription(String description) throws InvalidSchemaException {
         // ignore - always the same
     }
+
     /**
      *
      */
     @Override
-	public void setReadOnly(boolean readOnly) {
+    public void setReadOnly(boolean readOnly) {
         mLayoutButton.setEnabled(!readOnly);
         mLoadButton.setEnabled(!readOnly);
         mEditorPanel.setEditable(!readOnly);
         mPropertyPanel.setEditable(!readOnly);
     }
+
     /**
      *
      */
     @Override
-	public JPanel getPanel() throws OutcomeNotInitialisedException {
+    public JPanel getPanel() throws OutcomeNotInitialisedException {
         return this;
     }
+
     /**
      *
      */
     @Override
-	public String getOutcome() throws OutcomeException {
-    	if (!mCompActDef.verify())
-    		throw new OutcomeException(mCompActDef.getErrors());
+    public String getOutcome() throws OutcomeException {
+        if (!mCompActDef.verify())
+            throw new OutcomeException(mCompActDef.getErrors());
         try {
             return Gateway.getMarshaller().marshall(mCompActDef);
         } catch (Exception ex) {
             throw new OutcomeException(ex.getMessage());
         }
     }
+
     /**
      *
      */
     @Override
-	public void run() {
+    public void run() {
         Thread.currentThread().setName("Composite Act Def Viewer");
         createLayout();
         createListeners();
@@ -247,27 +233,25 @@ public class CompActDefOutcomeHandler
         doLayout();
     }
 
-    public VertexPropertyPanel loadPropertyPanel()
-    {
+    public VertexPropertyPanel loadPropertyPanel() {
         String wfPanelClass = Gateway.getProperties().getString("WfPropertyPanel");
         if (wfPanelClass != null) {
             try {
-                return (VertexPropertyPanel)Gateway.getProperties().getInstance("WfPropertyPanel");
+                return (VertexPropertyPanel) Gateway.getProperties().getInstance("WfPropertyPanel");
             } catch (Exception ex) {
-                Logger.error("Could not load wf props panel:"+wfPanelClass);
-                Logger.error(ex);
+                log.error("Could not load wf props panel:" + wfPanelClass, ex);
             }
         }
         return new VertexPropertyPanel(true);
     }
 
     @Override
-	public boolean isUnsaved() {
+    public boolean isUnsaved() {
         return unsaved;
     }
 
     @Override
-	public void saved() {
+    public void saved() {
         unsaved = false;
     }
 
@@ -281,7 +265,8 @@ public class CompActDefOutcomeHandler
             FileStringUtility.createNewDir(parentDir.getAbsolutePath() + "/" + res.getTypeCode());
         }
 
-        BufferedWriter imports = new BufferedWriter(new FileWriter(new File(parentDir, mCompActDef.getActName() + "Imports.xml")));
+        BufferedWriter imports = new BufferedWriter(
+                new FileWriter(new File(parentDir, mCompActDef.getActName() + "Imports.xml")));
         mCompActDef.export(imports, targetFile.getParentFile(), false);
         imports.close();
     }

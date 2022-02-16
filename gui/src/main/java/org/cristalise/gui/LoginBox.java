@@ -50,21 +50,9 @@ import javax.swing.border.EmptyBorder;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-
-
-//import com.borland.jbcl.layout.*;
-
-/**
- * <p>Title: </p>
- * <p>Description: </p>
- * <p>Copyright: Copyright (c) 2003</p>
- * <p>Company: </p>
- * @author not attributable
- * @version 1.0
- */
-
+@Slf4j
 public  class LoginBox extends JFrame {
 
   public String errorMessage=new String("");
@@ -121,7 +109,7 @@ public  class LoginBox extends JFrame {
       }
 
       logged = (userAgent != null);
-      Logger.msg(7, "AbstractMain::standardSetUp() - Gateway.connect() OK.");
+      log.debug("standardSetUp() - Gateway.connect() OK.");
     }
     catch (Exception ex) {
       String message = ex.getMessage();
@@ -131,15 +119,15 @@ public  class LoginBox extends JFrame {
       //if (message.length()>65 && message.substring(1,5).compareTo("User")==0)
       //  message = (message.substring(1,50)+ "... not found" );
       this.errorLabel.setText(message);
-      Logger.error(message);
+      log.error("",ex);
       logged= false;
       errorSet=true;
     }
     if (!logged) {
-      Logger.msg("Login attempt "+loginAttemptNumber+" of "+maxNumberLogon+" failed");
+        log.info("Login attempt "+loginAttemptNumber+" of "+maxNumberLogon+" failed");
       if (loginAttemptNumber>=maxNumberLogon)  {
         dispose();
-        Logger.error("Login failure limit reached");
+        log.error("Login failure limit reached");
         AbstractMain.shutdown(1);
       }
       if (!errorSet) this.errorLabel.setText("Please enter username & password");
@@ -160,7 +148,7 @@ public  class LoginBox extends JFrame {
       MainFrame.userAgent = userAgent;
       this.setVisible(false);
       mainFrameFather.mainFrameShow();
-      Logger.msg(1, "Login attempt "+loginAttemptNumber+" of "+maxNumberLogon+" succeeded.");
+      log.info("Login attempt "+loginAttemptNumber+" of "+maxNumberLogon+" succeeded.");
       dispose();
     }
   }
@@ -296,7 +284,7 @@ public  class LoginBox extends JFrame {
 
   void Cancel_actionPerformed(ActionEvent e) {
 	dispose();
-    Logger.msg("User cancelled login.");
+    log.info("User cancelled login.");
     AbstractMain.shutdown(0);
   }
 
@@ -305,7 +293,7 @@ public  class LoginBox extends JFrame {
       this.loginAttemptNumber++;
       loginClicked();}
     catch (Exception ex){
-        Logger.error(ex);
+        log.error("",ex);
     }
   }
 
@@ -316,7 +304,7 @@ public  class LoginBox extends JFrame {
         loginClicked();
       }
       catch (Exception ex){
-          Logger.error(ex);
+          log.error("",ex);
       }
     }
   }

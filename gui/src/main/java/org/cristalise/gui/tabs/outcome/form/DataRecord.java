@@ -32,7 +32,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.cristalise.gui.tabs.outcome.OutcomeException;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.w3c.dom.Document;
@@ -144,7 +143,6 @@ public class DataRecord extends OutcomeStructure implements ChangeListener {
 
     @Override
 	public void addInstance(Element myElement, Document parentDoc) throws OutcomeException {
-        Logger.msg(8, "Accepting DR "+myElement.getTagName());
         if (this.myElement != null) throw new CardinalException("DataRecord "+this.getName()+" cannot repeat.");
         this.myElement = myElement;
         this.parentDoc = parentDoc;
@@ -193,7 +191,6 @@ public class DataRecord extends OutcomeStructure implements ChangeListener {
 
     @Override
 	public Element initNew(Document parent) {
-        Logger.msg(6, "Creating DR "+model.getName());
         if (deferred) activate();
 
         // make a new Element

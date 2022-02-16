@@ -23,7 +23,6 @@ package org.cristalise.kernel.test.persistency.outcomebuilder;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
-import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 import org.json.XML;
 import org.junit.Before;
@@ -34,20 +33,14 @@ public class BuildStructureFromJsonTest extends XMLUtils {
     String dir = "src/test/data/outcomeBuilder";
 
     @Before
-    public void setUp() throws Exception {
-        Logger.addLogStream(System.out, 8);
-    }
+    public void setUp() throws Exception {}
 
     private void checkJson2XmlOutcome(String type, String postfix) throws Exception {
         JSONObject actualJson = new JSONObject(getJSON(dir, type+postfix));
         String expected = getXML(dir, type+postfix);
 
-        Logger.msg(2, "Actual json:%s", actualJson.toString());
         OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
         builder.addJsonInstance(actualJson);
-
-        Logger.msg(2, "Expected xml:%s", expected);
-        Logger.msg(2, "Actual xml:%s", builder.getXml(false));
 
         assert compareXML(expected, builder.getXml());
     }
@@ -57,11 +50,7 @@ public class BuildStructureFromJsonTest extends XMLUtils {
         String expected = getXML(dir, type+postFix);
         JSONObject actualJson = XML.toJSONObject(expected);
 
-        Logger.msg(2, "Actual json:%s", actualJson.toString());
         builder.addJsonInstance(actualJson);;
-
-        Logger.msg(2, "Expected xml:%s", expected);
-        Logger.msg(2, "Actual xml:%s", builder.getXml());
 
         assert compareXML(expected, builder.getXml());
     }
@@ -83,11 +72,7 @@ public class BuildStructureFromJsonTest extends XMLUtils {
 
         JSONObject actualJson = new JSONObject(getJSON(dir, "IntegerFieldOptional"));
 
-        Logger.msg(2, "Actual json:%s", actualJson.toString());
         builder.addJsonInstance(actualJson);;
-
-        Logger.msg(2, "Expected xml:%s", expected);
-        Logger.msg(2, "Actual xml:%s", builder.getXml());
 
         assert compareXML(expected, builder.getXml());
     }

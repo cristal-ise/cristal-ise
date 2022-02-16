@@ -29,13 +29,13 @@ import javax.swing.ImageIcon;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-
+@Slf4j
 public class ImageLoader {
 
     static private Hashtable<String, ImageIcon> imgCache = new Hashtable<String, ImageIcon>();
-    static public final ImageIcon nullImg = new ImageIcon(new byte[] { 0 });
+    static public final ImageIcon nullImg = new ImageIcon(new byte[] {0});
     static private final ArrayList<String> reportedMissingIcons = new ArrayList<String>();
 
     /**
@@ -46,17 +46,18 @@ public class ImageLoader {
      */
     static public ImageIcon findImage(String resName) {
         try {
-        	for (String ns : Gateway.getResource().getModuleBaseURLs().keySet()) {
-        		try {
-        			return getImage(ns, resName);
-        		} catch (ObjectNotFoundException ex) { }
-			}
+            for (String ns : Gateway.getResource().getModuleBaseURLs().keySet()) {
+                try {
+                    return getImage(ns, resName);
+                } catch (ObjectNotFoundException ex) {
+                }
+            }
             return getImage(null, resName);
         } catch (ObjectNotFoundException ex) {
-        	if (!reportedMissingIcons.contains(resName)) {
-        		Logger.warning("Image '"+resName+"' not found. Using null icon");
-        		reportedMissingIcons.add(resName);
-        	}
+            if (!reportedMissingIcons.contains(resName)) {
+                log.warn("Image '" + resName + "' not found. Using null icon");
+                reportedMissingIcons.add(resName);
+            }
             return nullImg;
         }
     }
@@ -65,28 +66,31 @@ public class ImageLoader {
         if (resName == null)
             return nullImg;
 
-        if (imgCache.containsKey(ns+'/'+resName)) {
-            return imgCache.get(ns+'/'+resName);
+        if (imgCache.containsKey(ns + '/' + resName)) {
+            return imgCache.get(ns + '/' + resName);
         }
 
         URL imgLocation = null;
-        if (ns == null) 
-        	try {
-        		imgLocation = Gateway.getResource().getKernelResourceURL("images/"+resName);
-        	} catch (MalformedURLException ex) { }
+        if (ns == null)
+            try {
+                imgLocation = Gateway.getResource().getKernelResourceURL("images/" + resName);
+            } catch (MalformedURLException ex) {
+            }
         else
-        	try {
-        		imgLocation = Gateway.getResource().getModuleResourceURL(ns, "images/"+resName);
-        	} catch (MalformedURLException ex) { }
-        
-        if (imgLocation!= null) {
-        	ImageIcon newImg = new ImageIcon(imgLocation);
+            try {
+                imgLocation = Gateway.getResource().getModuleResourceURL(ns, "images/" + resName);
+            } catch (MalformedURLException ex) {
+            }
 
-        	if (newImg.getIconHeight() > -1) {
-        		imgCache.put(ns+'/'+resName, newImg);
-                Logger.msg(3, "Loaded "+resName+" "+newImg.getIconWidth()+"x"+newImg.getIconHeight());
+        if (imgLocation != null) {
+            ImageIcon newImg = new ImageIcon(imgLocation);
+
+            if (newImg.getIconHeight() > -1) {
+                imgCache.put(ns + '/' + resName, newImg);
+                log.info("Loaded " + resName + " " + newImg.getIconWidth() + "x"
+                        + newImg.getIconHeight());
                 return newImg;
-        	}
+            }
         }
         throw new ObjectNotFoundException();
     }

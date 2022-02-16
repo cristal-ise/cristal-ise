@@ -31,7 +31,6 @@ import javax.swing.JPanel;
 
 import org.cristalise.gui.ImageLoader;
 import org.cristalise.gui.tabs.outcome.OutcomeException;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.Annotation;
@@ -49,9 +48,11 @@ import org.exolab.castor.xml.schema.Wildcard;
 import org.exolab.castor.xml.schema.XMLType;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import lombok.extern.slf4j.Slf4j;
 
 
 // contains child outcome elements - creates new ones
+@Slf4j
 public abstract class OutcomeStructure extends JPanel {
 
     ElementDecl model;
@@ -69,8 +70,6 @@ public abstract class OutcomeStructure extends JPanel {
         this.readOnly = readOnly;
         this.specialEditFields = specialControls;
         subStructure = new HashMap<String, OutcomeStructure>();
-        Logger.msg(8, "Creating " + model.getName() + " structure as " +
-            this.getClass().getName().substring(this.getClass().getName().lastIndexOf('.') + 1));
 
         String doc = extractHelp(model);
 		if (doc.length() > 0) help = doc;
@@ -155,7 +154,6 @@ public abstract class OutcomeStructure extends JPanel {
             }
             else if (thisParticle instanceof Wildcard) {
                 //do nothing
-                Logger.msg(5, "OutcomeStructure.enumerateElements() - group has Wildcard representing xs:any");
             }
             else throw new StructuralException("Particle " + thisParticle.getClass() + " not implemented");
         }
@@ -298,7 +296,7 @@ public abstract class OutcomeStructure extends JPanel {
                 else
                     return new BigDecimal(value);
         } catch (Exception ex) {
-            Logger.error("Cannot convert value '"+value+"' to a "+type.getName());
+            log.error("Cannot convert value '"+value+"' to a "+type.getName(), ex);
         }
         return value==null?"":value;
     }

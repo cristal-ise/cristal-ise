@@ -31,14 +31,14 @@ import javax.swing.JPanel;
 
 import org.cristalise.gui.tabs.outcome.OutcomeException;
 import org.cristalise.gui.tabs.outcome.form.field.EditField;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
+import lombok.extern.slf4j.Slf4j;
 
 
-
+@Slf4j
 public class Field extends OutcomeStructure {
 
     EditField myElementPanel = null;
@@ -53,7 +53,7 @@ public class Field extends OutcomeStructure {
 
         try {
             myElementPanel = EditField.getEditField(model, specialEditFields);
-            Logger.msg(6, "Field type: "+myElementPanel.getClass().getName());
+            log.debug("Field type: "+myElementPanel.getClass().getName());
             if (readOnly) myElementPanel.setEditable(false);
 
         } catch (StructuralException e) { // no base type for field - only attributes
@@ -118,13 +118,13 @@ public class Field extends OutcomeStructure {
 
     @Override
 	public void addInstance(Element myElement, Document parentDoc) throws OutcomeException {
-        Logger.msg(6, "Accepting Field "+myElement.getTagName());
+        log.debug("Accepting Field "+myElement.getTagName());
         if (this.myElement != null) throw new CardinalException("Field "+this.getName()+" cannot repeat");
         this.myElement = myElement;
 
         try {
             if (myElementPanel == null)
-                Logger.error("Field should be empty. Discarding contents.");
+                log.error("Field should be empty. Discarding contents.");
             else {
                 if (myElement.hasChildNodes())
                     textNode = (Text)myElement.getFirstChild();
@@ -157,7 +157,7 @@ public class Field extends OutcomeStructure {
 
     @Override
 	public Element initNew(Document parent) {
-        Logger.msg(6, "Creating Field "+this.getName());
+        log.debug("Creating Field "+this.getName());
 
         // make a new Element
         myElement = parent.createElement(this.getName());

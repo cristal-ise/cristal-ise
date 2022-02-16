@@ -19,6 +19,7 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 package org.cristalise.gui.tabs.execution;
+
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -27,38 +28,36 @@ import javax.swing.JButton;
 
 import org.cristalise.gui.MainFrame;
 import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-/**
-     * Each job gets a RequestButton
-     */
+@Slf4j
+public class RequestButton extends JButton implements ActionListener {
 
-    public class RequestButton extends JButton implements ActionListener {
+    Job myJob;
+    ActivityViewer parent;
 
-        Job myJob;
-        ActivityViewer parent;
-
-        public RequestButton(Job myJob, ActivityViewer parent) {
-            super();
-            this.myJob = myJob;
-            this.parent = parent;
-            String label = myJob.getTransition().getName();
-            if (myJob.hasOutcome()) {
-            	setBackground(Color.white);
-                try {
-                	if (myJob.getSchema().getName().equals("Errors")) setBackground(Color.pink);
-                } catch (Exception e) {
-                	Logger.error(e);
-                	MainFrame.exceptionDialog(e);
-                	setEnabled(false);
-                }
+    public RequestButton(Job myJob, ActivityViewer parent) {
+        super();
+        this.myJob = myJob;
+        this.parent = parent;
+        String label = myJob.getTransition().getName();
+        if (myJob.hasOutcome()) {
+            setBackground(Color.white);
+            try {
+                if (myJob.getSchema().getName().equals("Errors"))
+                    setBackground(Color.pink);
+            } catch (Exception e) {
+                log.error("",e);
+                MainFrame.exceptionDialog(e);
+                setEnabled(false);
             }
-            super.setText(label);
-            addActionListener(this);
         }
-
-        @Override
-		public void actionPerformed(ActionEvent event) {
-            parent.execute(myJob);
-        }
+        super.setText(label);
+        addActionListener(this);
     }
+
+    @Override
+    public void actionPerformed(ActionEvent event) {
+        parent.execute(myJob);
+    }
+}

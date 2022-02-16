@@ -14,17 +14,15 @@ import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.ShutdownHandler;
 import org.cristalise.kernel.process.StandardServer;
-import org.cristalise.kernel.utils.Logger;
 import org.tanukisoftware.wrapper.WrapperListener;
 import org.tanukisoftware.wrapper.WrapperManager;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**************************************************************************
  * Base class for all servers i.e. c2k processes that serve Entities
- *
- * @author $Author: abranson $ $Date: 2005/04/28 13:49:43 $
- * @version $Revision: 1.47 $
  **************************************************************************/
+@Slf4j
 public class StandardService extends StandardServer implements WrapperListener
 {
     protected static StandardService server;
@@ -43,7 +41,7 @@ public class StandardService extends StandardServer implements WrapperListener
         catch( Exception ex )
         {
             ex.printStackTrace();
-            Logger.die("Startup failed");
+            //Logger.die("Startup failed");
         }
         return null;
     }
@@ -93,11 +91,11 @@ public class StandardService extends StandardServer implements WrapperListener
         }
         catch( Exception ex )
         {
-            Logger.error(ex);
+            log.error("",ex);
             return 1;
         }
 
-        Logger.msg("StandardServer::shutdown - complete. ");
+        log.info("stop() - complete. ");
         return 0;
     }
 

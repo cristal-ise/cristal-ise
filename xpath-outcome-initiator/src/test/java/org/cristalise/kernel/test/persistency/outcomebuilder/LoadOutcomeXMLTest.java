@@ -23,7 +23,6 @@ package org.cristalise.kernel.test.persistency.outcomebuilder;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
-import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -34,7 +33,6 @@ public class LoadOutcomeXMLTest extends XMLUtils {
 
     @Before
     public void setUp() throws Exception {
-        Logger.addLogStream(System.out, 8);
     }
 
     private void loaExportCheck(String type, String name) throws Exception {
@@ -42,8 +40,6 @@ public class LoadOutcomeXMLTest extends XMLUtils {
         String expected = getXML(dir, type+"-"+name);
 
         OutcomeBuilder actual = new OutcomeBuilder(new Schema(type, 0, xsd), expected);
-
-        Logger.msg(actual.getXml());
 
         assert compareXML(expected, actual.getXml());
     }
