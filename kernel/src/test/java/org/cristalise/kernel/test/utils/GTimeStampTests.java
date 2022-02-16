@@ -75,17 +75,24 @@ public class GTimeStampTests {
     public void testSqlTimeStamp_to_utcString() throws Exception {
         GTimeStamp ts1 = new GTimeStamp(2001, 11, 18, 13, 11, 0, 0, 0);
         assertEquals("2001-11-18T13:11:00Z", DateUtility.timeStampToUtcString(ts1));
+        assertEquals("2001-11-18 13:11:00", DateUtility.timeToString(ts1));
     }
 
     @Test
     public void testSqlTimeStamp_to_utcString_withOffset() throws Exception {
         GTimeStamp ts = new GTimeStamp(2001, 11, 18, 13, 11, 0, 0, 3600000);
         assertEquals("2001-11-18T12:11:00Z", DateUtility.timeStampToUtcString(ts));
+        assertEquals("2001-11-18 13:11:00", DateUtility.timeToString(ts));
     }
 
     @Test
     public void testSqlTimeStamp_to_utcString_withNano() throws Exception {
-        GTimeStamp ts = new GTimeStamp(2001, 11, 18, 13, 11, 0, 89000000, 0);
-        assertEquals("2001-11-18T13:11:00.089Z", DateUtility.timeStampToUtcString(ts));
+        GTimeStamp ts = new GTimeStamp(2001, 11, 18, 13, 11, 0, 999000000, 0);
+        assertEquals("2001-11-18T13:11:00.999Z", DateUtility.timeStampToUtcString(ts));
+        assertEquals("2001-11-18 13:11:00.999", DateUtility.timeToString(ts));
+
+        ts = new GTimeStamp(2001, 11, 18, 13, 11, 0, 1, 0);
+        assertEquals("2001-11-18T13:11:00.000000001Z", DateUtility.timeStampToUtcString(ts));
+        assertEquals("2001-11-18 13:11:00.000000001", DateUtility.timeToString(ts));
     }
 }

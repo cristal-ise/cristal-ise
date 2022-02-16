@@ -53,6 +53,8 @@ public class DateUtility {
     static public GTimeStamp getNow() {
         ZonedDateTime now = ZonedDateTime.now();
 
+        
+
         return new GTimeStamp( now.getYear(),
                                now.getMonth().getValue(),
                                now.getDayOfMonth(),
@@ -202,7 +204,9 @@ public class DateUtility {
         if (timeStamp.mSecond<10) time.append("0");
         time.append(timeStamp.mSecond);
 
-        time.append(".").append(timeStamp.mNano);
+        if (timeStamp.mNano != 0) {
+            time.append(".").append(timeStamp.mNano);
+        }
 
         return time.toString();
     }
