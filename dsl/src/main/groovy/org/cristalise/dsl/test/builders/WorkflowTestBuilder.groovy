@@ -268,7 +268,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
     }
 
     public void saveWorkflowPngImage(GraphModel graphModel, String targetFileName, boolean autoLayout = false){
-        if(autoLayout) {
+        if (autoLayout) {
             DefaultGraphLayoutGenerator.layoutGraph(graphModel)
         }
         BufferedImage imgWf = new LifecycleRenderer(graphModel, false).getWorkFlowModelImage(1920, 1080)

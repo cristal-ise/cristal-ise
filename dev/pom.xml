@@ -238,23 +238,29 @@
     <dependencies>
         <dependency>
             <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-kernel</artifactId>
-            <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.cristalise</groupId>
             <artifactId>cristalise-dsl</artifactId>
             <version>${revision}</version>
-        </dependency>
-        <dependency>
-            <groupId>info.picocli</groupId>
-            <artifactId>picocli</artifactId>
-            <version>4.6.2</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-xpath-outcomeinit</artifactId>
             <version>${revision}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>${groovy.version}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>4.6.2</version>
         </dependency>
         <dependency>
             <groupId>org.atteo</groupId>
@@ -289,11 +295,11 @@
             <artifactId>spock-unitils</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.athaydes</groupId>
-            <artifactId>spock-reports</artifactId>
-            <scope>test</scope>
-        </dependency>
+<!--         <dependency> -->
+<!--             <groupId>com.athaydes</groupId> -->
+<!--             <artifactId>spock-reports</artifactId> -->
+<!--             <scope>test</scope> -->
+<!--         </dependency> -->
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-inmemory-lookup</artifactId>

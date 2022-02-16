@@ -132,12 +132,12 @@ class CSVGroovyParser implements TabularGroovyParser {
             size = headerRows[i].size()
         }
 
-        def currentNames = []
+        List<String> currentNames = []
         List<List<String>> header = []
 
         //construct the path of each header, make sure to skip columns if needed
         for (int i in skipLeftCols..size-(1+skipRightCols)) {
-            List aList = []
+            List<String> aList = []
             for (j in 0..rowCount-1) {
 
                 def name = headerRows[j][i]
@@ -148,10 +148,10 @@ class CSVGroovyParser implements TabularGroovyParser {
                 name = currentNames[j]
 
                 //if not null/empty append it to the list
-                if (name) { aList << name }
+                if (name) { aList.add(name) }
             }
             log.info "getHeader() - header[${i-skipLeftCols}] = $aList"
-            header << aList
+            header.add(aList)
         }
         return header
     }

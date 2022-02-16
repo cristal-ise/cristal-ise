@@ -85,8 +85,13 @@ class SplitDelegate extends BlockDelegate {
         cl()
 
         childBlocks.each {
-            Next n = aSplit.addNext(it.firstVertex)
-            it.lastVertex.addNext(aJoin)
+            if (it.firstVertex) {
+                aSplit.addNext(it.firstVertex)
+                it.lastVertex.addNext(aJoin)
+            }
+            else {
+                aSplit.addNext(aJoin)
+            }
         }
 
         setSplitProperties(aSplit)

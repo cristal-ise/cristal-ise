@@ -61,7 +61,7 @@ public class OrSplit extends Split {
 
         for (DirectedEdge edge : nextsToFollow) {
             Next next = (Next)edge;
-            log.trace("runNext(id:{}) - Running {}", id, next.getBuiltInProperty(ALIAS));
+            log.trace("runNext(id:{}) - Running Alias:{}", id, next.getBuiltInProperty(ALIAS));
             next.getTerminusVertex().run(agent, itemPath, transactionKey);
         }
     }

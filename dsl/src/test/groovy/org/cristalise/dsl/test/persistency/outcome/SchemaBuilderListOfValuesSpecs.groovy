@@ -70,7 +70,7 @@ class SchemaBuilderListOfValuesSpecs extends Specification implements CristalTes
 
     def 'Field can specify listOfValues.scriptRef using Script object'() {
         expect:
-        def script = new Script("Script", 0, new ItemPath(), "<cristalscript><script language='javascript' name='Script'>;</script></cristalscript>", true);
+        def script = new Script("Script", 0, new ItemPath(), "<cristalscript><script language='javascript' name='Script'><![CDATA[;]]></script></cristalscript>", true);
 
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails') {

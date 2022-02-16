@@ -1,18 +1,31 @@
+/**
+ * This file is part of the CRISTAL-iSE Development Module.
+ * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * http://www.fsf.org/licensing/licenses/lgpl.html
+ */
 package org.cristalise.kernel.test.lifecycle.instance
-
-import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
-import org.cristalise.kernel.graph.model.GraphModel
-import org.cristalise.kernel.lifecycle.instance.Workflow
-import org.cristalise.kernel.lifecycle.renderer.LifecycleRenderer
-
-import javax.imageio.ImageIO
-import java.awt.image.BufferedImage
 
 import org.cristalise.dsl.test.builders.WorkflowTestBuilder;
 import org.cristalise.kernel.common.InvalidTransitionException
+import org.cristalise.kernel.graph.model.GraphModel
+import org.cristalise.kernel.lifecycle.instance.Workflow
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
-
 import spock.lang.Specification
 
 
@@ -21,7 +34,7 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
     static WorkflowTestBuilder util
 
     def setupSpec() {
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true)
+        inMemoryServer(null, true)
 
         util = new WorkflowTestBuilder()
     }
@@ -154,7 +167,7 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
             CompAct('ca') {
                 Property('Abortable': true)
                 AndSplit {
-                     Block {
+                    Block {
                         Loop(RoutingScriptName: 'javascript:\"false\";') {
                             ElemAct('left')
                         }
@@ -209,6 +222,27 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
         util.checkActStatus('rootCA', [state: "Started",  active: true])
         util.checkActStatus('one',    [state: "Finished", active: false])
         util.checkActStatus('ca',     [state: "Finished", active: false])
+    }
+
+    
+    def 'CompAct is automatically finished when OrSplit skips Loop'() {
+        given:
+        def wf = util.buildAndInitWf() {
+            CompAct('ca') {
+                ElemAct("first")
+                OrSplit(javascript: "2") {
+                    B { Loop { ElemAct("left") } }
+                    B { /*EMPTY*/ }
+                }
+            }
+        }
+
+        when:
+        util.requestAction("first", "Done")
+        //util.saveWorkflowPngImage(wf.search("workflow/domain/ca").getChildrenGraphModel(), "target/OrSplitCanSkipLoop.png", true)
+
+        then:
+        util.checkActStatus('ca', [state: "Finished", active: false])
     }
 
     def 'CompAct with infinitive Loop never finishes'() {

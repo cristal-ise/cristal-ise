@@ -48,6 +48,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.events.History;
+import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.WfCastorHashMap;
@@ -456,8 +457,10 @@ public class Activity extends WfVertex {
     }
 
     private CompositeActivity getParentCA() {
-        if (getParent() != null) return (CompositeActivity) getParent();
-        else                     return null;
+        GraphableVertex theParent = getParent();
+
+        if (theParent != null) return (CompositeActivity) theParent;
+        else                   return null;
     }
 
     /**
@@ -470,13 +473,13 @@ public class Activity extends WfVertex {
         Vertex[] outVertices = getOutGraphables();
 
         //run next vertex if any, so state/status of activities is updated
-        if (outVertices.length > 0) ((WfVertex)getOutGraphables()[0]).run(agent, itemPath, transactionKey);
+        if (outVertices.length > 0) ((WfVertex)outVertices[0]).run(agent, itemPath, transactionKey);
 
         //parent is never null, because we do not call runNext() for the top level workflow (see bellow)
         CompositeActivity parent = getParentCA();
 
-        //compute now if the CA can be finished or not
-        if (checkParentFinishable(parent, outVertices)) {
+        //check if the CA can be finished or not
+        if (checkParentFinishable(parent)) {
             // do not call runNext() for the top level compAct (i.e. workflow is never finished)
             if (! parent.getName().equals("domain")) {
                 parent.runNext(agent, itemPath, transactionKey);
@@ -487,48 +490,66 @@ public class Activity extends WfVertex {
     /**
      * Calculate if the CompositeActivity (parent) can be finished automatically or not
      */
-    private boolean checkParentFinishable(CompositeActivity parent, Vertex[] outVertices)
-            throws InvalidDataException
-    {
-        WfVertex outVertex = null;
+    private boolean checkParentFinishable(CompositeActivity parent) throws InvalidDataException {
+        Vertex[] outVertices = getOutGraphables();
         boolean cont = outVertices.length > 0;
+        WfVertex lastVertex = null;
 
-        //Find the 'last' Join of the output of the Activity
+        //Find the 'last' Vertex of the output of the Activity
         while (cont) {
-            outVertex = (WfVertex)outVertices[0];
+            lastVertex = (WfVertex)outVertices[0];
 
-            if (outVertex instanceof Join) {
-                outVertices = outVertex.getOutGraphables();
+            if (lastVertex instanceof Join) {
+                outVertices = lastVertex.getOutGraphables();
                 cont = outVertices.length > 0;
             }
-            else if(outVertex instanceof Loop){
-                String loopPairingId = (String) outVertex.getBuiltInProperty(PAIRING_ID);
-                if(loopPairingId != null && StringUtils.isNotBlank(loopPairingId)){
+            else if (lastVertex instanceof Loop) {
+                String pairingId = (String) lastVertex.getBuiltInProperty(PAIRING_ID);
+                if (StringUtils.isNotBlank(pairingId)) {
                     //Find the out Join which has not the same pairing id as the Loop
-                    outVertices = outVertex.getOutGraphables();
-                    outVertices = Arrays.stream(outVertices).filter(v -> !loopPairingId.equals(((WfVertex) v).getBuiltInProperty(PAIRING_ID))).toArray(Vertex[]::new);
+                    Join outJoin = (Join) Arrays.stream(lastVertex.getOutGraphables())
+                            .filter(v -> !pairingId.equals(((WfVertex) v).getBuiltInProperty(PAIRING_ID)))
+                            .findFirst().get();
+                    outVertices = outJoin.getOutGraphables();
                     cont = outVertices.length > 0;
-                } else { cont = false; }
+                    lastVertex = outJoin;
+                }
+                else {
+                    cont = false;
+                }
+            }
+            else if (lastVertex instanceof Split) {
+                String pairingID = (String) lastVertex.getBuiltInProperty(PAIRING_ID);
+                if (StringUtils.isNotBlank(pairingID)) {
+                    // the pair of a Split (not Loop) is a Join
+                    Join splitJoin = (Join)findPair(pairingID);
+                    outVertices = splitJoin.getOutGraphables();
+                    cont = outVertices.length > 0;
+                    lastVertex = splitJoin;
+                }
+                else {
+                    cont = false;
+                }
             }
             else {
                 cont = false;
             }
         }
 
-        boolean hasNoNext = false;
+        boolean finishable = false;
 
-        //Calculate if there is still an Activity to be executed
-        if (outVertex instanceof Join) {
-            hasNoNext = parent.getPossibleActs(outVertex, GraphTraversal.kUp).size() == 0;
+        //Calculate if there is still an Activity to be executed in the Parent
+        if (lastVertex == null) {
+            finishable = true;
         }
-        else if (outVertex instanceof Loop) {
-            hasNoNext = parent.getPossibleActs(outVertex, GraphTraversal.kDown).size() == 0;
+        else if (lastVertex instanceof Join) {
+            finishable = parent.getPossibleActs(lastVertex, GraphTraversal.kUp).size() == 0;
         }
-        else if (outVertex == null) {
-            hasNoNext = true;
+        else if (lastVertex instanceof Loop) {
+            finishable = parent.getPossibleActs(lastVertex, GraphTraversal.kDown).size() == 0;
         }
 
-        return hasNoNext;
+        return finishable;
     }
 
     /**

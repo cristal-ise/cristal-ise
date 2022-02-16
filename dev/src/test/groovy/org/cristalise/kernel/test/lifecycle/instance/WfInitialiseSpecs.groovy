@@ -1,5 +1,5 @@
 /**
- * This file is part of the CRISTAL-iSE kernel.
+ * This file is part of the CRISTAL-iSE Development Module.
  * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it
@@ -18,7 +18,6 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-
 package org.cristalise.kernel.test.lifecycle.instance
 
 import org.cristalise.dsl.test.builders.WorkflowTestBuilder;
@@ -36,7 +35,7 @@ class WfInitialiseSpecs extends Specification  implements CristalTestSetup {
     static WorkflowTestBuilder wfBuilder
 
     def setupSpec() {
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true)
+        inMemoryServer(null, true)
         wfBuilder = new WorkflowTestBuilder()
     }
 

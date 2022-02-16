@@ -65,15 +65,18 @@ class OrSplitDefDelegate extends SplitDefDelegate {
         }
     }
 
-    def Block(Map<String, Object> props = null, @DelegatesTo(BlockDefDelegate) Closure cl) {
+    def Block(Map<String, Object> initialProps = null, @DelegatesTo(BlockDefDelegate) Closure cl) {
         def blockD =  new BlockDefDelegate(compActDef, orSplitDef)
         blockD.processClosure(cl)
 
-        //link to end of the current Block with the Join of the OrSplit
+        //link the end of the current Block with the Join of the OrSplit
         log.debug('Block() - linking lastSlotDef:{} to join:{}', blockD.lastSlotDef, joinDef)
-        compActDef.addNextDef(blockD.lastSlotDef, joinDef)
+        def lastNextDef = compActDef.addNextDef(blockD.lastSlotDef, joinDef)
 
-        if (blockD.firstEdge && props?.Alias) blockD.firstEdge.setBuiltInProperty(ALIAS, props.Alias)
+        if (initialProps?.Alias) {
+            if (blockD.firstEdge) blockD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
+            else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
+        }
 
         return blockD.lastSlotDef
     }
@@ -86,48 +89,68 @@ class OrSplitDefDelegate extends SplitDefDelegate {
 
     @Override
     def Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
-        def loopD =  new LoopDefDelegate(compActDef, orSplitDef, null)
+        def loopD =  new LoopDefDelegate(compActDef, orSplitDef, initialProps)
         loopD.processClosure(cl)
 
-        //link to end of the current Block with the Join of the OrSplit
+        //link the end of the current Block with the Join of the OrSplit
         log.debug('Loop() - linking lastSlotDef:{} to join:{}', loopD.lastSlotDef, joinDef)
-        compActDef.addNextDef(loopD.lastSlotDef, joinDef)
+        def lastNextDef = compActDef.addNextDef(loopD.lastSlotDef, joinDef)
+
+        if (initialProps?.Alias) {
+            if (loopD.firstEdge) loopD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
+            else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
+        }
 
         return loopD.lastSlotDef
     }
 
     @Override
-    def AndSplit(Map<String, Object> props = null, @DelegatesTo(AndSplitDefDelegate) Closure cl) {
-        def andD =  new AndSplitDefDelegate(compActDef, lastSlotDef, props)
+    def AndSplit(Map<String, Object> initialProps = null, @DelegatesTo(AndSplitDefDelegate) Closure cl) {
+        def andD =  new AndSplitDefDelegate(compActDef, lastSlotDef, initialProps)
         andD.processClosure(cl)
 
-        //link to the end of the current Block with the Join of the OrSplit
+        //link the end of the current Block with the Join of the OrSplit
         log.debug('AndSplit() - linking lastSlotDef:{} to join:{}', andD.lastSlotDef, joinDef)
-        compActDef.addNextDef(andD.lastSlotDef, joinDef)
+        def lastNextDef = compActDef.addNextDef(andD.lastSlotDef, joinDef)
+
+        if (initialProps?.Alias) {
+            if (andD.firstEdge) andD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
+            else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
+        }
 
         return andD.andSplitDef
     }
 
     @Override
-    def OrSplit(Map<String, Object> props = null, @DelegatesTo(OrSplitDefDelegate) Closure cl) {
-        def orD =  new OrSplitDefDelegate(compActDef, lastSlotDef, props)
+    def OrSplit(Map<String, Object> initialProps = null, @DelegatesTo(OrSplitDefDelegate) Closure cl) {
+        def orD =  new OrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
         orD.processClosure(cl)
 
         //link to the end of the current Block with the Join of the OrSplit
         log.debug('OrSplit() - linking lastSlotDef:{} to join:{}', orD.lastSlotDef, joinDef)
-        compActDef.addNextDef(orD.lastSlotDef, joinDef)
+        def lastNextDef = compActDef.addNextDef(orD.lastSlotDef, joinDef)
+
+        if (initialProps?.Alias) {
+            if (orD.firstEdge) orD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
+            else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
+        }
 
         return orD.orSplitDef
     }
 
     @Override
-    def XOrSplit(Map<String, Object> props = null, @DelegatesTo(XOrSplitDefDelegate) Closure cl) {
-        def xorD =  new XOrSplitDefDelegate(compActDef, lastSlotDef, props)
+    def XOrSplit(Map<String, Object> initialProps = null, @DelegatesTo(XOrSplitDefDelegate) Closure cl) {
+        def xorD =  new XOrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
         xorD.processClosure(cl)
 
         //link to the end of the current Block with the Join of the XOrSplit
         log.debug('OrSplit() - linking lastSlotDef:{} to join:{}', xorD.lastSlotDef, joinDef)
-        compActDef.addNextDef(xorD.lastSlotDef, joinDef)
+        def lastNextDef = compActDef.addNextDef(xorD.lastSlotDef, joinDef)
+
+        if (initialProps?.Alias) {
+            if (xorD.firstEdge) xorD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
+            else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
+        }
 
         return xorD.xorSplitDef
     }
