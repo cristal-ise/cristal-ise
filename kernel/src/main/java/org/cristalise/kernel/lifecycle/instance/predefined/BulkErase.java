@@ -47,6 +47,8 @@ import lombok.extern.slf4j.Slf4j;
 public class BulkErase extends Erase {
     public static final String description =  "Deletes all Items selected bz the SearchFilter : Root Domainpath and list of Properties";
 
+    private static final int LIMIT = Gateway.getProperties().getInt("BulkErase.limit", 0); // 0 means no paging
+
     public BulkErase() {
         super();
         this.setBuiltInProperty(SCHEMA_NAME, "SearchFilter");
@@ -61,32 +63,54 @@ public class BulkErase extends Erase {
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
-        log.debug("Called by {} on {}", agent.getAgentName(transactionKey), item);
-
         try {
-            SearchFilter sf = (SearchFilter) Gateway.getMarshaller().unmarshall(requestData);
+            SearchFilter filter = (SearchFilter) Gateway.getMarshaller().unmarshall(requestData);
 
-            PagedResult result = Gateway.getLookup().search(new DomainPath(sf.getSearchRoot()), sf.getProperties(), 0, 100);
+            log.debug("runActivityLogic() - item:{} filter:{} limit:{}", item, filter, LIMIT);
 
-            for (Path p : result.rows) {
-                ItemPath target = ((DomainPath)p).getTarget();
-                String name = target.getItemName();
+            int recordsDeleted = eraseAllItemsOfSearch(filter, transactionKey, 0, LIMIT);
+            filter.setRecordsFound(recordsDeleted);
 
-                removeAliases(target, transactionKey);
-                removeRolesIfAgent(target, transactionKey);
-                Gateway.getStorage().removeCluster(target, transactionKey);
+            log.info("runActivityLogic() - DONE #{} items with filter:{}", filter.getRecordsFound(), filter);
 
-                log.debug("runActivityLogic() - erased item:{}/{}", name, target);
-            }
-
-            sf.setRecordsFound(result.maxRows);
-
-            log.info("runActivityLogic() - deleted #{} items - filter:{}", sf.getRecordsFound(), sf);
-
-            return Gateway.getMarshaller().marshall(sf);
+            return Gateway.getMarshaller().marshall(filter);
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
             throw new InvalidDataException("Error adding members to collection", e);
+        }
+    }
+
+    private int eraseAllItemsOfSearch(SearchFilter filter, TransactionKey transactionKey, final int offset, final int limit)
+            throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, InvalidDataException, PersistencyException
+    {
+        PagedResult result = Gateway.getLookup().search(new DomainPath(filter.getSearchRoot()), filter.getProperties(), offset, limit);
+
+        log.debug("eraseAllItemsOfSearch() - offset:{} maxRows:{}", offset, result.maxRows);
+
+        //something seriously wrong, it seems result.maxRows does not change when using delete with limit and offset
+        if (limit != 0 && offset > result.maxRows) {
+            String msg = "Serious inconsistency - offset:" + offset + " > maxRows:" + result.maxRows;
+            log.error("eraseAllItemsOfSearch() - {}", msg);
+            throw new InvalidDataException(msg);
+        }
+
+        for (Path p : result.rows) {
+            ItemPath item = ((DomainPath)p).getTarget();
+            eraseOneItem(item, transactionKey);
+        }
+
+        if (limit == 0) {
+            // maxRows is not populated when limit == 0 (i.e. no paging was done)
+            return result.rows.size();
+        }
+        else if (result.maxRows > LIMIT) {
+            // there are more pages to read and delete
+            int recordDeleted = eraseAllItemsOfSearch(filter, transactionKey, offset + LIMIT, LIMIT);
+            return recordDeleted + LIMIT;
+        }
+        else {
+            // no more pages to read
+            return result.maxRows;
         }
     }
 }
