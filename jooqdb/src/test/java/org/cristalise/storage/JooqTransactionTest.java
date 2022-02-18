@@ -65,7 +65,7 @@ public class JooqTransactionTest extends JooqTestConfigurationBase {
             TransactionKey transactionKey = new TransactionKey("JooqTransactionTest");
 
             Gateway.getStorage().begin(transactionKey);
-            Gateway.getStorage().removeCluster(itemPath, "", transactionKey); 
+            Gateway.getStorage().removeCluster(itemPath, transactionKey); 
             Gateway.getLookupManager().delete(itemPath, transactionKey);
             Gateway.getStorage().commit(transactionKey);
         }

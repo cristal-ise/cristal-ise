@@ -113,8 +113,15 @@ public class ProxyMessage {
      * @return
      */
     public ClusterType getClusterType() {
-        if (clusterStoreMesssage) return ClusterType.getValue(path.substring(0, path.indexOf('/')));
-        else                      return null;
+        if (clusterStoreMesssage) {
+            int slashIdx = path.indexOf('/');
+
+            if (slashIdx != -1) return ClusterType.getValue(path.substring(0, slashIdx));
+            else                return ClusterType.ROOT;
+        }
+        else {
+            return null;
+        }
     }
 
     /**
@@ -122,8 +129,15 @@ public class ProxyMessage {
      * @return the ClusterPath without the ClusterType prefix
      */
     public String getObjectKey() {
-        if (clusterStoreMesssage) return path.substring(path.indexOf('/') + 1);
-        else                      return path;
+        if (clusterStoreMesssage) {
+            int slashIdx = path.indexOf('/');
+
+            if (slashIdx != -1) return path.substring(slashIdx + 1);
+            else                return path;
+        }
+        else {
+            return path;
+        }
     }
 
     /**

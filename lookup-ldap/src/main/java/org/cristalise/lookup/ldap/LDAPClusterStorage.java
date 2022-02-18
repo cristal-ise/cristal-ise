@@ -134,6 +134,23 @@ public class LDAPClusterStorage extends ClusterStorage {
             throw new PersistencyException("Cluster type " + type + " not supported.");
     }
 
+    private void removeCluster(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
+        String[] children = getClusterContents(itemPath, path, transactionKey);
+
+        for (String element : children) {
+            removeCluster(itemPath, path+(path.length()>0?"/":"")+element, transactionKey);
+        }
+
+        if (children.length == 0 && path.indexOf("/") > -1) {
+            delete(itemPath, path, transactionKey);
+        }
+    }
+
+    @Override
+    public void delete(ItemPath thisItem, TransactionKey transactionKey) throws PersistencyException {
+        removeCluster(thisItem, "", transactionKey);
+    }
+
     // delete cluster
     @Override
     public void delete(ItemPath thisItem, String path, TransactionKey transactionKey) throws PersistencyException {
