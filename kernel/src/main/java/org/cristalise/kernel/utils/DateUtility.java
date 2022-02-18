@@ -26,10 +26,11 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 //import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.common.InvalidDataException;
 
@@ -52,8 +53,6 @@ public class DateUtility {
 
     static public GTimeStamp getNow() {
         ZonedDateTime now = ZonedDateTime.now();
-
-        
 
         return new GTimeStamp( now.getYear(),
                                now.getMonth().getValue(),
@@ -186,6 +185,12 @@ public class DateUtility {
             throw new InvalidDataException("Unknown time format: "+time);
     }
 
+    /**
+     * Return the TimeStamp in a form that will convert nicely to a String: YYYY-MM-DD HH:MI:SS.sss
+     * 
+     * @param timeStamp
+     * @return Return the formatted TimeStamp 
+     */
     public static String timeToString(GTimeStamp timeStamp) {
         StringBuffer time = new StringBuffer().append(timeStamp.mYear).append("-");
 
@@ -204,9 +209,9 @@ public class DateUtility {
         if (timeStamp.mSecond<10) time.append("0");
         time.append(timeStamp.mSecond);
 
-        if (timeStamp.mNano != 0) {
-            time.append(".").append(timeStamp.mNano);
-        }
+        int millisec = (int) timeStamp.mNano / 1000000;
+        String msString = StringUtils.leftPad(Integer.toString(millisec), 3, "0");
+        time.append(".").append(msString);
 
         return time.toString();
     }
@@ -250,7 +255,9 @@ public class DateUtility {
     }
 
     public static String timeStampToUtcString(GTimeStamp gts) {
-        return toOffsetDateTime(gts).format(DateTimeFormatter.ISO_INSTANT);
+        // variant of DateTimeFormatter.ISO_INSTANT;
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendInstant(3).toFormatter();
+        return toOffsetDateTime(gts).format(formatter);
     }
 
 }
