@@ -136,7 +136,24 @@ public class LDAPClusterStorage extends ClusterStorage {
     // delete full cluster
     @Override
     public void delete(ItemPath thisItem, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
-        throw new PersistencyException("UNIMPLEMENTED funnctionality");
+        removeCluster(thisItem, cluster.getName(), transactionKey);
+    }
+
+    private void removeCluster(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
+        String[] children = getClusterContents(itemPath, path, transactionKey);
+
+        for (String element : children) {
+            removeCluster(itemPath, path+(path.length()>0?"/":"")+element, transactionKey);
+        }
+
+        if (children.length == 0 && path.indexOf("/") > -1) {
+            delete(itemPath, path, transactionKey);
+        }
+    }
+
+    @Override
+    public void delete(ItemPath thisItem, TransactionKey transactionKey) throws PersistencyException {
+        removeCluster(thisItem, "", transactionKey);
     }
 
     // delete cluster

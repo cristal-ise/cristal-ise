@@ -57,15 +57,27 @@ public class Erase extends PredefinedStep {
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
-        log.debug("Called by {} on {}", agent.getAgentName(transactionKey), item);
+        //read name before it is erased, so it can be logged
+        String itemName = item.getItemName(transactionKey);
+
+        eraseOneItem(item, transactionKey);
+
+        log.info("runActivityLogic() - DONE agent:{} item:{}", agent.getAgentName(transactionKey), itemName);
+
+        return requestData;
+    }
+
+    protected void eraseOneItem(ItemPath item, TransactionKey transactionKey) 
+            throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, InvalidDataException, PersistencyException
+    {
+        //read name before it is erased, so it can be logged
+        String itemName = item.getItemName(transactionKey);
 
         removeAliases(item, transactionKey);
         removeRolesIfAgent(item, transactionKey);
         Gateway.getStorage().removeCluster(item, transactionKey);
 
-        log.info("Done item:"+item);
-
-        return requestData;
+        log.trace("eraseOneItem() - DONE uuid:{} name:{}", item, itemName);
     }
 
     /**
@@ -116,7 +128,7 @@ public class Erase extends PredefinedStep {
         }
         catch (InvalidItemPathException e) {
             //this is actually never happens, new AgentPath(item) does not throw InvalidAgentPathException
-            //but the exception is needed for 'backward compability'
+            //but the exception is needed for 'backward compatibility'
         }
     }
 }

@@ -85,17 +85,17 @@ public class XMLClusterStorage extends ClusterStorage {
             String rootProp = Gateway.getProperties().getString("XMLStorage.root");
 
             if (rootProp == null)
-                throw new PersistencyException("XMLClusterStorage.open() - Root path not given in config file.");
+                throw new PersistencyException("Root path not given in config file.");
 
             rootDir = new File(rootProp).getAbsolutePath();
         }
 
         if (!FileStringUtility.checkDir(rootDir)) {
-            log.error("XMLClusterStorage.open() - Path " + rootDir + "' does not exist. Attempting to create.");
+            log.error("open() - Path " + rootDir + "' does not exist. Attempting to create.");
             boolean success = FileStringUtility.createNewDir(rootDir);
 
             if (!success)
-                throw new PersistencyException("XMLClusterStorage.open() - Could not create dir " + rootDir + ". Cannot continue.");
+                throw new PersistencyException("Could not create dir " + rootDir + ". Cannot continue.");
         }
         
         log.info("open() - DONE rootDir:'" + rootDir + "' ext:'" + fileExtension + "' userDir:" + useDirectories);
@@ -180,19 +180,36 @@ public class XMLClusterStorage extends ClusterStorage {
             if (!FileStringUtility.checkDir(dir)) {
                 boolean success = FileStringUtility.createNewDir(dir);
                 if (!success)
-                    throw new PersistencyException("XMLClusterStorage.put() - Could not create dir " + dir + ". Cannot continue.");
+                    throw new PersistencyException("Could not create dir " + dir + ". Cannot continue.");
             }
             FileStringUtility.string2File(filePath, data);
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException("XMLClusterStorage.put() - Could not write " + getPath(obj) + " to " + itemPath);
+            throw new PersistencyException("Could not write " + getPath(obj) + " to " + itemPath);
+        }
+    }
+
+    private void removeCluster(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
+        String[] children = getClusterContents(itemPath, path, transactionKey);
+
+        for (String element : children) {
+            removeCluster(itemPath, path+(path.length()>0?"/":"")+element, transactionKey);
+        }
+
+        if (children.length == 0 && path.indexOf("/") > -1) {
+            delete(itemPath, path, transactionKey);
         }
     }
 
     @Override
     public void delete(ItemPath itemPath, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
         delete(itemPath, cluster.getName(), transactionKey);
+    }
+
+    public void delete(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
+        // TODO: use delete full directory when useDirectories = true
+        removeCluster(itemPath, "", transactionKey);
     }
 
     @Override
@@ -208,10 +225,10 @@ public class XMLClusterStorage extends ClusterStorage {
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException(
-                    "XMLClusterStorage.delete() - Failure deleting path " + path + " in " + itemPath + " Error: " + e.getMessage());
+            throw new PersistencyException("Failure deleting path " + path + " in " + itemPath + " Error: " + e.getMessage());
         }
-        throw new PersistencyException("XMLClusterStorage.delete() - Failure deleting path " + path + " in " + itemPath);
+
+        throw new PersistencyException("delete() - Failure deleting path " + path + " in " + itemPath);
     }
 
     @Override
@@ -222,7 +239,7 @@ public class XMLClusterStorage extends ClusterStorage {
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException("XMLClusterStorage.getClusterContents("+itemPath+") - Could not get contents of " + path + " from "
+            throw new PersistencyException("itemPath:"+itemPath+" Could not get contents of " + path + " from "
                     + itemPath + ": " + e.getMessage());
         }
     }

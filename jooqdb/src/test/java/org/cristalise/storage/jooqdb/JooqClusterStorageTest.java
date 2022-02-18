@@ -106,7 +106,7 @@ public class JooqClusterStorageTest extends JooqTestConfigurationBase {
     @After
     public void deleteItem() throws Exception {
         //NOTE: implicitly tests deleting full item data
-        Gateway.getStorage().removeCluster(itemPath, "", null);
+        Gateway.getStorage().removeCluster(itemPath, null);
     }
 
     @AfterClass

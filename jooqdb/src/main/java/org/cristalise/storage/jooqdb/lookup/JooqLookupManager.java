@@ -482,7 +482,7 @@ public class JooqLookupManager implements LookupManager {
             SelectQuery<?> selectCount = getSearchSelect(context, start, props);
             selectCount.addSelect(DSL.count());
 
-            log.debug("search(props) - SQL(count):\n{}", selectCount);
+            log.trace("search(props) - SQL(count):\n{}", selectCount);
 
             maxRows = selectCount.fetchOne(0, int.class);
 
@@ -497,7 +497,7 @@ public class JooqLookupManager implements LookupManager {
         if (limit  > 0) select.addLimit(limit);
         if (offset > 0) select.addOffset(offset);
 
-        log.debug("search(props) - SQL:\n{}", select);
+        log.trace("search(props) - SQL:\n{}", select);
 
         return new PagedResult(maxRows, domains.getListOfPath(select.fetch()));
     }

@@ -448,7 +448,17 @@ public class JooqClusterStorage extends ClusterStorage {
     }
 
     @Override
+    public void delete(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
+        log.debug("delete() - complete item:{}", itemPath);
+
+        for(ClusterType cluster: getClusters(itemPath, transactionKey)) {
+            delete(itemPath, cluster, transactionKey);
+        }
+    }
+
+    @Override
     public void delete(ItemPath itemPath, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
+        log.debug("delete() - item:{} cluster:{}", itemPath, cluster);
         delete(itemPath, cluster.getName(), transactionKey);
     }
 
@@ -465,8 +475,8 @@ public class JooqClusterStorage extends ClusterStorage {
         DSLContext  context     = retrieveContext(transactionKey);
 
         if (handler != null) {
-            log.debug("delete() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
-            handler.delete(context, uuid, primaryKeys);
+            int deletedCount = handler.delete(context, uuid, primaryKeys);
+            log.debug("delete() - DONE uuid:{} cluster:{} primaryKeys:{} deletedCount:{}", uuid, cluster, Arrays.toString(primaryKeys), deletedCount);
         }
         else {
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");

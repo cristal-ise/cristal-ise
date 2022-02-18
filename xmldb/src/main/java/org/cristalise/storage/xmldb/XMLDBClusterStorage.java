@@ -289,6 +289,22 @@ public class XMLDBClusterStorage extends ClusterStorage {
         }
     }
 
+    private void removeCluster(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
+        String[] children = getClusterContents(itemPath, path, transactionKey);
+
+        for (String element : children) {
+            removeCluster(itemPath, path+(path.length()>0?"/":"")+element, transactionKey);
+        }
+
+        if (children.length == 0 && path.indexOf("/") > -1) {
+            delete(itemPath, path, transactionKey);
+        }
+    }
+
+    public void delete(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
+        removeCluster(itemPath, "", transactionKey);
+    }
+
     @Override
     public void delete(ItemPath itemPath, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("UNIMPLEMENTED funnctionality");

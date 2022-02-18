@@ -311,6 +311,7 @@ public class ClusterStorageManager {
                 String[] thisArr = thisReader.getClusterContents(itemPath, path, transactionKey);
                 if (thisArr != null) {
                     for (int j = 0; j < thisArr.length; j++) {
+                        //the same content might be available in many ClusterStorages
                         if (!contents.contains(thisArr[j])) {
                             log.trace("getClusterContents() - {} reports {}", thisReader, thisArr[j]);
                             contents.add(thisArr[j]);
@@ -594,8 +595,27 @@ public class ClusterStorageManager {
      * @throws PersistencyException - when deleting fails
      */
     public void removeCluster(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
-        //TODO: replace this ClusterStoraeg API call with more efficient version
-        removeCluster(itemPath, "", transactionKey);
+        lockItem(itemPath, transactionKey);
+
+        ArrayList<ClusterStorage> writers = findStorages(ClusterType.ROOT, true);
+
+        for (ClusterStorage thisWriter : writers) {
+            try {
+                log.debug( "delete() - removing {} from {}", itemPath, thisWriter);
+                thisWriter.delete(itemPath, transactionKey);
+            }
+            catch (PersistencyException e) {
+                log.error("Writer:{} could not delete {}", thisWriter, itemPath, e);
+                throw e;
+            }
+        }
+
+        clearCache(itemPath);
+
+        ProxyMessage message = new ProxyMessage(itemPath, itemPath.getItemName(), DELETE);
+
+        if (transactionKey != null) keepMessageForLater(message, transactionKey);
+        else                        Gateway.sendProxyEvent(message);
     }
 
     /**

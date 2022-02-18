@@ -44,6 +44,6 @@ public class SearchFilter {
 
     @Override
     public String toString() {
-        return "Filter{SearcRoot:"+searchRoot+"-"+properties.list+"}";
+        return "Filter{"+searchRoot+":"+properties.list+"}";
     }
 }
