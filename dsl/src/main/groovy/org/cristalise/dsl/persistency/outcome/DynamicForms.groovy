@@ -119,7 +119,7 @@ class DynamicForms {
             return 'null'
         }
         else if (updateQuerytRef instanceof Query) {
-            Script q = (Script)updateQuerytRef
+            Query q = (Query)updateQuerytRef
             return q.getName() + ':' + q.getVersion()
         }
         else {

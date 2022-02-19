@@ -16,13 +16,14 @@ public final class GTimeStamp implements org.omg.CORBA.portable.IDLEntity
   public int mHour = (int)0;
   public int mMinute = (int)0;
   public int mSecond = (int)0;
+  public int mNano = (int)0;
   public int mTimeOffset = (int)0;
 
   public GTimeStamp ()
   {
   } // ctor
 
-  public GTimeStamp (int _mYear, int _mMonth, int _mDay, int _mHour, int _mMinute, int _mSecond, int _mTimeOffset)
+  public GTimeStamp (int _mYear, int _mMonth, int _mDay, int _mHour, int _mMinute, int _mSecond, int _mNano, int _mTimeOffset)
   {
     mYear = _mYear;
     mMonth = _mMonth;
@@ -30,6 +31,7 @@ public final class GTimeStamp implements org.omg.CORBA.portable.IDLEntity
     mHour = _mHour;
     mMinute = _mMinute;
     mSecond = _mSecond;
+    mNano = _mNano;
     mTimeOffset = _mTimeOffset;
   } // ctor
 

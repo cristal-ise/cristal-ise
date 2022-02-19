@@ -45,7 +45,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
 
     @Delegate MemoryOnlyClusterStorage propertyStore = new MemoryOnlyClusterStorage()
 
-    protected Map cache = [:] //LinkedHashMap
+    protected Map<String, Path> cache = [:] //LinkedHashMap
 
     //Maps String RolePath to List of String AgentPath
     protected Map<String,List<String>> role2AgentsCache  = [:]
@@ -218,7 +218,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
             if(prop.name == "Name") name = prop.value
         }
 
-        def result = []
+        List<Path> result = []
         def foundPathes = search(start, name, SearchConstraints.WILDCARD_MATCH, transactionKey)
 
         foundPathes.each { Path p ->
