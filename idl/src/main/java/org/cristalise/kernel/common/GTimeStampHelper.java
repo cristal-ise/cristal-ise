@@ -40,7 +40,7 @@ abstract public class GTimeStampHelper
             return org.omg.CORBA.ORB.init().create_recursive_tc ( _id );
           }
           __active = true;
-          org.omg.CORBA.StructMember[] _members0 = new org.omg.CORBA.StructMember [7];
+          org.omg.CORBA.StructMember[] _members0 = new org.omg.CORBA.StructMember [8];
           org.omg.CORBA.TypeCode _tcOf_members0 = null;
           _tcOf_members0 = org.omg.CORBA.ORB.init ().get_primitive_tc (org.omg.CORBA.TCKind.tk_long);
           _members0[0] = new org.omg.CORBA.StructMember (
@@ -74,6 +74,11 @@ abstract public class GTimeStampHelper
             null);
           _tcOf_members0 = org.omg.CORBA.ORB.init ().get_primitive_tc (org.omg.CORBA.TCKind.tk_long);
           _members0[6] = new org.omg.CORBA.StructMember (
+            "mNano",
+            _tcOf_members0,
+            null);
+          _tcOf_members0 = org.omg.CORBA.ORB.init ().get_primitive_tc (org.omg.CORBA.TCKind.tk_long);
+          _members0[7] = new org.omg.CORBA.StructMember (
             "mTimeOffset",
             _tcOf_members0,
             null);
@@ -99,6 +104,7 @@ abstract public class GTimeStampHelper
     value.mHour = istream.read_long ();
     value.mMinute = istream.read_long ();
     value.mSecond = istream.read_long ();
+    value.mNano = istream.read_long ();
     value.mTimeOffset = istream.read_long ();
     return value;
   }
@@ -111,6 +117,7 @@ abstract public class GTimeStampHelper
     ostream.write_long (value.mHour);
     ostream.write_long (value.mMinute);
     ostream.write_long (value.mSecond);
+    ostream.write_long (value.mNano);
     ostream.write_long (value.mTimeOffset);
   }
 

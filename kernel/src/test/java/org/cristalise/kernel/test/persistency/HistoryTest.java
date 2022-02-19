@@ -78,10 +78,12 @@ public class HistoryTest {
         assertThat(event0).isEqualToComparingFieldByFieldRecursively(history.getEvent(0));
         assertThat(event0).isEqualToComparingFieldByFieldRecursively(history.get(0));
         assertThat(event0).isEqualToComparingFieldByFieldRecursively(history.get("0"));
+        assertThat(event0.getTimeStamp().mNano).isEqualTo(123000000);
 
         assertThat(event29).isEqualToComparingFieldByFieldRecursively(history.getEvent(29));
         assertThat(event29).isEqualToComparingFieldByFieldRecursively(history.get(29));
         assertThat(event29).isEqualToComparingFieldByFieldRecursively(history.get("29"));
+        assertThat(event29.getTimeStamp().mNano).isEqualTo(0);
     }
 
 }
