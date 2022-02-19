@@ -50,28 +50,4 @@
       <bind-xml name="Entry" node="element" />
     </field>
   </class>
-  <class name="org.cristalise.kernel.common.GTimeStamp">
-    <map-to xml="TimeStamp" />
-    <field name="mYear" type="java.lang.Integer" direct="true">
-      <bind-xml name="Y" node="attribute" />
-    </field>
-    <field name="mMonth" type="java.lang.Integer" direct="true">
-      <bind-xml name="Mo" node="attribute" />
-    </field>
-    <field name="mDay" type="java.lang.Integer" direct="true">
-      <bind-xml name="D" node="attribute" />
-    </field>
-    <field name="mHour" type="java.lang.Integer" direct="true">
-      <bind-xml name="H" node="attribute" />
-    </field>
-    <field name="mMinute" type="java.lang.Integer" direct="true">
-      <bind-xml name="Mi" node="attribute" />
-    </field>
-    <field name="mSecond" type="java.lang.Integer" direct="true">
-      <bind-xml name="S" node="attribute" />
-    </field>
-    <field name="mTimeOffset" type="java.lang.Integer" direct="true">
-      <bind-xml name="O" node="attribute" />
-    </field>
-  </class>
 </mapping>

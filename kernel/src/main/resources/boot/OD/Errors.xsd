@@ -116,6 +116,7 @@
         <xs:attribute name="H"  type="xs:decimal" use="required"/>
         <xs:attribute name="Mi" type="xs:decimal" use="required"/>
         <xs:attribute name="S"  type="xs:decimal" use="required"/>
+        <xs:attribute name="N" type="xs:decimal" use="required"/>
         <xs:attribute name="O"  type="xs:decimal" use="required"/>
     </xs:complexType>
 
