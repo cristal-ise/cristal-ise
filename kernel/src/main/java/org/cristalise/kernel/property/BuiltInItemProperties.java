@@ -74,6 +74,11 @@ public enum BuiltInItemProperties {
     MODULE("Module"),
 
     /**
+     * Used in factory Items to specify the Root DomainPath.
+     */
+    ROOT("Root"),
+
+    /**
      * The type of the Item, it is a good practice to set it as an immutable, fixed value Property. 
      * It is convenient to use in lookup.search() to find Items of the same type.
      * It is used in Dev module extensively, and it is also used when checking permission 

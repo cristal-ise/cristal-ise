@@ -55,9 +55,11 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         }
 
         def wf = CompositeActivityDef("$compActName-$timeStamp", folder) {
-            ElemActDef(elemActName,  ea)
-            actDefList.each { name, actDef ->
-                ElemActDef(name,  actDef)
+            Layout {
+                ElemActDef(elemActName,  ea)
+                actDefList.each { name, actDef ->
+                    ElemActDef(name,  actDef)
+                }
             }
         }
 
