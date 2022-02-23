@@ -21,7 +21,6 @@
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import java.util.Arrays;
-
 import org.cristalise.kernel.collection.AggregationDescription;
 import org.cristalise.kernel.collection.CollectionDescription;
 import org.cristalise.kernel.collection.DependencyDescription;
@@ -30,11 +29,12 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
-
+import org.cristalise.kernel.utils.CastorHashMap;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -50,7 +50,11 @@ public class AddNewCollectionDescription extends PredefinedStep {
     }
 
     /**
-     * Params: 0 - collection name 1 - collection type (Aggregation, Dependency)
+     * Params:
+     * 0 - collection name
+     * 1 - collection type (Aggregation, Dependency)
+     * 2 - properties
+     * 3 - Member DomainPath to specify the Typeof the member Item
      */
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
@@ -59,10 +63,11 @@ public class AddNewCollectionDescription extends PredefinedStep {
         // extract parameters
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, Arrays.toString(params));
 
-        if (params.length != 2)
-            throw new InvalidDataException("AddNewCollectionDescription: Invalid parameters " + Arrays.toString(params));
+        if (params.length < 2 || params.length > 4) {
+            throw new InvalidDataException("Invalid parameters " + Arrays.toString(params));
+        }
 
         String collName = params[0];
         String collType = params[1];
@@ -78,19 +83,40 @@ public class AddNewCollectionDescription extends PredefinedStep {
 
         CollectionDescription<?> newCollDesc;
 
-        if (collType.equalsIgnoreCase("Aggregation"))     newCollDesc = new AggregationDescription(collName);
-        else if (collType.equalsIgnoreCase("Dependency")) newCollDesc = new DependencyDescription(collName);
-        else
-            throw new InvalidDataException("AddNewCollectionDescription: Invalid type: '" + collType + "' /Aggregation or Dependency)");
+        if (collType.equalsIgnoreCase("Aggregation")) {
+            newCollDesc = new AggregationDescription(collName);
+        }
+        else if (collType.equalsIgnoreCase("Dependency")) {
+            newCollDesc = createDependencyDescription(params, collName, transactionKey);
+        }
+        else {
+            throw new InvalidDataException("Invalid type: '" + collType + "' /Aggregation or Dependency)");
+        }
 
-        // store it
-        try {
-            Gateway.getStorage().put(item, newCollDesc, transactionKey);
-        }
-        catch (PersistencyException e) {
-            throw new PersistencyException("AddNewCollectionDescription: Error saving new collection '" + collName + "': " + e.getMessage());
-        }
+        Gateway.getStorage().put(item, newCollDesc, transactionKey);
 
         return requestData;
+    }
+
+    private CollectionDescription<?> createDependencyDescription(String[] params, String collName, TransactionKey transactionKey)
+            throws InvalidDataException
+    {
+        try {
+            DependencyDescription newDepDesc = new DependencyDescription(collName);
+
+            if (params.length > 2) {
+                CastorHashMap props = (CastorHashMap) Gateway.getMarshaller().unmarshall(params[2]);
+                newDepDesc.setProperties(props);
+            }
+
+            if (params.length > 3) {
+                ItemPath memberPath = Gateway.getLookup().resolvePath(new DomainPath(params[3]), transactionKey);
+                newDepDesc.addMember(memberPath, transactionKey);
+            }
+            return newDepDesc;
+        }
+        catch (Exception e) {
+            throw new InvalidDataException(e);
+        }
     }
 }
