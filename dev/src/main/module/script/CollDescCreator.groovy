@@ -1,4 +1,4 @@
-/*
+/**
  * This file is part of the CRISTAL-iSE Development Module.
  * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
@@ -18,19 +18,10 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+import org.cristalise.kernel.common.ObjectNotFoundException
+import org.cristalise.kernel.lifecycle.instance.predefined.AddNewCollectionDescription
 
-var name = job.getOutcome().getField("Name");
-var type = job.getOutcome().getField("Type");
+def name = job.getOutcome().getField("Name");
+def type = job.getOutcome().getField("Type");
 
-var found = false;
-
-try { // check if already exists
-	item.getCollection(name);
-	found = true;
-} catch (e) { }
-if (found) throw "Collection "+name+" already exists in this Item Description";
-
-var params = new Array(2);
-params[0] = name;
-params[1] = type;
-agent.execute(item, "AddNewCollectionDescription", params);
+agent.execute(item, AddNewCollectionDescription, name, type);
