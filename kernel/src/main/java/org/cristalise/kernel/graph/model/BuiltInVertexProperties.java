@@ -226,6 +226,11 @@ public enum BuiltInVertexProperties {
     REPEAT_WHEN("RepeatWhen"),
 
     /**
+     * String property. Overrides the Root Item Property used in factory Items to specify the Root DomainPath.
+     */
+    ROOT("Root"),
+
+    /**
      * String property. Routing expression associated with Splits. It is interpreted by the Script class. The content should
      * start with the script engine name followed by the expression separated by a column like this:
      *
