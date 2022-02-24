@@ -20,18 +20,18 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
+import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 import java.util.Arrays;
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.AggregationDescription;
 import org.cristalise.kernel.collection.CollectionDescription;
 import org.cristalise.kernel.collection.DependencyDescription;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -50,11 +50,13 @@ public class AddNewCollectionDescription extends PredefinedStep {
     }
 
     /**
+     * <pre>
      * Params:
      * 0 - collection name
-     * 1 - collection type (Aggregation, Dependency)
-     * 2 - properties
-     * 3 - Member DomainPath to specify the Typeof the member Item
+     * 1 - collection type (Aggregation | Dependency)
+     * 2 - properties - CastorHasMap marshaled
+     * 3 - Member DomainPath to specify the Type of the member Item
+     * </pre>
      */
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
@@ -72,25 +74,25 @@ public class AddNewCollectionDescription extends PredefinedStep {
         String collName = params[0];
         String collType = params[1];
 
-        // check if collection already exists
-        try {
-            Gateway.getStorage().get(item, ClusterType.COLLECTION + "/" + collName + "/last", transactionKey);
-            throw new ObjectAlreadyExistsException("Collection '" + collName + "' already exists");
+        if (StringUtils.isBlank(collName) || StringUtils.isBlank(collType)) {
+            throw new InvalidDataException("Collection Name and Type cannot be blank - params:" + Arrays.toString(params));
         }
-        catch (ObjectNotFoundException ex) {
-            // collection doesn't exist
+
+        // check if collection already exists
+        if (Gateway.getStorage().getClusterContents(item, COLLECTION + "/" + collName).length != 0) {
+            throw new ObjectAlreadyExistsException("Collection '" + collName + "' already exists");
         }
 
         CollectionDescription<?> newCollDesc;
 
         if (collType.equalsIgnoreCase("Aggregation")) {
-            newCollDesc = new AggregationDescription(collName);
+            newCollDesc = createAggregationDescription(params, collName, transactionKey);
         }
         else if (collType.equalsIgnoreCase("Dependency")) {
             newCollDesc = createDependencyDescription(params, collName, transactionKey);
         }
         else {
-            throw new InvalidDataException("Invalid type: '" + collType + "' /Aggregation or Dependency)");
+            throw new InvalidDataException("Collection type must be either Aggregation or Dependency - value:" + collType);
         }
 
         Gateway.getStorage().put(item, newCollDesc, transactionKey);
@@ -98,7 +100,29 @@ public class AddNewCollectionDescription extends PredefinedStep {
         return requestData;
     }
 
-    private CollectionDescription<?> createDependencyDescription(String[] params, String collName, TransactionKey transactionKey)
+    /**
+     * 
+     * @param params
+     * @param collName
+     * @param transactionKey
+     * @return
+     * @throws InvalidDataException
+     */
+    protected CollectionDescription<?> createAggregationDescription(String[] params, String collName, TransactionKey transactionKey)
+            throws InvalidDataException
+    {
+        return new AggregationDescription(collName);
+    }
+
+    /**
+     * 
+     * @param params
+     * @param collName
+     * @param transactionKey
+     * @return
+     * @throws InvalidDataException
+     */
+    protected CollectionDescription<?> createDependencyDescription(String[] params, String collName, TransactionKey transactionKey)
             throws InvalidDataException
     {
         try {
