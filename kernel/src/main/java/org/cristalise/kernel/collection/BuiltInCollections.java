@@ -28,21 +28,32 @@ public enum BuiltInCollections {
      * CollectionDescription of CompositeActivityDef. It is instantiated as .... Also it is Dependency Collection of Workflow.
      */
     ACTIVITY("Activity"),
+    ACTIVITY_PRIME("Activity'"),
 
+    /**
+     * 
+     */
     AGGREGATE_SCRIPT("AggregateScript"),
+    AGGREGATE_SCRIPT_PRIME("AggregateScript'"),
 
     /**
      * Dependency Collection of Module. ....
      */
     CONTENTS("Contents"),
+    CONTENTS_PRIME("Contents'"),
 
     /**
      * Dependency Collection of Script. ...
      * 
      */
     INCLUDE("Include"),
+    INCLUDE_PRIME("Include'"),
 
+    /**
+     * 
+     */
     MASTER_SCHEMA("MasterSchema"),
+    MASTER_SCHEMA_PRIME("MasterSchema'"),
 
     /**
      * CollectionDescription of elementary ActivityDef. It is instantiated as two Activity properties (see bellow).
@@ -52,8 +63,13 @@ public enum BuiltInCollections {
      * @see org.cristalise.kernel.graph.model.BuiltInVertexProperties#SCHEMA_VERSION
      */
     SCHEMA("Schema"),
+    SCHEMA_PRIME("Schema'"),
 
+    /**
+     * 
+     */
     SCHEMA_INITIALISE("SchemaInitialise"),
+    SCHEMA_INITIALISE_PRIME("SchemaInitialise'"),
 
     /**
      * CollectionDescription of elementary ActivityDef. It is instantiated as two Activity properties (see bellow). 
@@ -63,6 +79,7 @@ public enum BuiltInCollections {
      * @see org.cristalise.kernel.graph.model.BuiltInVertexProperties#SCRIPT_VERSION
      */
     SCRIPT("Script"),
+    SCRIPT_PRIME("Script'"),
 
     /**
      * CollectionDescription of elementary ActivityDef. It is instantiated as two Activity properties (see bellow). 
@@ -72,6 +89,7 @@ public enum BuiltInCollections {
      * @see org.cristalise.kernel.graph.model.BuiltInVertexProperties#QUERY_VERSION
      */
     QUERY("Query"),
+    QUERY_PRIME("Query'"),
 
     /**
      * CollectionDescription of elementary ActivityDef. It is instantiated as two Activity properties
@@ -80,16 +98,13 @@ public enum BuiltInCollections {
      * @see org.cristalise.kernel.graph.model.BuiltInVertexProperties#STATE_MACHINE_VERSION
      */
     STATE_MACHINE("StateMachine"),
+    STATE_MACHINE_PRIME("StateMachine'"),
     
 
     /**
      * Dependency collection
      */
     WORKFLOW("workflow"),
-
-    /**
-     * CollectionDescription of DescriptionFactory
-     */
     WORKFLOW_PRIME("workflow'");
 
 
