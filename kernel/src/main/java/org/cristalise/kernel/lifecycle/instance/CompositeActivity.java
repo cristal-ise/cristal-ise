@@ -312,7 +312,7 @@ public class CompositeActivity extends Activity {
                 try {
                     request(agent, itemPath, trans.getId(), /*requestData*/null, "", /*attachment*/null, transactionKey);
                     // don't run next if we didn't finish
-                    if (!trans.isFinishing()) return;
+                    if (!trans.isFinishing() || trans.isBlocking()) return;
                 }
                 catch (Exception e) {
                     log.error("runNext() - Problem completing CompAct:{}", getName(), e);
@@ -435,11 +435,13 @@ public class CompositeActivity extends Activity {
             log.trace("request() - path:{} state:{} transition:{}", getPath(), sm.getState(getState()), trans);
         }
 
-        if (trans.isFinishing() && hasActive()) {
-            if ((Boolean)getBuiltInProperty(ABORTABLE))
+        if ((trans.isFinishing() || trans.isBlocking()) && hasActive()) {
+            if ((Boolean)getBuiltInProperty(ABORTABLE)) {
                 abort();
-            else
+            }
+            else {
                 throw new InvalidTransitionException("Attempted to finish '"+getPath()+"' it had active children but was not Abortable");
+            }
         }
 
         if (trans.reinitializes()) {
