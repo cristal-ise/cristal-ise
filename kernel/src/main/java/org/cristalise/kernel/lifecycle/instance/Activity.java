@@ -829,7 +829,10 @@ public class Activity extends WfVertex {
     }
 
     @Override
-    public void abort() {
+    public void abort(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey)
+            throws AccessRightsException, InvalidTransitionException, InvalidDataException, ObjectNotFoundException, PersistencyException,
+            ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification
+    {
         active = false;
     }
 }

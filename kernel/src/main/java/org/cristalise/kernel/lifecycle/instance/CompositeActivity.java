@@ -23,10 +23,8 @@ package org.cristalise.kernel.lifecycle.instance;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ABORTABLE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.REPEAT_WHEN;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -50,7 +48,6 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -402,8 +399,25 @@ public class CompositeActivity extends Activity {
     }
 
     @Override
-    public void abort() {
-        for (GraphableVertex child : getChildren()) ((WfVertex) child).abort();
+    public void abort(AgentPath agentPath, ItemPath itemPath, TransactionKey transactionKey)
+            throws AccessRightsException, InvalidTransitionException, InvalidDataException, ObjectNotFoundException, PersistencyException,
+            ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification
+    {
+        StateMachine sm = getStateMachine();
+        int abortId = sm.getTransition("Abort").getId();
+
+        for (GraphableVertex childV : getChildren()) {
+            if (childV instanceof CompositeActivity) {
+                CompositeActivity ca = (CompositeActivity) childV;
+                if (ca.active) {
+                    ca.request(agentPath, itemPath, abortId, "", "", new byte[0], transactionKey);
+                    ca.setActive(false);
+                }
+            }
+            else {
+                ((WfVertex) childV).abort(agentPath, itemPath, transactionKey);
+            }
+        }
     }
 
     public boolean hasActive() {
@@ -437,7 +451,7 @@ public class CompositeActivity extends Activity {
 
         if ((trans.isFinishing() || trans.isBlocking()) && hasActive()) {
             if ((Boolean)getBuiltInProperty(ABORTABLE)) {
-                abort();
+                abort(agent, itemPath, transactionKey);
             }
             else {
                 throw new InvalidTransitionException("Attempted to finish '"+getPath()+"' it had active children but was not Abortable");
