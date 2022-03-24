@@ -275,14 +275,14 @@ public class CompositeActivity extends Activity {
             Transition trans = null;
             try {
                 for (Transition possTran : getStateMachine().getPossibleTransitions(this, agent).keySet()) {
-                    // Find the next transition for automatic procedure. A non-finishing transition will override a finishing one,
+                    // Find the next transition for automatic procedure. A non-finishing and non-blocking transition will override a finishing one,
                     // but otherwise having more than one possible means we cannot proceed. Transition enablement should filter before this point.
 
-                    if (trans == null || (trans.isFinishing() && !possTran.isFinishing())) {
+                    if (trans == null || (trans.isFinishing() && !possTran.isFinishing() && !possTran.isBlocking())) {
                         trans = possTran;
                     }
                     else if (trans.isFinishing() == possTran.isFinishing()) {
-                        log.warn("Unclear choice of transition possible from current state for Composite Activity '"+getName()+"'. Cannot automatically proceed.");
+                        log.warn("runNext() - Unclear choice of transition possible from current state for Composite Activity '"+getName()+"'. Cannot automatically proceed.");
                         setActive(true);
                         return;
                     }
@@ -309,7 +309,7 @@ public class CompositeActivity extends Activity {
                 try {
                     request(agent, itemPath, trans.getId(), /*requestData*/null, "", /*attachment*/null, transactionKey);
                     // don't run next if we didn't finish
-                    if (!trans.isFinishing() || trans.isBlocking()) return;
+                    if (!trans.isFinishing()) return;
                 }
                 catch (Exception e) {
                     log.error("runNext() - Problem completing CompAct:{}", getName(), e);
