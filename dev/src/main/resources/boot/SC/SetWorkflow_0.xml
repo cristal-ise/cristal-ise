@@ -3,8 +3,8 @@
   <param name="agent" type="org.cristalise.kernel.entity.proxy.AgentProxy"/>
   <param name="job" type="org.cristalise.kernel.entity.Job"/>
   <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo"/>
-  <script language="javascript" name="SetWorkflow">
-    <![CDATA[ /*
+  <script language="groovy" name="SetWorkflow">
+    <![CDATA[ /**
  * This file is part of the CRISTAL-iSE Development Module.
  * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
@@ -24,52 +24,46 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
+import org.cristalise.kernel.collection.BuiltInCollections
+import org.cristalise.kernel.collection.Dependency
+import org.cristalise.kernel.entity.proxy.AgentProxy
+import org.cristalise.kernel.entity.proxy.ItemProxy
+import org.cristalise.kernel.lifecycle.instance.predefined.AddC2KObject
+import org.cristalise.kernel.utils.LocalObjectLoader
+import groovy.transform.CompileStatic
+ 
 
-// Fetch the requested name from the outcome field
-var wfDefName    = job.getOutcome().getField("WorkflowDefinitionName");
-var wfDefVersion = job.getOutcome().getField("WorkflowDefinitionVersion");
+// Fetch the requested name and version from the outcome fields
+def wfDefName    = job.getOutcome().getField("WorkflowDefinitionName");
+def wfDefVersion = Integer.parseInt(job.getOutcome().getField("WorkflowDefinitionVersion"));
 
-// Look up the description
-var wfItem;
+updateWorkflowCollection(item, agent, wfDefName, wfDefVersion)
 
-try {
-    wfItem = agent.searchItem(new org.cristalise.kernel.lookup.DomainPath("/desc/ActivityDesc"), wfDefName);
+@CompileStatic
+void updateWorkflowCollection(ItemProxy item, AgentProxy agent, String wfDefName, Integer wfDefVersion) {
+
+    // Look up the description
+    def  caDef = LocalObjectLoader.getCompActDef(wfDefName, wfDefVersion, item.transactionKey) ;
+
+    // Fetch the 'Workflow' collection
+    def coll = (Dependency) item.getCollection(WORKFLOW);
+
+    if (coll.size() > 0) { // if there's already a member, remove it
+        def member = coll.getMembers().list.get(0);
+        coll.removeMember(member.getID());
+    }
+
+    // add the new member
+    def member = coll.addMember(caDef.getItemPath(), item.transactionKey);
+    member.getProperties().put("Version", wfDefVersion);
+
+    // save it back to the item
+    def params = new String[1];
+    params[0] = agent.marshall(coll);
+
+    agent.execute(item, AddC2KObject, params);
 }
-catch (e) {
-    throw wfDefName+" is not a valid item; Exception - " + e; 
-}
-
-// Make sure it has the right properties to be a composite activity desc
-var itemType = wfItem.getProperty("Type");
-var complex  = wfItem.getProperty("Complexity");
-
-if (!itemType.equals("ActivityDesc")) throw wfDefName+" is not an activity description";
-if (!complex.equals("Composite"))     throw wfDefName+" is not a composite activity description";
-
-// Check that the named version exists
-try {
-    wfItem.getObject("/ViewPoint/CompositeActivityDef/"+wfDefVersion);
-}
-catch (e) {
-    throw wfDefName + " does not contain a version "+wfDefVersion + "; Exception - " + e;
-}
-
-// Fetch the 'Workflow' collection
-var coll = item.getObject("/Collection/workflow/last");
-
-if (coll.size() > 0) { // if there's already a member, remove it
-    var member = coll.getMembers().list.get(0);
-    coll.removeMember(member.getID());
-}
-
-// add the new member
-var cm = coll.addMember(wfItem.getPath(), item.getTransactionKey());
-cm.getProperties().put("Version", wfDefVersion);
-
-// save it back to the item
-var params = new Array(1);
-params[0] = agent.marshall(coll);
-agent.execute(item, "AddC2KObject", params);
  ]]>
   </script>
 </cristalscript>

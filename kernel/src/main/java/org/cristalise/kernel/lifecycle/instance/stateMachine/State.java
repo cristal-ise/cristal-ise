@@ -66,6 +66,10 @@ public class State {
         return -1;
     }
 
+    public boolean isBlocking() {
+        return possibleTransitions.size() == 0 && !finished;
+    }
+
     @Override
     public String toString() {
         return name+"[id:"+id+"]";

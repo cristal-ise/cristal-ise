@@ -74,7 +74,7 @@ public class Join extends WfVertex {
         Vertex[] vertices;
 
         if (findPair) {
-            GraphableVertex endVertex = findPair(pairingID);
+            GraphableVertex endVertex = findPair();
 
             if (endVertex == null) throw new InvalidDataException("Could not find pair for Join using PairingID:"+pairingID);
 

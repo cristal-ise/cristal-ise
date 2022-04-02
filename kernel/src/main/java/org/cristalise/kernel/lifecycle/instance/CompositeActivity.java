@@ -274,14 +274,14 @@ public class CompositeActivity extends Activity {
             Transition trans = null;
             try {
                 for (Transition possTran : getStateMachine().getPossibleTransitions(this, agent)) {
-                    // Find the next transition for automatic procedure. A non-finishing transition will override a finishing one,
+                    // Find the next transition for automatic procedure. A non-finishing and non-blocking transition will override a finishing one,
                     // but otherwise having more than one possible means we cannot proceed. Transition enablement should filter before this point.
 
-                    if (trans == null || (trans.isFinishing() && !possTran.isFinishing())) {
+                    if (trans == null || (trans.isFinishing() && !possTran.isFinishing() && !possTran.isBlocking())) {
                         trans = possTran;
                     }
                     else if (trans.isFinishing() == possTran.isFinishing()) {
-                        log.warn("Unclear choice of transition possible from current state for Composite Activity '"+getName()+"'. Cannot automatically proceed.");
+                        log.warn("runNext() - Unclear choice of transition possible from current state for Composite Activity '"+getName()+"'. Cannot automatically proceed.");
                         setActive(true);
                         return;
                     }
@@ -398,8 +398,25 @@ public class CompositeActivity extends Activity {
     }
 
     @Override
-    public void abort() {
-        for (GraphableVertex child : getChildren()) ((WfVertex) child).abort();
+    public void abort(AgentPath agentPath, ItemPath itemPath, TransactionKey transactionKey)
+            throws AccessRightsException, InvalidTransitionException, InvalidDataException, ObjectNotFoundException, PersistencyException,
+            ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification
+    {
+        StateMachine sm = getStateMachine();
+        int abortId = sm.getTransition("Abort").getId();
+
+        for (GraphableVertex childV : getChildren()) {
+            if (childV instanceof CompositeActivity) {
+                CompositeActivity ca = (CompositeActivity) childV;
+                if (ca.active) {
+                    ca.request(agentPath, itemPath, abortId, "", "", new byte[0], transactionKey);
+                    ca.setActive(false);
+                }
+            }
+            else {
+                ((WfVertex) childV).abort(agentPath, itemPath, transactionKey);
+            }
+        }
     }
 
     public boolean hasActive() {
@@ -431,11 +448,13 @@ public class CompositeActivity extends Activity {
             log.trace("request() - path:{} state:{} transition:{}", getPath(), sm.getState(getState()), trans);
         }
 
-        if (trans.isFinishing() && hasActive()) {
-            if ((Boolean)getBuiltInProperty(ABORTABLE))
-                abort();
-            else
+        if ((trans.isFinishing() || trans.isBlocking()) && hasActive()) {
+            if ((Boolean)getBuiltInProperty(ABORTABLE)) {
+                abort(agent, itemPath, transactionKey);
+            }
+            else {
                 throw new InvalidTransitionException("Attempted to finish '"+getPath()+"' it had active children but was not Abortable");
+            }
         }
 
         if (trans.reinitializes()) {

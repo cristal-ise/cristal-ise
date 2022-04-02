@@ -23,7 +23,13 @@ package org.cristalise.kernel.lifecycle.instance;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.CannotManageException;
+import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.InvalidTransitionException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
+import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.graph.model.GraphableVertex;
@@ -71,7 +77,11 @@ public abstract class WfVertex extends GraphableVertex {
 
     public abstract void reinit( int idLoop ) throws InvalidDataException;
 
-    public void abort() { }
+    public void abort(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) 
+            throws AccessRightsException, InvalidTransitionException, InvalidDataException, ObjectNotFoundException, PersistencyException,
+            ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification 
+    {
+    }
 
     /**
      * Method verify.
@@ -153,8 +163,13 @@ public abstract class WfVertex extends GraphableVertex {
      * @param pairingID the value of the PairingID property
      * @return the vertex or null if nothing was found
      */
-    protected GraphableVertex findPair(String pairingID) {
-        if (StringUtils.isBlank(pairingID)) return null;
+    protected GraphableVertex findPair() {
+        String pairingID = (String) getBuiltInProperty(PAIRING_ID);
+
+        if (StringUtils.isBlank(pairingID)) {
+            log.warn("findPair() - vertex:{} has no valid PairingID", getName());
+            return null;
+        }
 
         for (GraphableVertex vertex: getParent().getLayoutableChildren()) {
             if (pairingID.equals(vertex.getBuiltInProperty(PAIRING_ID)) && !vertex.equals(this)) {

@@ -23,7 +23,7 @@ Script('CollDescCreator', 0) {
     input('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
     input('job', 'org.cristalise.kernel.entity.Job')
     output('errors', 'org.cristalise.kernel.scripting.ErrorInfo')
-    script('javascript', "src/main/module/script/CollDescCreator.js")
+    script('groovy', "src/main/module/script/CollDescCreator.groovy")
 }
 
 Script('InstantiateAgent', 0) {
@@ -63,6 +63,6 @@ Script('SetWorkflow', 0) {
     input('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
     input('job', 'org.cristalise.kernel.entity.Job')
     output('errors', 'org.cristalise.kernel.scripting.ErrorInfo')
-    script('javascript', "src/main/module/script/SetWorkflow.js")
+    script('groovy', "src/main/module/script/SetWorkflow.groovy")
 }
     

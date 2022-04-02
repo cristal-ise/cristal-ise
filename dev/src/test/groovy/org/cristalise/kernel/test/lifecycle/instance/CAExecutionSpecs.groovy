@@ -313,7 +313,7 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
         thrown InvalidTransitionException
     }
 
-    def 'Compact can be finished with active children if Abortable'() {
+    def 'CompAct can be finished with active children if Abortable'() {
         given: "Workflow containing single CompAct with a single ElemAct"
         util.buildAndInitWf {
             CompAct('ca') {
@@ -329,6 +329,31 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
         then: "CompAct is finished, child is inactive but Waiting"
         util.checkActStatus('ca',    [state: "Finished", active: false])
         util.checkActStatus('first', [state: "Waiting",  active: false])
+    }
+
+    def 'Abortable CompAct calls Abort transition for its children CompActs'() {
+        given: "Workflow containing single CompAct with a single ElemAct"
+        util.buildAndInitWf {
+            CompAct('ca') {
+                Property('Abortable': true)
+                ElemAct('first')
+                CompAct('ca1') {
+                    Property('Abortable': true)
+                    ElemAct('first1')
+                }
+            }
+        }
+        util.checkActStatus('ca',   [state: "Started", active: true])
+
+        when: "requesting Root CompAct Complete transition"
+        util.requestAction('first', "Done")
+        util.requestAction('ca', "Complete")
+
+        then: "CompAct is finished, child is inactive but Waiting"
+        util.checkActStatus('ca1',    [state: "Aborted", active: false])
+        util.checkActStatus('first1', [state: "Waiting",  active: false])
+        util.checkActStatus('ca',     [state: "Finished", active: false])
+        util.checkActStatus('first',  [state: "Finished",  active: false])
     }
 
     def 'Cannot Complete Root Compact without finishing all CompActs'() {

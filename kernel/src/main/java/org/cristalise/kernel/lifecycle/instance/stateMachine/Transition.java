@@ -327,6 +327,10 @@ public class Transition {
         }
     }
 
+    public boolean isBlocking() {
+        return targetState.isBlocking();
+    }
+
     @Override
     public String toString() {
         return getName()+"[id:"+getId()+"]";
