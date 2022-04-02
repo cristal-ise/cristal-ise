@@ -163,8 +163,13 @@ public abstract class WfVertex extends GraphableVertex {
      * @param pairingID the value of the PairingID property
      * @return the vertex or null if nothing was found
      */
-    protected GraphableVertex findPair(String pairingID) {
-        if (StringUtils.isBlank(pairingID)) return null;
+    protected GraphableVertex findPair() {
+        String pairingID = (String) getBuiltInProperty(PAIRING_ID);
+
+        if (StringUtils.isBlank(pairingID)) {
+            log.warn("findPair() - vertex:{} has no valid PairingID", getName());
+            return null;
+        }
 
         for (GraphableVertex vertex: getParent().getLayoutableChildren()) {
             if (pairingID.equals(vertex.getBuiltInProperty(PAIRING_ID)) && !vertex.equals(this)) {

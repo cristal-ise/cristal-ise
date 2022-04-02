@@ -529,10 +529,10 @@ public class Activity extends WfVertex {
                 }
             }
             else if (lastVertex instanceof Split) {
-                String pairingID = (String) lastVertex.getBuiltInProperty(PAIRING_ID);
-                if (StringUtils.isNotBlank(pairingID)) {
+                GraphableVertex pairVertex = lastVertex.findPair();
+                if (pairVertex != null) {
                     // the pair of a Split (not Loop) is a Join
-                    Join splitJoin = (Join)findPair(pairingID);
+                    Join splitJoin = (Join)pairVertex;
                     outVertices = splitJoin.getOutGraphables();
                     cont = outVertices.length > 0;
                     lastVertex = splitJoin;
