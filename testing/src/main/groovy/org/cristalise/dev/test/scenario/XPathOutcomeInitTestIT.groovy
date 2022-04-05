@@ -117,9 +117,11 @@ class XPathOutcomeInitTestIT extends KernelScenarioTestBase {
         //compActDefFactoryName = "/domain/desc/integTest/XPathOutcomeInitTest_CADefFactory"
 
         def wf = CompositeActivityDef("XPathOutcomeInitTestWF-$timeStamp", folder) {
-            ElemActDef('First',  actDefs[0])
-            ElemActDef('Second', actDefs[1])
-            ElemActDef('Third',  actDefs[2])
+            Layout {
+                ElemActDef('First',  actDefs[0])
+                ElemActDef('Second', actDefs[1])
+                ElemActDef('Third',  actDefs[2])
+            }
         }
 
         def factory = DescriptionItem("XPathOutcomeInitTestFactory-$timeStamp", folder) {
