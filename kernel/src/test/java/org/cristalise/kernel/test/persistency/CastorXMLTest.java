@@ -250,7 +250,7 @@ public class CastorXMLTest {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
 
         try {
-            //Create exception for testing ErrorInfo
+            //Trigger exception for testing ErrorInfo
             "".substring(5);
         }
         catch (Exception ex) {
