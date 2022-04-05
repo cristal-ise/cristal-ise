@@ -313,7 +313,7 @@ public class ItemProxy {
             jobBag.list = (ArrayList<Job>) getJobs().values();
         }
 
-        log.info("getJobsForAgent() - {} returning #{} jobs for agent:", this, jobBag.list.size(), agentPath.getAgentName());
+        log.debug("getJobsForAgent() - {} returning #{} jobs for agent:{}", this, jobBag.list.size(), agentPath.getAgentName());
         return jobBag.list;
     }
 
