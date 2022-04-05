@@ -29,9 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.events.History;
-import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.querying.Query;
@@ -153,8 +151,8 @@ public class TransactionManager {
                 return new History(itemPath, transactionKey);
             }
             else if (path.equals(ClusterType.JOB) && transactionKey != null) {
-                if (itemPath instanceof AgentPath) return new JobList((AgentPath)itemPath, transactionKey);
-                else                               throw new ObjectNotFoundException("get() - Items do not have job lists");
+//                if (itemPath instanceof AgentPath) return new JobList((AgentPath)itemPath, transactionKey);
+//                else                               throw new ObjectNotFoundException("get() - Items do not have job lists");
             }
         }
 

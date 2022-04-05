@@ -28,7 +28,6 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MA
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -43,14 +42,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
-
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Aggregation;
 import org.cristalise.kernel.collection.AggregationMember;
@@ -66,13 +63,12 @@ import org.cristalise.kernel.common.InvalidTransitionException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
-import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -84,7 +80,9 @@ import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.property.BuiltInItemProperties;
 import org.cristalise.kernel.property.Property;
+import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.KeyValuePair;
@@ -92,9 +90,7 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.XML;
-
 import com.google.common.io.ByteStreams;
-
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -120,7 +116,15 @@ public abstract class ItemUtils extends RestHandler {
     protected static URI getItemURI(UriInfo uri, UUID item, Object...path) {
         UriBuilder builder = uri.getBaseUriBuilder().path("item").path(item.toString());
 
-        for (Object name: path) builder.path(name.toString());
+        for (Object name: path) {
+            if (name instanceof String && ((String)name).startsWith("?")) {
+                String[] queryParam = ((String)name).substring(1).split("=");
+                builder.queryParam(queryParam[0], queryParam[1]);
+            }
+            else {
+                builder.path(name.toString());
+            }
+        }
 
         return builder.build();
     }
@@ -159,10 +163,9 @@ public abstract class ItemUtils extends RestHandler {
 
     protected AgentProxy getAgentProxy(String uuid, NewCookie cookie) {
         try {
-            ItemPath itemPath = Gateway.getLookup().getItemPath(uuid);
-            return Gateway.getAgentProxy((AgentPath)itemPath);
+            return (AgentProxy) getProxy(uuid, cookie);
         }
-        catch(InvalidItemPathException | ObjectNotFoundException e) {
+        catch(ClassCastException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -346,18 +349,21 @@ public abstract class ItemUtils extends RestHandler {
         return eventData;
     }
 
-    protected LinkedHashMap<String, Object> makeJobData(Job job, String itemName, UriInfo uri) {
+    protected LinkedHashMap<String, Object> makeJobData(Job job, ItemProxy item, UriInfo uri) {
         LinkedHashMap<String, Object> jobData = new LinkedHashMap<String, Object>();
+        String itemName = item.getName();
 
         String agentName = job.getAgentName();
         if (StringUtils.isNotBlank(agentName)) jobData.put("agent", agentName);
-        jobData.put("role", job.getAgentRole());
 
-        jobData.put("item",       getJobItemData(job, itemName, uri));
-        jobData.put("activity",   getJobActivityData(job, itemName, uri));
-        jobData.put("transition", getJobTransitionData(job, itemName, uri));
+        jobData.put("roleOverride", job.getRoleOverride());
+        jobData.put("item",         getJobItemData(job, itemName, uri));
+        jobData.put("activity",     getJobActivityData(job, itemName, uri));
+        jobData.put("transition",   getJobTransitionData(job, itemName, uri));
 
-        if (job.hasOutcome()) jobData.put("outcome", getJobOutcomeData(job, itemName, uri));
+        if (job.hasOutcome()) {
+            jobData.put("outcome", getJobOutcomeData(job, item, uri));
+        }
 
         String attachmentType = job.getActPropString(ATTACHMENT_MIME_TYPES);
         if (StringUtils.isNotBlank(attachmentType)) jobData.put("attachmentMimeTypes", attachmentType);
@@ -369,11 +375,10 @@ public abstract class ItemUtils extends RestHandler {
         LinkedHashMap<String, Object> itemData = new LinkedHashMap<String, Object>();
         itemData.put("uuid", job.getItemUUID());
         itemData.put("name", itemName);
-        try {
-            String type = job.getItem().getType();
-            if (StringUtils.isNotBlank(type)) itemData.put("type", type);
-        }
-        catch (InvalidDataException e1) {}
+
+        String type = PropertyUtility.getPropertyValue(job.getItemPath(), BuiltInItemProperties.TYPE, "", null);
+        if (StringUtils.isNotBlank(type)) itemData.put("type", type);
+
         itemData.put("url", getItemURI(uri, job.getItemUUID()));
 
         return itemData;
@@ -403,7 +408,7 @@ public abstract class ItemUtils extends RestHandler {
     protected LinkedHashMap<String, Object> getJobTransitionData(Job job, String itemName, UriInfo uri) {
         LinkedHashMap<String, Object> transitionData = new LinkedHashMap<String, Object>();
 
-        Object url = uri.getBaseUriBuilder()
+        URI url = uri.getBaseUriBuilder()
                 .path("stateMachine")
                 .path(job.getActPropString(STATE_MACHINE_NAME))
                 .path(job.getActPropString(STATE_MACHINE_VERSION))
@@ -411,8 +416,8 @@ public abstract class ItemUtils extends RestHandler {
 
         transitionData.put("name",                job.getTransition().getName());
         transitionData.put("id",                  Integer.valueOf(job.getTransition().getId()));
-        transitionData.put("origin",              job.getOriginStateName());
-        transitionData.put("target",              job.getTargetStateName());
+        transitionData.put("origin",              job.getTransition().getOriginState().getName());
+        transitionData.put("target",              job.getTransition().getTargetState().getName());
         transitionData.put("stateMachine",        job.getActPropString(STATE_MACHINE_NAME));
         transitionData.put("stateMachineVersion", job.getActPropString(STATE_MACHINE_VERSION));
         transitionData.put("stateMachineUrl",     url);
@@ -420,18 +425,22 @@ public abstract class ItemUtils extends RestHandler {
         return transitionData;
     }
 
-    protected LinkedHashMap<String, Object> getJobOutcomeData(Job job, String itemName, UriInfo uri) {
+    protected LinkedHashMap<String, Object> getJobOutcomeData(Job job, ItemProxy item, UriInfo uri) {
         LinkedHashMap<String, Object> outcomeData = new LinkedHashMap<String, Object>();
 
         try {
-            outcomeData.put("required",      job.isOutcomeRequired());
-            outcomeData.put("schema",        job.getSchema().getName());
-            outcomeData.put("schemaVersion", job.getSchema().getVersion());
-            outcomeData.put("schemaUrl",     uri.getBaseUriBuilder().path("schema").path(job.getSchema().getName()).path(String.valueOf(job.getSchema().getVersion())).build());
+            URI schemaUrl = uri.getBaseUriBuilder().path("schema").path(job.getSchema().getName()).path(String.valueOf(job.getSchema().getVersion())).build();
+            URI formUrl = getItemURI(uri, item, "job", "formTemplate", job.getStepPath(), "?transition="+job.getTransitionName());
+
+            outcomeData.put("required",        job.isOutcomeRequired());
+            outcomeData.put("schema",          job.getSchema().getName());
+            outcomeData.put("schemaVersion",   job.getSchema().getVersion());
+            outcomeData.put("schemaUrl",       schemaUrl);
+            outcomeData.put("formTemplateUrl", formUrl);
         }
         catch (InvalidDataException | ObjectNotFoundException e) {
-            log.error("Schema not found", e);
-            outcomeData.put("schema", "Schema not found");
+            log.error("Schema/Transition not found", e);
+            outcomeData.put("schema", "Schema/Transitio not found:"+e.getMessage());
         }
 
         return outcomeData;

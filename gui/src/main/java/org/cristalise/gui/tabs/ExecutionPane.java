@@ -39,7 +39,7 @@ import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tabs.execution.ActivityItem;
 import org.cristalise.gui.tabs.execution.ActivityViewer;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.process.Gateway;
 

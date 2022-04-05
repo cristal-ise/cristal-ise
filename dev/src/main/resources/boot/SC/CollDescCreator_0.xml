@@ -1,7 +1,7 @@
 <cristalscript>
   <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
   <param name="agent" type="org.cristalise.kernel.entity.proxy.AgentProxy"/>
-  <param name="job" type="org.cristalise.kernel.entity.agent.Job"/>
+  <param name="job" type="org.cristalise.kernel.entity.Job"/>
   <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo"/>
   <script language="groovy" name="CollDescCreator">
     <![CDATA[ /**

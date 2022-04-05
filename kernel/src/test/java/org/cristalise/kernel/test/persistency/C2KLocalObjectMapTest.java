@@ -21,22 +21,17 @@
 package org.cristalise.kernel.test.persistency;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
-import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
-import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
-import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
-import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+import static org.cristalise.kernel.persistency.ClusterType.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
-
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
@@ -172,5 +167,19 @@ public class C2KLocalObjectMapTest {
         assertNotNull(workflowMap.get("workflow"));
         assertTrue(keys.contains("workflow"));
         assertTrue(workflowMap.containsKey("workflow"));
+    }
+
+    @Test
+    public void checkJobMap() throws Exception {
+        C2KLocalObjectMap<Job> jobMap = new C2KLocalObjectMap<>(itemPath, JOB);
+
+        assertEquals(4, jobMap.keySet().size());
+        assertEquals(4, jobMap.values().size());
+        
+        assertNotNull(jobMap.get("TestStep/Done"));
+        assertNotNull(jobMap.get("TestStep/Start"));
+        assertNotNull(jobMap.get("TestStep2/Done"));
+        assertNotNull(jobMap.get("TestStep2/Start"));
+
     }
 }

@@ -26,7 +26,7 @@ import org.cristalise.dsl.entity.RoleBuilder;
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
 import org.cristalise.dsl.test.builders.AgentTestBuilder;
 import org.cristalise.dsl.test.builders.ItemTestBuilder
-import org.cristalise.kernel.entity.agent.Job
+import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.process.Gateway;

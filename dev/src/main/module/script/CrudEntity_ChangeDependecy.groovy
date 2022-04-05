@@ -22,7 +22,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.common.InvalidDataException
-import org.cristalise.kernel.entity.agent.Job
+import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection

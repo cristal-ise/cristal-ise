@@ -50,4 +50,7 @@
       <bind-xml name="Entry" node="element" />
     </field>
   </class>
+  <class name="org.cristalise.kernel.lifecycle.WfCastorHashMap" extends="org.cristalise.kernel.utils.CastorHashMap">
+    <map-to xml="CastorHashMap" />
+  </class>
 </mapping>

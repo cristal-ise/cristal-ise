@@ -31,11 +31,8 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POI
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.Vector;
 import javax.xml.xpath.XPathExpressionException;
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +46,7 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.graph.model.Vertex;
@@ -60,10 +57,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
@@ -75,7 +69,6 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import io.vertx.core.json.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -224,14 +217,14 @@ public class Activity extends WfVertex {
     {
         if (log.isTraceEnabled()) {
             StateMachine sm = getStateMachine();
-            log.trace("request() - path:{} state:{} transition:{}", getPath(), sm.getState(getState()), sm.getTransition(transitionID));
+            log.trace("request() - item:{} path:{} state:{} transition:{}", itemPath.getItemName(), getPath(), sm.getState(getState()), sm.getTransition(transitionID));
         }
 
         // Find requested transition
         Transition transition = getStateMachine().getTransition(transitionID);
 
         // Check if the transition is possible
-        String usedRole = transition.getPerformingRole(this, agent);
+        transition.checkPerformingRole(this, agent);
 
         // Verify outcome
         boolean storeOutcome = false;
@@ -269,7 +262,7 @@ public class Activity extends WfVertex {
             String viewpoint = resolveViewpointName(newOutcome);
             boolean hasAttachment = attachment.length > 0;
 
-            int eventID = hist.addEvent(agent, usedRole, getName(), getPath(), getType(),
+            int eventID = hist.addEvent(agent, null/*usedRole*/, getName(), getPath(), getType(),
                     schema, getStateMachine(), transitionID, viewpoint, hasAttachment).getID();
             newOutcome.setID(eventID);
 
@@ -290,13 +283,10 @@ public class Activity extends WfVertex {
         }
         else {
             updateItemProperties(itemPath, null, transactionKey);
-            hist.addEvent(agent, usedRole, getName(), getPath(), getType(), getStateMachine(), transitionID);
+            hist.addEvent(agent, null/*usedRole*/, getName(), getPath(), getType(), getStateMachine(), transitionID);
         }
 
         boolean breakPoint = (Boolean) getBuiltInProperty(BREAKPOINT, Boolean.FALSE);
-
-        // regardless of state, jobs of this activity still could be relevant for specific agents with persistent joblist
-        pushJobsToAgents(itemPath);
 
         if (newState.isFinished() && !oldState.isFinished() && !breakPoint) {
             runNext(agent, itemPath, transactionKey);
@@ -611,7 +601,6 @@ public class Activity extends WfVertex {
             if (!getActive()) setActive(true);
 
             DateUtility.setToNow(mStateDate);
-            pushJobsToAgents(itemPath);
         }
     }
 
@@ -658,117 +647,31 @@ public class Activity extends WfVertex {
     /**
      * Calculates the lists of jobs for the activity and its children (cf org.cristalise.kernel.entity.Job)
      */
-    public ArrayList<Job> calculateJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
-            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException
+    public List<Job> calculateJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
+            throws ObjectNotFoundException, InvalidDataException
     {
         return calculateJobsBase(agent, itemPath, false);
     }
 
-    public ArrayList<Job> calculateAllJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
-            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException {
+    public List<Job> calculateAllJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
+            throws ObjectNotFoundException, InvalidDataException {
         return calculateJobsBase(agent, itemPath, true);
     }
 
-    private ArrayList<Job> calculateJobsBase(AgentPath agent, ItemPath itemPath, boolean includeInactive)
-            throws ObjectNotFoundException, InvalidDataException, InvalidItemPathException
+    private List<Job> calculateJobsBase(AgentPath agent, ItemPath itemPath, boolean includeInactive)
+            throws ObjectNotFoundException, InvalidDataException
     {
         log.trace("calculateJobsBase() - act:" + getPath());
-        ArrayList<Job> jobs = new ArrayList<Job>();
-        Map<Transition, String> transitions;
+        List<Job> jobs = new ArrayList<Job>();
         if ((includeInactive || getActive()) && !getName().equals("domain")) {
-            transitions = getStateMachine().getPossibleTransitions(this, agent);
+            List<Transition> transitions = getStateMachine().getPossibleTransitions(this, agent);
             log.trace("calculateJobsBase() - Got " + transitions.size() + " transitions.");
-            for (Transition transition : transitions.keySet()) {
+            for (Transition transition : transitions) {
                 log.trace("calculateJobsBase() - Creating Job object for transition " + transition.getName());
-                jobs.add(new Job(this, itemPath, transition, agent, transitions.get(transition)));
+                jobs.add(new Job(this, itemPath, transition.getName(), agent, transition.getRoleOverride()));
             }
         }
         return jobs;
-    }
-
-    /**
-     * Collects all Role names which are associated with this Activity and the Transitions of the current State
-     * 
-     * @return set of role name, can be empty
-     * @throws InvalidDataException something is wrong with the StateMachine setup
-     */
-    private Set<String> getActivityRoleNames() throws InvalidDataException {
-        Set<String> roleNames = new TreeSet<String>(); //Shall contain a set of unique role names
-
-        String roleName = getCurrentAgentRole();
-
-        if (StringUtils.isNotBlank(roleName)) {
-            for (String r: roleName.split(",")) roleNames.add(r);
-        }
-
-        //check if role override is defined in one of the available transitions
-        int currentStateId = getState();
-        for (Transition trans : getStateMachine().getState(currentStateId).getPossibleTransitions().values()) {
-            roleName = trans.getRoleOverride(getProperties());
-
-            if (StringUtils.isNotBlank(roleName)) {
-                roleNames.clear();
-                roleNames.add(roleName);
-            }
-        }
-
-        return roleNames;
-    }
-
-    /**
-     * Collects all Role names which are associated with this Activity and the Transitions of the current State,
-     * and ....
-     *
-     * @param itemPath
-     */
-    protected void pushJobsToAgents(ItemPath itemPath) {
-        try {
-            Set<String> roleNames = getActivityRoleNames();
-            log.trace("pushJobsToAgents({}) - Pushing jobs to {} roles", getName(), roleNames.size());
-
-            for (String roleName: roleNames) {
-                pushJobsToAgents(itemPath, Gateway.getLookup().getRolePath(roleName));
-            }
-        }
-        catch (InvalidDataException | ObjectNotFoundException ex) {
-            log.warn("pushJobsToAgents({})", getName(), ex);
-        }
-    }
-
-    /**
-     *
-     * @param itemPath
-     * @param role RolePath
-     */
-    protected void pushJobsToAgents(ItemPath itemPath, RolePath role) {
-        if (role.hasJobList()) {
-            log.debug("pushJobsToAgents({}) - item:{} role:{}", getName(), itemPath, role);
-
-            try {
-                for (AgentPath nextAgent: Gateway.getLookup().getAgents(role)) {
-                    JsonObject msg = new JsonObject();
-                    msg.put("agentPath", nextAgent.toString());
-                    msg.put("itemPath", itemPath.toString());
-                    msg.put("stepPath", this.getPath());
-
-                    log.trace("pushJobsToAgents({}) - msg:{}", getName(), msg);
-                    Gateway.getVertx().eventBus().send(JobPusherVerticle.ebAddress, msg);
-                }
-            }
-            catch (ObjectNotFoundException e) {
-                log.error("pushJobsToAgents({})", getName(), e);
-            }
-        }
-        else {
-            log.trace("pushJobsToAgents({}) - joblist disabled => SKIPPING role:{}", getName(), role);
-        }
-
-        //Inform child roles as well
-        Iterator<Path> childRoles = role.getChildren();
-
-        while (childRoles.hasNext()) {
-            pushJobsToAgents(itemPath, (RolePath) childRoles.next());
-        }
     }
 
     /**

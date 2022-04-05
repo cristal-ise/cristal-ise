@@ -25,8 +25,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-
+import java.util.List;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -41,7 +40,6 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -272,16 +270,17 @@ public class StateMachine implements DescriptionObject {
         return new CollectionArrayList();
     }
 
-    public Map<Transition, String> getPossibleTransitions(Activity act, AgentPath agent)
+    public List<Transition> getPossibleTransitions(Activity act, AgentPath agent)
             throws ObjectNotFoundException, InvalidDataException
     {
-        HashMap<Transition, String> returnList = new HashMap<Transition, String>();
+        List<Transition> returnList = new ArrayList<>();
         State currentState = getState(act.getState());
 
         for (Transition possTrans: currentState.getPossibleTransitions().values()) {
             try {
                 if (possTrans.isEnabled(act)) {
-                    returnList.put(possTrans, possTrans.getPerformingRole(act, agent) );
+                    possTrans.checkPerformingRole(act, agent);
+                    returnList.add(possTrans);
                 }
                 else log.trace("getPossibleTransitions() - DISABLED trans:"+possTrans+" act:"+act.getName());
             }
@@ -299,7 +298,7 @@ public class StateMachine implements DescriptionObject {
         State currentState = getState(act.getState());
 
         if (transition.originState.equals(currentState)) {
-            transition.getPerformingRole(act, agent);
+            transition.checkPerformingRole(act, agent);
             return transition.targetState;
         }
         else {

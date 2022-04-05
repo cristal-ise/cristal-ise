@@ -1,15 +1,16 @@
 package org.cristalise.kernel.test.scenario;
 
-import org.cristalise.kernel.entity.agent.Job
+import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.Erase
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportAgent
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportItem
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportRole
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ConfigureLogback
-import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
-import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
 import org.cristalise.kernel.lifecycle.instance.predefined.server.RemoveRole
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
@@ -42,7 +43,7 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
         def role = new ImportRole()
         role.name = roleName
         role.jobList = false
-        executeDoneJob(serverItem, "CreateNewRole", Gateway.marshaller.marshall(role))
+        executeDoneJob(serverItem, ImportImportRole.simpleName, Gateway.marshaller.marshall(role))
         return Gateway.getLookup().getRolePath(roleName);
     }
 
@@ -57,14 +58,14 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
         def role = new ImportRole()
         role.name = roleName
         agent.roles.add(role)
-        Job j = executeDoneJob(serverItem, "CreateNewAgent", Gateway.marshaller.marshall(agent))
+        Job j = executeDoneJob(serverItem, ImportImportAgent.simpleName, Gateway.marshaller.marshall(agent))
         return Gateway.getAgentProxy( Gateway.getLookup().getAgentPath(name) )
     }
 
     private ItemProxy createItem(String name) {
         def item = new ImportItem(name, '/domain/itemTest', null, 'NoWorkflow')
         item.properties.add(new Property('Type', 'Item'))
-        Job j = executeDoneJob(serverItem, "CreateNewItem", Gateway.marshaller.marshall(item))
+        Job j = executeDoneJob(serverItem, ImportImportItem.simpleName, Gateway.marshaller.marshall(item))
         return agent.getItem("/domain/itemTest/$name")
     }
 
@@ -86,14 +87,14 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
         newRole.permissions.add('dom1:Func1,Func2:')
         newRole.permissions.add('dom2:Func1:toto')
 
-        agent.execute(serverItem, CreateNewRole.class, agent.marshall(newRole))
-        
+        agent.execute(serverItem, ImportImportRole.class, agent.marshall(newRole))
+
         def rp = Gateway.getLookup().getRolePath(role)
 
         ImportAgent newAgent = new ImportAgent('/itemTest/agents', name, 'pwd');
         newAgent.addRoles([rp]);
-    
-        agent.execute(serverItem, CreateNewAgent.class, agent.marshall(newAgent));
+
+        agent.execute(serverItem, ImportImportAgent.class, agent.marshall(newAgent));
     }
 
     @Test

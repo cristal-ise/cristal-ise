@@ -27,9 +27,12 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 
 import org.cristalise.gui.MainFrame;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Each job gets a RequestButton
+ */
 @Slf4j
 public class RequestButton extends JButton implements ActionListener {
 

@@ -30,7 +30,7 @@ import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.InvalidTransitionException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ProxyMessage;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;

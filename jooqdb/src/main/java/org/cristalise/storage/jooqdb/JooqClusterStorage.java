@@ -261,11 +261,8 @@ public class JooqClusterStorage extends ClusterStorage {
         else if (cluster == ClusterType.HISTORY) {
             return ((JooqHistoryHandler)handler).getLastEventId(context, itemPath.getUUID());
         }
-        else if (cluster == ClusterType.JOB) {
-            return ((JooqJobHandler)handler).getLastJobId(context, itemPath.getUUID());
-        }
         else {
-            String msg = "Invalid ClusterType! Must be either HISTORY or JOB. Actual cluster:" + cluster;
+            String msg = "Invalid ClusterType! Must be HISTORY. Actual cluster:" + cluster;
             log.error("getLastIntegerId() - {}", msg);
             throw new PersistencyException(msg);
         }
@@ -450,14 +447,19 @@ public class JooqClusterStorage extends ClusterStorage {
         JooqDataSourceHandler.logConnectionCount("JooqClusterStorage.put(after) ", context);
     }
 
-
     @Override
     public void delete(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
         log.debug("delete() - complete item:{}", itemPath);
 
-        for(ClusterType ct: getClusters(itemPath, transactionKey)) {
-            delete(itemPath, ct.getName(), transactionKey);
+        for(ClusterType cluster: getClusters(itemPath, transactionKey)) {
+            delete(itemPath, cluster, transactionKey);
         }
+    }
+
+    @Override
+    public void delete(ItemPath itemPath, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
+        log.debug("delete() - item:{} cluster:{}", itemPath, cluster);
+        delete(itemPath, cluster.getName(), transactionKey);
     }
 
     @Override
@@ -474,7 +476,7 @@ public class JooqClusterStorage extends ClusterStorage {
 
         if (handler != null) {
             int deletedCount = handler.delete(context, uuid, primaryKeys);
-            log.debug("delete() - uuid:{} cluster:{} primaryKeys:{} deletedCount:{}", uuid, cluster, Arrays.toString(primaryKeys), deletedCount);
+            log.debug("delete() - DONE uuid:{} cluster:{} primaryKeys:{} deletedCount:{}", uuid, cluster, Arrays.toString(primaryKeys), deletedCount);
         }
         else {
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");

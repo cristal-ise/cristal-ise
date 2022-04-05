@@ -23,7 +23,7 @@ package org.cristalise.dev.dsl
 import static org.cristalise.kernel.collection.BuiltInCollections.*
 import static org.cristalise.kernel.process.resource.BuiltInResources.*
 
-import org.cristalise.kernel.entity.agent.Job
+import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
@@ -97,7 +97,7 @@ class DevItemUtility {
      * @return
      */
     public Job getDoneJob(ItemProxy proxy, String actName) {
-        log.info('getDoneJob() - proxy:{} actName:{}', proxy.name, actName)
+        log.info('getDoneJob() - proxy:{} actName:{}', proxy, actName)
         Job j = proxy.getJobByName(actName, agent)
         assert j && j.getStepName() == actName && j.transition.name == "Done"
         return j

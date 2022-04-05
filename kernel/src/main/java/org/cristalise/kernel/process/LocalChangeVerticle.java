@@ -58,6 +58,7 @@ public class LocalChangeVerticle extends AbstractVerticle {
         });
 
         startPromise.complete();
+
         log.info("start() - '{}' consumer configured", ProxyMessage.ebAddress);
     }
 
@@ -89,10 +90,10 @@ public class LocalChangeVerticle extends AbstractVerticle {
         }
     }
 
-    private void clearCache(JsonArray body) throws InvalidDataException {
+    private void clearCache(JsonArray proxyMessages) throws InvalidDataException {
         ArrayList<String> clearCacheList = new ArrayList<String>();
 
-        for (Object element: body) {
+        for (Object element: proxyMessages) {
             ProxyMessage msg = new ProxyMessage((String)element);
 
             if (msg.isClusterStoreMesssage()) {

@@ -20,7 +20,7 @@
  */
 package org.cristalise.kernel.test.persistency.outcomeinit;
 
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcomeinit.EmptyOutcomeInitiator;
 import org.junit.Before;

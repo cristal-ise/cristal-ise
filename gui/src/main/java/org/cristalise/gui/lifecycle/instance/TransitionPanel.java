@@ -24,21 +24,19 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Map;
-
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.graph.view.SelectedVertexPanel;
 import org.cristalise.gui.tabs.ItemTabPane;
 import org.cristalise.gui.tabs.execution.Executor;
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.lifecycle.instance.Activity;
@@ -49,6 +47,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class TransitionPanel extends SelectedVertexPanel implements ActionListener {
+    private static final long serialVersionUID = -4718182338463317755L;
+
     protected Activity mCurrentAct;
     protected GridBagLayout gridbag;
     protected GridBagConstraints c;
@@ -151,13 +151,12 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
         states.setEnabled(true);
         active.setSelected(mCurrentAct.active);
         active.setEnabled(true);
-        Map<Transition, String> transitions;
+        List<Transition> transitions;
         try {
-            transitions = mCurrentAct.getStateMachine().getPossibleTransitions(mCurrentAct,
-                    MainFrame.userAgent.getPath());
+            transitions = mCurrentAct.getStateMachine().getPossibleTransitions(mCurrentAct, MainFrame.userAgent.getPath());
         } catch (Exception e) {
             status.setText("Error loading possible transitions of activity. See log.");
-            log.error("",e);
+            log.error("", e);
             return;
         }
 
@@ -165,8 +164,8 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
             status.setText("None");
             return;
         }
-
-        for (Transition trans : transitions.keySet()) {
+        
+        for (Transition trans:transitions) {
             boolean hasOutcome = trans.hasOutcome(mCurrentAct.getProperties());
             if (!hasOutcome || (hasOutcome && !trans.getOutcome().isRequired())) {
                 JButton thisTrans = new JButton(trans.getName());
@@ -202,9 +201,12 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
         log.info("Requesting transition " + transition);
         try {
             StateMachine actSM = mCurrentAct.getStateMachine();
-            Job thisJob = new Job(mCurrentAct, mItem.getPath(), actSM.getTransition(transition),
-                    MainFrame.userAgent.getPath(), "Admin");
-            Executor selectedExecutor = (Executor) executors.getSelectedItem();
+            Job thisJob = new Job(mCurrentAct,
+                                  mItem.getPath(),
+                                  actSM.getTransition(transition).getName(),
+                                  MainFrame.userAgent.getPath(),
+                                  "Admin");
+            Executor selectedExecutor = (Executor)executors.getSelectedItem();
             selectedExecutor.execute(thisJob, status);
         } catch (Exception ex) {
             String className = ex.getClass().getName();
@@ -213,7 +215,6 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
             JOptionPane.showMessageDialog(null, ex.getMessage(), className,
                     JOptionPane.ERROR_MESSAGE);
         }
-
     }
 
     @Override

@@ -48,7 +48,7 @@ import org.cristalise.gui.tabs.outcome.InvalidSchemaException;
 import org.cristalise.gui.tabs.outcome.OutcomeHandler;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.utils.FileStringUtility;
@@ -143,16 +143,6 @@ public class ActivityViewer extends JPanel implements Runnable {
 
             gridbag.setConstraints(descBox, c);
             add(descBox);
-        }
-
-
-        // agentid
-        String roleName = firstJob.getAgentRole();
-        if (roleName != null && roleName.length() > 0) {
-            c.gridy++;
-            JLabel role = new JLabel("Agent Role: " + roleName);
-            gridbag.setConstraints(role, c);
-            add(role);
         }
 
         c.gridy++;

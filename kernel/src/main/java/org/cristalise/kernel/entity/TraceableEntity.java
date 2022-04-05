@@ -21,18 +21,15 @@
 package org.cristalise.kernel.entity;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.entity.agent.JobArrayList;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.instance.Activity;
@@ -44,13 +41,13 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.persistency.ClusterStorageManager;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.ErrorInfo;
 import org.cristalise.kernel.security.SecurityManager;
-
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -192,10 +189,12 @@ public class TraceableEntity implements Item {
 
         if (act != null) {
             if (secMan.isShiroEnabled() && !secMan.checkPermissions(agent.getPath(), act, item.getPath(), transactionKey)) {
+                String errorMsg = "'" + agent.getName() + "' is NOT permitted to execute step:" + stepPath;
                 if (log.isTraceEnabled()) {
+                    log.error(errorMsg);
                     for (RolePath role : agent.getRoles()) log.error(role.dump());
                 }
-                throw new AccessRightsException("'" + agent.getName() + "' is NOT permitted to execute step:" + stepPath);
+                throw new AccessRightsException(errorMsg);
             }
         }
         else {
@@ -205,8 +204,18 @@ public class TraceableEntity implements Item {
         byte[] bytes = ArrayUtils.toPrimitive(attachment.toArray(new Byte[0]));
         String finalOutcome = lifeCycle.requestAction(agent.getPath(), stepPath, item.getPath(), transitionID, requestData, fileName, bytes, transactionKey);
 
-        // store the workflow if we've changed the state of the domain wf
-        if (!(stepPath.startsWith("workflow/predefined"))) mStorage.put(item.getPath(), lifeCycle, transactionKey);
+        // store the workflow and the Jobs if we've changed the state of the domain workflow
+        if ( ! stepPath.startsWith("workflow/predefined")) {
+            mStorage.put(item.getPath(), lifeCycle, transactionKey);
+
+            mStorage.removeCluster(item.getPath(), ClusterType.JOB, transactionKey);
+
+            ArrayList<Job> newJobs = ((CompositeActivity)lifeCycle.search("workflow/domain")).calculateJobs(agent.getPath(), item.getPath(), true);
+            for (Job newJob: newJobs) {
+                mStorage.put(item.getPath(), newJob, transactionKey);
+                if (StringUtils.isNotBlank(newJob.getRoleOverride())) newJob.sendToRoleChannel();
+            }
+        }
 
         // remove entity path if transaction was successful
         if (stepPath.equals("workflow/predefined/Erase")) {
@@ -297,6 +306,7 @@ public class TraceableEntity implements Item {
      * 
      */
     @Override
+    @Deprecated
     public void queryLifeCycle(String itemUuid, String agentUuid, boolean filter, Handler<AsyncResult<String>> returnHandler) {
         ItemProxy item = null;
         AgentProxy agent = null;
@@ -316,20 +326,18 @@ public class TraceableEntity implements Item {
 
         try {
             Workflow wf = (Workflow) mStorage.get(item.getPath(), ClusterType.LIFECYCLE + "/workflow", null);
-
-            JobArrayList jobBag = new JobArrayList();
-            CompositeActivity domainWf = (CompositeActivity) wf.search("workflow/domain");
-            ArrayList<Job> jobs = filter ? 
-                    domainWf.calculateJobs(agent.getPath(), item.getPath(), true) : domainWf.calculateAllJobs(agent.getPath(), item.getPath(), true);
+            @SuppressWarnings("unchecked")
+            C2KLocalObjectMap<Job> jobs = (C2KLocalObjectMap<Job>)mStorage.get(item.getPath(), ClusterType.JOB.getName(), null);
 
             SecurityManager secMan = Gateway.getSecurityManager();
+            JobArrayList jobBag = new JobArrayList();
 
             if (secMan.isShiroEnabled()) {
-                for (Job j : jobs) {
+                for (Job j : jobs.values()) {
                     Activity act = (Activity) wf.search(j.getStepPath());
                     if (secMan.checkPermissions(agent.getPath(), act, item.getPath(), null)) {
                         try {
-                            j.getTransition().getPerformingRole(act, agent.getPath());
+                            j.getTransition().checkPerformingRole(act, agent.getPath());
                             jobBag.list.add(j);
                         }
                         catch (AccessRightsException e) {
@@ -339,7 +347,7 @@ public class TraceableEntity implements Item {
                 }
             }
             else {
-                jobBag.list = jobs;
+                jobBag.list = (ArrayList<Job>) jobs.values();
             }
 
             log.info("queryLifeCycle(" + item + ") - Returning " + jobBag.list.size() + " jobs.");

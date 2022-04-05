@@ -22,7 +22,6 @@ package org.cristalise.lookup.ldap;
 
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -132,6 +131,12 @@ public class LDAPClusterStorage extends ClusterStorage {
         }
         else
             throw new PersistencyException("Cluster type " + type + " not supported.");
+    }
+
+    // delete full cluster
+    @Override
+    public void delete(ItemPath thisItem, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
+        removeCluster(thisItem, cluster.getName(), transactionKey);
     }
 
     private void removeCluster(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {

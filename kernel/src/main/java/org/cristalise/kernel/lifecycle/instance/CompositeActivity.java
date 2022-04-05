@@ -34,7 +34,7 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.graph.model.GraphModel;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.GraphableVertex;
@@ -45,7 +45,6 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import lombok.extern.slf4j.Slf4j;
@@ -221,7 +220,7 @@ public class CompositeActivity extends Activity {
                 Transition autoStart = null;
                 //see if there's only one that isn't terminating
                 try {
-                    for (Transition transition : getStateMachine().getPossibleTransitions(this, agent).keySet()) {
+                    for (Transition transition : getStateMachine().getPossibleTransitions(this, agent)) {
                         if (!transition.isFinishing()) {
                             if (autoStart == null)
                                 autoStart = transition;
@@ -274,7 +273,7 @@ public class CompositeActivity extends Activity {
         if (!isFinished()) {
             Transition trans = null;
             try {
-                for (Transition possTran : getStateMachine().getPossibleTransitions(this, agent).keySet()) {
+                for (Transition possTran : getStateMachine().getPossibleTransitions(this, agent)) {
                     // Find the next transition for automatic procedure. A non-finishing and non-blocking transition will override a finishing one,
                     // but otherwise having more than one possible means we cannot proceed. Transition enablement should filter before this point.
 
@@ -326,7 +325,7 @@ public class CompositeActivity extends Activity {
      */
     @Override
     public ArrayList<Job> calculateJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
-            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException
+            throws ObjectNotFoundException, InvalidDataException
     {
         ArrayList<Job> jobs = new ArrayList<Job>();
         boolean childActive = false;
@@ -347,7 +346,7 @@ public class CompositeActivity extends Activity {
 
     @Override
     public ArrayList<Job> calculateAllJobs(AgentPath agent, ItemPath itemPath, boolean recurse)
-            throws InvalidItemPathException, ObjectNotFoundException, InvalidDataException
+            throws ObjectNotFoundException, InvalidDataException
     {
         ArrayList<Job> jobs = new ArrayList<Job>();
 
@@ -481,14 +480,6 @@ public class CompositeActivity extends Activity {
         }
 
         return result;
-    }
-
-    public void refreshJobs(ItemPath itemPath) {
-        GraphableVertex[] children = getChildren();
-        for (GraphableVertex element : children) {
-            if (element instanceof CompositeActivity) ((CompositeActivity) element).refreshJobs(itemPath);
-            else if (element instanceof Activity)     ((Activity)          element).pushJobsToAgents(itemPath);
-        }
     }
 
     public List<Activity> getPossibleActs(WfVertex fromVertex, int direction) throws InvalidDataException {

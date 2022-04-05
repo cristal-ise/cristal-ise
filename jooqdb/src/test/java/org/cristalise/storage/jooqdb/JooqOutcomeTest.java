@@ -24,7 +24,7 @@ import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
 import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
 
 import java.util.UUID;
-
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeHandler;
@@ -64,7 +64,7 @@ public class JooqOutcomeTest extends StorageTestBase {
         assert "<xml/>".equals(outcomePrime.getData());
     }
 
-    @Test(expected=IllegalArgumentException.class)
+    @Test(expected=PersistencyException.class)
     public void updateOutcome_exception() throws Exception {
         jooq.put(context, uuid, outcome);
     }

@@ -20,15 +20,19 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
@@ -42,7 +46,7 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
 
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey) 
-            throws InvalidDataException, PersistencyException
+            throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
         Workflow lifeCycle = getWf();
 
@@ -67,15 +71,20 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
 
         // if new workflow, activate it, otherwise refresh the jobs
         if (!domain.active) lifeCycle.run(agent, item, transactionKey);
-        else                lifeCycle.refreshJobs(item);
 
         // store new wf
-        try {
-            Gateway.getStorage().put(item, lifeCycle, transactionKey);
+        Gateway.getStorage().put(item, lifeCycle, transactionKey);
+
+        // replace Jobs with the new ones
+        Gateway.getStorage().removeCluster(item, ClusterType.JOB, transactionKey);
+
+        ArrayList<Job> newJobs = ((CompositeActivity)lifeCycle.search("workflow/domain")).calculateJobs(agent, item, true);
+        for (Job newJob: newJobs) {
+            Gateway.getStorage().put(item, newJob, transactionKey);
+
+            if (StringUtils.isNotBlank(newJob.getRoleOverride())) newJob.sendToRoleChannel();
         }
-        catch (PersistencyException e) {
-            throw new PersistencyException("ReplaceDomainWorkflow: Could not write new workflow to storage: " + e.getMessage());
-        }
+
         return requestData;
     }
 }

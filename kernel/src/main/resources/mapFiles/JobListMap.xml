@@ -22,16 +22,16 @@
 
 -->
 <mapping>
-  <class name="org.cristalise.kernel.entity.agent.Job">
+  <class name="org.cristalise.kernel.entity.Job">
     <map-to xml="Job" />
-    <field name="id" type="integer" direct="false" get-method="getId" set-method="setId">
-      <bind-xml name="Id" node="attribute" />
-    </field>
     <field name="mItemPath" type="string" direct="false" get-method="getItemUUID" set-method="setItemUUID">
       <bind-xml name="ItemUUID" node="attribute" />
     </field>
     <field name="stepName" type="string" direct="false" get-method="getStepName" set-method="setStepName">
       <bind-xml name="StepName" node="attribute" />
+    </field>
+    <field name="transitionName" type="string" direct="false" get-method="getTransitionName" set-method="setTransitionName">
+      <bind-xml name="TransitionName" node="attribute" />
     </field>
     <field name="stepType" type="string" direct="false" get-method="getStepType" set-method="setStepType">
       <bind-xml name="StepType" node="attribute" />
@@ -39,36 +39,20 @@
     <field name="stepPath" type="string" direct="false" get-method="getStepPath" set-method="setStepPath">
       <bind-xml name="StepPath" node="attribute" />
     </field>
-    <field name="transition" type="org.cristalise.kernel.lifecycle.instance.stateMachine.Transition"
-      direct="false" get-method="getTransition" set-method="setTransition">
-      <bind-xml name="Transition" node="element" />
-    </field>
-    <field name="mAgentPath" type="string" direct="false" get-method="getAgentUUID" set-method="setAgentUUID">
+    <field name="agentPath" type="string" direct="false" get-method="getAgentUUID" set-method="setAgentUUID">
       <bind-xml name="AgentUUID" node="attribute" />
     </field>
-    <field name="originStateName" type="string" direct="false" get-method="getOriginStateName"
-      set-method="setOriginStateName">
-      <bind-xml name="OriginState" node="attribute" />
-    </field>
-    <field name="targetStateName" type="string" direct="false" get-method="getTargetStateName"
-      set-method="setTargetStateName">
-      <bind-xml name="TargetState" node="attribute" />
-    </field>
-    <field name="agentRole" type="string" direct="false" get-method="getAgentRole" set-method="setAgentRole">
-      <bind-xml name="AgentRole" node="attribute" />
+    <field name="roleOverride" type="string" direct="false" get-method="getRoleOverride" set-method="setRoleOverride">
+      <bind-xml name="RoleOverride" node="attribute" />
     </field>
     <field name="actProps" type="org.cristalise.kernel.utils.KeyValuePair" collection="array" container="false"
       direct="false" get-method="getKeyValuePairs" set-method="setKeyValuePairs">
       <bind-xml name="ActProps" node="element" />
     </field>
-    <field name="creationDate" type="org.cristalise.kernel.common.GTimeStamp" direct="false"
-      get-method="getCreationDate" set-method="setCreationDate">
-      <bind-xml name="CreationDate" node="element" />
-    </field>
   </class>
-  <class name="org.cristalise.kernel.entity.agent.JobArrayList">
+  <class name="org.cristalise.kernel.entity.JobArrayList">
     <map-to xml="JobArrayList" />
-    <field name="list" collection="arraylist" direct="true" type="org.cristalise.kernel.entity.agent.Job">
+    <field name="list" collection="arraylist" direct="true" type="org.cristalise.kernel.entity.Job">
       <bind-xml name="Job" node="element" />
     </field>
   </class>
