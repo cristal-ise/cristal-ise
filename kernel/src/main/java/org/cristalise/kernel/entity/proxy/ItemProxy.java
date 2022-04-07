@@ -29,11 +29,13 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
@@ -52,7 +54,6 @@ import org.cristalise.kernel.entity.Item;
 import org.cristalise.kernel.entity.ItemVerticle;
 import org.cristalise.kernel.entity.ItemVertxEBProxy;
 import org.cristalise.kernel.entity.Job;
-import org.cristalise.kernel.entity.JobArrayList;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.instance.Activity;
@@ -74,8 +75,11 @@ import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.security.SecurityManager;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+
 import com.google.errorprone.annotations.Immutable;
+
 import io.vertx.core.AsyncResult;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -83,15 +87,17 @@ import lombok.extern.slf4j.Slf4j;
  * It is a wrapper for the connection and communication with Item. It relies on the
  * ClusterStorage mechanism to retrieve and to cache data, i.e. it does not do any cashing itself.
  */
-@Slf4j @Immutable
+@Slf4j @Immutable @EqualsAndHashCode
 public class ItemProxy {
-    protected Item     mItem = null;
+    @EqualsAndHashCode.Exclude 
+    protected Item mItem = null;
+
     protected ItemPath mItemPath;
 
     /**
      * Set Transaction key (a.k.a. transKey/locker) when ItemProxy is used in server side scripting
      */
-    @Getter
+    @Getter @EqualsAndHashCode.Exclude 
     protected TransactionKey transactionKey = null;
 
     /**
@@ -276,6 +282,31 @@ public class ItemProxy {
         return getJobsForAgent(agentPath);
     }
 
+    public boolean checkJobForAgent(Job job, AgentPath agentPath) throws CriseVertxException {
+        String stepPath = job.getStepPath();
+        Activity act = (Activity) getWorkflow().search(stepPath);
+        SecurityManager secMan = Gateway.getSecurityManager();
+        
+        if (secMan.isShiroEnabled()) {
+            if (secMan.checkPermissions(agentPath, act, getPath(), null)) {
+                return true;
+//                try {
+//                    j.getTransition().checkPerformingRole(act, agentPath);
+//                    return true;
+//                }
+//                catch (AccessRightsException e) {
+//                    // AccessRightsException is thrown if Job requires specific Role that agent does not have
+//                    log.info("getJobsForAgent()", e);
+//                }
+            }
+        }
+        else {
+            log.warn("checkJobForAgent() - ENABLE Shiro to work with permissions.");
+            return true;
+        }
+
+        return false;
+    }
     /**
      * Returns a set of Jobs for this Agent on this Item. Each Job represents a possible transition of a particular 
      * Activity/Step in the Item's lifecycle.
@@ -287,7 +318,7 @@ public class ItemProxy {
      * @throws ObjectNotFoundException data was invalid
      */
     private List<Job> getJobsForAgent(AgentPath agentPath) throws CriseVertxException {
-        JobArrayList jobBag = new JobArrayList();
+        List<Job> jobBag = new ArrayList<Job>();
         SecurityManager secMan = Gateway.getSecurityManager();
 
         // Make sure that the latest Jobs and Workflow is used for this calculation
@@ -295,26 +326,17 @@ public class ItemProxy {
         Gateway.getStorage().clearCache(getPath(), ClusterType.LIFECYCLE);
 
         if (secMan.isShiroEnabled()) {
-            for (Job j : getJobs().values()) {
-                Activity act = (Activity) getWorkflow().search(j.getStepPath());
-                if (secMan.checkPermissions(agentPath, act, agentPath, null)) {
-                    try {
-                        j.getTransition().checkPerformingRole(act, agentPath);
-                        jobBag.list.add(j);
-                    }
-                    catch (AccessRightsException e) {
-                        // AccessRightsException is thrown if Job requires specific Role that agent does not have
-                        log.info("getJobsForAgent()", e);
-                    }
-                }
+            for (Job j: getJobs().values()) {
+                if (checkJobForAgent(j, agentPath)) jobBag.add(j);
             }
         }
         else {
-            jobBag.list = (ArrayList<Job>) getJobs().values();
+            log.warn("checkJobForAgent() - ENABLE Shiro to work with permissions.");
+            jobBag = (List<Job>) getJobs().values();
         }
 
-        log.debug("getJobsForAgent() - {} returning #{} jobs for agent:{}", this, jobBag.list.size(), agentPath.getAgentName());
-        return jobBag.list;
+        log.debug("getJobsForAgent() - {} returning #{} jobs for agent:{}", this, jobBag.size(), agentPath.getAgentName());
+        return jobBag;
     }
 
     /**
@@ -354,9 +376,16 @@ public class ItemProxy {
      * @throws PersistencyException
      */
     private Job getJobByName(String actName, AgentPath agent) throws CriseVertxException {
-        for (Job job : getJobsForAgent(agent)) {
-            if (job.getStepName().equals(actName) && job.getTransition().isFinishing())
-                return job;
+        C2KLocalObjectMap<Job> jobMap = getJobs();
+
+        for (String key: jobMap.keySet()) {
+            String stepName = key.split("/")[0]; // key = 'Update/Done'
+            if (stepName.equals(actName)) {
+                Job job = jobMap.get(key);
+                if (job.getTransition().isFinishing() && checkJobForAgent(job, agent)) {
+                    return job;
+                }
+            }
         }
         return null;
     }
@@ -1304,7 +1333,7 @@ public class ItemProxy {
      * @return the name of the Item or null if no Name Property exists
      */
     public String getName(TransactionKey transKey) {
-        return getProperty(NAME, (String)null, transKey);
+        return getProperty(NAME, (String)null, transKey == null ? transactionKey : transKey);
     }
 
     /**

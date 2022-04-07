@@ -45,7 +45,7 @@ public class LocalChangeVerticle extends AbstractVerticle {
             JsonArray messageArray = (JsonArray) message.body();
             log.trace("handler() - message.body:{}", messageArray);
 
-            boolean publish = Gateway.getProperties().getBoolean("LocalChangeVerticle.publishLocalMessage", false);
+            boolean publish = Gateway.getProperties().getBoolean("LocalChangeVerticle.publishLocalMessage", true);
 
             try {
                 //order is important: see above
