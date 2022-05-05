@@ -167,7 +167,6 @@ public class StateMachine implements DescriptionObject {
         log.debug("validate() - name:'" + name + "'");
 
         for (State state : states) {
-            log.trace("State     :{} ", state);
             stateCodes.put(state.getId(), state);
         }
 
@@ -175,7 +174,6 @@ public class StateMachine implements DescriptionObject {
         else isCoherent = false;
 
         for (Transition trans : transitions) {
-            log.trace("Transition: {}", trans);
             transitionCodes.put(trans.getId(), trans);
             isCoherent = isCoherent && trans.resolveStates(stateCodes);
         }

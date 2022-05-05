@@ -20,7 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
+import java.util.Arrays;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
@@ -33,6 +33,7 @@ import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.graph.model.GraphableVertex;
+import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.lifecycle.routingHelpers.DataHelperUtility;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -164,7 +165,7 @@ public abstract class WfVertex extends GraphableVertex {
      * @return the vertex or null if nothing was found
      */
     protected GraphableVertex findPair() {
-        String pairingID = (String) getBuiltInProperty(PAIRING_ID);
+        String pairingID = getPairingId();
 
         if (StringUtils.isBlank(pairingID)) {
             log.warn("findPair() - vertex:{} has no valid PairingID", getName());
@@ -172,11 +173,67 @@ public abstract class WfVertex extends GraphableVertex {
         }
 
         for (GraphableVertex vertex: getParent().getLayoutableChildren()) {
-            if (pairingID.equals(vertex.getBuiltInProperty(PAIRING_ID)) && !vertex.equals(this)) {
+            if (pairingID.equals(vertex.getPairingId()) && !vertex.equals(this)) {
                 return vertex;
             }
         }
         return null;
+    }
+
+    /**
+     * Finds the last vertex starting from the actual vertex. It follows the outputs of he 
+     * 
+     * @return the last vertex or null if there is no vertex after the actual vertex
+     */
+    protected WfVertex findLastVertex() {
+        Vertex[] outVertices = getOutGraphables();
+        boolean cont = outVertices.length > 0;
+        WfVertex lastVertex = null;
+
+        while (cont) {
+            lastVertex = (WfVertex)outVertices[0];
+
+            if (lastVertex instanceof Join || lastVertex instanceof Activity) {
+                outVertices = lastVertex.getOutGraphables();
+                cont = outVertices.length > 0;
+                lastVertex = cont ? (WfVertex) outVertices[0] : lastVertex;
+            }
+            else if (lastVertex instanceof Loop) {
+                String pairingId = (String) lastVertex.getPairingId();
+                if (StringUtils.isNotBlank(pairingId)) {
+                    //Find output Join which does not have the same ParingId of the Loop
+                    Join outJoin = (Join) Arrays.stream(lastVertex.getOutGraphables())
+                            .filter(v -> !pairingId.equals(((WfVertex) v).getPairingId()))
+                            .findFirst().get();
+                    outVertices = outJoin.getOutGraphables();
+                    cont = outVertices.length > 0;
+                    lastVertex = outJoin;
+                }
+                else {
+                    log.warn("findLastVertex() - Loop(id:{}) does not have ParingId", lastVertex.getID());
+                    cont = false;
+                }
+            }
+            else if (lastVertex instanceof Split) {
+                GraphableVertex pairVertex = lastVertex.findPair();
+                if (pairVertex != null) {
+                    // the pair of a Split is a Join
+                    Join splitJoin = (Join)pairVertex;
+                    outVertices = splitJoin.getOutGraphables();
+                    cont = outVertices.length > 0;
+                    lastVertex = splitJoin;
+                }
+                else {
+                    log.warn("findLastVertex() - Split(id:{}) does not have ParingId", lastVertex.getID());
+                    cont = false;
+                }
+            }
+            else {
+                cont = false;
+            }
+        }
+    
+        return lastVertex;
     }
 }
 

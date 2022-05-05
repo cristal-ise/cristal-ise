@@ -21,8 +21,8 @@
 package org.cristalise.kernel.test.lifecycle.instance
 
 import org.cristalise.dsl.test.builders.WorkflowTestBuilder;
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.common.InvalidTransitionException
-import org.cristalise.kernel.graph.model.GraphModel
 import org.cristalise.kernel.lifecycle.instance.Workflow
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
@@ -174,7 +174,7 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
                     }
                     Block {
                         Loop(RoutingScriptName: 'javascript:\"false\";') {
-                           ElemAct('right')
+                            ElemAct('right')
                         }
                    }
                 }
@@ -198,11 +198,8 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
         util.checkActStatus('last',   [state: "Waiting", active: true])
 
         //Print images of workflow to debug easily
-        GraphModel wfGraphModel = wf.search("workflow/domain").getChildrenGraphModel()
-        util.saveWorkflowPngImage(wfGraphModel, "target/workflowTest.png", true)
-
-        GraphModel caGraphModel = wf.search("workflow/domain/ca").getChildrenGraphModel()
-        util.saveWorkflowPngImage(caGraphModel, "target/caTest.png", true)
+        util.saveWorkflowPngImage("workflow/domain", "target/workflowTest.png", true)
+        util.saveWorkflowPngImage("workflow/domain/ca", "target/caTest.png", true)
     }
 
     def 'CompAct is automatically finished when all Activities in Loop are finished'() {
@@ -224,22 +221,40 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
         util.checkActStatus('ca',     [state: "Finished", active: false])
     }
 
-    
-    def 'CompAct is automatically finished when OrSplit skips Loop'() {
+    def 'CompAct is automatically finished when OrSplit triggers empty block'() {
         given:
-        def wf = util.buildAndInitWf() {
+        util.buildAndInitWf() {
             CompAct('ca') {
-                ElemAct("first")
+                ElemAct("first") // ElemAct is within CompAct
                 OrSplit(javascript: "2") {
-                    B { Loop { ElemAct("left") } }
-                    B { /*EMPTY*/ }
+                    Block { ElemAct("left") }
+                    Block { /*EMPTY*/ }
                 }
             }
         }
 
         when:
         util.requestAction("first", "Done")
-        //util.saveWorkflowPngImage(wf.search("workflow/domain/ca").getChildrenGraphModel(), "target/OrSplitCanSkipLoop.png", true)
+
+        then:
+        util.checkActStatus('ca', [state: "Finished", active: false])
+    }
+
+    def 'CompAct is automatically started and finished when OrSplit triggers empty block'() {
+        given:
+        util.buildAndInitWf() {
+            ElemAct("first") // ElemAct is before CompAct
+            CompAct('ca') {
+                OrSplit(javascript: "2") {
+                    Block { ElemAct("left") }
+                    Block { /*EMPTY*/ }
+                }
+            }
+        }
+
+        when:
+        util.requestAction("first", "Done")
+        //util.saveWorkflowPngImage("workflow/domain/ca", "target/CAStartFinsishOrSplitEmptyBlock.png", true)
 
         then:
         util.checkActStatus('ca', [state: "Finished", active: false])
@@ -264,7 +279,7 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
         util.checkActStatus('ca',     [state: "Started", active: true])
     }
 
-    def 'Empty Wf cannot be executed'() {
+    def 'Empty Wf cannot be Completed'() {
         given: "empty Workflow"
         util.buildAndInitWf {
             //checks before Wf.init()
@@ -273,26 +288,6 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
 
         when: "requesting Root CompAct Complete transition"
         util.requestAction('rootCA', "Complete")
-
-        then: "InvalidTransitionException is thrown"
-        thrown InvalidTransitionException
-    }
-
-    public void 'Cannot execute Wf containing empty CompAct'() {
-        given: "empty Workflow containing empty CompAct"
-        util.buildAndInitWf {
-            CompAct('ca') {}
-
-            //checks before Wf.init()
-            util.checkActStatus('rootCA', [state: "Waiting", active: false])
-            util.checkActStatus('ca',     [state: "Waiting", active: false])
-        }
-        //checks after Wf.init()
-        util.checkActStatus('rootCA', [state: "Started", active: true])
-        util.checkActStatus('ca',   [state: "Waiting", active: true])
-
-        when: "requesting CompAct Complete transition"
-        util.requestAction('ca', "Complete")
 
         then: "InvalidTransitionException is thrown"
         thrown InvalidTransitionException
@@ -354,16 +349,5 @@ class CAExecutionSpecs extends Specification implements CristalTestSetup {
         util.checkActStatus('first1', [state: "Waiting",  active: false])
         util.checkActStatus('ca',     [state: "Finished", active: false])
         util.checkActStatus('first',  [state: "Finished",  active: false])
-    }
-
-    def 'Cannot Complete Root Compact without finishing all CompActs'() {
-        given: "Workflow containing single and empty CompAct"
-        util.buildAndInitWf { CompAct{} }
-
-        when: "requesting Root CompAct Complete transition"
-        util.requestAction('rootCA', "Complete")
-
-        then: "InvalidTransitionException is thrown"
-        thrown InvalidTransitionException
     }
 }
