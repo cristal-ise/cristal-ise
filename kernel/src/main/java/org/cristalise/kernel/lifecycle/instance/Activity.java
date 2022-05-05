@@ -24,13 +24,11 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NA
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.BREAKPOINT;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PREDEFINED_STEP;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VALIDATE_OUTCOME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Vector;
@@ -50,7 +48,6 @@ import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.graph.model.Vertex;
-import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.WfCastorHashMap;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
@@ -131,7 +128,7 @@ public class Activity extends WfVertex {
                 machine = LocalObjectLoader.getStateMachine(getProperties(), transKey);
             }
             catch (ObjectNotFoundException e) {
-                throw new InvalidDataException(e.getMessage());
+                throw new InvalidDataException(e);
             }
         }
         return machine;
@@ -215,13 +212,9 @@ public class Activity extends WfVertex {
                    CannotManageException,
                    InvalidCollectionModification
     {
-        if (log.isTraceEnabled()) {
-            StateMachine sm = getStateMachine();
-            log.trace("request() - item:{} path:{} state:{} transition:{}", itemPath.getItemName(), getPath(), sm.getState(getState()), sm.getTransition(transitionID));
-        }
-
         // Find requested transition
         Transition transition = getStateMachine().getTransition(transitionID);
+        log.trace("request() - {}/{} trans:{}", itemPath.getItemName(), this, transition);
 
         // Check if the transition is possible
         transition.checkPerformingRole(this, agent);
@@ -468,6 +461,7 @@ public class Activity extends WfVertex {
      */
     @Override
     public void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+        log.trace("runNext() - {}", this);
         setActive(false);
 
         Vertex[] outVertices = getOutGraphables();
@@ -479,77 +473,9 @@ public class Activity extends WfVertex {
         CompositeActivity parent = getParentCA();
 
         //check if the CA can be finished or not
-        if (checkParentFinishable(parent)) {
-            // do not call runNext() for the top level compAct (i.e. workflow is never finished)
-            if (! parent.getName().equals("domain")) {
-                parent.runNext(agent, itemPath, transactionKey);
-            }
+        if (parent.isFinishable(findLastVertex())) {
+            parent.runNext(agent, itemPath, transactionKey);
         }
-    }
-
-    /**
-     * Calculate if the CompositeActivity (parent) can be finished automatically or not
-     */
-    private boolean checkParentFinishable(CompositeActivity parent) throws InvalidDataException {
-        Vertex[] outVertices = getOutGraphables();
-        boolean cont = outVertices.length > 0;
-        WfVertex lastVertex = null;
-
-        //Find the 'last' Vertex of the output of the Activity
-        while (cont) {
-            lastVertex = (WfVertex)outVertices[0];
-
-            if (lastVertex instanceof Join) {
-                outVertices = lastVertex.getOutGraphables();
-                cont = outVertices.length > 0;
-            }
-            else if (lastVertex instanceof Loop) {
-                String pairingId = (String) lastVertex.getBuiltInProperty(PAIRING_ID);
-                if (StringUtils.isNotBlank(pairingId)) {
-                    //Find the out Join which has not the same pairing id as the Loop
-                    Join outJoin = (Join) Arrays.stream(lastVertex.getOutGraphables())
-                            .filter(v -> !pairingId.equals(((WfVertex) v).getBuiltInProperty(PAIRING_ID)))
-                            .findFirst().get();
-                    outVertices = outJoin.getOutGraphables();
-                    cont = outVertices.length > 0;
-                    lastVertex = outJoin;
-                }
-                else {
-                    cont = false;
-                }
-            }
-            else if (lastVertex instanceof Split) {
-                GraphableVertex pairVertex = lastVertex.findPair();
-                if (pairVertex != null) {
-                    // the pair of a Split (not Loop) is a Join
-                    Join splitJoin = (Join)pairVertex;
-                    outVertices = splitJoin.getOutGraphables();
-                    cont = outVertices.length > 0;
-                    lastVertex = splitJoin;
-                }
-                else {
-                    cont = false;
-                }
-            }
-            else {
-                cont = false;
-            }
-        }
-
-        boolean finishable = false;
-
-        //Calculate if there is still an Activity to be executed in the Parent
-        if (lastVertex == null) {
-            finishable = true;
-        }
-        else if (lastVertex instanceof Join) {
-            finishable = parent.getPossibleActs(lastVertex, GraphTraversal.kUp).size() == 0;
-        }
-        else if (lastVertex instanceof Loop) {
-            finishable = parent.getPossibleActs(lastVertex, GraphTraversal.kDown).size() == 0;
-        }
-
-        return finishable;
     }
 
     /**
@@ -592,7 +518,7 @@ public class Activity extends WfVertex {
      */
     @Override
     public void run(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
-        log.trace("run() path:" + getPath() + " state:" + getStateName());
+        log.trace("run() - {}", this);
 
         if (isFinished()) {
             runNext(agent, itemPath, transactionKey);
@@ -610,7 +536,7 @@ public class Activity extends WfVertex {
      */
     @Override
     public void runFirst(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
-        log.trace("runFirst() - path:" + getPath());
+        log.trace("runFirst() - {}", this);
         run(agent, itemPath, transactionKey);
     }
 
@@ -737,5 +663,17 @@ public class Activity extends WfVertex {
             ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification
     {
         active = false;
+    }
+
+    @Override
+    public String toString() {
+        try {
+            String active = getActive() ? "active" : "inactive";
+            State currentState = getStateMachine().getState(getState());
+            return String.format("%s(%s)[%s]", getPath(), active, currentState);
+        }
+        catch (InvalidDataException e) {
+            return getPath();
+        }
     }
 }

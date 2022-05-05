@@ -51,13 +51,13 @@ class WfInitialiseSpecs extends Specification  implements CristalTestSetup {
     def 'Empty Workflow is NOT fully initialised'() {
         given: "empty Workflow"
         wfBuilder.build {}
-        wfBuilder.checkActStatus("rootCA", [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("domain", [state: "Waiting", active: false])
 
         when: "the Workflow is initialised"
         wfBuilder.initialise()
 
-        then: "The root CA (domain) is still 'Waiting' but became active"
-        wfBuilder.checkActStatus("rootCA", [state: "Waiting", active: true])
+        then: "The domain CA is still 'Waiting' but became active"
+        wfBuilder.checkActStatus("domain", [state: "Waiting", active: true])
     }
 
     def 'Workflow with single Act CAN be initialised'() {
@@ -65,31 +65,31 @@ class WfInitialiseSpecs extends Specification  implements CristalTestSetup {
         wfBuilder.build { 
             ElemAct('first')
         }
-        wfBuilder.checkActStatus("rootCA", [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("domain", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("first",  [state: "Waiting", active: false])
 
         when: "the Workflow is initialised"
         wfBuilder.initialise()
 
-        then: "The root CA (domain) is 'Started' and ElemAct(frist) became active"
-        wfBuilder.checkActStatus("rootCA", [state: "Started", active: true])
+        then: "The domain CA is 'Started' and ElemAct(frist) became active"
+        wfBuilder.checkActStatus("domain", [state: "Started", active: true])
         wfBuilder.checkActStatus("first",  [state: "Waiting", active: true])
     }
 
-    def 'Workflow with empty CompAct CAN be initialised'() {
+    def 'Workflow with empty CompAct CAN be initialised and empty CompAct is Started automatically'() {
         given: "the Workflow with empty CompAct"
         wfBuilder.build {
             CompAct('ca') {}
         }
-        wfBuilder.checkActStatus("rootCA", [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("domain", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("ca",     [state: "Waiting", active: false])
 
         when: "the Workflow is initialised"
         wfBuilder.initialise()
 
-        then: "The root CA (domain) is 'Started' and CompAct(ca) became active"
-        wfBuilder.checkActStatus("rootCA", [state: "Started", active: true])
-        wfBuilder.checkActStatus("ca",     [state: "Waiting", active: true])
+        then: "The domain CA is 'Started' and CompAct(ca) is Finished and inactive"
+        wfBuilder.checkActStatus("domain", [state: "Started", active: true])
+        wfBuilder.checkActStatus("ca",     [state: "Started", active: true])
     }
 
     def 'Workflow with nested empty CompActs CAN be initialised'() {
@@ -99,17 +99,17 @@ class WfInitialiseSpecs extends Specification  implements CristalTestSetup {
                 CompAct('ca1') {}
             }
         }
-        wfBuilder.checkActStatus("rootCA", [state: "Waiting", active: false])
+        wfBuilder.checkActStatus("domain", [state: "Waiting", active: false])
         wfBuilder.checkActStatus("CA",     [state: "Waiting", active: false])
         wfBuilder.checkActStatus("ca1",    [state: "Waiting", active: false])
 
         when: "the Workflow is initialised"
         wfBuilder.initialise()
 
-        then: "The root CA (domain) is 'Started' and ElemAct(frist) became active"
-        wfBuilder.checkActStatus("rootCA", [state: "Started", active: true])
+        then: "The domain CA is 'Started' and ElemAct(frist) became active"
+        wfBuilder.checkActStatus("domain", [state: "Started", active: true])
         wfBuilder.checkActStatus("CA",     [state: "Started", active: true])
-        wfBuilder.checkActStatus("ca1",    [state: "Waiting", active: true])
+        wfBuilder.checkActStatus("ca1",    [state: "Started", active: true])
     }
 
     def 'Starting AndSplit initialise all Activities inside'() {
