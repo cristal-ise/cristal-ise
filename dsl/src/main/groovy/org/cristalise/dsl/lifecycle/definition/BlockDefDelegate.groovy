@@ -72,9 +72,13 @@ class BlockDefDelegate extends PropertyDelegate {
         return newSlotDef
     }
 
-    def LoopInfinitive(@DelegatesTo(LoopDefDelegate) Closure cl) {
-        // This shall add the conditions to make the infinitive
-        return Loop([groovy: true] as Map, cl)
+    def LoopInfinitive(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
+        // Add the conditions to make the infinitive
+        if (!initialProps) initialProps = [:]
+
+        initialProps.groovy = true
+
+        return Loop(initialProps, cl)
     }
 
     def Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {

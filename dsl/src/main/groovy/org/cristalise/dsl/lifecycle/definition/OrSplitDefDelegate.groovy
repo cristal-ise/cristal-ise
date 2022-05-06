@@ -82,12 +82,6 @@ class OrSplitDefDelegate extends SplitDefDelegate {
     }
 
     @Override
-    def LoopInfinitive(@DelegatesTo(LoopDefDelegate) Closure cl) {
-        // This shall add the conditions to make the infinitive
-        return Loop([groovy: true] as Map, cl)
-    }
-
-    @Override
     def Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
         def loopD =  new LoopDefDelegate(compActDef, orSplitDef, initialProps)
         loopD.processClosure(cl)
