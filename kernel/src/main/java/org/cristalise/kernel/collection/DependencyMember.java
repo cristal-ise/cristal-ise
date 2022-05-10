@@ -158,6 +158,14 @@ public class DependencyMember implements CollectionMember {
         return mItemPath.getUUID().toString();
     }
 
+    public Object getProperty(String prop) {
+        return mProperties.get(prop);
+    }
+
+    public void setProperty(String prop, Object val) {
+        mProperties.put(prop, val);
+    }
+
     public Object getBuiltInProperty(BuiltInVertexProperties prop) {
         return mProperties.get(prop.getName());
     }
