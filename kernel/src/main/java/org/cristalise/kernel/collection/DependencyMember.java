@@ -163,7 +163,7 @@ public class DependencyMember implements CollectionMember {
     }
 
     public void setProperty(String prop, Object val) {
-        mProperties.put(prop, val);
+        mProperties.put(prop, val, false);
     }
 
     public Object getBuiltInProperty(BuiltInVertexProperties prop) {
@@ -171,7 +171,7 @@ public class DependencyMember implements CollectionMember {
     }
 
     public void setBuiltInProperty(BuiltInVertexProperties prop, Object val) {
-        mProperties.put(prop.getName(), val);
+        mProperties.put(prop.getName(), val, false);
     }
 
     /**
