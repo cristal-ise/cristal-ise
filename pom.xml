@@ -210,7 +210,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>3.0.0-M6</version>
                     <configuration>
-                        <redirectTestOutputToFile>false</redirectTestOutputToFile>
+                        <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         <reuseForks>false</reuseForks>
                         <includes>
                             <include>**/*Specs.*</include>
