@@ -26,86 +26,37 @@ Module(ns: 'devtest', name: 'DEV Scaffold Test module', version: 0) {
         }
     }
 
+    include(moduleDir+'/CommonDefs.groovy')
+
 
     
-    PropertyDescriptionList('Car', 0) {
-        PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-        PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'Car')
-        PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-    }
+    include(moduleDir+'/Car/Car.groovy')
 
     
-    PropertyDescriptionList('ClubMember', 0) {
-        PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-        PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'ClubMember')
-        PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-    }
+    include(moduleDir+'/ClubMember/ClubMember.groovy')
 
     
-    PropertyDescriptionList('Motorcycle', 0) {
-        PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-        PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'Motorcycle')
-        PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-    }
+    include(moduleDir+'/Motorcycle/Motorcycle.groovy')
 
     
-    PropertyDescriptionList('TestAgent', 0) {
-        PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-        PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestAgent')
-        PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-    }
+    include(moduleDir+'/TestAgent/TestAgent.groovy')
 
     
-    PropertyDescriptionList('TestAgentUseConstructor', 0) {
-        PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-        PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestAgentUseConstructor')
-        PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-    }
+    include(moduleDir+'/TestAgentUseConstructor/TestAgentUseConstructor.groovy')
 
     
-    PropertyDescriptionList('TestItem', 0) {
-        PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-        PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestItem')
-        PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-    }
+    include(moduleDir+'/TestItem/TestItem.groovy')
 
     
-    PropertyDescriptionList('TestItemExcel', 0) {
-        PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-        PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestItemExcel')
-        PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-    }
+    include(moduleDir+'/TestItemExcel/TestItemExcel.groovy')
 
     
-    PropertyDescriptionList('TestItemGeneratedName', 0) {
-        PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-        PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestItemGeneratedName')
-        PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-    }
+    include(moduleDir+'/TestItemGeneratedName/TestItemGeneratedName.groovy')
 
     
-    PropertyDescriptionList('TestItemUseConstructor', 0) {
-        PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-        PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestItemUseConstructor')
-        PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-    }
+    include(moduleDir+'/TestItemUseConstructor/TestItemUseConstructor.groovy')
 
     
-    PropertyDescriptionList('TestItemUseConstructorGeneratedName', 0) {
-        PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
-        PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'TestItemUseConstructorGeneratedName')
-        PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
-    }
+    include(moduleDir+'/TestItemUseConstructorGeneratedName/TestItemUseConstructorGeneratedName.groovy')
 
-
-    include(moduleDir+'/Car.groovy')
-    include(moduleDir+'/ClubMember.groovy')
-    include(moduleDir+'/Motorcycle.groovy')
-    include(moduleDir+'/TestAgent.groovy')
-    include(moduleDir+'/TestAgentUseConstructor.groovy')
-    include(moduleDir+'/TestItem.groovy')
-    include(moduleDir+'/TestItemExcel.groovy')
-    include(moduleDir+'/TestItemGeneratedName.groovy')
-    include(moduleDir+'/TestItemUseConstructor.groovy')
-    include(moduleDir+'/TestItemUseConstructorGeneratedName.groovy')
 }

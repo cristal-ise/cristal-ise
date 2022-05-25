@@ -8,9 +8,6 @@ import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 import static org.cristalise.kernel.property.BuiltInItemProperties.*;
 
-// this is defined in CrudState.groovy of the dev module
-def states = ['ACTIVE', 'INACTIVE']
-
 /**
  * TestItem Item
  */
@@ -47,13 +44,13 @@ Activity('TestItem_Update', 0) {
 Script('TestItem_Aggregate', 0) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
     output('TestItemXML', 'java.lang.String')
-    script('groovy', moduleDir+'/script/TestItem_Aggregate.groovy')
+    script('groovy', moduleDir+'/TestItem/script/Aggregate.groovy')
 }
 
 Script('TestItem_QueryList', 0) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
     output('TestItemMap', 'java.util.Map')
-    script('groovy', moduleDir+'/script/TestItem_QueryList.groovy')
+    script('groovy', moduleDir+'/TestItem/script/QueryList.groovy')
 }
 
 Activity('TestItem_Aggregate', 0) {

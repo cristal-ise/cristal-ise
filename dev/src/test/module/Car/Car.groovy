@@ -8,15 +8,12 @@ import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 import static org.cristalise.kernel.property.BuiltInItemProperties.*;
 
-// this is defined in CrudState.groovy of the dev module
-def states = ['ACTIVE', 'INACTIVE']
-
 /**
- * Motorcycle Item
+ * Car Item
  */
 
-Schema('Motorcycle', 0) {
-    struct(name:' Motorcycle', documentation: 'Motorcycle aggregated data') {
+Schema('Car', 0) {
+    struct(name:' Car', documentation: 'Car aggregated data') {
         field(name: 'Name', type: 'string')
         field(name: 'State', type: 'string', values: states)
 
@@ -25,8 +22,8 @@ Schema('Motorcycle', 0) {
     }
 }
 
-Schema('Motorcycle_Details', 0) {
-    struct(name: 'Motorcycle_Details') {
+Schema('Car_Details', 0) {
+    struct(name: 'Car_Details') {
 
         field(name: 'Name', type: 'string')
 
@@ -37,41 +34,41 @@ Schema('Motorcycle_Details', 0) {
 }
 
 
-Activity('Motorcycle_Update', 0) {
+Activity('Car_Update', 0) {
     Property((OUTCOME_INIT): 'Empty')
 
-    Schema($motorcycle_Details_Schema)
+    Schema($car_Details_Schema)
     Script('CrudEntity_ChangeName', 0)
 }
 
-Script('Motorcycle_Aggregate', 0) {
+Script('Car_Aggregate', 0) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    output('MotorcycleXML', 'java.lang.String')
-    script('groovy', moduleDir+'/script/Motorcycle_Aggregate.groovy')
+    output('CarXML', 'java.lang.String')
+    script('groovy', moduleDir+'/Car/script/Aggregate.groovy')
 }
 
-Script('Motorcycle_QueryList', 0) {
+Script('Car_QueryList', 0) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    output('MotorcycleMap', 'java.util.Map')
-    script('groovy', moduleDir+'/script/Motorcycle_QueryList.groovy')
+    output('CarMap', 'java.util.Map')
+    script('groovy', moduleDir+'/Car/script/QueryList.groovy')
 }
 
-Activity('Motorcycle_Aggregate', 0) {
+Activity('Car_Aggregate', 0) {
     Property((OUTCOME_INIT): 'Empty')
     Property((AGENT_ROLE): 'UserCode')
 
-    Schema($motorcycle_Schema)
-    Script($motorcycle_Aggregate_Script)
+    Schema($car_Schema)
+    Script($car_Aggregate_Script)
 }
 
 
 
 
 
-Workflow('Motorcycle_Workflow', 0) {
+Workflow('Car_Workflow', 0) {
     Layout {
         AndSplit {
-            LoopInfinitive { Act('Update', $motorcycle_Update_ActivityDef)  }
+            LoopInfinitive { Act('Update', $car_Update_ActivityDef)  }
             Block { CompActDef('CrudState_Manage', 0) }
 
 
@@ -82,33 +79,33 @@ Workflow('Motorcycle_Workflow', 0) {
 
 
 
-Item(name: 'MotorcycleFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
+Item(name: 'CarFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': '/devtest/Motorcycles')
+    InmutableProperty('Root': '/devtest/Cars')
 
 
 
 
 
-    InmutableProperty('UpdateSchema': 'Motorcycle_Details:0')
+    InmutableProperty('UpdateSchema': 'Car_Details:0')
 
 
-    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/Motorcycle_0.xml')
+    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/Car_0.xml')
 
     Dependency(WORKFLOW) {
-        Member(itemPath: $motorcycle_Workflow_CompositeActivityDef) {
+        Member(itemPath: $car_Workflow_CompositeActivityDef) {
             Property('Version': 0)
         }
     }
 
     Dependency(MASTER_SCHEMA) {
-        Member(itemPath: $motorcycle_Schema) {
+        Member(itemPath: $car_Schema) {
             Property('Version': 0)
         }
     }
 
     Dependency(AGGREGATE_SCRIPT) {
-        Member(itemPath: $motorcycle_Aggregate_Script) {
+        Member(itemPath: $car_Aggregate_Script) {
             Property('Version': 0)
         }
     }
@@ -118,7 +115,7 @@ Item(name: 'MotorcycleFactory', version: 0, folder: '/devtest', workflow: 'CrudF
         Properties {
             Property((DEPENDENCY_CARDINALITY): ManyToOne.toString())
             Property((DEPENDENCY_TYPE): Bidirectional.toString())
-            Property((DEPENDENCY_TO): 'Motorcycles')
+            Property((DEPENDENCY_TO): 'Cars')
         }
         
         Member($clubMember_PropertyDescriptionList)
