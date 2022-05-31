@@ -43,7 +43,7 @@ abstract class ModuleScriptBase extends DelegatingScript {
 
     String resourceRoot = null
     String moduleXmlDir = null
-    String moduleDir = 'src/main/module'
+    String moduleDir = './src/main/module'
 
     @Deprecated
     def setModuletDir(URI uri) {

@@ -21,7 +21,11 @@
 package org.cristalise.dsl.module
 
 import static org.cristalise.dsl.lifecycle.definition.CompActDefBuilder.generateWorkflowSVG
+import static org.cristalise.dsl.module.GitStatus.*
 import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE
+
+import java.nio.file.Files
+import java.nio.file.Path
 
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.entity.AgentBuilder
@@ -45,14 +49,17 @@ import org.cristalise.dsl.querying.QueryDelegate
 import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.dsl.scripting.ScriptDelegate
 import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportRole
+import org.cristalise.kernel.entity.proxy.AgentProxy
+import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lifecycle.instance.predefined.Erase
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
-import org.cristalise.kernel.lifecycle.renderer.LifecycleRenderer
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.module.Module
@@ -77,8 +84,6 @@ import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.FileStringUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
-import org.jfree.graphics2d.svg.SVGGraphics2D
-import org.jfree.graphics2d.svg.SVGUtils
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -90,14 +95,16 @@ import groovy.xml.XmlUtil
 @CompileStatic @Slf4j
 class ModuleDelegate implements BindingConvention {
 
-    private static final boolean generateResourceXml = Gateway.properties.getBoolean('DSL.GenerateResourceXml', true)
+    private final boolean generateResourceXml = Gateway.properties.getBoolean('DSL.GenerateResourceXml', true)
+    private final boolean generateModuleXml   = Gateway.properties.getBoolean('DSL.GenerateModuleXml', true)
+    private final boolean uploadChangedItems  = Gateway.properties.getBoolean('Gateway.clusteredVertx', true)
 
     Module module = null
     Module newModule = null
     Binding bindings
 
-    String resourceRoot = 'src/main/resources'
-    String moduleDir    = 'src/main/module/'
+    String resourceRoot = './src/main/resources'
+    String moduleDir    = './src/main/module/'
     String moduleXmlDir = null
 
     private File resourceBootDir = null
@@ -106,6 +113,29 @@ class ModuleDelegate implements BindingConvention {
     public ModuleDelegate(Map<String, Object> args) {
         assert args.ns && args.name && args.version != null
 
+        inititalise(args)
+
+        addToBingings(bindings, 'moduleNs',      newModule.ns as String)
+        addToBingings(bindings, 'moduleVersion', newModule.info.version as String)
+
+        if (moduleXMLFile.exists()) {
+            module = (Module) Gateway.getMarshaller().unmarshall(moduleXMLFile.text)
+            assert module.ns == newModule.ns
+            assert module.name == newModule.name
+        }
+
+        createModuleResourceDirectoryStructure()
+    }
+
+    private void createModuleResourceDirectoryStructure() {
+        new FileTreeBuilder(new File(resourceRoot)).dir('boot') {
+            for (def res : BuiltInResources.values()) {
+                dir(res.getTypeCode())
+            }
+        }
+    }
+
+    private void inititalise(Map<String, Object> args) {
         newModule = new Module()
         newModule.info = new ModuleInfo()
         newModule.ns = args.ns
@@ -115,29 +145,14 @@ class ModuleDelegate implements BindingConvention {
         if (args.bindings) bindings = (Binding) args.bindings
         else               bindings = new Binding()
 
-        addToBingings(bindings, 'moduleNs',      newModule.ns as String)
-        addToBingings(bindings, 'moduleVersion', newModule.info.version as String)
-
         if (args.resourceRoot) resourceRoot = args.resourceRoot
         if (args.moduleDir)    moduleDir    = args.moduleDir
         if (args.moduleXmlDir) moduleXmlDir = args.moduleXmlDir
 
         if (!moduleXmlDir) moduleXmlDir = resourceRoot
 
-        moduleXMLFile = new File("$moduleXmlDir/module.xml")
-
-        if (moduleXMLFile.exists()) {
-            module = (Module) Gateway.getMarshaller().unmarshall(moduleXMLFile.text)
-            assert module.ns == newModule.ns
-            assert module.name == newModule.name
-        }
-
-        new FileTreeBuilder(new File(resourceRoot)).dir('boot') {
-            for (def res : BuiltInResources.values()) {
-                dir(res.getTypeCode())
-            }
-        }
         resourceBootDir = new File("$resourceRoot/boot")
+        moduleXMLFile = new File("$moduleXmlDir/module.xml")
     }
 
     public ModuleDelegate(String ns, String n, int v, Binding b = null) {
@@ -433,6 +448,16 @@ class ModuleDelegate implements BindingConvention {
         newModule.resURL = url
     }
 
+
+    private void generateModuleXML() {
+        def oldModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(module))
+        def newModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(newModule))
+
+        KernelXMLUtility.compareXML(oldModuleXML, newModuleXML)
+
+        FileStringUtility.string2File(moduleXMLFile, newModuleXML)
+    }
+
     public void processClosure(Closure cl) {
         assert cl
         assert newModule.name
@@ -441,15 +466,76 @@ class ModuleDelegate implements BindingConvention {
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
 
-        if (Gateway.properties.getBoolean('DSL.GenerateModuleXml', true)) {
-            def oldModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(module))
-            def newModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(newModule))
+        if (generateModuleXml) generateModuleXML()
+        if (uploadChangedItems) uploadChangedItems()
+    }
 
-            KernelXMLUtility.compareXML(oldModuleXML, newModuleXML)
+    /**
+     * Retrieves git status of XML files in the resources/boot directory after DSL generation
+     * and updates them using Activities defined in the kernel
+     * 
+     * @return
+     */
+    private uploadChangedItems() {
+        def resourcesStatus = GitStatus.getStatusMapForWorkingTree("${resourceRoot}/boot")
+        def agent = Gateway.connect('env', 'test')
 
-            FileStringUtility.string2File(moduleXMLFile, newModuleXML)
+        resourcesStatus.each { GitStatus status, List<Path> files ->
+            switch(status) {
+                case ADDED:
+                case UNTRACKED:
+                    createItems(agent, files)
+                    break
+
+                case MODIFIED:
+                    updateItems(agent, files)
+                    break
+
+                case REMOVED:
+                    removeItems(agent, files)
+                    break
+
+                default:
+                    log.error('uploadChangedItems() - unknow GitStatus:{}', status)
+                    break
+            }
         }
+    }
 
+    private ItemProxy getResourceItem(Path filePath, AgentProxy agent) {
+        def resourceFileName = filePath.getFileName().toString()
+        def resourceFileNameNoExt = resourceFileName.substring(0, resourceFileName.lastIndexOf("."))
+        def resourceName = resourceFileNameNoExt.substring(0, resourceFileNameNoExt.lastIndexOf("_"))
+
+        def resourceType = BuiltInResources.getValue(filePath.getParent().getFileName().toString())
+
+        return agent.getItem(resourceType.getTypeRoot() + '/' + newModule.ns + '/' + resourceName)
+    }
+
+    private void createItems(AgentProxy agent, List<Path> files) {
+        log.warn('createItems() - NO factories defined in the kernel - files:{}', files)
+    }
+
+    private void removeItems(AgentProxy agent, List<Path> files) {
+        files.each { Path filePath ->
+            ItemProxy resItem = getResourceItem(filePath, agent)
+            agent.execute(resItem, Erase.class)
+        }
+    }
+
+    private void updateItems(AgentProxy agent, List<Path> files) {
+        files.each { Path filePath ->
+            ItemProxy resItem = getResourceItem(filePath, agent)
+
+            def resourceType = BuiltInResources.getValue(filePath.getParent().getFileName().toString())
+
+            Job editJob = resItem.getJobByName(resourceType.getEditActivityName(), agent)
+            editJob.setOutcome(filePath.getText('UTF-8'))
+            agent.execute(editJob)
+
+            Job moveJob = resItem.getJobByName(resourceType.getMoveVersionActivityName(), agent)
+            agent.execute(moveJob)
+        }
     }
 
     /**
