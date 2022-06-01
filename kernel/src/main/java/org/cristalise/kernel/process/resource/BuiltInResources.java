@@ -128,41 +128,31 @@ public enum BuiltInResources {
         return descObj;
     }
 
+    private String getActivityTypeText() {
+        switch (this) {
+            case COMP_ACT_DESC_RESOURCE:
+            case ELEM_ACT_DESC_RESOURCE:
+                return "Activity";
+
+            case ITEM_DESC_RESOURCE:
+            case AGENT_DESC_RESOURCE:
+            case ROLE_DESC_RESOURCE:
+                return getSchemaName() + "Desc";
+
+            default:
+                return getSchemaName();
+        }
+    }
+
     public String getEditActivityName() {
         return "EditDefinition";
     }
 
     public String getMoveVersionActivityName() {
-        String schemaName = getSchemaName();
-
-        switch (this) {
-            case ITEM_DESC_RESOURCE:
-            case AGENT_DESC_RESOURCE:
-            case ROLE_DESC_RESOURCE:
-                schemaName = schemaName + "Desc";
-                break;
-
-            default:
-                break;
-        }
-
-        return "MoveLatest" + schemaName + "VersionToLast";
+        return "MoveLatest" + getActivityTypeText() + "VersionToLast";
     }
 
     public String getAssignVersionActivityName() {
-        String schemaName = getSchemaName();
-
-        switch (this) {
-            case ITEM_DESC_RESOURCE:
-            case AGENT_DESC_RESOURCE:
-            case ROLE_DESC_RESOURCE:
-                schemaName = schemaName + "Desc";
-                break;
-
-            default:
-                break;
-        }
-
-        return "AssignNew" + schemaName + "VersionFromLast";
+        return "AssignNew" + getActivityTypeText() + "VersionFromLast";
     }
 }

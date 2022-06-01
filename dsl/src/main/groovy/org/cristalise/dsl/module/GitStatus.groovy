@@ -33,18 +33,17 @@ import org.slf4j.LoggerFactory
 import groovy.transform.CompileStatic
 
 /**
- *
+ * 
  */
 @CompileStatic
 public enum GitStatus {
 
     ADDED, MODIFIED, REMOVED, UNTRACKED;
 
-    public static Map<GitStatus, List<Path>> getStatusMapForWorkingTree(String workDir) {
+    public static Map<GitStatus, List<Path>> getStatusMapForWorkTree(String workDir) {
         RepositoryBuilder repositoryBuilder = new RepositoryBuilder()
 
         Repository repo = repositoryBuilder
-            //.setWorkTree(new File(workDir))
             .findGitDir(new File(workDir))
             .setMustExist(true)
             .build()
@@ -52,47 +51,35 @@ public enum GitStatus {
         Git git = Git.wrap(repo)
         Status currentStatus = git.status().call()
 
-        Map<GitStatus, List<Path>> statusMap = [:]
+        Map<GitStatus, List<Path>> statusMap = new LinkedHashMap<>()
         Path workDirPath = Paths.get(workDir).normalize();
 
         if (!currentStatus.isClean()) {
-            currentStatus.getAdded().each {
-                Path filePath = Paths.get(it).normalize();
-                updateStatusMap(statusMap, ADDED, filePath, workDirPath)
-            }
-
-            currentStatus.getModified().each {
-                Path filePath = Paths.get(it).normalize();
-                updateStatusMap(statusMap, MODIFIED, filePath, workDirPath)
-            }
-
-            currentStatus.getRemoved().each {
-                Path filePath = Paths.get(it).normalize();
-                updateStatusMap(statusMap, REMOVED, filePath, workDirPath)
-            }
-
-            currentStatus.getUntracked().each {
-                Path filePath = Paths.get(it).normalize();
-                updateStatusMap(statusMap, UNTRACKED, filePath, workDirPath)
-            }
+            updateStatusMap(statusMap, ADDED,     currentStatus.getAdded(),     workDirPath)
+            updateStatusMap(statusMap, MODIFIED,  currentStatus.getModified(),  workDirPath)
+            updateStatusMap(statusMap, REMOVED,   currentStatus.getRemoved(),   workDirPath)
+            updateStatusMap(statusMap, UNTRACKED, currentStatus.getUntracked(), workDirPath)
         }
 
         return statusMap
     }
 
-    private static void updateStatusMap(Map<GitStatus, List<Path>> statusMap, GitStatus status, Path file, Path workDir) {
+    private static void updateStatusMap(Map<GitStatus, List<Path>> statusMap, GitStatus status, Set<String> files, Path workDir) {
         // static final log variable created by @slf4j does not work with enums
         final Logger log = LoggerFactory.getLogger(GitStatus.class)
 
+        for (String file : files) {
+            Path filePath = Paths.get(file).normalize();
 
-        if (file.startsWith(workDir)) {
-            log.info('updateStatusMaps() - {}:{}', status, file)
-
-            if (!statusMap[status]) statusMap[status] = []
-            statusMap[status].add(file)
-        }
-        else {
-            log.debug('updateStatusMaps() - SKIPPING {}:{} workDir:{}', status, file, workDir)
+            if (filePath.startsWith(workDir)) {
+                log.info('updateStatusMap() - adding {}:{}', status, filePath)
+    
+                if (!statusMap[status]) statusMap[status] = []
+                statusMap[status].add(filePath)
+            }
+            else {
+                log.debug('updateStatusMap() - SKIPPING {}:{} workDir:{}', status, filePath, workDir)
+            }
         }
     }
 }

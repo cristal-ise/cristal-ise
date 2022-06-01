@@ -45,6 +45,9 @@ abstract class ModuleScriptBase extends DelegatingScript {
     String moduleXmlDir = null
     String moduleDir = './src/main/module'
 
+    String userName
+    String userPassword
+
     @Deprecated
     def setModuletDir(URI uri) {
         setModuleDir(uri)
@@ -92,6 +95,9 @@ abstract class ModuleScriptBase extends DelegatingScript {
         args.moduleDir = moduleDir
         args.moduleXmlDir = moduleXmlDir
         args.bindings = this.binding
+
+        if (userName)     args['userName']     = userName
+        if (userPassword) args['userPassword'] = userPassword
 
         ModuleDelegate md = new ModuleDelegate(args)
 

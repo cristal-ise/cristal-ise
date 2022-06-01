@@ -21,7 +21,6 @@
 package org.cristalise.dsl.module
 
 import static org.cristalise.dsl.lifecycle.definition.CompActDefBuilder.generateWorkflowSVG
-import static org.cristalise.dsl.module.GitStatus.*
 import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE
 
 import java.nio.file.Files
@@ -99,6 +98,9 @@ class ModuleDelegate implements BindingConvention {
     private final boolean generateModuleXml   = Gateway.properties.getBoolean('DSL.GenerateModuleXml', true)
     private final boolean uploadChangedItems  = Gateway.properties.getBoolean('Gateway.clusteredVertx', true)
 
+    String uploadAgentName = null
+    String uploadAgentPwd = null
+
     Module module = null
     Module newModule = null
     Binding bindings
@@ -153,6 +155,9 @@ class ModuleDelegate implements BindingConvention {
 
         resourceBootDir = new File("$resourceRoot/boot")
         moduleXMLFile = new File("$moduleXmlDir/module.xml")
+
+        if (args.userName)     uploadAgentName = args.userName
+        if (args.userPassword) uploadAgentPwd  = args.userPassword
     }
 
     public ModuleDelegate(String ns, String n, int v, Binding b = null) {
@@ -467,76 +472,14 @@ class ModuleDelegate implements BindingConvention {
         cl()
 
         if (generateModuleXml) generateModuleXML()
-        if (uploadChangedItems) uploadChangedItems()
-    }
-
-    /**
-     * Retrieves git status of XML files in the resources/boot directory after DSL generation
-     * and updates them using Activities defined in the kernel
-     * 
-     * @return
-     */
-    private uploadChangedItems() {
-        def resourcesStatus = GitStatus.getStatusMapForWorkingTree("${resourceRoot}/boot")
-        def agent = Gateway.connect('env', 'test')
-
-        resourcesStatus.each { GitStatus status, List<Path> files ->
-            switch(status) {
-                case ADDED:
-                case UNTRACKED:
-                    createItems(agent, files)
-                    break
-
-                case MODIFIED:
-                    updateItems(agent, files)
-                    break
-
-                case REMOVED:
-                    removeItems(agent, files)
-                    break
-
-                default:
-                    log.error('uploadChangedItems() - unknow GitStatus:{}', status)
-                    break
-            }
+        if (uploadChangedItems) {
+            def agent = Gateway.getSecurityManager().authenticate(uploadAgentName, uploadAgentPwd, null)
+            def uploader = new ResourceUpdateHandler(agent, newModule.ns)
+            uploader.updateChanges("${resourceRoot}/boot")
         }
     }
 
-    private ItemProxy getResourceItem(Path filePath, AgentProxy agent) {
-        def resourceFileName = filePath.getFileName().toString()
-        def resourceFileNameNoExt = resourceFileName.substring(0, resourceFileName.lastIndexOf("."))
-        def resourceName = resourceFileNameNoExt.substring(0, resourceFileNameNoExt.lastIndexOf("_"))
 
-        def resourceType = BuiltInResources.getValue(filePath.getParent().getFileName().toString())
-
-        return agent.getItem(resourceType.getTypeRoot() + '/' + newModule.ns + '/' + resourceName)
-    }
-
-    private void createItems(AgentProxy agent, List<Path> files) {
-        log.warn('createItems() - NO factories defined in the kernel - files:{}', files)
-    }
-
-    private void removeItems(AgentProxy agent, List<Path> files) {
-        files.each { Path filePath ->
-            ItemProxy resItem = getResourceItem(filePath, agent)
-            agent.execute(resItem, Erase.class)
-        }
-    }
-
-    private void updateItems(AgentProxy agent, List<Path> files) {
-        files.each { Path filePath ->
-            ItemProxy resItem = getResourceItem(filePath, agent)
-
-            def resourceType = BuiltInResources.getValue(filePath.getParent().getFileName().toString())
-
-            Job editJob = resItem.getJobByName(resourceType.getEditActivityName(), agent)
-            editJob.setOutcome(filePath.getText('UTF-8'))
-            agent.execute(editJob)
-
-            Job moveJob = resItem.getJobByName(resourceType.getMoveVersionActivityName(), agent)
-            agent.execute(moveJob)
-        }
-    }
 
     /**
      * Validate if the StateMachine is existing or not.  If not it will be added to the module's resources.
