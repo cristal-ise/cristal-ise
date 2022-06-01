@@ -64,7 +64,7 @@ public class CompActDelegate extends BlockDelegate {
         WfVertex v = currentCA.newChild(t, name, firstFlag, (GraphPoint)null)
         LifecycleVertexOutlineCreator lifecycleVertexOutlineCreator = new LifecycleVertexOutlineCreator();
         lifecycleVertexOutlineCreator.setOutline(v)
-        log.info "createVertex(path: $currentCA.path) - type: '$t'; id: '$v.ID'; name: '$name;' path: '$v.path'"
+        log.debug "createVertex(path: $currentCA.path) - type: '$t'; id: '$v.ID'; name: '$name;' path: '$v.path'"
 
         firstFlag = false
         updateVertexCache(t, name, v)

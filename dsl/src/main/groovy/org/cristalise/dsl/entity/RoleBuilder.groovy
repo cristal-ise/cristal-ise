@@ -43,8 +43,6 @@ class RoleBuilder {
 
         roleDelegate.processClosure(cl)
 
-        log.debug "RoleBuilder.build() - Done"
-
         return roleDelegate.roles
     }
 

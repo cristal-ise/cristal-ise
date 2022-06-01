@@ -115,6 +115,8 @@ class ModuleDelegate implements BindingConvention {
     public ModuleDelegate(Map<String, Object> args) {
         assert args.ns && args.name && args.version != null
 
+        log.info('ModuleDelegate() - args:{}', args)
+
         inititalise(args)
 
         addToBingings(bindings, 'moduleNs',      newModule.ns as String)
@@ -165,6 +167,8 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public include(String scriptFile) {
+        log.info('include() - scriptFile:{}', scriptFile)
+
         CompilerConfiguration cc = new CompilerConfiguration()
         cc.setScriptBaseClass(DelegatingScript.class.getName())
 
@@ -176,12 +180,16 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Schema Schema(String name, Integer version) {
+        log.info('Schema() - name:{} version:{}', name, version)
+        
         def schema = LocalObjectLoader.getSchema(name, version)
         addSchema(schema)
         return schema
     }
 
     public Schema Schema(String name, Integer version, @DelegatesTo(SchemaDelegate) Closure cl) {
+        log.info('Schema() - name:{} version:{}', name, version)
+        
         def sb = SchemaBuilder.build(newModule.ns, name, version, cl)
 
         if (generateResourceXml) sb.schema.export(null, resourceBootDir, true)
@@ -196,6 +204,8 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Schema Schema(String name, Integer version, File file) {
+        log.info('Schema() - name:{} version:{}', name, version)
+
         def sb = SchemaBuilder.build(newModule.ns, name, version, file)
 
         if (generateResourceXml) sb.schema.export(null, resourceBootDir, true)
@@ -210,12 +220,16 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Query Query(String name, Integer version) {
+        log.info('Query() - name:{} version:{}', name, version)
+        
         def query = LocalObjectLoader.getQuery(name, version)
         addQuery(query)
         return query
     }
 
     public Query Query(String name, Integer version, @DelegatesTo(QueryDelegate) Closure cl) {
+        log.info('Query() - name:{} version:{}', name, version)
+
         def query = QueryBuilder.build(newModule.ns, name, version, cl)
         if (generateResourceXml) query.export(null, resourceBootDir, true)
         addQuery(query)
@@ -223,12 +237,16 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Script Script(String name, Integer version) {
+        log.info('Script() - name:{} version:{}', name, version)
+        
         def script = LocalObjectLoader.getScript(name, version)
         addScript(script)
         return script
     }
 
     public Script Script(String name, Integer version, @DelegatesTo(ScriptDelegate) Closure cl) {
+        log.info('Script() - name:{} version:{}', name, version)
+
         def sb = ScriptBuilder.build(newModule.ns, name, version, cl)
         if (generateResourceXml) sb.script.export(null, resourceBootDir, true)
         addScript(sb.script)
@@ -236,12 +254,16 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public StateMachine StateMachine(String name, Integer version) {
+        log.info('StateMachine() - name:{} version:{}', name, version)
+
         def sm = LocalObjectLoader.getStateMachine(name, version)
         addStateMachine(sm)
         return sm
     }
 
     public StateMachine StateMachine(String name, Integer version, @DelegatesTo(StateMachineDelegate) Closure cl) {
+        log.info('StateMachine() - name:{} version:{}', name, version)
+
         def sm = StateMachineBuilder.build(newModule.ns, name, version, cl).sm
         if (generateResourceXml) sm.export(null, resourceBootDir, true)
         addStateMachine(sm)
@@ -249,12 +271,16 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public ActivityDef Activity(String name, Integer version) {
+        log.info('Activity() - name:{} version:{}', name, version)
+
         def eaDef = LocalObjectLoader.getActDef(name, version)
         addActivityDef(eaDef)
         return eaDef
     }
 
     public ActivityDef Activity(String name, Integer version, @DelegatesTo(ElemActDefDelegate) Closure cl) {
+        log.info('Activity() - name:{} version:{}', name, version)
+
         def eaDef = ElemActDefBuilder.build(name, version, cl)
         if (generateResourceXml) eaDef.export(null, resourceBootDir, true)
         addActivityDef(eaDef)
@@ -268,6 +294,8 @@ class ModuleDelegate implements BindingConvention {
      * @return
      */
     public CompositeActivityDef Workflow(String name, Integer version) {
+        log.info('Workflow() - name:{} version:{}', name, version)
+
         def caDef = LocalObjectLoader.getCompActDef(name, version)
         addCompositeActivityDef(caDef)
         return caDef
@@ -291,6 +319,8 @@ class ModuleDelegate implements BindingConvention {
      * @return
      */
     public CompositeActivityDef Workflow(Map args, @DelegatesTo(CompActDefDelegate) Closure cl) {
+        log.info('Workflow() - name:{} version:{}', args.name, args.version)
+
         def caDef = CompActDefBuilder.build(args, cl)
 
         if (args?.generate) {
@@ -340,6 +370,8 @@ class ModuleDelegate implements BindingConvention {
      * @return
      */
     public PropertyDescriptionList PropertyDescriptionList(String name, Integer version, @DelegatesTo(PropertyDescriptionDelegate) Closure cl) {
+        log.info('PropertyDescriptionList() - name:{} version:{}', name, version)
+
         def propDescList = PropertyDescriptionBuilder.build(newModule.ns, name, version, cl)
         if (generateResourceXml) propDescList.export(null, resourceBootDir, true)
         addPropertyDescriptionList(propDescList)
@@ -354,6 +386,8 @@ class ModuleDelegate implements BindingConvention {
      * @param cl
      */
     public ImportAgent Agent(Map args, @DelegatesTo(AgentDelegate) Closure cl) {
+        log.info('Agent() - name:{} version:{}', args.name, args.version)
+
         args.ns = newModule.ns
         def agent = AgentBuilder.build(args, cl)
         agent.roles.each { it.jobList = null }
@@ -377,6 +411,8 @@ class ModuleDelegate implements BindingConvention {
      * @param cl
      */
     public ImportItem Item(Map args, @DelegatesTo(ItemDelegate) Closure cl) {
+        log.info('Item() - name:{} version:{}', args.name, args.version)
+
         args.ns = newModule.ns
         def item = ItemBuilder.build(args, cl)
         item.properties.removeAll { it.value == args.name }
@@ -398,6 +434,8 @@ class ModuleDelegate implements BindingConvention {
      * @param cl
      */
     public List<ImportRole> Roles(@DelegatesTo(RoleDelegate) Closure cl) {
+        log.info('Roles()')
+
         def importRoles = RoleBuilder.build(newModule.ns, cl)
 
         importRoles.each { role ->
