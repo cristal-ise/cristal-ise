@@ -107,7 +107,7 @@ class SchemaDelegate {
 
     @CompileDynamic
     private void buildStruct(MarkupBuilder xsd, Struct s) {
-        log.info "buildStruct() - Struct: $s.name"
+        log.debug "buildStruct() - Struct: $s.name"
         xsd.'xs:element'(name: s.name, minOccurs: s.minOccurs, maxOccurs: s.maxOccurs) {
             if(s.documentation || s.dynamicForms) {
                 'xs:annotation' { 
@@ -202,7 +202,7 @@ class SchemaDelegate {
 
     @CompileDynamic
     private void buildAtribute(MarkupBuilder xsd, Attribute a) {
-        log.info "buildAtribute() - attribute: $a.name"
+        log.debug "buildAtribute() - attribute: $a.name"
 
         if (a.documentation) throw new InvalidDataException('Attribute cannot define documentation')
 
@@ -300,7 +300,7 @@ class SchemaDelegate {
     }
 
     private void generateExpressionScript(Struct s, Field f) {
-        log.info('generateExpressionScript(struct:{}, field:{}) - script:{}', s.name, f.name, f.expression.name)
+        log.debug('generateExpressionScript(struct:{}, field:{}) - script:{}', s.name, f.name, f.expression.name)
 
         def script = new Script('groovy', f.expression.generateUpdateScript(s, f, name, version))
         // this constructor adds a default output which is not needed
@@ -319,7 +319,7 @@ class SchemaDelegate {
 
     @CompileDynamic
     private void buildField(MarkupBuilder xsd, Field f) {
-        log.info "buildField() - Field: $f.name"
+        log.debug "buildField() - Field: $f.name"
 
         //TODO: implement support for this combination - see issue 129
         if (((f.attributes || f.unit) && hasRestrictions(f)) || (f.attributes && f.unit))
@@ -373,14 +373,14 @@ class SchemaDelegate {
 
     @CompileDynamic
     private void buildAnyField(MarkupBuilder xsd, AnyField any) {
-        log.info "buildAnyField()"
+        log.debug "buildAnyField()"
 
         xsd.'xs:any'(minOccurs: any.minOccurs, maxOccurs: any.maxOccurs, processContents: any.processContents)
     }
 
     @CompileDynamic
     private void buildRestriction(MarkupBuilder xsd, Attribute fieldOrAttr) {
-        log.info "buildRestriction() - type:$fieldOrAttr.type"
+        log.debug "buildRestriction() - type:$fieldOrAttr.type"
 
         xsd.'xs:simpleType' {
             'xs:restriction'(base: fieldOrAttr.type) {

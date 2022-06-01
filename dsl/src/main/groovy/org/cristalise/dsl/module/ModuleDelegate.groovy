@@ -23,6 +23,9 @@ package org.cristalise.dsl.module
 import static org.cristalise.dsl.lifecycle.definition.CompActDefBuilder.generateWorkflowSVG
 import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE
 
+import java.nio.file.Files
+import java.nio.file.Path
+
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.entity.AgentBuilder
 import org.cristalise.dsl.entity.AgentDelegate
@@ -45,14 +48,17 @@ import org.cristalise.dsl.querying.QueryDelegate
 import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.dsl.scripting.ScriptDelegate
 import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportRole
+import org.cristalise.kernel.entity.proxy.AgentProxy
+import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lifecycle.instance.predefined.Erase
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
-import org.cristalise.kernel.lifecycle.renderer.LifecycleRenderer
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.module.Module
@@ -77,8 +83,6 @@ import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.FileStringUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
-import org.jfree.graphics2d.svg.SVGGraphics2D
-import org.jfree.graphics2d.svg.SVGUtils
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -90,14 +94,19 @@ import groovy.xml.XmlUtil
 @CompileStatic @Slf4j
 class ModuleDelegate implements BindingConvention {
 
-    private static final boolean generateResourceXml = Gateway.properties.getBoolean('DSL.GenerateResourceXml', true)
+    private final boolean generateResourceXml = Gateway.properties.getBoolean('DSL.GenerateResourceXml', true)
+    private final boolean generateModuleXml   = Gateway.properties.getBoolean('DSL.GenerateModuleXml', true)
+    private final boolean uploadChangedItems  = Gateway.properties.getBoolean('Gateway.clusteredVertx', true)
+
+    String uploadAgentName = null
+    String uploadAgentPwd = null
 
     Module module = null
     Module newModule = null
     Binding bindings
 
-    String resourceRoot = 'src/main/resources'
-    String moduleDir    = 'src/main/module/'
+    String resourceRoot = './src/main/resources'
+    String moduleDir    = './src/main/module/'
     String moduleXmlDir = null
 
     private File resourceBootDir = null
@@ -106,6 +115,31 @@ class ModuleDelegate implements BindingConvention {
     public ModuleDelegate(Map<String, Object> args) {
         assert args.ns && args.name && args.version != null
 
+        log.info('ModuleDelegate() - args:{}', args)
+
+        inititalise(args)
+
+        addToBingings(bindings, 'moduleNs',      newModule.ns as String)
+        addToBingings(bindings, 'moduleVersion', newModule.info.version as String)
+
+        if (moduleXMLFile.exists()) {
+            module = (Module) Gateway.getMarshaller().unmarshall(moduleXMLFile.text)
+            assert module.ns == newModule.ns
+            assert module.name == newModule.name
+        }
+
+        createModuleResourceDirectoryStructure()
+    }
+
+    private void createModuleResourceDirectoryStructure() {
+        new FileTreeBuilder(new File(resourceRoot)).dir('boot') {
+            for (def res : BuiltInResources.values()) {
+                dir(res.getTypeCode())
+            }
+        }
+    }
+
+    private void inititalise(Map<String, Object> args) {
         newModule = new Module()
         newModule.info = new ModuleInfo()
         newModule.ns = args.ns
@@ -115,29 +149,17 @@ class ModuleDelegate implements BindingConvention {
         if (args.bindings) bindings = (Binding) args.bindings
         else               bindings = new Binding()
 
-        addToBingings(bindings, 'moduleNs',      newModule.ns as String)
-        addToBingings(bindings, 'moduleVersion', newModule.info.version as String)
-
         if (args.resourceRoot) resourceRoot = args.resourceRoot
         if (args.moduleDir)    moduleDir    = args.moduleDir
         if (args.moduleXmlDir) moduleXmlDir = args.moduleXmlDir
 
         if (!moduleXmlDir) moduleXmlDir = resourceRoot
 
+        resourceBootDir = new File("$resourceRoot/boot")
         moduleXMLFile = new File("$moduleXmlDir/module.xml")
 
-        if (moduleXMLFile.exists()) {
-            module = (Module) Gateway.getMarshaller().unmarshall(moduleXMLFile.text)
-            assert module.ns == newModule.ns
-            assert module.name == newModule.name
-        }
-
-        new FileTreeBuilder(new File(resourceRoot)).dir('boot') {
-            for (def res : BuiltInResources.values()) {
-                dir(res.getTypeCode())
-            }
-        }
-        resourceBootDir = new File("$resourceRoot/boot")
+        if (args.userName)     uploadAgentName = args.userName
+        if (args.userPassword) uploadAgentPwd  = args.userPassword
     }
 
     public ModuleDelegate(String ns, String n, int v, Binding b = null) {
@@ -145,6 +167,8 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public include(String scriptFile) {
+        log.info('include() - scriptFile:{}', scriptFile)
+
         CompilerConfiguration cc = new CompilerConfiguration()
         cc.setScriptBaseClass(DelegatingScript.class.getName())
 
@@ -156,12 +180,16 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Schema Schema(String name, Integer version) {
+        log.info('Schema() - name:{} version:{}', name, version)
+        
         def schema = LocalObjectLoader.getSchema(name, version)
         addSchema(schema)
         return schema
     }
 
     public Schema Schema(String name, Integer version, @DelegatesTo(SchemaDelegate) Closure cl) {
+        log.info('Schema() - name:{} version:{}', name, version)
+        
         def sb = SchemaBuilder.build(newModule.ns, name, version, cl)
 
         if (generateResourceXml) sb.schema.export(null, resourceBootDir, true)
@@ -176,6 +204,8 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Schema Schema(String name, Integer version, File file) {
+        log.info('Schema() - name:{} version:{}', name, version)
+
         def sb = SchemaBuilder.build(newModule.ns, name, version, file)
 
         if (generateResourceXml) sb.schema.export(null, resourceBootDir, true)
@@ -190,12 +220,16 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Query Query(String name, Integer version) {
+        log.info('Query() - name:{} version:{}', name, version)
+        
         def query = LocalObjectLoader.getQuery(name, version)
         addQuery(query)
         return query
     }
 
     public Query Query(String name, Integer version, @DelegatesTo(QueryDelegate) Closure cl) {
+        log.info('Query() - name:{} version:{}', name, version)
+
         def query = QueryBuilder.build(newModule.ns, name, version, cl)
         if (generateResourceXml) query.export(null, resourceBootDir, true)
         addQuery(query)
@@ -203,12 +237,16 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public Script Script(String name, Integer version) {
+        log.info('Script() - name:{} version:{}', name, version)
+        
         def script = LocalObjectLoader.getScript(name, version)
         addScript(script)
         return script
     }
 
     public Script Script(String name, Integer version, @DelegatesTo(ScriptDelegate) Closure cl) {
+        log.info('Script() - name:{} version:{}', name, version)
+
         def sb = ScriptBuilder.build(newModule.ns, name, version, cl)
         if (generateResourceXml) sb.script.export(null, resourceBootDir, true)
         addScript(sb.script)
@@ -216,12 +254,16 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public StateMachine StateMachine(String name, Integer version) {
+        log.info('StateMachine() - name:{} version:{}', name, version)
+
         def sm = LocalObjectLoader.getStateMachine(name, version)
         addStateMachine(sm)
         return sm
     }
 
     public StateMachine StateMachine(String name, Integer version, @DelegatesTo(StateMachineDelegate) Closure cl) {
+        log.info('StateMachine() - name:{} version:{}', name, version)
+
         def sm = StateMachineBuilder.build(newModule.ns, name, version, cl).sm
         if (generateResourceXml) sm.export(null, resourceBootDir, true)
         addStateMachine(sm)
@@ -229,12 +271,16 @@ class ModuleDelegate implements BindingConvention {
     }
 
     public ActivityDef Activity(String name, Integer version) {
+        log.info('Activity() - name:{} version:{}', name, version)
+
         def eaDef = LocalObjectLoader.getActDef(name, version)
         addActivityDef(eaDef)
         return eaDef
     }
 
     public ActivityDef Activity(String name, Integer version, @DelegatesTo(ElemActDefDelegate) Closure cl) {
+        log.info('Activity() - name:{} version:{}', name, version)
+
         def eaDef = ElemActDefBuilder.build(name, version, cl)
         if (generateResourceXml) eaDef.export(null, resourceBootDir, true)
         addActivityDef(eaDef)
@@ -248,6 +294,8 @@ class ModuleDelegate implements BindingConvention {
      * @return
      */
     public CompositeActivityDef Workflow(String name, Integer version) {
+        log.info('Workflow() - name:{} version:{}', name, version)
+
         def caDef = LocalObjectLoader.getCompActDef(name, version)
         addCompositeActivityDef(caDef)
         return caDef
@@ -271,6 +319,8 @@ class ModuleDelegate implements BindingConvention {
      * @return
      */
     public CompositeActivityDef Workflow(Map args, @DelegatesTo(CompActDefDelegate) Closure cl) {
+        log.info('Workflow() - name:{} version:{}', args.name, args.version)
+
         def caDef = CompActDefBuilder.build(args, cl)
 
         if (args?.generate) {
@@ -320,6 +370,8 @@ class ModuleDelegate implements BindingConvention {
      * @return
      */
     public PropertyDescriptionList PropertyDescriptionList(String name, Integer version, @DelegatesTo(PropertyDescriptionDelegate) Closure cl) {
+        log.info('PropertyDescriptionList() - name:{} version:{}', name, version)
+
         def propDescList = PropertyDescriptionBuilder.build(newModule.ns, name, version, cl)
         if (generateResourceXml) propDescList.export(null, resourceBootDir, true)
         addPropertyDescriptionList(propDescList)
@@ -334,6 +386,8 @@ class ModuleDelegate implements BindingConvention {
      * @param cl
      */
     public ImportAgent Agent(Map args, @DelegatesTo(AgentDelegate) Closure cl) {
+        log.info('Agent() - name:{} version:{}', args.name, args.version)
+
         args.ns = newModule.ns
         def agent = AgentBuilder.build(args, cl)
         agent.roles.each { it.jobList = null }
@@ -357,6 +411,8 @@ class ModuleDelegate implements BindingConvention {
      * @param cl
      */
     public ImportItem Item(Map args, @DelegatesTo(ItemDelegate) Closure cl) {
+        log.info('Item() - name:{} version:{}', args.name, args.version)
+
         args.ns = newModule.ns
         def item = ItemBuilder.build(args, cl)
         item.properties.removeAll { it.value == args.name }
@@ -378,6 +434,8 @@ class ModuleDelegate implements BindingConvention {
      * @param cl
      */
     public List<ImportRole> Roles(@DelegatesTo(RoleDelegate) Closure cl) {
+        log.info('Roles()')
+
         def importRoles = RoleBuilder.build(newModule.ns, cl)
 
         importRoles.each { role ->
@@ -433,6 +491,16 @@ class ModuleDelegate implements BindingConvention {
         newModule.resURL = url
     }
 
+
+    private void generateModuleXML() {
+        def oldModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(module))
+        def newModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(newModule))
+
+        KernelXMLUtility.compareXML(oldModuleXML, newModuleXML)
+
+        FileStringUtility.string2File(moduleXMLFile, newModuleXML)
+    }
+
     public void processClosure(Closure cl) {
         assert cl
         assert newModule.name
@@ -441,16 +509,15 @@ class ModuleDelegate implements BindingConvention {
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
 
-        if (Gateway.properties.getBoolean('DSL.GenerateModuleXml', true)) {
-            def oldModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(module))
-            def newModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(newModule))
-
-            KernelXMLUtility.compareXML(oldModuleXML, newModuleXML)
-
-            FileStringUtility.string2File(moduleXMLFile, newModuleXML)
+        if (generateModuleXml) generateModuleXML()
+        if (uploadChangedItems) {
+            def agent = Gateway.getSecurityManager().authenticate(uploadAgentName, uploadAgentPwd, null)
+            def uploader = new ResourceUpdateHandler(agent, newModule.ns)
+            uploader.updateChanges("${resourceRoot}/boot")
         }
-
     }
+
+
 
     /**
      * Validate if the StateMachine is existing or not.  If not it will be added to the module's resources.
