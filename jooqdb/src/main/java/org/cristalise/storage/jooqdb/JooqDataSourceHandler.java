@@ -25,9 +25,13 @@ import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.using;
 
 import java.sql.Connection;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
@@ -78,6 +82,31 @@ public class JooqDataSourceHandler {
      */
     public static final String JOOQ_ASSUMEMINSERVERVERSION = "JOOQ.PostgreSQL.assumeMinServerVersion";
 
+    /**
+     * Defines the key (value:{@value}) to retrieve an integer value to set the maximumPoolSize
+     */
+    public static final String JOOQ_MAXIMUMPOOLSIZE = "JOOQ.maximumPoolSize";
+
+    /**
+     * Defines the key (value:{@value}) to retrieve a long value to set the maxLifetime
+     */
+    public static final String JOOQ_MAXLIFETIME = "JOOQ.maxLifetime";
+
+    /**
+     * Defines the key (value:{@value}) to retrieve an integer value to set the minimumIdle
+     */
+    public static final String JOOQ_MINIMUMIDLE = "JOOQ.minimumIdle";
+
+    /**
+     * Defines the key (value:{@value}) to retrieve a long value to set the idleTimeout
+     */
+    public static final String JOOQ_IDLETIMEOUT = "JOOQ.idleTimeout";
+
+    /**
+     * Defines the prefix key (value:{@value}) to retrieve String entries to add in DataSourceProperty
+     */
+    public static final String JOOQ_DATASOURCEPROPERTY = "JOOQ.DataSourceProperty.";
+
     public static String     uri;
     public static String     user;
     public static String     pwd ;
@@ -85,18 +114,30 @@ public class JooqDataSourceHandler {
     public static Boolean    readOnlyDataSource;
     public static SQLDialect dialect;
     public static String assumeMinServerVersion;
+    public static int maximumPoolSize;
+    public static long maxLifetime;
+    public static int minimumIdle;
+    public static long idleTimeout;
+    public static Map<String, Object> dataSourceProperties;
 
     private static HikariDataSource ds = null;
     private static HikariConfig config;
 
     public static void readSystemProperties() {
-        uri                = Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_URI);
-        user               = Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_USER);
-        pwd                = Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_PASSWORD);
-        autoCommit         = Gateway.getProperties().getBoolean(JooqDataSourceHandler.JOOQ_AUTOCOMMIT, false);
-        readOnlyDataSource = Gateway.getProperties().getBoolean(JooqDataSourceHandler.JOOQ_READONLYDATASOURCE, false);
-        dialect            = SQLDialect.valueOf(Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_DIALECT, "POSTGRES"));
+        uri                    = Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_URI);
+        user                   = Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_USER);
+        pwd                    = Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_PASSWORD);
+        autoCommit             = Gateway.getProperties().getBoolean(JooqDataSourceHandler.JOOQ_AUTOCOMMIT, false);
+        readOnlyDataSource     = Gateway.getProperties().getBoolean(JooqDataSourceHandler.JOOQ_READONLYDATASOURCE, false);
+        dialect                = SQLDialect.valueOf(Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_DIALECT, "POSTGRES"));
         assumeMinServerVersion = Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_ASSUMEMINSERVERVERSION);
+        maximumPoolSize        = Gateway.getProperties().getInt(JooqDataSourceHandler.JOOQ_MAXIMUMPOOLSIZE, 50);
+        maxLifetime            = NumberUtils.toLong(Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_MAXLIFETIME), 60000);
+        minimumIdle            = Gateway.getProperties().getInt(JooqDataSourceHandler.JOOQ_MINIMUMIDLE, 10);
+        idleTimeout            = NumberUtils.toLong(Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_IDLETIMEOUT), 30000);
+        dataSourceProperties   = Gateway.getProperties().entrySet()
+                                  .stream().filter(e -> e.getKey().toString().startsWith(JooqDataSourceHandler.JOOQ_DATASOURCEPROPERTY))
+                                  .collect(Collectors.toMap(e -> e.getKey().toString().trim().substring(JooqDataSourceHandler.JOOQ_DATASOURCEPROPERTY.length()), Entry::getValue));
     }
 
     public static synchronized HikariDataSource getDataSource() {
@@ -117,15 +158,14 @@ public class JooqDataSourceHandler {
             config.setPassword(pwd);
             config.setAutoCommit(autoCommit);
             config.setReadOnly(readOnlyDataSource);
-            config.setMaximumPoolSize(50);
-            config.setMaxLifetime(60000);
-            config.setMinimumIdle(10);
-            config.setIdleTimeout(30000);
+            config.setMaximumPoolSize(maximumPoolSize);
+            config.setMaxLifetime(maxLifetime);
+            config.setMinimumIdle(minimumIdle);
+            config.setIdleTimeout(idleTimeout);
             //config.setLeakDetectionThreshold(30000); // enable to see connection leak warning
-            config.addDataSourceProperty( "cachePrepStmts",        true);
-            config.addDataSourceProperty( "prepStmtCacheSize",     "250");
-            config.addDataSourceProperty( "prepStmtCacheSqlLimit", "2048");
-            config.addDataSourceProperty( "autoCommit",             autoCommit);
+            if (dataSourceProperties != null) {
+              dataSourceProperties.forEach((k,v) -> config.addDataSourceProperty(k, v));
+            }
             if (assumeMinServerVersion != null) {
                 config.addDataSourceProperty( "assumeMinServerVersion", assumeMinServerVersion);
             }
