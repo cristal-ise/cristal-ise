@@ -238,8 +238,9 @@ class CRUDGenerator {
 
         log.info('generateModuleDSL() - files:{}', inputs['moduleFiles'])
 
-        new File(moduleDir, "CommonDefs.groovy").write(mvelGenerate('commonDefs_groovy.tmpl', inputs));
-        new File(moduleDir, "Module.groovy").write(mvelGenerate('module_groovy.tmpl', inputs));
+        new File(moduleDir, 'CommonDefs.groovy').write(mvelGenerate('commonDefs_groovy.tmpl', inputs));
+        new File(moduleDir, 'Module.groovy').write(mvelGenerate('module_groovy.tmpl', inputs));
+        new File(moduleDir, "Module.puml").write(inputs.puml as String)
     }
 
     /**
@@ -326,7 +327,8 @@ class CRUDGenerator {
                 resourceURL:  crudModule.resourceURL,
                 moduleNs:     crudModule.namespace,
                 inputFile:    null,
-                moduleXmlDir: null
+                moduleXmlDir: null,
+                puml:         crudModule.plantUml,
             ]
 
             generateModuleDSL(inputs)
