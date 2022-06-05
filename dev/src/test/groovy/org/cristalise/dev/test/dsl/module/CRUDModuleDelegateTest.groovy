@@ -83,9 +83,13 @@ class CRUDModuleDelegateTest {
         assert crudModule.getPlantUml() ==
 """@startuml
 class Car {
+  Name : xs:string
+  State : xs:string
   RegistrationPlate : xs:string
 }
 class ClubMember {
+  Name : xs:string
+  State : xs:string
   Email : xs:string
 }
 ClubMember -- "*" Car
