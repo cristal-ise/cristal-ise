@@ -78,11 +78,6 @@ public class JooqDataSourceHandler {
     public static final String JOOQ_READONLYDATASOURCE = "JOOQ.readOnlyDataSource";
 
     /**
-     * Defines the key (value:{@value}) to retrieve a string value to set the assumeMinServerVersion
-     */
-    public static final String JOOQ_ASSUMEMINSERVERVERSION = "JOOQ.PostgreSQL.assumeMinServerVersion";
-
-    /**
      * Defines the key (value:{@value}) to retrieve an integer value to set the maximumPoolSize
      */
     public static final String JOOQ_MAXIMUMPOOLSIZE = "JOOQ.maximumPoolSize";
@@ -113,7 +108,6 @@ public class JooqDataSourceHandler {
     public static Boolean    autoCommit;
     public static Boolean    readOnlyDataSource;
     public static SQLDialect dialect;
-    public static String assumeMinServerVersion;
     public static int maximumPoolSize;
     public static long maxLifetime;
     public static int minimumIdle;
@@ -130,7 +124,6 @@ public class JooqDataSourceHandler {
         autoCommit             = Gateway.getProperties().getBoolean(JooqDataSourceHandler.JOOQ_AUTOCOMMIT, false);
         readOnlyDataSource     = Gateway.getProperties().getBoolean(JooqDataSourceHandler.JOOQ_READONLYDATASOURCE, false);
         dialect                = SQLDialect.valueOf(Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_DIALECT, "POSTGRES"));
-        assumeMinServerVersion = Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_ASSUMEMINSERVERVERSION);
         maximumPoolSize        = Gateway.getProperties().getInt(JooqDataSourceHandler.JOOQ_MAXIMUMPOOLSIZE, 50);
         maxLifetime            = NumberUtils.toLong(Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_MAXLIFETIME), 60000);
         minimumIdle            = Gateway.getProperties().getInt(JooqDataSourceHandler.JOOQ_MINIMUMIDLE, 10);
@@ -165,9 +158,6 @@ public class JooqDataSourceHandler {
             //config.setLeakDetectionThreshold(30000); // enable to see connection leak warning
             if (dataSourceProperties != null) {
               dataSourceProperties.forEach((k,v) -> config.addDataSourceProperty(k, v));
-            }
-            if (assumeMinServerVersion != null) {
-                config.addDataSourceProperty( "assumeMinServerVersion", assumeMinServerVersion);
             }
 
             log.info("getDataSource() - uri:'{}' user:'{}' dialect:'{}'", uri, user, dialect);
