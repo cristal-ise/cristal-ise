@@ -132,6 +132,7 @@ public class JooqDataSourceHandler {
         autoCommit             = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false);
         readOnlyDataSource     = Gateway.getProperties().getBoolean(JOOQ_READONLYDATASOURCE, false);
         dialect                = SQLDialect.valueOf(Gateway.getProperties().getString(JOOQ_DIALECT, "POSTGRES"));
+        useSqlXml              = Gateway.getProperties().getBoolean(JOOQ_USESQLXML, true);
         maximumPoolSize        = Gateway.getProperties().getInt(JOOQ_MAXIMUMPOOLSIZE, 50);
         maxLifetime            = Gateway.getProperties().getInt(JOOQ_MAXLIFETIME, 60000);
         minimumIdle            = Gateway.getProperties().getInt(JOOQ_MINIMUMIDLE, 10);
