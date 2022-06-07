@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
@@ -108,29 +107,30 @@ public class JooqDataSourceHandler {
     public static Boolean    autoCommit;
     public static Boolean    readOnlyDataSource;
     public static SQLDialect dialect;
-    public static int maximumPoolSize;
-    public static long maxLifetime;
-    public static int minimumIdle;
-    public static long idleTimeout;
+    public static int        maximumPoolSize;
+    public static int        maxLifetime;
+    public static int        minimumIdle;
+    public static int        idleTimeout;
+
     public static Map<String, Object> dataSourceProperties;
 
     private static HikariDataSource ds = null;
     private static HikariConfig config;
 
     public static void readSystemProperties() {
-        uri                    = Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_URI);
-        user                   = Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_USER);
-        pwd                    = Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_PASSWORD);
-        autoCommit             = Gateway.getProperties().getBoolean(JooqDataSourceHandler.JOOQ_AUTOCOMMIT, false);
-        readOnlyDataSource     = Gateway.getProperties().getBoolean(JooqDataSourceHandler.JOOQ_READONLYDATASOURCE, false);
-        dialect                = SQLDialect.valueOf(Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_DIALECT, "POSTGRES"));
-        maximumPoolSize        = Gateway.getProperties().getInt(JooqDataSourceHandler.JOOQ_MAXIMUMPOOLSIZE, 50);
-        maxLifetime            = NumberUtils.toLong(Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_MAXLIFETIME), 60000);
-        minimumIdle            = Gateway.getProperties().getInt(JooqDataSourceHandler.JOOQ_MINIMUMIDLE, 10);
-        idleTimeout            = NumberUtils.toLong(Gateway.getProperties().getString(JooqDataSourceHandler.JOOQ_IDLETIMEOUT), 30000);
+        uri                    = Gateway.getProperties().getString(JOOQ_URI);
+        user                   = Gateway.getProperties().getString(JOOQ_USER);
+        pwd                    = Gateway.getProperties().getString(JOOQ_PASSWORD);
+        autoCommit             = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false);
+        readOnlyDataSource     = Gateway.getProperties().getBoolean(JOOQ_READONLYDATASOURCE, false);
+        dialect                = SQLDialect.valueOf(Gateway.getProperties().getString(JOOQ_DIALECT, "POSTGRES"));
+        maximumPoolSize        = Gateway.getProperties().getInt(JOOQ_MAXIMUMPOOLSIZE, 50);
+        maxLifetime            = Gateway.getProperties().getInt(JOOQ_MAXLIFETIME, 60000);
+        minimumIdle            = Gateway.getProperties().getInt(JOOQ_MINIMUMIDLE, 10);
+        idleTimeout            = Gateway.getProperties().getInt(JOOQ_IDLETIMEOUT, 30000);
         dataSourceProperties   = Gateway.getProperties().entrySet()
-                                  .stream().filter(e -> e.getKey().toString().startsWith(JooqDataSourceHandler.JOOQ_DATASOURCEPROPERTY))
-                                  .collect(Collectors.toMap(e -> e.getKey().toString().trim().substring(JooqDataSourceHandler.JOOQ_DATASOURCEPROPERTY.length()), Entry::getValue));
+                                  .stream().filter(e -> e.getKey().toString().startsWith(JOOQ_DATASOURCEPROPERTY))
+                                  .collect(Collectors.toMap(e -> e.getKey().toString().trim().substring(JOOQ_DATASOURCEPROPERTY.length()), Entry::getValue));
     }
 
     public static synchronized HikariDataSource getDataSource() {
@@ -157,7 +157,7 @@ public class JooqDataSourceHandler {
             config.setIdleTimeout(idleTimeout);
             //config.setLeakDetectionThreshold(30000); // enable to see connection leak warning
             if (dataSourceProperties != null) {
-              dataSourceProperties.forEach((k,v) -> config.addDataSourceProperty(k, v));
+                dataSourceProperties.forEach((k,v) -> config.addDataSourceProperty(k, v));
             }
 
             log.info("getDataSource() - uri:'{}' user:'{}' dialect:'{}'", uri, user, dialect);
