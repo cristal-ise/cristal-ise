@@ -33,6 +33,10 @@ class IncludeHandler {
     
     private List<Path> changedModuleFiles = []
     private List<Path> changedScriptFiles = []
+    
+    public List<Path> getChangedScriptFiles() {
+        return changedScriptFiles
+    }
 
     private void checkChangedFile(Path file) {
         def dirName = file.parent.fileName.toString()

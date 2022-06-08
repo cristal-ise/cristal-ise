@@ -532,7 +532,7 @@ class ModuleDelegate implements BindingConvention {
         log.info('updateChangedItems()')
 
         def agent = Gateway.getSecurityManager().authenticate(uploadAgentName, uploadAgentPwd, null)
-        def uploader = new ResourceUpdateHandler(agent, newModule.ns, "${resourceRoot}/boot", includeHandler?.changedScriptFiles)
+        def uploader = new ResourceUpdateHandler(agent, newModule.ns, "${resourceRoot}/boot", includeHandler.changedScriptFiles)
 
         uploader.updateChanges()
     }
