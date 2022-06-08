@@ -54,7 +54,7 @@ class ResourceUpdateHandler {
         def resourcesStatus = GitStatus.getStatusMapForWorkTree(resourceBootDir)
 
         for (GitStatus status: resourcesStatus.keySet()) {
-            List<Path> files = resourcesStatus.getAt(status)
+            List<Path> files = resourcesStatus.get(status)
 
             switch(status) {
                 case ADDED:

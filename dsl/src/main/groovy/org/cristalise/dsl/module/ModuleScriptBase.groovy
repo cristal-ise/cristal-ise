@@ -48,16 +48,6 @@ abstract class ModuleScriptBase extends DelegatingScript {
     String userName
     String userPassword
 
-    @Deprecated
-    def setModuletDir(URI uri) {
-        setModuleDir(uri)
-    }
-
-    @Deprecated
-    String getModuletDir() {
-        return moduleDir
-    }
-
     def setModuleDir(URI uri) {
         moduleDir = Paths.get(uri).parent.toString()
     }
