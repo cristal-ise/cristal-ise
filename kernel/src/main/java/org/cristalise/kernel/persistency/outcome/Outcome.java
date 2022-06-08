@@ -429,8 +429,9 @@ public class Outcome implements C2KLocalObject {
         int type = node.getNodeType();
 
         if (type == Node.TEXT_NODE || type == Node.CDATA_SECTION_NODE || type == Node.ATTRIBUTE_NODE) {
-            if (useCdata && type != Node.CDATA_SECTION_NODE )
-                throw new InvalidDataException("Node '"+node.getNodeName()+"' can't set cdata of attribute or text node");
+            if (useCdata && type != Node.CDATA_SECTION_NODE ) {
+                throw new InvalidDataException("Node '"+node.getNodeName()+"' can't set CDATA of attribute or text node");
+            }
 
             node.setNodeValue(value);
         }
@@ -438,38 +439,76 @@ public class Outcome implements C2KLocalObject {
             NodeList nodeChildren = node.getChildNodes();
 
             if (nodeChildren.getLength() == 0) {
-                if (useCdata) node.appendChild(mDOM.createCDATASection(value));
-                else          node.appendChild(mDOM.createTextNode(value));
+                createNewTextOrCdataNode(node, value, useCdata);
             }
             else if (nodeChildren.getLength() == 1) {
-                Node child = nodeChildren.item(0);
-
-                switch (child.getNodeType()) {
-                    case Node.TEXT_NODE:
-                        if (useCdata) {
-                            node.replaceChild(mDOM.createCDATASection(value), child);
-                            break;
-                        }
-                    case Node.CDATA_SECTION_NODE:
-                        child.setNodeValue(value);
-                        break;
-
-                    default:
-                        throw new InvalidDataException("Node '"+node.getNodeName()+"' can't set child node of type "+child.getNodeType());
-                }
+                replaceTextOrCdataNode(node, value, useCdata);
             }
-            else
-                throw new InvalidDataException("Node '"+node.getNodeName()+"' shall have 0 or 1 children only #children:"+nodeChildren.getLength());
+            else if (useCdata) {
+                findAndReplaceCdataNode(node, value);
+            }
+            else {
+                throw new InvalidDataException("Node '"+node.getNodeName()+"' shall use CDATA or have 0 or 1 children instead of "+nodeChildren.getLength());
+            }
         }
         else if (type == Node.ATTRIBUTE_NODE) {
-            if (useCdata)
-                throw new InvalidDataException("Node '"+node.getNodeName()+"' can't set cdata of attribute");
+            if (useCdata) {
+                throw new InvalidDataException("Node '"+node.getNodeName()+"' can't set CDATA for attribute");
+            }
 
             node.setNodeValue(value);
         }
         else {
             throw new InvalidDataException("Cannot handle node name:"+node.getNodeName() + " typeCode:"+type);
         }
+    }
+
+    private void findAndReplaceCdataNode(Node node, String value) throws InvalidDataException {
+        NodeList nodeChildren = node.getChildNodes();
+
+        boolean cdataFound = false;
+        for (int i = 0; i < nodeChildren.getLength(); i++) {
+            Node child = nodeChildren.item(i);
+            switch (child.getNodeType()) {
+                case Node.TEXT_NODE:
+                    //do nothing
+                    break;
+                case Node.CDATA_SECTION_NODE:
+                    child.setNodeValue(value);
+                    cdataFound = true;
+                    break;
+
+                default:
+                    throw new InvalidDataException("Node '"+node.getNodeName()+"' can't update CDATA for nodeType:"+child.getNodeType());
+            }
+        }
+
+        if (!cdataFound) {
+            throw new InvalidDataException("Node '"+node.getNodeName()+"' could not find CDATA");
+        }
+    }
+
+    private void replaceTextOrCdataNode(Node node, String value, boolean useCdata) throws InvalidDataException {
+        Node child = node.getChildNodes().item(0);
+
+        switch (child.getNodeType()) {
+            case Node.TEXT_NODE:
+                if (useCdata) {
+                    node.replaceChild(mDOM.createCDATASection(value), child);
+                    break;
+                }
+            case Node.CDATA_SECTION_NODE:
+                child.setNodeValue(value);
+                break;
+
+            default:
+                throw new InvalidDataException("Node '"+node.getNodeName()+"' can't set value for nodeType:"+child.getNodeType());
+        }
+    }
+
+    private void createNewTextOrCdataNode(Node node, String value, boolean useCdata) {
+        if (useCdata) node.appendChild(mDOM.createCDATASection(value));
+        else          node.appendChild(mDOM.createTextNode(value));
     }
 
     /**

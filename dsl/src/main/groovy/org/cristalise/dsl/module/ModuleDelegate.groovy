@@ -96,7 +96,7 @@ class ModuleDelegate implements BindingConvention {
 
     private final boolean generateResourceXml = Gateway.properties.getBoolean('DSL.Module.generateResourceXml', true)
     private final boolean generateModuleXml   = Gateway.properties.getBoolean('DSL.Module.generateModuleXml', true)
-    private final boolean uploadChangedItems  = Gateway.properties.getBoolean('Gateway.clusteredVertx', true)
+    private final boolean updateChangedItems  = Gateway.properties.getBoolean('Gateway.clusteredVertx', true)
 
     String uploadAgentName = null
     String uploadAgentPwd = null
@@ -528,12 +528,13 @@ class ModuleDelegate implements BindingConvention {
         FileStringUtility.string2File(moduleXMLFile, newModuleXML)
     }
 
-    private void uploadChangedItems() {
-        log.info('uploadChangedItems()')
-        
+    private void updateChangedItems() {
+        log.info('updateChangedItems()')
+
         def agent = Gateway.getSecurityManager().authenticate(uploadAgentName, uploadAgentPwd, null)
-        def uploader = new ResourceUpdateHandler(agent, newModule.ns)
-        uploader.updateChanges("${resourceRoot}/boot")
+        def uploader = new ResourceUpdateHandler(agent, newModule.ns, "${resourceRoot}/boot", includeHandler?.changedScriptFiles)
+
+        uploader.updateChanges()
     }
 
     public void processClosure(Closure cl) {
@@ -545,7 +546,7 @@ class ModuleDelegate implements BindingConvention {
         cl()
 
         if (generateModuleXml) generateModuleXML()
-        if (uploadChangedItems) uploadChangedItems()
+        if (updateChangedItems) updateChangedItems()
     }
 
 

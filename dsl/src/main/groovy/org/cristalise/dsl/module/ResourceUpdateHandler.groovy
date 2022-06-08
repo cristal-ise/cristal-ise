@@ -21,6 +21,7 @@
 package org.cristalise.dsl.module
 
 import static org.cristalise.dsl.module.GitStatus.*
+import static org.cristalise.kernel.process.resource.BuiltInResources.*
 
 import java.nio.file.Path
 
@@ -28,8 +29,9 @@ import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.Erase
-import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.resource.BuiltInResources
+import org.cristalise.kernel.scripting.Script
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -38,19 +40,29 @@ import groovy.util.logging.Slf4j
 class ResourceUpdateHandler {
     AgentProxy updateAgent = null
     String moduleNamespace
+    String resourceBootDir // the actual resources/boot directory
+    List<Path> changedScriptFiles = []
 
-    public ResourceUpdateHandler(AgentProxy agent, String moduleNs) {
+    public ResourceUpdateHandler(AgentProxy agent, String moduleNs, String bootDir, List<Path> scriptFiles) {
         updateAgent = agent
         moduleNamespace = moduleNs
+        resourceBootDir = bootDir
+        if (scriptFiles) changedScriptFiles = scriptFiles
+    }
+
+    /**
+     * 
+     */
+    public void updateChanges() {
+        updateResourceItems()
+        updateScriptItems()
     }
 
     /**
      * Retrieves git status of XML files in the resources/boot directory 
      * and updates the Items using Activities defined in the kernel.
-     * 
-     * @param resourceBootDir the actual resources/boot directory
      */
-    public void updateChanges(String resourceBootDir) {
+    private void updateResourceItems() {
         def resourcesStatus = GitStatus.getStatusMapForWorkTree(resourceBootDir)
 
         for (GitStatus status: resourcesStatus.keySet()) {
@@ -59,15 +71,15 @@ class ResourceUpdateHandler {
             switch(status) {
                 case ADDED:
                 case UNTRACKED:
-                    createItems(files)
+                    createResourceItems(files)
                     break
 
                 case MODIFIED:
-                    updateItems(files)
+                    updateResourceItems(files)
                     break
 
                 case REMOVED:
-                    removeItems(files)
+                    removeResourceItems(files)
                     break
 
                 default:
@@ -91,29 +103,59 @@ class ResourceUpdateHandler {
         return updateAgent.getItem(resourceType.getTypeRoot() + '/' + moduleNamespace + '/' + resourceName)
     }
 
-    private void createItems(List<Path> files) {
-        log.warn('createItems() - NO factories defined in the kernel - files:{}', files)
+    private void createResourceItems(List<Path> files) {
+        log.warn('createResourceItems() - SKIPPED - NO factories defined in the kernel - files:{}', files)
     }
 
-    private void removeItems(List<Path> files) {
+    private void removeResourceItems(List<Path> files) {
         for (Path filePath : files) {
             ItemProxy resItem = getResourceItem(filePath)
             updateAgent.execute(resItem, Erase.class)
         }
     }
 
-    private void updateItems(List<Path> files) {
+    private updateResourceItem(ItemProxy resItem, BuiltInResources resourceType, String OutcomeString) {
+        Job editJob = resItem.getJobByName(resourceType.getEditActivityName(), updateAgent)
+        editJob.setOutcome(OutcomeString)
+        updateAgent.execute(editJob)
+
+        Job moveJob = resItem.getJobByName(resourceType.getMoveVersionActivityName(), updateAgent)
+        updateAgent.execute(moveJob)
+    }
+
+    private void updateResourceItems(List<Path> files) {
         for (Path filePath : files) {
             ItemProxy resItem = getResourceItem(filePath)
 
-            def resourceType = BuiltInResources.getValue(filePath.getParent().getFileName().toString())
+            def resourceTypeName = filePath.getParent().getFileName().toString()
+            def resourceType = BuiltInResources.getValue(resourceTypeName)
 
-            Job editJob = resItem.getJobByName(resourceType.getEditActivityName(), updateAgent)
-            editJob.setOutcome(filePath.getText('UTF-8'))
-            updateAgent.execute(editJob)
+            updateResourceItem(resItem, resourceType, filePath.getText('UTF-8'))
+        }
+    }
 
-            Job moveJob = resItem.getJobByName(resourceType.getMoveVersionActivityName(), updateAgent)
-            updateAgent.execute(moveJob)
+    private ItemProxy getScriptItem(Path scriptPath) {
+        def scriptRoot = SCRIPT_RESOURCE.getTypeRoot()
+        def scriptFileName = scriptPath.getFileName().toString()
+        def itemTypeName = scriptPath.parent.parent.fileName.toString()
+        def scriptName = scriptFileName.substring(0, scriptFileName.lastIndexOf("."))
+
+        return updateAgent.getItem(scriptRoot + '/' + moduleNamespace + '/' + itemTypeName + '_' + scriptName)
+    }
+
+    private updateScriptItems() {
+        changedScriptFiles.each { scriptPath ->
+            String newScriptContent = scriptPath.toFile().getText('UTF-8')
+            ItemProxy scriptItem = getScriptItem(scriptPath)
+            Outcome scriptOutcome = scriptItem.getOutcome(scriptItem.getViewpoint("Script", "last"))
+            def scriptNode = scriptOutcome.getNodeByXPath('//script')
+            scriptOutcome.setNodeValue(scriptNode, newScriptContent, true)
+            //scriptOutcome.setField("script", newScriptContent)
+
+            //parses xml and compiles script to check syntax
+            new Script(scriptItem.name, -1, null, scriptOutcome.getData()) 
+
+            updateResourceItem(scriptItem, SCRIPT_RESOURCE, scriptOutcome.getData(true))
         }
     }
 }
