@@ -94,9 +94,9 @@ import groovy.xml.XmlUtil
 @CompileStatic @Slf4j
 class ModuleDelegate implements BindingConvention {
 
-    private final boolean generateResourceXml = Gateway.properties.getBoolean('DSL.GenerateResourceXml', true)
-    private final boolean generateModuleXml   = Gateway.properties.getBoolean('DSL.GenerateModuleXml', true)
-    private final boolean uploadChangedItems  = Gateway.properties.getBoolean('Gateway.clusteredVertx', true)
+    private final boolean generateResourceXml = Gateway.properties.getBoolean('DSL.Module.generateResourceXml', true)
+    private final boolean generateModuleXml   = Gateway.properties.getBoolean('DSL.Module.generateModuleXml', true)
+    private final boolean updateChangedItems  = Gateway.properties.getBoolean('Gateway.clusteredVertx', true)
 
     String uploadAgentName = null
     String uploadAgentPwd = null
@@ -107,10 +107,11 @@ class ModuleDelegate implements BindingConvention {
 
     String resourceRoot = './src/main/resources'
     String moduleDir    = './src/main/module/'
-    String moduleXmlDir = null
 
     private File resourceBootDir = null
     private File moduleXMLFile = null
+
+    private IncludeHandler includeHandler = null
 
     public ModuleDelegate(Map<String, Object> args) {
         assert args.ns && args.name && args.version != null
@@ -129,6 +130,19 @@ class ModuleDelegate implements BindingConvention {
         }
 
         createModuleResourceDirectoryStructure()
+
+        boolean enableIncludeHandler = false;
+
+        if (args.containsKey('enableIncludeHandler')) {
+            enableIncludeHandler = args.enableIncludeHandler as boolean
+        }
+
+        if (enableIncludeHandler) {
+            includeHandler = new IncludeHandler()
+            includeHandler.captureModuleFileChanges(moduleDir)
+
+            generateModuleXml = false
+        }
     }
 
     private void createModuleResourceDirectoryStructure() {
@@ -151,11 +165,9 @@ class ModuleDelegate implements BindingConvention {
 
         if (args.resourceRoot) resourceRoot = args.resourceRoot
         if (args.moduleDir)    moduleDir    = args.moduleDir
-        if (args.moduleXmlDir) moduleXmlDir = args.moduleXmlDir
-
-        if (!moduleXmlDir) moduleXmlDir = resourceRoot
-
         resourceBootDir = new File("$resourceRoot/boot")
+
+        String moduleXmlDir = args.moduleXmlDir ?: resourceRoot
         moduleXMLFile = new File("$moduleXmlDir/module.xml")
 
         if (args.userName)     uploadAgentName = args.userName
@@ -166,7 +178,7 @@ class ModuleDelegate implements BindingConvention {
         this('ns': ns, 'name': n, 'version': v, 'bindings': b)
     }
 
-    public include(String scriptFile) {
+    private void handleInclude(String scriptFile) {
         log.info('include() - scriptFile:{}', scriptFile)
 
         CompilerConfiguration cc = new CompilerConfiguration()
@@ -177,6 +189,19 @@ class ModuleDelegate implements BindingConvention {
 
         script.setDelegate(this)
         script.run()
+    }
+
+    public void mandatoryInclude(String scriptFile) {
+        handleInclude scriptFile
+    }
+
+    public void include(String scriptFile) {
+        if (!includeHandler || includeHandler.shallInclude(scriptFile)) {
+            handleInclude scriptFile
+        }
+        else {
+            log.info('include() - SKIPPING unchanged scriptFile:{}', scriptFile)
+        }
     }
 
     public Schema Schema(String name, Integer version) {
@@ -493,12 +518,23 @@ class ModuleDelegate implements BindingConvention {
 
 
     private void generateModuleXML() {
+        log.info('generateModuleXML()')
+
         def oldModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(module))
         def newModuleXML = XmlUtil.serialize(Gateway.getMarshaller().marshall(newModule))
 
         KernelXMLUtility.compareXML(oldModuleXML, newModuleXML)
 
         FileStringUtility.string2File(moduleXMLFile, newModuleXML)
+    }
+
+    private void updateChangedItems() {
+        log.info('updateChangedItems()')
+
+        def agent = Gateway.getSecurityManager().authenticate(uploadAgentName, uploadAgentPwd, null)
+        def uploader = new ResourceUpdateHandler(agent, newModule.ns, "${resourceRoot}/boot", includeHandler?.changedScriptFiles)
+
+        uploader.updateChanges()
     }
 
     public void processClosure(Closure cl) {
@@ -510,14 +546,15 @@ class ModuleDelegate implements BindingConvention {
         cl()
 
         if (generateModuleXml) generateModuleXML()
-        if (uploadChangedItems) {
-            def agent = Gateway.getSecurityManager().authenticate(uploadAgentName, uploadAgentPwd, null)
-            def uploader = new ResourceUpdateHandler(agent, newModule.ns)
-            uploader.updateChanges("${resourceRoot}/boot")
+
+        if (updateChangedItems) {
+            updateChangedItems()
+        }
+        else if (includeHandler && includeHandler.changedScriptFiles) {
+            String msg = "Check if Script XML files were updated. Consider enabling ResourceUpdate feature - files:${includeHandler.changedScriptFiles}"
+            throw new InvalidDataException(msg)
         }
     }
-
-
 
     /**
      * Validate if the StateMachine is existing or not.  If not it will be added to the module's resources.

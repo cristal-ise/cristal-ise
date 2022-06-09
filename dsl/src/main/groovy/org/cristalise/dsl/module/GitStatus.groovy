@@ -51,25 +51,27 @@ public enum GitStatus {
         Git git = Git.wrap(repo)
         Status currentStatus = git.status().call()
 
+        def gitParentDirPath = repo.directory.parentFile.toPath()
+
         Map<GitStatus, List<Path>> statusMap = new LinkedHashMap<>()
         Path workDirPath = Paths.get(workDir).normalize();
 
         if (!currentStatus.isClean()) {
-            updateStatusMap(statusMap, ADDED,     currentStatus.getAdded(),     workDirPath)
-            updateStatusMap(statusMap, MODIFIED,  currentStatus.getModified(),  workDirPath)
-            updateStatusMap(statusMap, REMOVED,   currentStatus.getRemoved(),   workDirPath)
-            updateStatusMap(statusMap, UNTRACKED, currentStatus.getUntracked(), workDirPath)
+            updateStatusMap(statusMap, ADDED,     currentStatus.getAdded(),     gitParentDirPath, workDirPath)
+            updateStatusMap(statusMap, MODIFIED,  currentStatus.getModified(),  gitParentDirPath, workDirPath)
+            updateStatusMap(statusMap, REMOVED,   currentStatus.getRemoved(),   gitParentDirPath, workDirPath)
+            updateStatusMap(statusMap, UNTRACKED, currentStatus.getUntracked(), gitParentDirPath, workDirPath)
         }
 
         return statusMap
     }
 
-    private static void updateStatusMap(Map<GitStatus, List<Path>> statusMap, GitStatus status, Set<String> files, Path workDir) {
+    private static void updateStatusMap(Map<GitStatus, List<Path>> statusMap, GitStatus status, Set<String> files, Path gitDir, Path workDir) {
         // static final log variable created by @slf4j does not work with enums
         final Logger log = LoggerFactory.getLogger(GitStatus.class)
 
         for (String file : files) {
-            Path filePath = Paths.get(file).normalize();
+            Path filePath = Paths.get(gitDir.toString(), file).normalize();
 
             if (filePath.startsWith(workDir)) {
                 log.info('updateStatusMap() - adding {}:{}', status, filePath)
