@@ -532,7 +532,7 @@ class ModuleDelegate implements BindingConvention {
         log.info('updateChangedItems()')
 
         def agent = Gateway.getSecurityManager().authenticate(uploadAgentName, uploadAgentPwd, null)
-        def uploader = new ResourceUpdateHandler(agent, newModule.ns, "${resourceRoot}/boot", includeHandler.changedScriptFiles)
+        def uploader = new ResourceUpdateHandler(agent, newModule.ns, "${resourceRoot}/boot", includeHandler?.changedScriptFiles)
 
         uploader.updateChanges()
     }
@@ -546,10 +546,15 @@ class ModuleDelegate implements BindingConvention {
         cl()
 
         if (generateModuleXml) generateModuleXML()
-        if (updateChangedItems) updateChangedItems()
+
+        if (updateChangedItems) {
+            updateChangedItems()
+        }
+        else if (includeHandler && includeHandler.changedScriptFiles) {
+            String msg = "Check if Script XML files were updated. Consider enabling ResourceUpdate feature - files:${includeHandler.changedScriptFiles}"
+            throw new InvalidDataException(msg)
+        }
     }
-
-
 
     /**
      * Validate if the StateMachine is existing or not.  If not it will be added to the module's resources.
