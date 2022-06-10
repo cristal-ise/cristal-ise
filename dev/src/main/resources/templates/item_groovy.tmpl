@@ -80,7 +80,7 @@ Activity('@{item.name}_Aggregate', @{version}) {
 Workflow('@{item.name}_Workflow', @{version}) {
     Layout {
         AndSplit {
-            LoopInfinitive { Act('Update', @{itemVar}_Update_ActivityDef)  }
+            LoopInfinite { Act('Update', @{itemVar}_Update_ActivityDef)  }
             Block { CompActDef('CrudState_Manage', 0) }
 @foreach{currentDependency : item.dependencies.values()}
 @if{currentDependency.originator}            Block { Act(@{itemVar}_Manage@{currentDependency.name}_CompositeActivityDef) }@end{}

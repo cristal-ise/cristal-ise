@@ -152,7 +152,7 @@ class AndSlitCompActDefBuilderSpecs extends Specification implements CristalTest
         caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-AndSplitWithSplits', version: 0) {
             Layout {
                 AndSplit {
-                    LoopInfinitive { Act('Left', left)  }
+                    LoopInfinite { Act('Left', left)  }
                     AndSplit { 
                         Block {Act('Middle0', middle)}
                         Block {Act('Middle1', middle)}

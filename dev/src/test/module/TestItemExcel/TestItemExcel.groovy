@@ -51,7 +51,7 @@ Activity('TestItemExcel_Aggregate', 0) {
 Workflow('TestItemExcel_Workflow', 0) {
     Layout {
         AndSplit {
-            LoopInfinitive { Act('Update', $testItemExcel_Update_ActivityDef)  }
+            LoopInfinite { Act('Update', $testItemExcel_Update_ActivityDef)  }
             Block { CompActDef('CrudState_Manage', 0) }
 
         }

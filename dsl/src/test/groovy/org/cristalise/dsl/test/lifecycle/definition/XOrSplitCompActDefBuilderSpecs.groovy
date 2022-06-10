@@ -256,7 +256,7 @@ class XOrSplitCompActDefBuilderSpecs extends Specification implements CristalTes
             Layout {
                 XOrSplit {
                     Loop { Act('Middle', middle)}
-                    LoopInfinitive { CompActDef('ManageItemDesc', 0) }
+                    LoopInfinite { CompActDef('ManageItemDesc', 0) }
                 }
             }
         }

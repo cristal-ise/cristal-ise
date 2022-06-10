@@ -1,7 +1,7 @@
 Workflow(name: '@{item.name}_Manage@{currentDependency.name}', version: @{version}) {
     Layout {
         AndSplit {
-            LoopInfinitive {
+            LoopInfinite {
                 ElemActDef('AddTo@{currentDependency.name}', 'CrudEntity_ChangeDependecy', @{version}) {
                     Property((PREDEFINED_STEP): 'AddMembersToCollection')
                     Property((DEPENDENCY_NAME): '@{currentDependency.name}')
@@ -9,7 +9,7 @@ Workflow(name: '@{item.name}_Manage@{currentDependency.name}', version: @{versio
                     Property(ModuleNameSpace: '@{moduleNs}')
                 }
             }
-            LoopInfinitive {
+            LoopInfinite {
                 ElemActDef('RemoveFrom@{currentDependency.name}', 'CrudEntity_ChangeDependecy', @{version}) {
                     Property((PREDEFINED_STEP): 'RemoveMembersFromCollection')
                     Property((DEPENDENCY_NAME): '@{currentDependency.name}')

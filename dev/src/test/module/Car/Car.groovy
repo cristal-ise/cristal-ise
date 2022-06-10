@@ -68,7 +68,7 @@ Activity('Car_Aggregate', 0) {
 Workflow('Car_Workflow', 0) {
     Layout {
         AndSplit {
-            LoopInfinitive { Act('Update', $car_Update_ActivityDef)  }
+            LoopInfinite { Act('Update', $car_Update_ActivityDef)  }
             Block { CompActDef('CrudState_Manage', 0) }
 
 

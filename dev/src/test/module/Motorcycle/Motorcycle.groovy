@@ -68,7 +68,7 @@ Activity('Motorcycle_Aggregate', 0) {
 Workflow('Motorcycle_Workflow', 0) {
     Layout {
         AndSplit {
-            LoopInfinitive { Act('Update', $motorcycle_Update_ActivityDef)  }
+            LoopInfinite { Act('Update', $motorcycle_Update_ActivityDef)  }
             Block { CompActDef('CrudState_Manage', 0) }
 
 

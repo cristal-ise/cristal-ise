@@ -65,7 +65,7 @@ Activity('ClubMember_Aggregate', 0) {
 Workflow(name: 'ClubMember_ManageCars', version: 0) {
     Layout {
         AndSplit {
-            LoopInfinitive {
+            LoopInfinite {
                 ElemActDef('AddToCars', 'CrudEntity_ChangeDependecy', 0) {
                     Property((PREDEFINED_STEP): 'AddMembersToCollection')
                     Property((DEPENDENCY_NAME): 'Cars')
@@ -73,7 +73,7 @@ Workflow(name: 'ClubMember_ManageCars', version: 0) {
                     Property(ModuleNameSpace: 'devtest')
                 }
             }
-            LoopInfinitive {
+            LoopInfinite {
                 ElemActDef('RemoveFromCars', 'CrudEntity_ChangeDependecy', 0) {
                     Property((PREDEFINED_STEP): 'RemoveMembersFromCollection')
                     Property((DEPENDENCY_NAME): 'Cars')
@@ -89,7 +89,7 @@ Workflow(name: 'ClubMember_ManageCars', version: 0) {
 Workflow(name: 'ClubMember_ManageMotorcycles', version: 0) {
     Layout {
         AndSplit {
-            LoopInfinitive {
+            LoopInfinite {
                 ElemActDef('AddToMotorcycles', 'CrudEntity_ChangeDependecy', 0) {
                     Property((PREDEFINED_STEP): 'AddMembersToCollection')
                     Property((DEPENDENCY_NAME): 'Motorcycles')
@@ -97,7 +97,7 @@ Workflow(name: 'ClubMember_ManageMotorcycles', version: 0) {
                     Property(ModuleNameSpace: 'devtest')
                 }
             }
-            LoopInfinitive {
+            LoopInfinite {
                 ElemActDef('RemoveFromMotorcycles', 'CrudEntity_ChangeDependecy', 0) {
                     Property((PREDEFINED_STEP): 'RemoveMembersFromCollection')
                     Property((DEPENDENCY_NAME): 'Motorcycles')
@@ -114,7 +114,7 @@ Workflow(name: 'ClubMember_ManageMotorcycles', version: 0) {
 Workflow('ClubMember_Workflow', 0) {
     Layout {
         AndSplit {
-            LoopInfinitive { Act('Update', $clubMember_Update_ActivityDef)  }
+            LoopInfinite { Act('Update', $clubMember_Update_ActivityDef)  }
             Block { CompActDef('CrudState_Manage', 0) }
 
             Block { Act($clubMember_ManageCars_CompositeActivityDef) }

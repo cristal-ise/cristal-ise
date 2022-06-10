@@ -66,7 +66,7 @@ Activity('TestItemGeneratedName_Aggregate', 0) {
 Workflow('TestItemGeneratedName_Workflow', 0) {
     Layout {
         AndSplit {
-            LoopInfinitive { Act('Update', $testItemGeneratedName_Update_ActivityDef)  }
+            LoopInfinite { Act('Update', $testItemGeneratedName_Update_ActivityDef)  }
             Block { CompActDef('CrudState_Manage', 0) }
 
         }

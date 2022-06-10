@@ -30,7 +30,7 @@ Activity('CrudState_Deactivate', 0) {
 
 Workflow('CrudState_Manage', 0) {
     Layout {
-        LoopInfinitive {
+        LoopInfinite {
             OrSplit(RoutingExpr: 'property//State') {
                 Block(Alias: 'INACTIVE')  { Act('Activate',   $crudState_Activate_ActivityDef) }
                 Block(Alias: '!INACTIVE') { Act('Deactivate', $crudState_Deactivate_ActivityDef) }

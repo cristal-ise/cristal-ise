@@ -66,7 +66,7 @@ Activity('TestItem_Aggregate', 0) {
 Workflow('TestItem_Workflow', 0) {
     Layout {
         AndSplit {
-            LoopInfinitive { Act('Update', $testItem_Update_ActivityDef)  }
+            LoopInfinite { Act('Update', $testItem_Update_ActivityDef)  }
             Block { CompActDef('CrudState_Manage', 0) }
 
         }

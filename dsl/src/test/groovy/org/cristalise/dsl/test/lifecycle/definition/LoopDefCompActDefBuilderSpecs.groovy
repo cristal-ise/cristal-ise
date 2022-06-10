@@ -180,12 +180,12 @@ class LoopDefCompActDefBuilderSpecs extends Specification implements CristalTest
         loopDef.properties.toto == 123
     }
 
-    def 'LoopDef can be Infinitive'() {
+    def 'LoopDef can be Infinite'() {
         when:
         def looping = new ActivityDef('looping', 0)
         caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-Loop-Infinitive', version: 0) {
             Layout {
-                LoopInfinitive() {
+                LoopInfinite() {
                     Property(toto: 123)
                     Act(looping)
                 }
