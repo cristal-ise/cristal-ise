@@ -192,13 +192,7 @@ public class GraphModel {
     }
 
     public Vertex[] getVertices() {
-        Object[] vertexObjs = mVertexHashtable.values().toArray();
-        Vertex[] vertices = new Vertex[vertexObjs.length];
-        int i = 0;
-        for (i = 0; i < vertices.length; i++) {
-            vertices[i] = (Vertex)vertexObjs[i];
-        }
-        return vertices;
+        return mVertexHashtable.values().toArray(new Vertex[0]);
     }
 
     public void setEdges(DirectedEdge[] edges) {
@@ -210,13 +204,7 @@ public class GraphModel {
     }
 
     public DirectedEdge[] getEdges() {
-        Object[] edgeObjs = mEdgeHashtable.values().toArray();
-        DirectedEdge[] edges = new DirectedEdge[edgeObjs.length];
-        int i = 0;
-        for (i = 0; i < edges.length; i++) {
-            edges[i] = (DirectedEdge)edgeObjs[i];
-        }
-        return edges;
+        return mEdgeHashtable.values().toArray(new DirectedEdge[0]);
     }
 
 	public Vertex getVertexById(int id) {
@@ -416,13 +404,7 @@ public class GraphModel {
     }
 
     public void clearTags(Object tag) {
-        Vertex vertex = null;
-        Object[] vertexObjs = mVertexHashtable.values().toArray();
-        int i = 0;
-        for (i = 0; i < vertexObjs.length; i++) {
-            vertex = (Vertex)vertexObjs[i];
-            vertex.clearTag(tag);
-        }
+        for (Vertex v: getVertices()) v.clearTag(tag);
     }
 
     public void forceNotify() {
@@ -430,8 +412,8 @@ public class GraphModel {
     }
 
     public void clear() {
-        mVertexHashtable = new Hashtable<String, Vertex>();
-        mEdgeHashtable = new Hashtable<String, DirectedEdge>();
+        mVertexHashtable.clear();
+        mEdgeHashtable.clear();
         mStartVertexId = -1;
         publishEvent(mClearedEvent);
     }
@@ -486,8 +468,6 @@ public class GraphModel {
         }
     }
 
-
-
     public void resetVertexOutlines() {
         Vertex[] vertices = getVertices();
         int i = 0;
@@ -516,28 +496,15 @@ public class GraphModel {
     }
 
     public GraphModelCastorData getGraphModelCastorData() {
-        Object[] vertexObjs = mVertexHashtable.values().toArray();
-        Vertex[] vertexImpls = new Vertex[vertexObjs.length];
-        Object[] edgeObjs = mEdgeHashtable.values().toArray();
-        DirectedEdge[] directedEdgeImpls = new DirectedEdge[edgeObjs.length];
-        String className = null;
-        int i = 0;
-        // Put in the vertices
-        for (i = 0; i < vertexImpls.length; i++) {
-            vertexImpls[i] = (Vertex)vertexObjs[i];
-        }
-        // Put in the edges
-        for (i = 0; i < directedEdgeImpls.length; i++) {
-            directedEdgeImpls[i] = (DirectedEdge)edgeObjs[i];
-        }
         // Disable persistency of the vertex outline creator: determined by container
         // Determine the class name of the vertex outline creator
+        String className = null;
 //        if (mVertexOutlineCreator == null) {
 //            className = "";
 //        }
 //        else {
 //            className = mVertexOutlineCreator.getClass().getName();
 //        }
-        return new GraphModelCastorData(className, vertexImpls, directedEdgeImpls, mStartVertexId, mNextId);
+        return new GraphModelCastorData(className, getVertices(), getEdges(), mStartVertexId, mNextId);
     }
 }
