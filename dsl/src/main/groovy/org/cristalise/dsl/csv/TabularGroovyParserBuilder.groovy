@@ -96,6 +96,25 @@ class TabularGroovyParserBuilder {
         }
     }
 
+    /**
+     * Builds TabularGroovyParser of the correct type (excel or csv) based on the extension of the file (xslx or csv)
+     * 
+     * @param file to be parsed
+     * @param headerRowCount to be used for the header record
+     * @return initialised TabularGroovyParser
+     */
+    public static TabularGroovyParser build(File file, int headerRowCount) {
+        return build(file, "", headerRowCount)
+    }
+
+    /**
+     * Builds TabularGroovyParser of the correct type (excel or csv) based on the extension of the file (xslx or csv)
+     * 
+     * @param file to be parsed
+     * @param sheet to be used (used for excel)
+     * @param headerRowCount to be used for the header record
+     * @return initialised TabularGroovyParser
+     */
     public static TabularGroovyParser build(File file, String sheet, int headerRowCount) {
         def fileName = file.name
         def type = fileName.substring(fileName.lastIndexOf('.')+1).toUpperCase()

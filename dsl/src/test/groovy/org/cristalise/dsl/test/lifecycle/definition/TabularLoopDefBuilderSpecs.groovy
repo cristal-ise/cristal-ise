@@ -33,37 +33,50 @@ import spock.lang.Specification
 /**
  *
  */
-class TabularActivityDefBuilderSpecs extends Specification implements CristalTestSetup {
+class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSetup {
     
     def defaultActProps = [StateMachineName: "Default", StateMachineVersion: "0", Breakpoint: false, Description: '', 'Agent Role': '', 'Agent Name': '', Viewpoint: '', OutcomeInit: '']
 
     def setup()   {}
     def cleanup() {}
 
-    def xlsxFile = "src/test/data/TabularActivityBuilder.xlsx"
-
-    def 'TabularActivityDefBuilder can build a sequence of ActivityDefs'() {
+    def xlsxFile = "src/test/data/TabularActivityBuilderLoopDef.xlsx"
+    
+    def 'CompositeActivityDef can start with LoopDef'() {
         when:
-        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'TestItem_Sequence', 2)
-        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TestItem_Sequence', 0))
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'TestItem_StartWithLoop', 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TestItem_StartWithLoop', 0))
         def caDef = tadb.build(parser)
         def litOfActDefs = caDef.getRefChildActDef()
         def startVertex = caDef.childrenGraphModel.startVertex
 
         then:
-        litOfActDefs.size() == 2
+        litOfActDefs.size() == 1
+        litOfActDefs[0] instanceof ActivityDef
+        litOfActDefs[0].name == 'TestItem_Loop'
+
+        caDef.childrenGraphModel.vertices.length == 4
+        startVertex && startVertex.name == 'Loop1'
+    }
+
+    def 'TabularActivityDefBuilder can build a sequence of ActivityDefs with Loop'() {
+        when:
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'TestItem_SeqWithLoop', 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TestItem_SeqWithLoop', 0))
+        def caDef = tadb.build(parser)
+        def litOfActDefs = caDef.getRefChildActDef()
+        def startVertex = caDef.childrenGraphModel.startVertex
+
+        then:
+        litOfActDefs.size() == 3
         litOfActDefs[0] instanceof ActivityDef
         litOfActDefs[0].name == 'TestItem_First'
         litOfActDefs[1] instanceof ActivityDef
-        litOfActDefs[1].name == 'TestItem_Second'
+        litOfActDefs[1].name == 'TestItem_Loop'
+        litOfActDefs[2] instanceof ActivityDef
+        litOfActDefs[2].name == 'TestItem_Last'
 
-        caDef.childrenGraphModel.vertices.length == 3
+        caDef.childrenGraphModel.vertices.length == 6
         startVertex && startVertex.name == 'First'
-        def seconds = caDef.childrenGraphModel.getOutVertices(startVertex)
-        seconds.length == 1
-        seconds[0].name == 'Second'
-        def secondAgains = caDef.childrenGraphModel.getOutVertices(seconds[0])
-        secondAgains.length == 1
-        secondAgains[0].name == 'SecondAgain'
     }
 }
