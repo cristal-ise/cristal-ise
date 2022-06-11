@@ -86,9 +86,10 @@ class AndSplitDefDelegate extends SplitDefDelegate {
 
     
     @Override
-    def Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
+    public LoopDefDelegate Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl = null) {
         def loopD =  new LoopDefDelegate(compActDef, andSplitDef, initialProps)
-        loopD.processClosure(cl)
+
+        if (cl) loopD.processClosure(cl)
 
         //link the end of the current Block with the Join of the OrSplit
         log.debug('Loop() - linking lastSlotDef:{} to join:{}', loopD.lastSlotDef, joinDef)
@@ -99,7 +100,7 @@ class AndSplitDefDelegate extends SplitDefDelegate {
             else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
         }
 
-        return loopD.lastSlotDef
+        return loopD
     }
 
     @Override

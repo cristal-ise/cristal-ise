@@ -79,15 +79,16 @@ class XOrSplitDefDelegate extends SplitDefDelegate {
     }
 
     @Override
-    def Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
+    public LoopDefDelegate Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl = null) {
         def loopD =  new LoopDefDelegate(compActDef, xorSplitDef, null)
-        loopD.processClosure(cl)
+
+        if (cl) loopD.processClosure(cl)
 
         //link to end of the current Block with the Join of the XOrSplit
         log.debug('Loop() - linking lastSlotDef:{} to join:{}', loopD.lastSlotDef, joinDef)
         compActDef.addNextDef(loopD.lastSlotDef, joinDef)
 
-        return loopD.lastSlotDef
+        return loopD
     }
 
     @Override

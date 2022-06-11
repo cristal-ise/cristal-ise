@@ -72,7 +72,11 @@ class BlockDefDelegate extends PropertyDelegate {
         return newSlotDef
     }
 
-    def LoopInfinite(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
+    public LoopDefDelegate LoopInfinite(@DelegatesTo(LoopDefDelegate) Closure cl) {
+        return LoopInfinite(null, cl)
+    }
+
+    public LoopDefDelegate LoopInfinite(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl = null) {
         // Add the conditions to make it endless
         if (!initialProps) initialProps = [:]
 
@@ -81,13 +85,18 @@ class BlockDefDelegate extends PropertyDelegate {
         return Loop(initialProps, cl)
     }
 
-    def Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
+    public LoopDefDelegate Loop(@DelegatesTo(LoopDefDelegate) Closure cl) {
+        return Loop(null, cl)
+    }
+
+    public LoopDefDelegate Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl = null) {
         def loopD =  new LoopDefDelegate(compActDef, lastSlotDef, initialProps)
-        loopD.processClosure(cl)
+
+        if (cl) loopD.processClosure(cl)
 
         lastSlotDef = loopD.joinDefLast
 
-        return loopD.loopDef
+        return loopD
     }
 
     def Act(ActivityDef actDef, @DelegatesTo(PropertyDelegate) Closure cl = null) {
