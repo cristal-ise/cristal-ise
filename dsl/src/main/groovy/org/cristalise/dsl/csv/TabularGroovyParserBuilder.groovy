@@ -29,8 +29,9 @@ import org.cristalise.dsl.csv.TabularGroovyParser.ParserTypes
 import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
-@CompileStatic
+@CompileStatic @Slf4j
 class TabularGroovyParserBuilder {
     
     private ParserTypes type = null
@@ -73,7 +74,7 @@ class TabularGroovyParserBuilder {
         InputStream is= new FileInputStream(file)
         XSSFWorkbook workbook = new XSSFWorkbook(is);
         XSSFSheet sheet = workbook.getSheet(sheetName.trim())
-
+        assert sheet
         return new ExcelGroovyParser(workbook, sheet, options)
     }
 
