@@ -21,12 +21,13 @@
 package org.cristalise.dsl.test.lifecycle.definition
 
 import org.cristalise.dsl.csv.TabularGroovyParserBuilder
+import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.TabularActivityDefBuilder
+import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
-import groovy.util.logging.Slf4j
 import spock.lang.Specification
 
 
@@ -34,23 +35,29 @@ import spock.lang.Specification
  *
  */
 class TabularActivityDefBuilderSpecs extends Specification implements CristalTestSetup {
+    CompositeActivityDef caDef
     
-    def defaultActProps = [StateMachineName: "Default", StateMachineVersion: "0", Breakpoint: false, Description: '', 'Agent Role': '', 'Agent Name': '', Viewpoint: '', OutcomeInit: '']
-
     def setup()   {}
-    def cleanup() {}
+    def cleanup() {
+        if (caDef) {
+            DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
+            CompActDefBuilder.generateWorkflowSVG('target', caDef)
+        }
+    }
 
-    def xlsxFile = "src/test/data/TabularActivityBuilder.xlsx"
+    def xlsxFile = "src/test/data/TabularWorkflowBuilder.xlsx"
 
     def 'TabularActivityDefBuilder can build a sequence of ActivityDefs'() {
         when:
-        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'TestItem_Sequence', 2)
-        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TestItem_Sequence', 0))
-        def caDef = tadb.build(parser)
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'ActivitySequence', 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TabularBuilder_ActivitySequence', 0))
+        caDef = tadb.build(parser)
         def litOfActDefs = caDef.getRefChildActDef()
         def startVertex = caDef.childrenGraphModel.startVertex
 
         then:
+        caDef.verify()
+
         litOfActDefs.size() == 2
         litOfActDefs[0] instanceof ActivityDef
         litOfActDefs[0].name == 'TestItem_First'

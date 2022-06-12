@@ -21,12 +21,16 @@
 package org.cristalise.dsl.test.lifecycle.definition
 
 import org.cristalise.dsl.csv.TabularGroovyParserBuilder
+import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.TabularActivityDefBuilder
+import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.lifecycle.ActivityDef
+import org.cristalise.kernel.lifecycle.ActivitySlotDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lifecycle.JoinDef
+import org.cristalise.kernel.lifecycle.LoopDef
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
-import groovy.util.logging.Slf4j
 import spock.lang.Specification
 
 
@@ -34,40 +38,60 @@ import spock.lang.Specification
  *
  */
 class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSetup {
-    
-    def defaultActProps = [StateMachineName: "Default", StateMachineVersion: "0", Breakpoint: false, Description: '', 'Agent Role': '', 'Agent Name': '', Viewpoint: '', OutcomeInit: '']
+    CompositeActivityDef caDef
 
     def setup()   {}
-    def cleanup() {}
+    def cleanup() {
+        if (caDef) {
+            DefaultGraphLayoutGenerator.layoutGraph(caDef.childrenGraphModel)
+            CompActDefBuilder.generateWorkflowSVG('target', caDef)
+        }
+    }
 
     def xlsxFile = "src/test/data/TabularActivityBuilderLoopDef.xlsx"
-    
+
+    void checkLoop(JoinDef startJoin) {
+        def loopBody = caDef.childrenGraphModel.getOutVertices(startJoin)
+        assert loopBody.length == 1
+        assert loopBody[0] instanceof ActivitySlotDef
+
+        def loop = caDef.childrenGraphModel.getOutVertices(loopBody[0])
+        assert loop.length == 1
+        assert loop[0] instanceof LoopDef
+    }
+
     def 'CompositeActivityDef can start with LoopDef'() {
         when:
-        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'TestItem_StartWithLoop', 2)
-        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TestItem_StartWithLoop', 0))
-        def caDef = tadb.build(parser)
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'StartWithLoop', 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TabularBuilder_StartWithLoop', 0))
+        caDef = tadb.build(parser)
         def litOfActDefs = caDef.getRefChildActDef()
         def startVertex = caDef.childrenGraphModel.startVertex
 
         then:
+        caDef.verify()
+
         litOfActDefs.size() == 1
         litOfActDefs[0] instanceof ActivityDef
         litOfActDefs[0].name == 'TestItem_Loop'
 
         caDef.childrenGraphModel.vertices.length == 4
-        startVertex && startVertex.name == 'Loop1'
+        startVertex && startVertex instanceof JoinDef
+
+        checkLoop(startVertex)
     }
 
     def 'TabularActivityDefBuilder can build a sequence of ActivityDefs with Loop'() {
         when:
-        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'TestItem_SeqWithLoop', 2)
-        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TestItem_SeqWithLoop', 0))
-        def caDef = tadb.build(parser)
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'SequenceWithLoop', 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TabularBuilder_SequenceWithLoop', 0))
+        caDef = tadb.build(parser)
         def litOfActDefs = caDef.getRefChildActDef()
         def startVertex = caDef.childrenGraphModel.startVertex
 
         then:
+        caDef.verify()
+
         litOfActDefs.size() == 3
         litOfActDefs[0] instanceof ActivityDef
         litOfActDefs[0].name == 'TestItem_First'
@@ -78,5 +102,10 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
 
         caDef.childrenGraphModel.vertices.length == 6
         startVertex && startVertex.name == 'First'
+        def seconds = caDef.childrenGraphModel.getOutVertices(startVertex)
+        seconds.length == 1
+        seconds[0] instanceof JoinDef
+
+        checkLoop(seconds[0])
     }
 }

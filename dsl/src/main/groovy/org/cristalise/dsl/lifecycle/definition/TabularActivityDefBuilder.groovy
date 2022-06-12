@@ -37,8 +37,13 @@ class TabularActivityDefBuilder {
     
     protected CompositeActivityDef caDef
     protected CompActDefLayoutDelegate caDefLayoutDelegate
-    
+
     Map<String, ActivityDef> actDefMap = [:]
+
+    /**
+     * Contains the actually processed block
+     */
+    private List blockLifo = []
 
     public TabularActivityDefBuilder(CompositeActivityDef ca) {
         caDef = ca
@@ -49,9 +54,9 @@ class TabularActivityDefBuilder {
         parser.eachRow() { Map<String, Map<String, Object>> record, int i ->
             switch (record['layout']['class']) {
                 case 'Elementary': convertToElementary(record); break;
-                case 'Loop': startLoopBlock(record); break;
-                case 'LoopInfinite': startInfiniteLoopBlock(record); break;
-                case 'LoopEnd': endCurrentBlock(record); break;
+                case 'Loop': startLoop(record); break;
+                case 'LoopInfinite': startLoopInfinite(record); break;
+                case 'LoopEnd': endLoop(record); break;
                 default:
                     throw new InvalidDataException('Uncovered class value:' + record['layout']['class'])
             }
@@ -60,16 +65,29 @@ class TabularActivityDefBuilder {
         return caDef
     }
 
-    private void startLoopBlock(Map<String, Map<String, Object>> record) {
-        log.info('startLoopBlock() - {}', record)
+    private void startLoop(LoopDefDelegate loopD) {
+        loopD.initialiseLoop()
+        caDefLayoutDelegate.lastSlotDef = loopD.joinDefFirst
+        blockLifo.add(loopD)
     }
 
-    private void startInfiniteLoopBlock(Map<String, Map<String, Object>> record) {
-        log.info('startInfiniteLoopBlock() - {}', record)
+    private void startLoop(Map<String, Map<String, Object>> record) {
+        log.info('startLoop() - {}', record)
+        startLoop(caDefLayoutDelegate.Loop())
     }
 
-    private void endCurrentBlock(Map<String, Map<String, Object>> record) {
-        log.info('endCurrentBlock() - {}', record)
+    private void startLoopInfinite(Map<String, Map<String, Object>> record) {
+        log.info('startInfiniteLoop() - {}', record)
+        startLoop(caDefLayoutDelegate.LoopInfinite())
+    }
+
+    private void endLoop(Map<String, Map<String, Object>> record) {
+        log.info('endLoop() - {}', record)
+
+        def loopD = (LoopDefDelegate) blockLifo.removeLast()
+
+        loopD.finaliseLoop()
+        caDefLayoutDelegate.lastSlotDef = loopD.lastSlotDef
     }
 
     private ActivityDef createActivityDef(Map<String, Map<String, Object>> record) {
@@ -103,7 +121,7 @@ class TabularActivityDefBuilder {
             nameAndVersion = ((String)((Map)record.reference).stateMachine).split(':')
             actDef.stateMachine = new StateMachine(nameAndVersion[0], nameAndVersion[1] as Integer)
         }
-        
+
         return actDef
     }
 
@@ -120,6 +138,12 @@ class TabularActivityDefBuilder {
         }
         
         def actSlotName = layout['name'] as String
-        caDefLayoutDelegate.Act(actSlotName, actDef)
+        if (blockLifo) {
+            def blockD = blockLifo.last() as BlockDefDelegate
+            blockD.Act(actSlotName, actDef)
+        }
+        else {
+            caDefLayoutDelegate.Act(actSlotName, actDef)
+        }
     }
 }
