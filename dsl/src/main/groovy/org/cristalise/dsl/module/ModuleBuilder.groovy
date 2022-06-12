@@ -35,7 +35,7 @@ class ModuleBuilder {
     public static Module build(String ns, String name, int version, @DelegatesTo(ModuleDelegate) Closure cl) {
         ModuleDelegate md = new ModuleDelegate(ns, name, version)
 
-        if(cl) md.processClosure(cl)
+        if (cl) md.processClosure(cl)
 
         return md.newModule
     }

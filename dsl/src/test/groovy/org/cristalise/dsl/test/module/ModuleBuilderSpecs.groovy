@@ -33,8 +33,8 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
 
     def setupSpec() {
         def props = new Properties()
-        props.put('DSL.GenerateModuleXml', false)
-        props.put('DSL.GenerateResourceXml', false)
+        props.put('DSL.Module.generateModuleXml', false)
+        props.put('DSL.Module.generateResourceXml', false)
         props.put('DSL.Module.generateAllResourceItems', true)
 
         inMemoryServer(props, true) //skips bootstrap
