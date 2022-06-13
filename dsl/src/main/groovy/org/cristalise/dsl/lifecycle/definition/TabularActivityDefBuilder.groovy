@@ -85,8 +85,10 @@ class TabularActivityDefBuilder {
     }
     
     private void startLoop(Map<String, Map<String, Object>> record, boolean infinite) {
+        log.info('startLoop() - {}', record)
+
         def blockD = blockLifo.last()
-        def loopD = infinite ? blockD.LoopInfinite() : blockD.Loop()
+        def loopD = infinite ? blockD.LoopInfinite(record['property']) : blockD.Loop(record['property'])
         initialiseBlock(loopD)
         blockD.lastSlotDef = loopD.joinDefFirst
     }

@@ -87,7 +87,8 @@ class BlockDefDelegate extends PropertyDelegate {
         // Add the conditions to make it endless
         if (!initialProps) initialProps = [:]
 
-        initialProps.groovy = true
+        //initialProps.groovy = true
+        initialProps.RoutingExpr = 'true'
 
         return Loop(initialProps, cl)
     }

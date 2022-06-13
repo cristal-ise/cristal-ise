@@ -27,6 +27,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_
 
 import org.cristalise.kernel.graph.model.GraphableVertex
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lifecycle.LoopDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
 import org.cristalise.kernel.scripting.Script
 import groovy.transform.CompileStatic
@@ -52,12 +53,24 @@ abstract class SplitDefDelegate extends BlockDefDelegate {
             initialProps.remove('groovy')
         }
         else if (initialProps?.RoutingScript) {
-            def script = initialProps?.RoutingScript as Script
-            setRoutingScript(splitDef, script.getName(), script.getVersion());
+            if (initialProps.RoutingScript instanceof Script) {
+                def script = initialProps.RoutingScript as Script
+                setRoutingScript(splitDef, script.getName(), script.getVersion());
+            }
+            else if (initialProps.RoutingScript instanceof String) {
+                def nameAndVersion = ((String)initialProps.RoutingScript).split(':')
+                def name = nameAndVersion[0]
+                def version =  nameAndVersion.length == 2 ? nameAndVersion[1] : '0'
+                setRoutingScript(splitDef, name, version as Integer)
+            }
             initialProps.remove('RoutingScript')
         }
-        else {
-            setRoutingExpr(splitDef, 'true')
+        else if (initialProps?.RoutingExpr) {
+            setRoutingExpr(splitDef, initialProps.RoutingExpr as String)
+            initialProps.remove('RoutingExpr')
+        }
+        else if (splitDef instanceof LoopDef) {
+            setRoutingExpr(splitDef, 'false')
         }
 
         if (initialProps) initialProps.each { k, v -> props.put(k, v, false) }

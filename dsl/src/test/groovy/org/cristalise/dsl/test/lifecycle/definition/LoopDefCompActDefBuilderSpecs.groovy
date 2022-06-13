@@ -77,7 +77,9 @@ class LoopDefCompActDefBuilderSpecs extends Specification implements CristalTest
         caDef.childrenGraphModel.startVertex.class.simpleName == 'JoinDef'
 
         loopDef
-        loopDef.properties.RoutingExpr == 'true'
+        loopDef.properties.RoutingScriptName == ''
+        loopDef.properties.RoutingScriptVersion == ''
+        loopDef.properties.RoutingExpr == 'false'
         loopDef.getOutGraphables().find { GraphableVertex v -> v.pairingId == loopDef.pairingId }
         loopDef.getInGraphables().collect { it.name } == ['EA1']
         loopDef.getOutGraphables().collect { it.class.simpleName } == ['JoinDef', 'JoinDef']
@@ -198,8 +200,9 @@ class LoopDefCompActDefBuilderSpecs extends Specification implements CristalTest
         caDef.childrenGraphModel.vertices.length == 4
 
         loopDef
-        loopDef.properties.RoutingScriptName == 'groovy:true'
-        loopDef.properties.RoutingScriptVersion == null;
+        loopDef.properties.RoutingExpr == 'true'
+        loopDef.properties.RoutingScriptName == ''
+        loopDef.properties.RoutingScriptVersion == '';
         loopDef.properties.toto == 123
     }
 

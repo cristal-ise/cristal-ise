@@ -51,7 +51,7 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
 
     def xlsxFile = "src/test/data/TabularActivityBuilderLoopDef.xlsx"
 
-    def 'TabularActivityDefBuilder can build a CompositeActivityDef starting with Loop'() {
+    def 'CompositeActivityDef starting with Loop'() {
         when:
         def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'StartWithLoop', 2)
         def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TabularBuilder_StartWithLoop', 0))
@@ -59,6 +59,7 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
         def litOfActDefs = caDef.getRefChildActDef()
         def startVertex = caDef.childrenGraphModel.startVertex
         def checker = new CompActDefChecker(caDef)
+        def loopDef = caDef.getChildren().find { it instanceof LoopDef }
 
         then:
         caDef.verify()
@@ -70,14 +71,46 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
         caDef.childrenGraphModel.vertices.length == 4
         startVertex && startVertex instanceof JoinDef
 
+        loopDef
+        loopDef.properties.RoutingScriptName == ''
+        loopDef.properties.RoutingScriptVersion == ''
+        loopDef.properties.RoutingExpr == 'false'
         checker.checkLoop((JoinDef)startVertex, ActivitySlotDef.class)
         checker.checkSequence(JoinDef, 'Looping', LoopDef, JoinDef)
     }
 
-    def 'TabularActivityDefBuilder can build nested Loops'() {
+    def 'CompositeActivityDef starting with LoopInfinite'() {
         when:
-        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'LoopContainLoop', 2)
-        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TabularBuilder_LoopContainLoop', 0))
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'StartWithLoopInfinite', 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TabularBuilder_StartWithLoopInfinite', 0))
+        caDef = tadb.build(parser)
+        def litOfActDefs = caDef.getRefChildActDef()
+        def startVertex = caDef.childrenGraphModel.startVertex
+        def checker = new CompActDefChecker(caDef)
+        def loopDef = caDef.getChildren().find { it instanceof LoopDef }
+
+        then:
+        caDef.verify()
+
+        litOfActDefs.size() == 1
+        litOfActDefs[0] instanceof ActivityDef
+        litOfActDefs[0].name == 'TestItem_Loop'
+
+        caDef.childrenGraphModel.vertices.length == 4
+        startVertex && startVertex instanceof JoinDef
+
+        loopDef
+        loopDef.properties.RoutingScriptName == ''
+        loopDef.properties.RoutingScriptVersion == ''
+        loopDef.properties.RoutingExpr == 'true'
+        checker.checkLoop((JoinDef)startVertex, ActivitySlotDef.class)
+        checker.checkSequence(JoinDef, 'Looping', LoopDef, JoinDef)
+    }
+
+    def 'CompositeActivityDef has nested Loops'() {
+        when:
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'NestedLoops', 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TabularBuilder_NestedLoops', 0))
         caDef = tadb.build(parser)
         def litOfActDefs = caDef.getRefChildActDef()
         def startVertex = caDef.childrenGraphModel.startVertex
@@ -99,7 +132,7 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
         checker.checkSequence(JoinDef, JoinDef, 'Looping', LoopDef, JoinDef, LoopDef, JoinDef)
     }
 
-    def 'TabularActivityDefBuilder can build a sequence of ActivityDefs with Loop'() {
+    def 'CompositeActivityDef has sequence of ActivityDefs with Loop'() {
         when:
         def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'SequenceWithLoop', 2)
         def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TabularBuilder_SequenceWithLoop', 0))
@@ -127,5 +160,33 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
 
         checker.checkLoop((JoinDef)seconds[0], ActivitySlotDef)
         checker.checkSequence('First', JoinDef, 'Looping', LoopDef, JoinDef, 'Last')
+    }
+
+    def 'CompositeActivityDef starting with Loop with Properties'() {
+        when:
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'LoopProperties', 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TabularBuilder_LoopProperties', 0))
+        caDef = tadb.build(parser)
+        def litOfActDefs = caDef.getRefChildActDef()
+        def startVertex = caDef.childrenGraphModel.startVertex
+        def checker = new CompActDefChecker(caDef)
+        def loopDef = caDef.getChildren().find { it instanceof LoopDef }
+
+        then:
+        caDef.verify()
+
+        litOfActDefs.size() == 1
+        litOfActDefs[0] instanceof ActivityDef
+        litOfActDefs[0].name == 'TestItem_Loop'
+
+        caDef.childrenGraphModel.vertices.length == 4
+        startVertex && startVertex instanceof JoinDef
+
+        loopDef
+        loopDef.properties.RoutingScriptName == ''
+        loopDef.properties.RoutingScriptVersion == ''
+        loopDef.properties.RoutingExpr == 'toto'
+        checker.checkLoop((JoinDef)startVertex, ActivitySlotDef.class)
+        checker.checkSequence(JoinDef, 'Looping', LoopDef, JoinDef)
     }
 }
