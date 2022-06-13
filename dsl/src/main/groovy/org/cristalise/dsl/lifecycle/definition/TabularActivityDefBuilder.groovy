@@ -41,7 +41,7 @@ class TabularActivityDefBuilder {
     Map<String, ActivityDef> actDefMap = [:]
 
     /**
-     * Contains the actually processed block
+     * Contains the delegates of processed blocks
      */
     private List<BlockDefDelegate> blockLifo = []
 

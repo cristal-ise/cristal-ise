@@ -51,19 +51,6 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
 
     def xlsxFile = "src/test/data/TabularActivityBuilderLoopDef.xlsx"
 
-    void checkLoop(JoinDef startJoin, Class<?> loopBodyStartClass) {
-        def loopBodyStart = caDef.childrenGraphModel.getOutVertices(startJoin)
-        assert loopBodyStart.length == 1
-        assert loopBodyStartClass.isInstance(loopBodyStart[0])
-
-        //FIXME: hack to make nested loop test case green
-        if (loopBodyStartClass.equals(ActivitySlotDef)) {
-            def loop = caDef.childrenGraphModel.getOutVertices(loopBodyStart[0])
-            assert loop.length == 1
-            assert loop[0] instanceof LoopDef
-        }
-    }
-
     def 'CompositeActivityDef can start with Loop'() {
         when:
         def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'StartWithLoop', 2)
@@ -71,7 +58,8 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
         caDef = tadb.build(parser)
         def litOfActDefs = caDef.getRefChildActDef()
         def startVertex = caDef.childrenGraphModel.startVertex
-
+        def checker = new CompActDefChecker(caDef)
+        
         then:
         caDef.verify()
 
@@ -82,7 +70,8 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
         caDef.childrenGraphModel.vertices.length == 4
         startVertex && startVertex instanceof JoinDef
 
-        checkLoop(startVertex, ActivitySlotDef)
+        checker.checkLoop((JoinDef)startVertex, ActivitySlotDef.class)
+        checker.checkSequence(JoinDef, 'Looping', LoopDef, JoinDef)
     }
 
     def 'TabularActivityDefBuilder can build nested Loops'() {
@@ -92,7 +81,8 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
         caDef = tadb.build(parser)
         def litOfActDefs = caDef.getRefChildActDef()
         def startVertex = caDef.childrenGraphModel.startVertex
-
+        def checker = new CompActDefChecker(caDef)
+        
         then:
         caDef.verify()
 
@@ -103,9 +93,10 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
         caDef.childrenGraphModel.vertices.length == 7
         startVertex && startVertex instanceof JoinDef
 
-        checkLoop(startVertex, JoinDef)
+        checker.checkLoop((JoinDef)startVertex, JoinDef)
         def loopBodyStart = caDef.childrenGraphModel.getOutVertices(startVertex)
-        checkLoop(loopBodyStart[0], ActivitySlotDef)
+        checker.checkLoop((JoinDef)loopBodyStart[0], ActivitySlotDef)
+        checker.checkSequence(JoinDef, JoinDef, 'Looping', LoopDef, JoinDef, LoopDef, JoinDef)
     }
 
     def 'TabularActivityDefBuilder can build a sequence of ActivityDefs with Loop'() {
@@ -115,6 +106,7 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
         caDef = tadb.build(parser)
         def litOfActDefs = caDef.getRefChildActDef()
         def startVertex = caDef.childrenGraphModel.startVertex
+        def checker = new CompActDefChecker(caDef)
 
         then:
         caDef.verify()
@@ -133,6 +125,7 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
         seconds.length == 1
         seconds[0] instanceof JoinDef
 
-        checkLoop(seconds[0], ActivitySlotDef)
+        checker.checkLoop((JoinDef)seconds[0], ActivitySlotDef)
+        checker.checkSequence('First', JoinDef, 'Looping', LoopDef, JoinDef, 'Last')
     }
 }
