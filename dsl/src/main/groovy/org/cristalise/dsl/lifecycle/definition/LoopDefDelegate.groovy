@@ -49,23 +49,13 @@ class LoopDefDelegate extends SplitDefDelegate {
         setInitialProperties(loopDef, initialProps)
     }
 
-    public void processClosure(Closure cl) {
-        assert cl, "Split only works with a valid Closure"
-
-        initialiseLoop()
-
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
-
-        finaliseLoop()
-    }
-
-    public void initialiseLoop() {
+    @Override
+    public void initialiseBlock() {
         addAsNext(joinDefFirst)
     }
 
-    public void finaliseLoop() {
+    @Override
+    public void finaliseBlock() {
         addAsNext(loopDef) // sets loop input to the lastSlotDef
 
         def nextLast = addAsNext(joinDefLast) // sets loop output to the joinDefLast

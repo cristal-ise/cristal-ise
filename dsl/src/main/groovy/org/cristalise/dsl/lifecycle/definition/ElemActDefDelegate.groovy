@@ -51,14 +51,12 @@ class ElemActDefDelegate extends PropertyDelegate {
     public void processClosure(Closure cl) {
         assert cl
 
-        if(cl) {
-            cl.delegate = this
-            cl.resolveStrategy = Closure.DELEGATE_FIRST
-            cl()
+        cl.delegate = this
+        cl.resolveStrategy = Closure.DELEGATE_FIRST
+        cl()
 
-            props.each { k, v ->
-                activityDef.properties.put(k, v, props.getAbstract().contains(k))
-            }
+        props.each { k, v ->
+            activityDef.properties.put(k, v, props.getAbstract().contains(k))
         }
     }
 

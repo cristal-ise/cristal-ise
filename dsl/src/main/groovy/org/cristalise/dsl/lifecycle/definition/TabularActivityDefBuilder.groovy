@@ -24,6 +24,7 @@ import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.querying.Query
@@ -36,27 +37,40 @@ import groovy.util.logging.Slf4j
 class TabularActivityDefBuilder {
     
     protected CompositeActivityDef caDef
-    protected CompActDefLayoutDelegate caDefLayoutDelegate
 
     Map<String, ActivityDef> actDefMap = [:]
 
     /**
      * Contains the actually processed block
      */
-    private List blockLifo = []
+    private List<BlockDefDelegate> blockLifo = []
 
     public TabularActivityDefBuilder(CompositeActivityDef ca) {
         caDef = ca
-        caDefLayoutDelegate = new CompActDefLayoutDelegate(ca)
+        blockLifo.add(new CompActDefLayoutDelegate(ca))
     }
 
     CompositeActivityDef build(TabularGroovyParser parser) {
         parser.eachRow() { Map<String, Map<String, Object>> record, int i ->
             switch (record['layout']['class']) {
-                case 'Elementary': convertToElementary(record); break;
-                case 'Loop': startLoop(record); break;
-                case 'LoopInfinite': startLoopInfinite(record); break;
-                case 'LoopEnd': endLoop(record); break;
+                case 'Elementary': 
+                    convertToElementary(record)
+                    break
+
+                case 'Loop': 
+                    startLoop(record, false)
+                    break
+
+                case 'LoopInfinite': 
+                    startLoop(record, true)
+                    break
+
+                case 'LoopEnd': 
+                case 'End': 
+                case '---': 
+                    endBlock(record)
+                    break
+
                 default:
                     throw new InvalidDataException('Uncovered class value:' + record['layout']['class'])
             }
@@ -65,29 +79,26 @@ class TabularActivityDefBuilder {
         return caDef
     }
 
-    private void startLoop(LoopDefDelegate loopD) {
-        loopD.initialiseLoop()
-        caDefLayoutDelegate.lastSlotDef = loopD.joinDefFirst
-        blockLifo.add(loopD)
+    private void initialiseBlock(BlockDefDelegate blockD) {
+        blockD.initialiseBlock()
+        blockLifo.add(blockD)
+    }
+    
+    private void startLoop(Map<String, Map<String, Object>> record, boolean infinite) {
+        def blockD = blockLifo.last()
+        def loopD = infinite ? blockD.LoopInfinite() : blockD.Loop()
+        initialiseBlock(loopD)
+        blockD.lastSlotDef = loopD.joinDefFirst
     }
 
-    private void startLoop(Map<String, Map<String, Object>> record) {
-        log.info('startLoop() - {}', record)
-        startLoop(caDefLayoutDelegate.Loop())
-    }
+    private void endBlock(Map<String, Map<String, Object>> record) {
+        log.info('endBlock() - {}', record)
 
-    private void startLoopInfinite(Map<String, Map<String, Object>> record) {
-        log.info('startInfiniteLoop() - {}', record)
-        startLoop(caDefLayoutDelegate.LoopInfinite())
-    }
+        def closedBlockD = blockLifo.removeLast()
+        closedBlockD.finaliseBlock()
 
-    private void endLoop(Map<String, Map<String, Object>> record) {
-        log.info('endLoop() - {}', record)
-
-        def loopD = (LoopDefDelegate) blockLifo.removeLast()
-
-        loopD.finaliseLoop()
-        caDefLayoutDelegate.lastSlotDef = loopD.lastSlotDef
+        def currentBlockD = blockLifo.last()
+        currentBlockD.lastSlotDef = closedBlockD.lastSlotDef
     }
 
     private ActivityDef createActivityDef(Map<String, Map<String, Object>> record) {
@@ -102,24 +113,35 @@ class TabularActivityDefBuilder {
         def reference = record.reference
 
         if (reference?.schema) {
-            nameAndVersion = ((String)((Map)record.reference).schema).split(':')
+            nameAndVersion = ((String)reference.schema).split(':')
             actDef.schema = new Schema(nameAndVersion[0], nameAndVersion[1] as Integer, "")
         }
 
         if (reference?.script) {
-            nameAndVersion = ((String)((Map)record.reference).script).split(':')
+            nameAndVersion = ((String)reference.script).split(':')
 //            def fakeScript = "<cristalscript><script language='javascript' name='{$nameAndVersion[0]}'> </script></cristalscript>"
             actDef.script = new Script(nameAndVersion[0], nameAndVersion[1] as Integer, null, null)
         }
 
         if (reference?.query) {
-            nameAndVersion = ((String)((Map)record.reference).query).split(':')
+            nameAndVersion = ((String)reference.query).split(':')
             actDef.query = new Query(nameAndVersion[0], nameAndVersion[1] as Integer, "")
         }
 
         if (reference?.stateMachine) {
-            nameAndVersion = ((String)((Map)record.reference).stateMachine).split(':')
+            nameAndVersion = ((String)reference.stateMachine).split(':')
             actDef.stateMachine = new StateMachine(nameAndVersion[0], nameAndVersion[1] as Integer)
+        }
+
+        return actDef
+    }
+
+    private ActivityDef retrieveActivityDef(String actRef, Map<String, Map<String, Object>> record) {
+        def actDef = actDefMap[actRef]
+
+        if (!actDef) {
+            actDef = createActivityDef(record)
+            actDefMap[actRef] = actDef
         }
 
         return actDef
@@ -129,21 +151,12 @@ class TabularActivityDefBuilder {
         log.info('convertToElementary() - {}', record)
 
         def layout = record['layout']
-        def actRef = layout['activityReference'] as String
-        def actDef = actDefMap[actRef]
-
-        if (! actDef) {
-            actDef = createActivityDef(record)
-            actDefMap[actRef] = actDef
-        }
-        
         def actSlotName = layout['name'] as String
-        if (blockLifo) {
-            def blockD = blockLifo.last() as BlockDefDelegate
-            blockD.Act(actSlotName, actDef)
-        }
-        else {
-            caDefLayoutDelegate.Act(actSlotName, actDef)
-        }
+        def actRef = layout['activityReference'] as String
+
+        def actDef = retrieveActivityDef(actRef, record)
+
+        def currentBlockD = blockLifo.last()
+        currentBlockD.Act(actSlotName, actDef)
     }
 }

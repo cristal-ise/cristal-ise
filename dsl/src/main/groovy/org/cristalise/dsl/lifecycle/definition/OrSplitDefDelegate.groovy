@@ -49,15 +49,13 @@ class OrSplitDefDelegate extends SplitDefDelegate {
         setInitialProperties(orSplitDef, initialProps)
     }
 
-    public void processClosure(Closure cl) {
-        assert cl, "Split only works with a valid Closure"
-
+    @Override
+    public void initialiseBlock() {
         addAsNext(orSplitDef)
+    }
 
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
-
+    @Override
+    public void finaliseBlock() {
         lastSlotDef = joinDef
 
         props.each { k, v ->

@@ -45,12 +45,19 @@ class BlockDefDelegate extends PropertyDelegate {
         lastSlotDef = originSlotDef
     }
 
+    public void initialiseBlock() {}
+    public void finaliseBlock() {}
+
     public void processClosure(Closure cl) {
         assert cl, "Block only works with a valid Closure"
+
+        initialiseBlock()
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
+
+        finaliseBlock()
     }
 
     protected NextDef addAsNext(WfVertexDef newSlotDef) {

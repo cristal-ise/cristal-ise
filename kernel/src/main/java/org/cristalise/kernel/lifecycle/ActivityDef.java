@@ -66,8 +66,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ActivityDef extends WfVertexDef implements C2KLocalObject, DescriptionObject {
 
-    //FIXME: ActivityDef should not extend WfVertexDef because is not part of the graph (check ActivitySlotDef instead)
-    private Integer version = null;  // null is 'last',previously was -1
+    private Integer version = null;  // null is 'last', previously was -1
     public boolean  changed  = false;
 
     ItemPath        itemPath;

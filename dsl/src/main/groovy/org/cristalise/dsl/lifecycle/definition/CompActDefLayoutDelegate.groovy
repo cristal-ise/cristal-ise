@@ -52,17 +52,10 @@ class CompActDefLayoutDelegate extends BlockDefDelegate {
         processClosure(cl)
     }
 
-    public void processClosure(Closure cl) {
-        assert compActDef
-
-        if (cl) {
-            cl.delegate = this
-            cl.resolveStrategy = Closure.DELEGATE_FIRST
-            cl()
-
-            props.each { k, v ->
-                compActDef.properties.put(k, v, props.getAbstract().contains(k))
-            }
+    @Override
+    public void finaliseBlock() {
+        props.each { k, v ->
+            compActDef.properties.put(k, v, props.getAbstract().contains(k))
         }
     }
 }
