@@ -20,7 +20,6 @@
  */
 package org.cristalise.dsl.test.lifecycle.definition
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder;
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.graph.model.GraphableVertex
@@ -34,6 +33,7 @@ import org.cristalise.kernel.lifecycle.XOrSplitDef
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.CristalTestSetup
+
 import spock.lang.Specification
 
 
@@ -78,9 +78,7 @@ class LoopDefCompActDefBuilderSpecs extends Specification implements CristalTest
 
         loopDef
         loopDef.properties.RoutingExpr == 'true'
-        loopDef.getOutGraphables().findAll { GraphableVertex v ->
-            v.getBuiltInProperty(PAIRING_ID) == loopDef.getBuiltInProperty(PAIRING_ID) }.size() == 1
-
+        loopDef.getOutGraphables().find { GraphableVertex v -> v.pairingId == loopDef.pairingId }
         loopDef.getInGraphables().collect { it.name } == ['EA1']
         loopDef.getOutGraphables().collect { it.class.simpleName } == ['JoinDef', 'JoinDef']
     }
@@ -113,8 +111,7 @@ class LoopDefCompActDefBuilderSpecs extends Specification implements CristalTest
         ((GraphableVertex)(caDef.childrenGraphModel.startVertex)).getOutGraphables().collect { it.class.simpleName } == ['JoinDef']
 
         loopDef
-        loopDef.getOutGraphables().findAll { GraphableVertex v ->
-            v.getBuiltInProperty(PAIRING_ID) == loopDef.getBuiltInProperty(PAIRING_ID) }.size() == 1
+        loopDef.getOutGraphables().find { GraphableVertex v -> v.pairingId == loopDef.pairingId }
 
         loopDef.getOutGraphables().collect { it.class.simpleName } == ['JoinDef', 'JoinDef']
         loopDef.getInGraphables().collect { it.name } == ['looping']
@@ -235,9 +232,9 @@ class LoopDefCompActDefBuilderSpecs extends Specification implements CristalTest
         loop.outGraphables.size() == 2
 
         // AndSplit's input Vertex is the start Join of the Loop
-        ((GraphableVertex)andSplit.inGraphables[0]).getBuiltInProperty(PAIRING_ID) == loop.getBuiltInProperty(PAIRING_ID)
+        ((GraphableVertex)andSplit.inGraphables[0]).pairingId == loop.pairingId
         // Loop's input Vertex is the end Join of the AndSplit
-        ((GraphableVertex)loop.inGraphables[0]).getBuiltInProperty(PAIRING_ID) == andSplit.getBuiltInProperty(PAIRING_ID)
+        ((GraphableVertex)loop.inGraphables[0]).pairingId == andSplit.pairingId
     }
 
     def 'Loop can contain OrSplit'() {
@@ -269,9 +266,9 @@ class LoopDefCompActDefBuilderSpecs extends Specification implements CristalTest
         loop.outGraphables.size() == 2
 
         // OrSplit's input Vertex is the start Join of the Loop
-        ((GraphableVertex)orSplit.inGraphables[0]).getBuiltInProperty(PAIRING_ID) == loop.getBuiltInProperty(PAIRING_ID)
+        ((GraphableVertex)orSplit.inGraphables[0]).pairingId == loop.pairingId
         // Loop's input Vertex is the end Join of the orSplit
-        ((GraphableVertex)loop.inGraphables[0]).getBuiltInProperty(PAIRING_ID) == orSplit.getBuiltInProperty(PAIRING_ID)
+        ((GraphableVertex)loop.inGraphables[0]).pairingId == orSplit.pairingId
     }
     
     def 'Loop can contain XOrSplit'() {
@@ -303,9 +300,9 @@ class LoopDefCompActDefBuilderSpecs extends Specification implements CristalTest
         loop.outGraphables.size() == 2
 
         // XOrSplit's input Vertex is the start Join of the Loop
-        ((GraphableVertex)xorSplit.inGraphables[0]).getBuiltInProperty(PAIRING_ID) == loop.getBuiltInProperty(PAIRING_ID)
+        ((GraphableVertex)xorSplit.inGraphables[0]).pairingId == loop.pairingId
         // Loop's input Vertex is the end Join of the XOrSplit
-        ((GraphableVertex)loop.inGraphables[0]).getBuiltInProperty(PAIRING_ID) == xorSplit.getBuiltInProperty(PAIRING_ID)
+        ((GraphableVertex)loop.inGraphables[0]).pairingId == xorSplit.pairingId
     }
 
     def 'Loop can contain Loop'() {
@@ -324,10 +321,10 @@ class LoopDefCompActDefBuilderSpecs extends Specification implements CristalTest
 
         def loops = caDef.getChildren().findAll { it instanceof LoopDef }
         def startJoin = (JoinDef) caDef.childrenGraphModel.startVertex
-        def outerPairingId = startJoin.getBuiltInProperty(PAIRING_ID)
+        def outerPairingId = startJoin.pairingId
 
-        def outerLoop = loops.find {it.getBuiltInProperty(PAIRING_ID) == outerPairingId}
-        def innerLoop = loops.find {it.getBuiltInProperty(PAIRING_ID) != outerPairingId}
+        def outerLoop = loops.find {it.pairingId == outerPairingId}
+        def innerLoop = loops.find {it.pairingId != outerPairingId}
 
         then:
         caDef.verify()
@@ -335,11 +332,11 @@ class LoopDefCompActDefBuilderSpecs extends Specification implements CristalTest
 
         outerLoop instanceof LoopDef
         innerLoop instanceof LoopDef
-        outerLoop.getBuiltInProperty(PAIRING_ID) != innerLoop.getBuiltInProperty(PAIRING_ID)
+        outerLoop.pairingId != innerLoop.pairingId
 
         // startJoin's output vertex is the start Join of the InnerLoop
-        ((GraphableVertex)startJoin.outGraphables[0]).getBuiltInProperty(PAIRING_ID) == innerLoop.getBuiltInProperty(PAIRING_ID)
+        ((GraphableVertex)startJoin.outGraphables[0]).pairingId == innerLoop.pairingId
         // outerLoop's input Join is one of the outputs of the InnerLoop
-        outerLoop.inGraphables[0].getID() == innerLoop.outGraphables.find {GraphableVertex v -> ! v.getBuiltInProperty(PAIRING_ID)}.getID()
+        outerLoop.inGraphables[0].getID() == innerLoop.outGraphables.find {GraphableVertex v -> ! v.pairingId}.getID()
     }
 }

@@ -51,7 +51,7 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
 
     def xlsxFile = "src/test/data/TabularActivityBuilderLoopDef.xlsx"
 
-    def 'CompositeActivityDef can start with Loop'() {
+    def 'TabularActivityDefBuilder can build a CompositeActivityDef starting with Loop'() {
         when:
         def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'StartWithLoop', 2)
         def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TabularBuilder_StartWithLoop', 0))
@@ -59,7 +59,7 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
         def litOfActDefs = caDef.getRefChildActDef()
         def startVertex = caDef.childrenGraphModel.startVertex
         def checker = new CompActDefChecker(caDef)
-        
+
         then:
         caDef.verify()
 
@@ -82,7 +82,7 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
         def litOfActDefs = caDef.getRefChildActDef()
         def startVertex = caDef.childrenGraphModel.startVertex
         def checker = new CompActDefChecker(caDef)
-        
+
         then:
         caDef.verify()
 
