@@ -20,6 +20,8 @@
  */
 package org.cristalise.dev.scaffold
 
+import java.nio.file.Path
+
 import org.apache.commons.lang3.StringUtils
 import org.cristalise.dev.dsl.item.CRUDItem
 import org.cristalise.dev.dsl.module.CRUDModuleDelegate
@@ -203,9 +205,16 @@ class CRUDGenerator {
         }
     }
 
-    private boolean checkIncludeRequiredInModule(File file) {
-        if (file.name.endsWith('.groovy')) {
-            if (file.path.contains('/script') || ['Module.groovy', 'CommonDefs.groovy'].contains(file.name)) {
+    private boolean checkIncludeRequiredInModule(Path file) {
+        def fileName = file.fileName.toString()
+
+        if (fileName.endsWith('.groovy')) {
+            def dirName = file.parent.fileName.toString()
+
+            if ( ['script', 'scripts'].contains(dirName) ) {
+                return false
+            }
+            else if (['Module.groovy', 'CommonDefs.groovy'].contains(fileName)) {
                 return false
             }
             else {
@@ -229,7 +238,7 @@ class CRUDGenerator {
             inputs['moduleFiles'] = []
 
             moduleDir.eachFileRecurse(FileType.FILES) { file ->
-                if (checkIncludeRequiredInModule(file)) {
+                if (checkIncludeRequiredInModule(file.toPath())) {
                     ((List)inputs['moduleFiles']).add(file.name)
                 }
             }
