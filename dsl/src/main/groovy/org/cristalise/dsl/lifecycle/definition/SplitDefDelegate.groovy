@@ -30,9 +30,11 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.LoopDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
 import org.cristalise.kernel.scripting.Script
-import groovy.transform.CompileStatic
 
-@CompileStatic
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
+
+@CompileStatic @Slf4j
 abstract class SplitDefDelegate extends BlockDefDelegate {
 
     SplitDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef) {

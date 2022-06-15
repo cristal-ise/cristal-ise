@@ -75,7 +75,7 @@ class CompActDefChecker {
         def currentVertex = caDef.getChildrenGraphModel().startVertex
 
         if (sequence[0] instanceof String) {
-            assert currentVertex.name == sequence[0] : "firstVertex shall have name: $sequence[0]"
+            assert currentVertex.name == sequence[0] : "firstVertex shall have name:$sequence[0]"
         }
         else if (sequence[0] instanceof Class) {
             assert ((Class)sequence[0]).isInstance(currentVertex) : "firstVertex shall be class:$sequence[0]"

@@ -26,13 +26,13 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_NAME
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_VERSION
 
-
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.graph.model.GraphableVertex
 import org.cristalise.kernel.lifecycle.AndSplitDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.LoopDef
+import org.cristalise.kernel.lifecycle.NextDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 
@@ -58,12 +58,12 @@ class AndSplitDefDelegate extends SplitDefDelegate {
     }
 
     @Override
-    public void initialiseBlock() {
+    public void initialiseDelegate() {
         addAsNext(andSplitDef)
     }
 
     @Override
-    public void finaliseBlock() {
+    public void finaliseDelegate() {
         lastSlotDef = joinDef
 
         props.each { k, v ->
@@ -71,84 +71,76 @@ class AndSplitDefDelegate extends SplitDefDelegate {
         }
     }
 
-    def Block(@DelegatesTo(BlockDefDelegate) Closure cl) {
-        def blockD =  new BlockDefDelegate(compActDef, andSplitDef)
-        blockD.processClosure(cl)
+    @Override
+    public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
+        log.debug('finaliseBlock() - linking lastSlotDef:{} to join:{}', newLastSlotDef, joinDef)
+        def lastNextDef = compActDef.addNextDef(newLastSlotDef, joinDef)
 
-        //link to the end of the current Block with the Join of the AndSplit
-        log.debug('Block() - linking lastSlotDef:{} to join:{}', blockD.lastSlotDef, joinDef)
-        compActDef.addNextDef(blockD.lastSlotDef, joinDef)
+        if (alias) {
+            if (currentFirstEdge) currentFirstEdge.setBuiltInProperty(ALIAS, alias)
+            else lastNextDef.setBuiltInProperty(ALIAS, alias)
+        }
 
-        return blockD.lastSlotDef
+        return lastNextDef
     }
 
-    
+    @Override
+    public BlockDefDelegate Block(Map<String, Object> initialProps = null, @DelegatesTo(BlockDefDelegate) Closure cl = null) {
+        def blockD =  new BlockDefDelegate(compActDef, andSplitDef)
+
+        if (cl) {
+            blockD.processClosure(cl)
+            finaliseBlock(blockD.lastSlotDef, blockD.firstEdge, initialProps?.Alias)
+        }
+
+        return blockD
+    }
+
     @Override
     public LoopDefDelegate Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl = null) {
         def loopD =  new LoopDefDelegate(compActDef, andSplitDef, initialProps)
 
-        if (cl) loopD.processClosure(cl)
-
-        //link the end of the current Block with the Join of the OrSplit
-        log.debug('Loop() - linking lastSlotDef:{} to join:{}', loopD.lastSlotDef, joinDef)
-        def lastNextDef = compActDef.addNextDef(loopD.lastSlotDef, joinDef)
-
-        if (initialProps?.Alias) {
-            if (loopD.firstEdge) loopD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
-            else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
+        if (cl) {
+            loopD.processClosure(cl)
+            finaliseBlock(loopD.lastSlotDef, loopD.firstEdge, initialProps?.Alias)
         }
 
         return loopD
     }
 
     @Override
-    def AndSplit(Map<String, Object> initialProps = null, @DelegatesTo(AndSplitDefDelegate) Closure cl) {
+    public AndSplitDefDelegate AndSplit(Map<String, Object> initialProps = null, @DelegatesTo(AndSplitDefDelegate) Closure cl = null) {
         def andD =  new AndSplitDefDelegate(compActDef, lastSlotDef, initialProps)
-        andD.processClosure(cl)
 
-        //link to the end of the current Block with the Join of the AndSplit
-        log.debug('AndSplit() - linking lastSlotDef:{} to join:{}', andD.lastSlotDef, joinDef)
-        def lastNextDef = compActDef.addNextDef(andD.lastSlotDef, joinDef)
-
-        if (initialProps?.Alias) {
-            if (andD.firstEdge) andD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
-            else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
+        if (cl) {
+            andD.processClosure(cl)
+            finaliseBlock(andD.lastSlotDef, andD.firstEdge, initialProps?.Alias)
         }
 
-        return andD.andSplitDef
+        return andD
     }
 
     @Override
-    def OrSplit(Map<String, Object> initialProps = null, @DelegatesTo(OrSplitDefDelegate) Closure cl) {
+    public OrSplitDefDelegate OrSplit(Map<String, Object> initialProps = null, @DelegatesTo(OrSplitDefDelegate) Closure cl) {
         def orD =  new OrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
-        orD.processClosure(cl)
 
-        //link to the end of the current Block with the Join of the AndSplit
-        log.debug('OrSplit() - linking lastSlotDef:{} to join:{}', orD.lastSlotDef, joinDef)
-        def lastNextDef = compActDef.addNextDef(orD.lastSlotDef, joinDef)
-        
-        if (initialProps?.Alias) {
-            if (orD.firstEdge) orD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
-            else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
+        if (cl) {
+            orD.processClosure(cl)
+            finaliseBlock(orD.lastSlotDef, orD.firstEdge, initialProps?.Alias)
         }
 
-        return orD.orSplitDef
+        return orD
     }
 
     @Override
-    def XOrSplit(Map<String, Object> initialProps = null, @DelegatesTo(XOrSplitDefDelegate) Closure cl) {
+    public XOrSplitDefDelegate XOrSplit(Map<String, Object> initialProps = null, @DelegatesTo(XOrSplitDefDelegate) Closure cl) {
         def xorD =  new XOrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
-        xorD.processClosure(cl)
 
-        //link to the end of the current Block with the Join of the AndSplit
-        log.debug('XOrSplit() - linking lastSlotDef:{} to join:{}', xorD.lastSlotDef, joinDef)
-        def lastNextDef = compActDef.addNextDef(xorD.lastSlotDef, joinDef)
-
-        if (initialProps?.Alias) {
-            if (xorD.firstEdge) xorD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
-            else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
+        if (cl) {
+            xorD.processClosure(cl)
+            finaliseBlock(xorD.lastSlotDef, xorD.firstEdge, initialProps?.Alias)
         }
 
-        return xorD.xorSplitDef
+        return xorD
     }
 }

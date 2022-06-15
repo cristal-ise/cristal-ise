@@ -25,6 +25,7 @@ import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
+import org.cristalise.kernel.lifecycle.NextDef
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.querying.Query
@@ -65,6 +66,15 @@ class TabularActivityDefBuilder {
                     startLoop(record, true)
                     break
 
+                case 'AndSplit': 
+                    startAndSplit(record)
+                    break
+
+                case 'Block': 
+                    startBlock(record)
+                    break
+
+                case 'BlockEnd': 
                 case 'LoopEnd': 
                 case 'End': 
                 case '---': 
@@ -79,28 +89,46 @@ class TabularActivityDefBuilder {
         return caDef
     }
 
-    private void initialiseBlock(BlockDefDelegate blockD) {
-        blockD.initialiseBlock()
+    private void initialiseDelegate(BlockDefDelegate blockD) {
+        blockD.initialiseDelegate()
         blockLifo.add(blockD)
     }
-    
+
     private void startLoop(Map<String, Map<String, Object>> record, boolean infinite) {
         log.info('startLoop() - {}', record)
 
-        def blockD = blockLifo.last()
-        def loopD = infinite ? blockD.LoopInfinite(record['property']) : blockD.Loop(record['property'])
-        initialiseBlock(loopD)
-        blockD.lastSlotDef = loopD.joinDefFirst
+        def currentBlockD = blockLifo.last()
+        def loopD = infinite ? currentBlockD.LoopInfinite(record['property']) : currentBlockD.Loop(record['property'])
+        initialiseDelegate(loopD)
+        currentBlockD.lastSlotDef = loopD.joinDefFirst
+    }
+
+    private void startAndSplit(Map<String, Map<String, Object>> record) {
+        log.info('startAndSplit() - {}', record)
+        def currentBlockD = blockLifo.last()
+        def andD = currentBlockD.AndSplit(record['property'])
+        initialiseDelegate(andD)
+        currentBlockD.lastSlotDef = andD.andSplitDef
+    }
+
+    private void startBlock(Map<String, Map<String, Object>> record) {
+        log.info('startBlock() - {}', record)
+        def currentBlockD = blockLifo.last()
+        def blockD = currentBlockD.Block(record['property'])
+        initialiseDelegate(blockD)
     }
 
     private void endBlock(Map<String, Map<String, Object>> record) {
-        log.info('endBlock() - {}', record)
-
         def closedBlockD = blockLifo.removeLast()
-        closedBlockD.finaliseBlock()
+
+        log.info('endBlock({}) - {}', closedBlockD.class.simpleName, record)
+
+        closedBlockD.finaliseDelegate()
 
         def currentBlockD = blockLifo.last()
-        currentBlockD.lastSlotDef = closedBlockD.lastSlotDef
+
+        currentBlockD.finaliseBlock(closedBlockD.lastSlotDef, closedBlockD.firstEdge, record?.property?.Alias)
+        //currentBlockD.lastSlotDef = closedBlockD.lastSlotDef
     }
 
     private ActivityDef createActivityDef(Map<String, Map<String, Object>> record) {

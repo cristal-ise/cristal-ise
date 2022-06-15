@@ -50,12 +50,12 @@ class LoopDefDelegate extends SplitDefDelegate {
     }
 
     @Override
-    public void initialiseBlock() {
+    public void initialiseDelegate() {
         addAsNext(joinDefFirst)
     }
 
     @Override
-    public void finaliseBlock() {
+    public void finaliseDelegate() {
         addAsNext(loopDef) // sets loop input to the lastSlotDef
 
         def nextLast = addAsNext(joinDefLast) // sets loop output to the joinDefLast

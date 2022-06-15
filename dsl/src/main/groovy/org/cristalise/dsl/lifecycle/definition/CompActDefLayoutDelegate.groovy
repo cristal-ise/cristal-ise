@@ -53,7 +53,7 @@ class CompActDefLayoutDelegate extends BlockDefDelegate {
     }
 
     @Override
-    public void finaliseBlock() {
+    public void finaliseDelegate() {
         props.each { k, v ->
             compActDef.properties.put(k, v, props.getAbstract().contains(k))
         }

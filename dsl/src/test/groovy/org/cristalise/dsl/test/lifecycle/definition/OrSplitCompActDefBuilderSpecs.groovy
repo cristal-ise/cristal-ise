@@ -87,9 +87,9 @@ class OrSplitCompActDefBuilderSpecs extends Specification implements CristalTest
 
         orSplitDef.getInGraphables().size() == 0
         orSplitDef.getOutGraphables().collect {it.name} == ['left','right']
+        orSplitDef.getOutEdges().collect {((GraphableEdge)it).getBuiltInProperty(ALIAS)} == ['left','right']
         orSplitDef.properties.RoutingScriptName == "groovy:left"
         orSplitDef.properties.RoutingScriptVersion == null;
-        orSplitDef.getOutEdges().collect {((GraphableEdge)it).getBuiltInProperty(ALIAS)} == ['left','right']
 
         joinDef.getInGraphables().collect {it.name} == ['left','right']
         joinDef.getOutGraphables().size() == 0
@@ -126,7 +126,7 @@ class OrSplitCompActDefBuilderSpecs extends Specification implements CristalTest
         def left  = new ActivityDef('left',  0)
         def right = new ActivityDef('right', 0)
         def script = new Script('RoutingScript42', 13, new ItemPath(), null)
-        
+
         caDef = CompActDefBuilder.build(module: 'test', name: 'CADef-OrSplitExternalRoutingScript', version: 0) {
             Layout {
                 OrSplit(RoutingScript: script) {
