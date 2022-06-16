@@ -86,4 +86,64 @@ abstract class SplitDefDelegate extends BlockDefDelegate {
         splitDef.setBuiltInProperty(ROUTING_SCRIPT_NAME,    name);
         splitDef.setBuiltInProperty(ROUTING_SCRIPT_VERSION, version)
     }
+
+    @Override
+    public BlockDefDelegate Block(Map<String, Object> initialProps = null, @DelegatesTo(BlockDefDelegate) Closure cl = null) {
+        def blockD =  new BlockDefDelegate(compActDef, lastSlotDef)
+
+        if (cl) {
+            blockD.processClosure(cl)
+            finaliseBlock(blockD.lastSlotDef, blockD.firstEdge, initialProps?.Alias)
+        }
+
+        return blockD
+    }
+
+    @Override
+    public LoopDefDelegate Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl = null) {
+        def loopD =  new LoopDefDelegate(compActDef, lastSlotDef, initialProps)
+
+        if (cl) {
+            loopD.processClosure(cl)
+            finaliseBlock(loopD.lastSlotDef, loopD.firstEdge, initialProps?.Alias)
+        }
+
+        return loopD
+    }
+
+    @Override
+    public AndSplitDefDelegate AndSplit(Map<String, Object> initialProps = null, @DelegatesTo(AndSplitDefDelegate) Closure cl = null) {
+        def andD =  new AndSplitDefDelegate(compActDef, lastSlotDef, initialProps)
+
+        if (cl) {
+            andD.processClosure(cl)
+            finaliseBlock(andD.lastSlotDef, andD.firstEdge, initialProps?.Alias)
+        }
+
+        return andD
+    }
+
+    @Override
+    public OrSplitDefDelegate OrSplit(Map<String, Object> initialProps = null, @DelegatesTo(OrSplitDefDelegate) Closure cl) {
+        def orD =  new OrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
+
+        if (cl) {
+            orD.processClosure(cl)
+            finaliseBlock(orD.lastSlotDef, orD.firstEdge, initialProps?.Alias)
+        }
+
+        return orD
+    }
+
+    @Override
+    public XOrSplitDefDelegate XOrSplit(Map<String, Object> initialProps = null, @DelegatesTo(XOrSplitDefDelegate) Closure cl) {
+        def xorD =  new XOrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
+
+        if (cl) {
+            xorD.processClosure(cl)
+            finaliseBlock(xorD.lastSlotDef, xorD.firstEdge, initialProps?.Alias)
+        }
+
+        return xorD
+    }
 }

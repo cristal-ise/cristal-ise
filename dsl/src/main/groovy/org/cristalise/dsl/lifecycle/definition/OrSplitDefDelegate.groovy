@@ -25,9 +25,11 @@ import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
+import org.cristalise.kernel.lifecycle.NextDef
 import org.cristalise.kernel.lifecycle.OrSplitDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
+
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -64,102 +66,15 @@ class OrSplitDefDelegate extends SplitDefDelegate {
     }
 
     @Override
-    public BlockDefDelegate Block(Map<String, Object> initialProps = null, @DelegatesTo(BlockDefDelegate) Closure cl = null) {
-        def blockD =  new BlockDefDelegate(compActDef, orSplitDef)
+    public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
+        log.debug('finaliseBlock() - linking lastSlotDef:{} to join:{}', newLastSlotDef, joinDef)
+        def lastNextDef = compActDef.addNextDef(newLastSlotDef, joinDef)
 
-        if (cl) {
-            blockD.processClosure(cl)
-    
-            //link the end of the current Block with the Join of the OrSplit
-            log.debug('Block() - linking lastSlotDef:{} to join:{}', blockD.lastSlotDef, joinDef)
-            def lastNextDef = compActDef.addNextDef(blockD.lastSlotDef, joinDef)
-    
-            if (initialProps?.Alias) {
-                if (blockD.firstEdge) blockD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
-                else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
-            }
-        }
-            
-        return blockD
-    }
-
-    @Override
-    public LoopDefDelegate Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl = null) {
-        def loopD =  new LoopDefDelegate(compActDef, orSplitDef, initialProps)
-
-        if (cl) {
-            loopD.processClosure(cl)
-
-            //link the end of the current Block with the Join of the OrSplit
-            log.debug('Loop() - linking lastSlotDef:{} to join:{}', loopD.lastSlotDef, joinDef)
-            def lastNextDef = compActDef.addNextDef(loopD.lastSlotDef, joinDef)
-    
-            if (initialProps?.Alias) {
-                if (loopD.firstEdge) loopD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
-                else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
-            }
+        if (alias) {
+            if (currentFirstEdge) currentFirstEdge.setBuiltInProperty(ALIAS, alias)
+            else lastNextDef.setBuiltInProperty(ALIAS, alias)
         }
 
-        return loopD
-    }
-
-    @Override
-    public AndSplitDefDelegate AndSplit(Map<String, Object> initialProps = null, @DelegatesTo(AndSplitDefDelegate) Closure cl = null) {
-        def andD =  new AndSplitDefDelegate(compActDef, lastSlotDef, initialProps)
-
-        if (cl) {
-            andD.processClosure(cl)
-    
-            //link the end of the current Block with the Join of the OrSplit
-            log.debug('AndSplit() - linking lastSlotDef:{} to join:{}', andD.lastSlotDef, joinDef)
-            def lastNextDef = compActDef.addNextDef(andD.lastSlotDef, joinDef)
-    
-            if (initialProps?.Alias) {
-                if (andD.firstEdge) andD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
-                else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
-            }
-        }
-
-        return andD
-    }
-
-    @Override
-    public OrSplitDefDelegate OrSplit(Map<String, Object> initialProps = null, @DelegatesTo(OrSplitDefDelegate) Closure cl) {
-        def orD =  new OrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
-
-        if (cl) {
-            orD.processClosure(cl)
-
-            //link to the end of the current Block with the Join of the OrSplit
-            log.debug('OrSplit() - linking lastSlotDef:{} to join:{}', orD.lastSlotDef, joinDef)
-            def lastNextDef = compActDef.addNextDef(orD.lastSlotDef, joinDef)
-    
-            if (initialProps?.Alias) {
-                if (orD.firstEdge) orD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
-                else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
-            }
-        }
-
-        return orD
-    }
-
-    @Override
-    public XOrSplitDefDelegate XOrSplit(Map<String, Object> initialProps = null, @DelegatesTo(XOrSplitDefDelegate) Closure cl) {
-        def xorD =  new XOrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
-
-        if (cl) {
-            xorD.processClosure(cl)
-
-            //link to the end of the current Block with the Join of the XOrSplit
-            log.debug('OrSplit() - linking lastSlotDef:{} to join:{}', xorD.lastSlotDef, joinDef)
-            def lastNextDef = compActDef.addNextDef(xorD.lastSlotDef, joinDef)
-    
-            if (initialProps?.Alias) {
-                if (xorD.firstEdge) xorD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
-                else lastNextDef.setBuiltInProperty(ALIAS, initialProps.Alias)
-            }
-        }
-
-        return xorD
+        return lastNextDef
     }
 }

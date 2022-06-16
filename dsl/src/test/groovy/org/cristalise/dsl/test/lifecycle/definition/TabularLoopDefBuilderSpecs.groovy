@@ -189,4 +189,18 @@ class TabularLoopDefBuilderSpecs extends Specification implements CristalTestSet
         checker.checkLoop((JoinDef)startVertex, ActivitySlotDef.class)
         checker.checkSequence(JoinDef, 'Looping', LoopDef, JoinDef)
     }
+
+    def 'CompositeActivityDef starting with Loop with AndSplit'() {
+        when:
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'LoopWithAndSplit', 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TabularBuilder_LoopWithAndSplit', 0))
+        caDef = tadb.build(parser)
+        def litOfActDefs = caDef.getRefChildActDef()
+        def startVertex = caDef.childrenGraphModel.startVertex
+        def checker = new CompActDefChecker(caDef)
+        def loopDef = caDef.getChildren().find { it instanceof LoopDef }
+
+        then:
+        caDef.verify()
+    }
 }

@@ -21,13 +21,15 @@
 package org.cristalise.dsl.lifecycle.definition;
 
 import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
+
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
-import org.cristalise.kernel.lifecycle.OrSplitDef
+import org.cristalise.kernel.lifecycle.NextDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
 import org.cristalise.kernel.lifecycle.XOrSplitDef
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
+
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -64,79 +66,15 @@ class XOrSplitDefDelegate extends SplitDefDelegate {
     }
 
     @Override
-    public BlockDefDelegate Block(Map<String, Object> initialProps = null, @DelegatesTo(BlockDefDelegate) Closure cl) {
-        def blockD =  new BlockDefDelegate(compActDef, xorSplitDef)
+    public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
+        log.debug('finaliseBlock() - linking lastSlotDef:{} to join:{}', newLastSlotDef, joinDef)
+        def lastNextDef = compActDef.addNextDef(newLastSlotDef, joinDef)
 
-        if (cl) {
-            blockD.processClosure(cl)
-    
-            //link to end of the current Block with the Join of the XOrSplit
-            log.debug('Block() - linking lastSlotDef:{} to join:{}', blockD.lastSlotDef, joinDef)
-            compActDef.addNextDef(blockD.lastSlotDef, joinDef)
-    
-            if (blockD.firstEdge && initialProps?.Alias) blockD.firstEdge.setBuiltInProperty(ALIAS, initialProps.Alias)
+        if (alias) {
+            if (currentFirstEdge) currentFirstEdge.setBuiltInProperty(ALIAS, alias)
+            else lastNextDef.setBuiltInProperty(ALIAS, alias)
         }
 
-        return blockD
-    }
-
-    @Override
-    public LoopDefDelegate Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl = null) {
-        def loopD =  new LoopDefDelegate(compActDef, xorSplitDef, null)
-
-        if (cl) {
-            loopD.processClosure(cl)
-
-            //link to end of the current Block with the Join of the XOrSplit
-            log.debug('Loop() - linking lastSlotDef:{} to join:{}', loopD.lastSlotDef, joinDef)
-            compActDef.addNextDef(loopD.lastSlotDef, joinDef)
-        }
-
-        return loopD
-    }
-
-    @Override
-    public AndSplitDefDelegate AndSplit(Map<String, Object> initialProps = null, @DelegatesTo(AndSplitDefDelegate) Closure cl = null) {
-        def andD =  new AndSplitDefDelegate(compActDef, lastSlotDef, initialProps)
-
-        if (cl) {
-            andD.processClosure(cl)
-    
-            //link to the end of the current Block with the Join of the XOrSplit
-            log.debug('AndSplit() - linking lastSlotDef:{} to join:{}', andD.lastSlotDef, joinDef)
-            compActDef.addNextDef(andD.lastSlotDef, joinDef)
-        }
-
-        return andD
-    }
-
-    @Override
-    public OrSplitDefDelegate OrSplit(Map<String, Object> initialProps = null, @DelegatesTo(OrSplitDefDelegate) Closure cl) {
-        def orD =  new OrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
-
-        if (cl) {
-            orD.processClosure(cl)
-
-            //link to the end of the current Block with the Join of the XOrSplit
-            log.debug('OrSplit() - linking lastSlotDef:{} to join:{}', orD.lastSlotDef, joinDef)
-            compActDef.addNextDef(orD.lastSlotDef, joinDef)
-        }
-
-        return orD
-    }
-
-    @Override
-    public XOrSplitDefDelegate XOrSplit(Map<String, Object> initialProps = null, @DelegatesTo(XOrSplitDefDelegate) Closure cl) {
-        def xorD =  new XOrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
-
-        if (cl) {
-            xorD.processClosure(cl)
-
-            //link to the end of the current Block with the Join of the XOrSplit
-            log.debug('XOrSplit() - linking lastSlotDef:{} to join:{}', xorD.lastSlotDef, joinDef)
-            compActDef.addNextDef(xorD.lastSlotDef, joinDef)
-        }
-
-        return xorD
+        return lastNextDef
     }
 }
