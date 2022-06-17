@@ -413,7 +413,7 @@ public class CompositeActivityDef extends ActivityDef {
         for (int i = 0; i < vChildren.length; i++) {
             WfVertexDef wfvChild = (WfVertexDef) vChildren[i];
             if (!(wfvChild.verify())) {
-                mErrors.add(wfvChild.getName() + ": " + wfvChild.getErrors());
+                mErrors.add(wfvChild + ": " + wfvChild.getErrors());
                 isCorrect = false;
             }
         }

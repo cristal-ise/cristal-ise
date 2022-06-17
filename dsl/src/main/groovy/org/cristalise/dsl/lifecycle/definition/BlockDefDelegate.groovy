@@ -48,8 +48,13 @@ class BlockDefDelegate extends PropertyDelegate {
         lastSlotDef = originSlotDef
     }
 
-    public void initialiseDelegate() {}
-    public void finaliseDelegate() {}
+    public void initialiseDelegate() {
+        log.debug('initialiseDelegate() - NOTHING DONE')
+    }
+
+    public void finaliseDelegate() {
+        log.debug('finaliseDelegate() - NOTHING DONE')
+    }
 
     public void processClosure(Closure cl) {
         assert cl, "Block only works with a valid Closure"
@@ -68,7 +73,7 @@ class BlockDefDelegate extends PropertyDelegate {
 
         NextDef nextDef = null
         if (lastSlotDef) nextDef = compActDef.addNextDef(lastSlotDef, newSlotDef)
-        else            compActDef.getChildrenGraphModel().setStartVertexId(newSlotDef.ID)
+        else             compActDef.getChildrenGraphModel().setStartVertexId(newSlotDef.ID)
 
         lastSlotDef = newSlotDef;
         if (!firstEdge) firstEdge = nextDef
@@ -83,6 +88,8 @@ class BlockDefDelegate extends PropertyDelegate {
     }
 
     public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
+        log.debug('finaliseBlock() - setting lastSlotDef:{} to newLastSlotDef:{}', lastSlotDef, newLastSlotDef)
+
         lastSlotDef = newLastSlotDef
 
         if (alias && currentFirstEdge) currentFirstEdge.setBuiltInProperty(ALIAS, alias)

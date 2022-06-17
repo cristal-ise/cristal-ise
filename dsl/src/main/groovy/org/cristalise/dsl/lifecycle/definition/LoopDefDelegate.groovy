@@ -27,9 +27,11 @@ import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.LoopDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
-import groovy.transform.CompileStatic
 
-@CompileStatic
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
+
+@CompileStatic @Slf4j
 class LoopDefDelegate extends SplitDefDelegate {
 
     LoopDef loopDef
@@ -56,6 +58,8 @@ class LoopDefDelegate extends SplitDefDelegate {
 
     @Override
     public void finaliseDelegate() {
+        log.debug('finaliseDelegate() - {}', loopDef)
+
         addAsNext(loopDef) // sets loop input to the lastSlotDef
 
         def nextLast = addAsNext(joinDefLast) // sets loop output to the joinDefLast

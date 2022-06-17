@@ -74,6 +74,7 @@ class AndSplitDefDelegate extends SplitDefDelegate {
     @Override
     public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
         log.debug('finaliseBlock() - linking lastSlotDef:{} to join:{}', newLastSlotDef, joinDef)
+
         def lastNextDef = compActDef.addNextDef(newLastSlotDef, joinDef)
 
         if (alias) {
