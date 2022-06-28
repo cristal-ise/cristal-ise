@@ -24,7 +24,6 @@ import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
 
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
-import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.NextDef
 import org.cristalise.kernel.lifecycle.OrSplitDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
@@ -36,43 +35,14 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class OrSplitDefDelegate extends SplitDefDelegate {
 
-    OrSplitDef orSplitDef
-
     public OrSplitDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef, Map<String, Object> initialProps) {
         super(parent, originSlotDef)
 
-        orSplitDef = (OrSplitDef) compActDef.newChild("", Types.OrSplit, 0, new GraphPoint())
+        splitDef = (OrSplitDef) compActDef.newChild("", Types.OrSplit, 0, new GraphPoint())
 
-        String pairingId = "OrSplit${orSplitDef.getID()}"
-        setPairingId(pairingId, orSplitDef, joinDef)
+        String pairingId = "OrSplit${splitDef.getID()}"
+        setPairingId(pairingId, splitDef, joinDef)
 
-        setInitialProperties(orSplitDef, initialProps)
-    }
-
-    @Override
-    public void initialiseDelegate() {
-        addAsNext(orSplitDef)
-    }
-
-    @Override
-    public void finaliseDelegate() {
-        lastSlotDef = joinDef
-
-        props.each { k, v ->
-            orSplitDef.properties.put(k, v, props.getAbstract().contains(k))
-        }
-    }
-
-    @Override
-    public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
-        log.debug('finaliseBlock() - linking lastSlotDef:{} to join:{}', newLastSlotDef, joinDef)
-        def lastNextDef = compActDef.addNextDef(newLastSlotDef, joinDef)
-
-        if (alias) {
-            if (currentFirstEdge) currentFirstEdge.setBuiltInProperty(ALIAS, alias)
-            else lastNextDef.setBuiltInProperty(ALIAS, alias)
-        }
-
-        return lastNextDef
+        setInitialProperties(splitDef, initialProps)
     }
 }

@@ -111,7 +111,7 @@ class TabularActivityDefBuilder {
         def currentBlockD = blockLifo.last()
         def andD = currentBlockD.AndSplit(record['property'])
         initialiseDelegate(andD)
-        currentBlockD.lastSlotDef = andD.andSplitDef
+        currentBlockD.lastSlotDef = andD.splitDef
     }
 
     private void startOrSplit(Map<String, Map<String, Object>> record) {
@@ -119,7 +119,7 @@ class TabularActivityDefBuilder {
         def currentBlockD = blockLifo.last()
         def orD = currentBlockD.OrSplit(record['property'])
         initialiseDelegate(orD)
-        currentBlockD.lastSlotDef = orD.orSplitDef
+        currentBlockD.lastSlotDef = orD.splitDef
     }
 
     private void startBlock(Map<String, Map<String, Object>> record) {

@@ -153,6 +153,7 @@ class AndSlitCompActDefBuilderSpecs extends Specification implements CristalTest
             Layout {
                 AndSplit {
                     LoopInfinite { Act('Left', left)  }
+                    Loop { Act('Lefty', left)  }
                     AndSplit { 
                         Block {Act('Middle0', middle)}
                         Block {Act('Middle1', middle)}
@@ -177,10 +178,10 @@ class AndSlitCompActDefBuilderSpecs extends Specification implements CristalTest
         caDef.verify()
         caDef.name == 'CADef-AndSplitWithSplits'
         caDef.version == 0
-        caDef.childrenGraphModel.vertices.length == 23
+        caDef.childrenGraphModel.vertices.length == 27
         caDef.childrenGraphModel.startVertex.class.simpleName == 'AndSplitDef'
 
         andSplitDef.getInGraphables().size() == 0
-        andSplitDef.getOutGraphables().collect { it.class.simpleName } == ['JoinDef', 'AndSplitDef', 'OrSplitDef', 'XOrSplitDef', 'JoinDef', 'ActivitySlotDef']
+        andSplitDef.getOutGraphables().collect { it.class.simpleName } == ['JoinDef', 'JoinDef', 'AndSplitDef', 'OrSplitDef', 'XOrSplitDef', 'JoinDef', 'ActivitySlotDef']
     }
 }

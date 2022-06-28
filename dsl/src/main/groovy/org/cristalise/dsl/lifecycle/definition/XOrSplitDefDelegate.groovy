@@ -36,43 +36,14 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class XOrSplitDefDelegate extends SplitDefDelegate {
 
-    XOrSplitDef xorSplitDef
-
     public XOrSplitDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef, Map<String, Object> initialProps) {
         super(parent, originSlotDef)
 
-        xorSplitDef = (XOrSplitDef) compActDef.newChild("", Types.XOrSplit, 0, new GraphPoint())
+        splitDef = (XOrSplitDef) compActDef.newChild("", Types.XOrSplit, 0, new GraphPoint())
 
-        String pairingId = "XOrSplit${xorSplitDef.getID()}"
-        setPairingId(pairingId, xorSplitDef, joinDef)
+        String pairingId = "XOrSplit${splitDef.getID()}"
+        setPairingId(pairingId, splitDef, joinDef)
 
-        setInitialProperties(xorSplitDef, initialProps)
-    }
-
-    @Override
-    public void initialiseDelegate() {
-        addAsNext(xorSplitDef)
-    }
-
-    @Override
-    public void finaliseDelegate() {
-        lastSlotDef = joinDef
-
-        props.each { k, v ->
-            xorSplitDef.properties.put(k, v, props.getAbstract().contains(k))
-        }
-    }
-
-    @Override
-    public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
-        log.debug('finaliseBlock() - linking lastSlotDef:{} to join:{}', newLastSlotDef, joinDef)
-        def lastNextDef = compActDef.addNextDef(newLastSlotDef, joinDef)
-
-        if (alias) {
-            if (currentFirstEdge) currentFirstEdge.setBuiltInProperty(ALIAS, alias)
-            else lastNextDef.setBuiltInProperty(ALIAS, alias)
-        }
-
-        return lastNextDef
+        setInitialProperties(splitDef, initialProps)
     }
 }

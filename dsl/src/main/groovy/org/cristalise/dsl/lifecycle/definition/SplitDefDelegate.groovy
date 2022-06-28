@@ -20,6 +20,7 @@
  */
 package org.cristalise.dsl.lifecycle.definition
 
+import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_EXPR
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_NAME
@@ -27,9 +28,11 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_
 
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.graph.model.GraphableVertex
+import org.cristalise.kernel.lifecycle.AndSplitDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.LoopDef
+import org.cristalise.kernel.lifecycle.NextDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import org.cristalise.kernel.scripting.Script
@@ -40,11 +43,40 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 abstract class SplitDefDelegate extends BlockDefDelegate {
 
+    AndSplitDef splitDef
     JoinDef joinDef
 
     SplitDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef) {
         super(parent, originSlotDef)
         joinDef = (JoinDef) compActDef.newChild("", Types.Join, 0, new GraphPoint())
+    }
+
+    
+    @Override
+    public void initialiseDelegate() {
+        addAsNext(splitDef)
+    }
+
+    @Override
+    public void finaliseDelegate() {
+        lastSlotDef = joinDef
+
+        props.each { k, v ->
+            splitDef.properties.put(k, v, props.isAbstract(k))
+        }
+    }
+
+    @Override
+    public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
+        log.debug('finaliseBlock() - linking lastSlotDef:{} to join:{}', newLastSlotDef, joinDef)
+        def lastNextDef = compActDef.addNextDef(newLastSlotDef, joinDef)
+
+        if (alias) {
+            if (currentFirstEdge) currentFirstEdge.setBuiltInProperty(ALIAS, alias)
+            else lastNextDef.setBuiltInProperty(ALIAS, alias)
+        }
+
+        return lastNextDef
     }
 
     protected void setPairingId(id, GraphableVertex...vertices) {

@@ -35,19 +35,18 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class LoopDefDelegate extends SplitDefDelegate {
 
-    LoopDef loopDef
     JoinDef joinDefFirst
 
     public LoopDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef, Map<String, Object> initialProps) {
         super(parent, originSlotDef)
 
-        loopDef      = (LoopDef) compActDef.newChild("", Types.LoopSplit, 0, new GraphPoint())
+        splitDef     = (LoopDef) compActDef.newChild("", Types.LoopSplit, 0, new GraphPoint())
         joinDefFirst = (JoinDef) compActDef.newChild("", Types.Join, 0, new GraphPoint())
 
-        String pairingId = "Loop${loopDef.getID()}";
-        setPairingId(pairingId, loopDef, joinDefFirst)
+        String pairingId = "Loop${splitDef.getID()}";
+        setPairingId(pairingId, splitDef, joinDefFirst)
 
-        setInitialProperties(loopDef, initialProps)
+        setInitialProperties(splitDef, initialProps)
     }
 
     @Override
@@ -57,18 +56,18 @@ class LoopDefDelegate extends SplitDefDelegate {
 
     @Override
     public void finaliseDelegate() {
-        log.debug('finaliseDelegate() - {}', loopDef)
+        log.debug('finaliseDelegate() - {}', splitDef)
 
-        addAsNext(loopDef) // sets loop input to the lastSlotDef
+        addAsNext(splitDef) // sets loop input to the lastSlotDef
 
         def nextLast = addAsNext(joinDef) // sets loop output to the joinDefLast
-        def nextFirst = compActDef.addNextDef(loopDef, joinDefFirst) // sets loop output to the joinDefFirst
+        def nextFirst = compActDef.addNextDef(splitDef, joinDefFirst) // sets loop output to the joinDefFirst
 
         nextFirst.setBuiltInProperty(ALIAS, 'true')
         nextLast.setBuiltInProperty(ALIAS, 'false')
 
         props.each { k, v ->
-            loopDef.properties.put(k, v, props.getAbstract().contains(k))
+            splitDef.properties.put(k, v, props.getAbstract().contains(k))
         }
     }
 

@@ -25,7 +25,6 @@ import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.lifecycle.AndSplitDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
-import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.NextDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
@@ -36,43 +35,14 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class AndSplitDefDelegate extends SplitDefDelegate {
 
-    AndSplitDef andSplitDef
-
     public AndSplitDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef, Map<String, Object> initialProps) {
         super(parent, originSlotDef)
 
-        andSplitDef = (AndSplitDef) compActDef.newChild("", Types.AndSplit, 0, new GraphPoint())
+        splitDef = (AndSplitDef) compActDef.newChild("", Types.AndSplit, 0, new GraphPoint())
 
-        String pairingId = "AndSplit${andSplitDef.getID()}"
-        setPairingId(pairingId, andSplitDef, joinDef)
+        String pairingId = "AndSplit${splitDef.getID()}"
+        setPairingId(pairingId, splitDef, joinDef)
 
-        setInitialProperties(andSplitDef, initialProps)
-    }
-
-    @Override
-    public void initialiseDelegate() {
-        addAsNext(andSplitDef)
-    }
-
-    @Override
-    public void finaliseDelegate() {
-        lastSlotDef = joinDef
-
-        props.each { k, v ->
-            andSplitDef.properties.put(k, v, props.isAbstract(k))
-        }
-    }
-
-    @Override
-    public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
-        log.debug('finaliseBlock() - linking lastSlotDef:{} to join:{}', newLastSlotDef, joinDef)
-        def lastNextDef = compActDef.addNextDef(newLastSlotDef, joinDef)
-
-        if (alias) {
-            if (currentFirstEdge) currentFirstEdge.setBuiltInProperty(ALIAS, alias)
-            else lastNextDef.setBuiltInProperty(ALIAS, alias)
-        }
-
-        return lastNextDef
+        setInitialProperties(splitDef, initialProps)
     }
 }
