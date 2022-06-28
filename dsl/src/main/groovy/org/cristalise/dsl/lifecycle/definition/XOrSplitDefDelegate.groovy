@@ -37,13 +37,11 @@ import groovy.util.logging.Slf4j
 class XOrSplitDefDelegate extends SplitDefDelegate {
 
     XOrSplitDef xorSplitDef
-    JoinDef    joinDef
 
     public XOrSplitDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef, Map<String, Object> initialProps) {
         super(parent, originSlotDef)
 
         xorSplitDef = (XOrSplitDef) compActDef.newChild("", Types.XOrSplit, 0, new GraphPoint())
-        joinDef     = (JoinDef)    compActDef.newChild("", Types.Join, 0, new GraphPoint())
 
         String pairingId = "XOrSplit${xorSplitDef.getID()}"
         setPairingId(pairingId, xorSplitDef, joinDef)

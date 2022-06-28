@@ -21,17 +21,11 @@
 package org.cristalise.dsl.lifecycle.definition;
 
 import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_EXPR
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_NAME
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_VERSION
 
 import org.cristalise.kernel.graph.model.GraphPoint
-import org.cristalise.kernel.graph.model.GraphableVertex
 import org.cristalise.kernel.lifecycle.AndSplitDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
-import org.cristalise.kernel.lifecycle.LoopDef
 import org.cristalise.kernel.lifecycle.NextDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
@@ -43,13 +37,11 @@ import groovy.util.logging.Slf4j
 class AndSplitDefDelegate extends SplitDefDelegate {
 
     AndSplitDef andSplitDef
-    JoinDef     joinDef
 
     public AndSplitDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef, Map<String, Object> initialProps) {
         super(parent, originSlotDef)
 
         andSplitDef = (AndSplitDef) compActDef.newChild("", Types.AndSplit, 0, new GraphPoint())
-        joinDef     = (JoinDef)     compActDef.newChild("", Types.Join, 0, new GraphPoint())
 
         String pairingId = "AndSplit${andSplitDef.getID()}"
         setPairingId(pairingId, andSplitDef, joinDef)
@@ -74,7 +66,6 @@ class AndSplitDefDelegate extends SplitDefDelegate {
     @Override
     public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
         log.debug('finaliseBlock() - linking lastSlotDef:{} to join:{}', newLastSlotDef, joinDef)
-
         def lastNextDef = compActDef.addNextDef(newLastSlotDef, joinDef)
 
         if (alias) {

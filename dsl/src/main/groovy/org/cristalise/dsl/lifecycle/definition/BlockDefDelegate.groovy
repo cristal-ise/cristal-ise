@@ -102,7 +102,14 @@ class BlockDefDelegate extends PropertyDelegate {
     }
 
     public BlockDefDelegate Block(Map<String, Object> initialProps = null, @DelegatesTo(BlockDefDelegate) Closure cl = null) {
-        throw new InvalidDataException('Nested blocks is not supported')
+        def blockD =  new BlockDefDelegate(compActDef, lastSlotDef)
+
+        if (cl) {
+            blockD.processClosure(cl)
+            finaliseBlock(blockD.lastSlotDef, blockD.firstEdge, initialProps?.Alias)
+        }
+
+        return blockD
     }
 
     public LoopDefDelegate LoopInfinite(@DelegatesTo(LoopDefDelegate) Closure cl) {
@@ -128,7 +135,7 @@ class BlockDefDelegate extends PropertyDelegate {
 
         if (cl) {
             loopD.processClosure(cl)
-            finaliseBlock(loopD.joinDefLast, loopD.firstEdge, initialProps?.Alias as String)
+            finaliseBlock(loopD.joinDef, loopD.firstEdge, initialProps?.Alias as String)
         }
 
         return loopD

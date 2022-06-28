@@ -37,14 +37,12 @@ class LoopDefDelegate extends SplitDefDelegate {
 
     LoopDef loopDef
     JoinDef joinDefFirst
-    JoinDef joinDefLast
 
     public LoopDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef, Map<String, Object> initialProps) {
         super(parent, originSlotDef)
 
         loopDef      = (LoopDef) compActDef.newChild("", Types.LoopSplit, 0, new GraphPoint())
         joinDefFirst = (JoinDef) compActDef.newChild("", Types.Join, 0, new GraphPoint())
-        joinDefLast  = (JoinDef) compActDef.newChild("", Types.Join, 0, new GraphPoint())
 
         String pairingId = "Loop${loopDef.getID()}";
         setPairingId(pairingId, loopDef, joinDefFirst)
@@ -63,7 +61,7 @@ class LoopDefDelegate extends SplitDefDelegate {
 
         addAsNext(loopDef) // sets loop input to the lastSlotDef
 
-        def nextLast = addAsNext(joinDefLast) // sets loop output to the joinDefLast
+        def nextLast = addAsNext(joinDef) // sets loop output to the joinDefLast
         def nextFirst = compActDef.addNextDef(loopDef, joinDefFirst) // sets loop output to the joinDefFirst
 
         nextFirst.setBuiltInProperty(ALIAS, 'true')

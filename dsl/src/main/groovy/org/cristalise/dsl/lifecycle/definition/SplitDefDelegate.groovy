@@ -25,10 +25,13 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_NAME
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_VERSION
 
+import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.graph.model.GraphableVertex
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.LoopDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
+import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import org.cristalise.kernel.scripting.Script
 
 import groovy.transform.CompileStatic
@@ -37,8 +40,11 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 abstract class SplitDefDelegate extends BlockDefDelegate {
 
+    JoinDef joinDef
+
     SplitDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef) {
         super(parent, originSlotDef)
+        joinDef = (JoinDef) compActDef.newChild("", Types.Join, 0, new GraphPoint())
     }
 
     protected void setPairingId(id, GraphableVertex...vertices) {
@@ -85,65 +91,5 @@ abstract class SplitDefDelegate extends BlockDefDelegate {
     protected void setRoutingScript(WfVertexDef splitDef, String name, Integer version) {
         splitDef.setBuiltInProperty(ROUTING_SCRIPT_NAME,    name);
         splitDef.setBuiltInProperty(ROUTING_SCRIPT_VERSION, version)
-    }
-
-    @Override
-    public BlockDefDelegate Block(Map<String, Object> initialProps = null, @DelegatesTo(BlockDefDelegate) Closure cl = null) {
-        def blockD =  new BlockDefDelegate(compActDef, lastSlotDef)
-
-        if (cl) {
-            blockD.processClosure(cl)
-            finaliseBlock(blockD.lastSlotDef, blockD.firstEdge, initialProps?.Alias)
-        }
-
-        return blockD
-    }
-
-    @Override
-    public LoopDefDelegate Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl = null) {
-        def loopD =  new LoopDefDelegate(compActDef, lastSlotDef, initialProps)
-
-        if (cl) {
-            loopD.processClosure(cl)
-            finaliseBlock(loopD.lastSlotDef, loopD.firstEdge, initialProps?.Alias)
-        }
-
-        return loopD
-    }
-
-    @Override
-    public AndSplitDefDelegate AndSplit(Map<String, Object> initialProps = null, @DelegatesTo(AndSplitDefDelegate) Closure cl = null) {
-        def andD =  new AndSplitDefDelegate(compActDef, lastSlotDef, initialProps)
-
-        if (cl) {
-            andD.processClosure(cl)
-            finaliseBlock(andD.lastSlotDef, andD.firstEdge, initialProps?.Alias)
-        }
-
-        return andD
-    }
-
-    @Override
-    public OrSplitDefDelegate OrSplit(Map<String, Object> initialProps = null, @DelegatesTo(OrSplitDefDelegate) Closure cl) {
-        def orD =  new OrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
-
-        if (cl) {
-            orD.processClosure(cl)
-            finaliseBlock(orD.lastSlotDef, orD.firstEdge, initialProps?.Alias)
-        }
-
-        return orD
-    }
-
-    @Override
-    public XOrSplitDefDelegate XOrSplit(Map<String, Object> initialProps = null, @DelegatesTo(XOrSplitDefDelegate) Closure cl) {
-        def xorD =  new XOrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
-
-        if (cl) {
-            xorD.processClosure(cl)
-            finaliseBlock(xorD.lastSlotDef, xorD.firstEdge, initialProps?.Alias)
-        }
-
-        return xorD
     }
 }

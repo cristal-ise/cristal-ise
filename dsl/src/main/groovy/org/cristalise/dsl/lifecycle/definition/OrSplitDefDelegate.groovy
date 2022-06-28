@@ -37,13 +37,11 @@ import groovy.util.logging.Slf4j
 class OrSplitDefDelegate extends SplitDefDelegate {
 
     OrSplitDef orSplitDef
-    JoinDef    joinDef
 
     public OrSplitDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef, Map<String, Object> initialProps) {
         super(parent, originSlotDef)
 
         orSplitDef = (OrSplitDef) compActDef.newChild("", Types.OrSplit, 0, new GraphPoint())
-        joinDef    = (JoinDef)    compActDef.newChild("", Types.Join, 0, new GraphPoint())
 
         String pairingId = "OrSplit${orSplitDef.getID()}"
         setPairingId(pairingId, orSplitDef, joinDef)
