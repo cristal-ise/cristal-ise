@@ -30,6 +30,7 @@ import org.cristalise.kernel.lifecycle.AndSplitDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.LoopDef
+import org.cristalise.kernel.lifecycle.OrSplitDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
@@ -124,6 +125,22 @@ class TabularAndSplitDefBuilderSpecs extends Specification implements CristalTes
         checker.checkSequence(AndSplitDef, AndSplitDef, 'Right2', JoinDef, JoinDef)
     }
 
+    def 'CompositeActivityDef of AndSplit with Loop in Block'() {
+        when:
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'AndSplitWithLoopInBlock', 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TabularBuilder_AndSplitWithLoopInBlock', 0))
+        caDef = tadb.build(parser)
+        def litOfActDefs = caDef.getRefChildActDef()
+        def startVertex = caDef.childrenGraphModel.startVertex
+        def checker = new CompActDefChecker(caDef)
+        def andSplitDef = caDef.getChildren().find { it instanceof AndSplitDef }
+
+        then:
+        caDef.verify()
+        checker.checkSequence(AndSplitDef, JoinDef, 'LeftInLoop', LoopDef, JoinDef, JoinDef)
+        checker.checkSequence(AndSplitDef, 'Right', JoinDef)
+    }
+
     def 'CompositeActivityDef of AndSplit with Loop'() {
         when:
         def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'AndSplitWithLoop', 2)
@@ -137,6 +154,42 @@ class TabularAndSplitDefBuilderSpecs extends Specification implements CristalTes
         then:
         caDef.verify()
         checker.checkSequence(AndSplitDef, JoinDef, 'LeftInLoop', LoopDef, JoinDef, JoinDef)
+        checker.checkSequence(AndSplitDef, 'Right', JoinDef)
+    }
+
+    def 'CompositeActivityDef of AndSplit with OrSplit'() {
+        when:
+        def sheetName = 'AndSplitWithOrSplit'
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), sheetName, 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef("TabularBuilder_$sheetName", 0))
+        caDef = tadb.build(parser)
+        def litOfActDefs = caDef.getRefChildActDef()
+        def startVertex = caDef.childrenGraphModel.startVertex
+        def checker = new CompActDefChecker(caDef)
+        def andSplitDef = caDef.getChildren().find { it instanceof AndSplitDef }
+
+        then:
+        caDef.verify()
+        checker.checkSequence(AndSplitDef, OrSplitDef, 'OrSplitLeft', JoinDef, JoinDef)
+        checker.checkSequence(AndSplitDef, OrSplitDef, 'OrSplitRight', JoinDef, JoinDef)
+        checker.checkSequence(AndSplitDef, 'Right', JoinDef)
+    }
+
+    def 'CompositeActivityDef of AndSplit with OrSplit in Block'() {
+        when:
+        def sheetName = 'AndSplitWithOrSplitInBlock'
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), sheetName, 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef("TabularBuilder_$sheetName", 0))
+        caDef = tadb.build(parser)
+        def litOfActDefs = caDef.getRefChildActDef()
+        def startVertex = caDef.childrenGraphModel.startVertex
+        def checker = new CompActDefChecker(caDef)
+        def andSplitDef = caDef.getChildren().find { it instanceof AndSplitDef }
+
+        then:
+        caDef.verify()
+        checker.checkSequence(AndSplitDef, OrSplitDef, 'OrSplitLeft', JoinDef, JoinDef)
+        checker.checkSequence(AndSplitDef, OrSplitDef, 'OrSplitRight', JoinDef, JoinDef)
         checker.checkSequence(AndSplitDef, 'Right', JoinDef)
     }
 }

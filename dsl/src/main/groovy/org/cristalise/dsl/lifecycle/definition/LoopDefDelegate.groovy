@@ -25,6 +25,7 @@ import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.LoopDef
+import org.cristalise.kernel.lifecycle.NextDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 
@@ -71,5 +72,16 @@ class LoopDefDelegate extends SplitDefDelegate {
         props.each { k, v ->
             loopDef.properties.put(k, v, props.getAbstract().contains(k))
         }
+    }
+
+    @Override
+    public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
+        log.debug('finaliseBlock() - setting lastSlotDef:{} to newLastSlotDef:{}', lastSlotDef, newLastSlotDef)
+
+        lastSlotDef = newLastSlotDef
+
+        if (alias && currentFirstEdge) currentFirstEdge.setBuiltInProperty(ALIAS, alias)
+
+        return null
     }
 }

@@ -70,14 +70,17 @@ class TabularActivityDefBuilder {
                     startAndSplit(record)
                     break
 
+                case 'OrSplit': 
+                    startOrSplit(record)
+                    break
+
                 case 'Block': 
                     startBlock(record)
                     break
 
-                case 'BlockEnd': 
-                case 'LoopEnd': 
-                case 'End': 
-                case '---': 
+                case ~/^End.*$/:
+                case ~/^.*End$/:
+                case '---':
                     endBlock(record)
                     break
 
@@ -109,6 +112,14 @@ class TabularActivityDefBuilder {
         def andD = currentBlockD.AndSplit(record['property'])
         initialiseDelegate(andD)
         currentBlockD.lastSlotDef = andD.andSplitDef
+    }
+
+    private void startOrSplit(Map<String, Map<String, Object>> record) {
+        log.info('startOrSplit() - {}', record)
+        def currentBlockD = blockLifo.last()
+        def orD = currentBlockD.OrSplit(record['property'])
+        initialiseDelegate(orD)
+        currentBlockD.lastSlotDef = orD.orSplitDef
     }
 
     private void startBlock(Map<String, Map<String, Object>> record) {

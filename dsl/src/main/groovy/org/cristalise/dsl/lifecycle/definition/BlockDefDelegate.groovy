@@ -128,7 +128,6 @@ class BlockDefDelegate extends PropertyDelegate {
 
         if (cl) {
             loopD.processClosure(cl)
-
             finaliseBlock(loopD.joinDefLast, loopD.firstEdge, initialProps?.Alias as String)
         }
 
@@ -200,7 +199,11 @@ class BlockDefDelegate extends PropertyDelegate {
         return andD
     }
 
-    public OrSplitDefDelegate OrSplit(Map<String, Object> initialProps = null, @DelegatesTo(OrSplitDefDelegate) Closure cl) {
+    public OrSplitDefDelegate OrSplit(@DelegatesTo(OrSplitDefDelegate) Closure cl) {
+        return OrSplit(null, cl)
+    }
+
+    public OrSplitDefDelegate OrSplit(Map<String, Object> initialProps = null, @DelegatesTo(OrSplitDefDelegate) Closure cl = null) {
         def orD =  new OrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
 
         if (cl) {
