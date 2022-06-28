@@ -25,9 +25,11 @@ import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.dsl.lifecycle.definition.TabularActivityDefBuilder
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.lifecycle.ActivityDef
+import org.cristalise.kernel.lifecycle.ActivitySlotDef
 import org.cristalise.kernel.lifecycle.AndSplitDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
+import org.cristalise.kernel.lifecycle.LoopDef
 import org.cristalise.kernel.lifecycle.OrSplitDef
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
@@ -62,6 +64,8 @@ class TabularOrSplitDefBuilderSpecs extends Specification implements CristalTest
         def orSplitDef = caDef.getChildren().find { it instanceof OrSplitDef }
 
         then:
+        caDef.verify()
+
         orSplitDef
         litOfActDefs.size() == 1
         litOfActDefs[0] instanceof ActivityDef
@@ -72,8 +76,32 @@ class TabularOrSplitDefBuilderSpecs extends Specification implements CristalTest
 
         checker.checkSequence(OrSplitDef, 'Left', JoinDef)
         checker.checkSequence(OrSplitDef, 'Right', JoinDef)
+    }
 
+    def 'CompositeActivityDef of OrSplit and a sequence of Acts'() {
+        when:
+        def sheetName = 'SequenceWithOrSplit'
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), sheetName, 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef("TabularBuilder_$sheetName", 0))
+        caDef = tadb.build(parser)
+        def litOfActDefs = caDef.getRefChildActDef()
+        def startVertex = caDef.childrenGraphModel.startVertex
+        def checker = new CompActDefChecker(caDef)
+        def orSplitDef = caDef.getChildren().find { it instanceof OrSplitDef }
+
+        then:
         caDef.verify()
+        orSplitDef
+
+        litOfActDefs.size() == 1
+        litOfActDefs[0] instanceof ActivityDef
+        litOfActDefs[0].name == 'TestItem_OrSplit'
+
+        caDef.childrenGraphModel.vertices.length == 8
+        startVertex && startVertex instanceof ActivitySlotDef
+
+        checker.checkSequence('First', OrSplitDef, 'Left1', 'Left2', JoinDef, 'Last')
+        checker.checkSequence('First', OrSplitDef, 'Right1', 'Right2', JoinDef, 'Last')
     }
 
     def 'CompositeActivityDef of nested OrSplit'() {
@@ -108,5 +136,21 @@ class TabularOrSplitDefBuilderSpecs extends Specification implements CristalTest
         checker.checkSequence(OrSplitDef, 'Left', JoinDef)
         checker.checkSequence(OrSplitDef, AndSplitDef, 'AndRight1', JoinDef, JoinDef)
         checker.checkSequence(OrSplitDef, AndSplitDef, 'AndRight2', JoinDef, JoinDef)
+    }
+
+    def 'CompositeActivityDef of OrSplit with Loop'() {
+        when:
+        def sheetName = 'OrSplitWithLoop'
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), sheetName, 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef("TabularBuilder_$sheetName", 0))
+        caDef = tadb.build(parser)
+        def litOfActDefs = caDef.getRefChildActDef()
+        def startVertex = caDef.childrenGraphModel.startVertex
+        def checker = new CompActDefChecker(caDef)
+
+        then:
+        caDef.verify()
+        checker.checkSequence(OrSplitDef, 'Left', JoinDef)
+        checker.checkSequence(OrSplitDef, JoinDef, 'LoopRight', LoopDef, JoinDef, JoinDef)
     }
 }
