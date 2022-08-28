@@ -19,6 +19,8 @@
                         <a class="font-medium no-underline ml-2 text-right cursor-pointer" style="color: var(--primary-color)">Forgot password?</a>
                     </div>
                     <button (click)="submit()" pButton pRipple label="Sign In" class="w-full p-3 text-xl"></button>
+
+                    <p-messages [(value)]="messages" [enableService]="false"></p-messages>
                 </div>
             </div>
         </div>
