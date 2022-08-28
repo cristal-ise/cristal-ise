@@ -1,11 +1,12 @@
 # Webui Project original development setup
-Based on version 14 of nx.dev, Angular and PrimeNG with sakai-ng application template
+Based on version 14 of nx.dev, Angular and PrimeNG with sakai-ng application template. 
+Each stage shall create in a working application.
 
 ## Stage 1 - Use nx.dev to create the 'webui' angular project together with the 'admin' application
 
 1. `npx create-nx-workspace webui --preset=angular --appName=admin --style=scss --nxCloud=false`
 1. `cd webui` - all pathes bellow use relative path from this directory
-1. replace webui with `cristalise` prefix in these files:
+1. replace webui with `cristalise` prefix in these files bellow. (Note that you can replace 'cristalise' with your application specific prefix)
    - apps/admin/.eslintrc.json
    - apps/admin/project.json
    - apps/admin/src/app/app.component.ts
@@ -27,7 +28,7 @@ Based on version 14 of nx.dev, Angular and PrimeNG with sakai-ng application tem
 1. change all component selectors to be inline with the aslint rules
 1. add routing module to admin, because nx/angular does not generate routing module by default:
    - `npx nx generate module app-routing --flat --project=admin`
-1. Add AppRoutingModule to imports in `apps/admin/src/app/app.module.ts`
+1. add AppRoutingModule to imports array in `apps/admin/src/app/app.module.ts`
 1. edit file `apps/admin/src/app/app.component.html` and replace nx-welcome selector with router-outlet
    ```xml
    <router-outlet></router-outlet>
@@ -39,7 +40,7 @@ Based on version 14 of nx.dev, Angular and PrimeNG with sakai-ng application tem
     ];
    ```
 
-## Add primeng dependencies and sakai-ng layout components
+## Stage 2 - Add primeng dependencies and sakai-ng layout components
 This section is based on the primeng tutorial video: https://youtu.be/yl2f8KKY204 
 
 1. `npm install primeng --save`
@@ -103,9 +104,9 @@ This section is based on the primeng tutorial video: https://youtu.be/yl2f8KKY20
    }
    ```
 
-## Reorganise component files in app/layout 
+## Stage 3 - Reorganise component files in apps/admin/src/app/layout 
 This step is not detailed here, as it requires copy&pasting components files into their specific directory
-and changing the imports to succesfully compile the project. At the end the file structure should look like this:
+and changing the imports to succesfully compile the project. At the end the file structure could look like this:
 ```
 ├── api
 │   └── menuchangeevent.ts
@@ -134,7 +135,7 @@ and changing the imports to succesfully compile the project. At the end the file
 └── app.layout.module.ts
 ```
 
-## Add Login component from sakai-ng
+## Stage 4 - Add Login component from sakai-ng
 
 1. copy ~sakai-ng/src/app/demo/components/auth/login to apps/admin/src/app/login 
    1. correct imports and component selector
@@ -144,7 +145,7 @@ and changing the imports to succesfully compile the project. At the end the file
    { path: 'login', loadChildren: () => import('./login/login.module').then(m => m.LoginModule) },
    ```
 
-## Add rudimentary authentication routing support 
+## Stage 5 - Add rudimentary authentication routing support 
 This section is to test essential setup of guard works
 
 1. add publishable library called core: `npx nx generate @nrwl/angular:library core --publishable --importPath @cristalise/core`
@@ -169,7 +170,7 @@ This section is to test essential setup of guard works
    path: '', component: AppLayoutComponent, canActivate: [AuthenticationGuard],
    ```
 
-## Add rudimentary authentication support 
+## Stage 6 - Add rudimentary authentication support 
 This section is to test that the essential setup of authentication service works
 
 1. add service: `npx nx generate @nrwl/angular:service services/CookieAuthentication --project=core`
@@ -224,7 +225,7 @@ This section is to test that the essential setup of authentication service works
    1. add `(keyup.enter)="submit()"` to p-password element
    1. add `(click)="submit()"` to button element
 
-## Integrate with CRISTAL-iSE cookie based authentication
+## Stage 7 - Integrate with CRISTAL-iSE cookie based authentication
 
 1. add proxy configuration using this tutorial: https://nx.dev/angular-tutorial/06-proxy
 1. add HttpClient to `CookieAuthenticationService`
