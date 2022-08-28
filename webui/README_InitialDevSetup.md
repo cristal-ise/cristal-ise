@@ -1,7 +1,7 @@
 # Webui Project original development setup
 Based on version 14 of nx.dev, Angular and PrimeNG with sakai-ng application template
 
-## Use nx.dev to create the 'webui' angular project together with the 'admin' application
+## Stage 1 - Use nx.dev to create the 'webui' angular project together with the 'admin' application
 
 1. `npx create-nx-workspace webui --preset=angular --appName=admin --style=scss --nxCloud=false`
 1. `cd webui` - all pathes bellow use relative path from this directory
@@ -40,6 +40,7 @@ Based on version 14 of nx.dev, Angular and PrimeNG with sakai-ng application tem
    ```
 
 ## Add primeng dependencies and sakai-ng layout components
+This section is based on the primeng tutorial video: https://youtu.be/yl2f8KKY204 
 
 1. `npm install primeng --save`
 1. `npm install primeflex --save`
@@ -102,6 +103,37 @@ Based on version 14 of nx.dev, Angular and PrimeNG with sakai-ng application tem
    }
    ```
 
+## Reorganise component files in app/layout 
+This step is not detailed here, as it requires copy&pasting components files into their specific directory
+and changing the imports to succesfully compile the project. At the end the file structure should look like this:
+```
+├── api
+│   └── menuchangeevent.ts
+├── config
+│   ├── app.config.component.html
+│   ├── app.config.component.ts
+│   └── config.module.ts
+├── footer
+│   ├── app.footer.component.html
+│   └── app.footer.component.ts
+├── menu
+│   ├── app.menu.component.html
+│   ├── app.menu.component.ts
+│   └── app.menuitem.component.ts
+├── service
+│   ├── app.layout.service.ts
+│   └── app.menu.service.ts
+├── sidebar
+│   ├── app.sidebar.component.html
+│   └── app.sidebar.component.ts
+├── topbar
+│   ├── app.topbar.component.html
+│   └── app.topbar.component.ts
+├── app.layout.component.html
+├── app.layout.component.ts
+└── app.layout.module.ts
+```
+
 ## Add Login component from sakai-ng
 
 1. copy ~sakai-ng/src/app/demo/components/auth/login to apps/admin/src/app/login 
@@ -147,10 +179,139 @@ This section is to test that the essential setup of authentication service works
       ```js
       export * from './lib/services/cookie-authentication.service';
       ```
-1. aj
+1. Implement CookieAuthenticationService in `libs/core/src/lib/services/cookie-authentication.service.ts`
+   ```js
+   export class CookieAuthenticationService {
 
+     public isLoggedIn = false;
+     public redirectUrl: string | null = null;
 
+     login(userName: string, password: string): void {
+       if (userName && password) {
+         this.loggedInUser.next(userName);
+         this.isLoggedIn = true;
+       }
+     }
+   }
+   ```
+1. implement canActivate() in `libs/core/src/lib/guards/authentication.guard.ts`
+   ```js
+   canActivate(
+     route: ActivatedRouteSnapshot,
+     state: RouterStateSnapshot): boolean | UrlTree
+   {
+     // Store the attempted URL for redirecting
+     this.authService.redirectUrl = url;
 
-## Integrate with CRISTAL-iSE authentication 
+     if (this.authService.isLoggedIn) {
+       return true;
+     } else {
+       // Redirect to the login page
+       return this.router.parseUrl('/login');
+     }
+   }
+   ```
+1. implement constructor() and submit() in `apps/admin/src/app/login/login-routing.module.ts`
+   ```js
+   constructor(private router: Router, private authService: CookieAuthenticationService) {}
 
-1. toto
+   submit() {
+     this.authService.login(this.user, this.password);
+     this.router.navigateByUrl(this.authService.redirectUrl || "/");
+   }
+   ```
+1. edit `apps/admin/src/app/login/login.component.html`
+   1. add `(keyup.enter)="submit()"` to p-password element
+   1. add `(click)="submit()"` to button element
+
+## Integrate with CRISTAL-iSE cookie based authentication
+
+1. add proxy configuration using this tutorial: https://nx.dev/angular-tutorial/06-proxy
+1. add HttpClient to `CookieAuthenticationService`
+   ```js
+  constructor(private http: HttpClient) {
+   ```
+1. reimplement `CookieAuthenticationService.login()`
+   ```js
+   private loggedInUser = new Subject<string>();
+
+   login(userName: string, password: string): Observable<boolean> {
+     const result = new Subject<boolean>();
+
+     this.callLoginPost(userName, password).subscribe({
+       next: (value) => {
+         if (value['Login'] && value['Login'].uuid) {
+           this.loggedInUser.next(value['Login'].uuid);
+           this.isLoggedIn = true;
+           result.next(true);
+         }
+         else {
+           result.next(false);
+         }
+       },
+       error: (error) => {
+         console.error(error);
+         result.next(false);
+       },
+       complete: () => {
+         console.debug('login()', 'complete');
+       }
+     });
+     return result.asObservable();
+   }
+
+   callLoginPost(agent: string, pwd: string): Observable<any> {
+     const url = this.root + '/login';
+     // btoa encrypts username and password to base64 - UTF8 Charset
+     const body = JSON.stringify({ username: btoa(agent), password: btoa(pwd) });
+
+     return this.http.post(url, body, { withCredentials: true });
+   }
+   ```
+1. add primeng MesseageService to LoginComponent `apps/admin/src/app/login/login.component.ts`
+   1. add MessageModule and MessagesModule to the imports array
+   1. add MessageService to the providers array
+1. add messages member variable to LoginComponent
+   ```js
+  public messages: Message[] = [];
+   ``` 
+1. add p-messages element to `apps/admin/src/app/login/login.component.html`
+   ```html
+   <p-messages [(value)]="messages" [enableService]="false"></p-messages>
+   ```
+1. add ngOnDestroy handling to LoginComponent
+   ```js
+   export class LoginComponent implements OnDestroy {
+     private readonly onDestroy$: Subject<void> = new Subject();
+
+     ngOnDestroy(): void {
+       this.onDestroy$.next();
+       this.onDestroy$.complete();
+     }
+   }
+   ```
+1. reimplement `LoginComponent.submit()`
+   ```js
+   submit() {
+     this.messages = []
+
+     this.authService.login(this.user, this.password)
+     .pipe(takeUntil(this.onDestroy$))
+     .subscribe({
+       next: (result) => {
+         if (result) {
+           this.router.navigateByUrl(this.authService.redirectUrl || "/");
+         }
+         else {
+           const message = { severity:'error', summary:'Info', detail:'Invalid username or password' };
+           this.messages = [message];
+         }
+       },
+       error: (error) => {
+         const message = {severity:'error', summary:'Info', detail: 'Internal server during login'};
+         this.messages = [message]
+         console.error('submit()', error);
+       }
+     })
+   }
+   ```
