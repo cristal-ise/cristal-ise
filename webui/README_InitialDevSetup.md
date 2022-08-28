@@ -64,9 +64,9 @@ This section is based on the primeng tutorial video: https://youtu.be/yl2f8KKY20
    @import "~primeflex/primeflex.scss";
    @import "~primeicons/primeicons.css";
    ```
-1. add AppLayoutModule to imports in `apps/admin/src/app/app.module.ts`
+1. add AppLayoutModule to imports array in `apps/admin/src/app/app.module.ts`
 1. edit `apps/admin/src/app/app-routing.module.ts`
-   1. add AppLayoutComponent to imports of @NgModule
+   1. add AppLayoutComponent to imports array of @NgModule
    1. edit Routes by adding AppLayoutComponent and NxWelcomeComponent
    ```js
     const routes: Routes = [
@@ -138,7 +138,7 @@ and changing the imports to succesfully compile the project. At the end the file
 ## Stage 4 - Add Login component from sakai-ng
 
 1. copy ~sakai-ng/src/app/demo/components/auth/login to apps/admin/src/app/login 
-   1. correct imports and component selector
+   1. correct import statements and component selectors
    1. replace logo and welcome message with application logo and title
 1. add this routing declaration as the **first** element of Routes array in `apps/admin/src/app/app-routing.module.ts`
    ```js
@@ -151,7 +151,7 @@ This section is to test essential setup of guard works
 1. add publishable library called core: `npx nx generate @nrwl/angular:library core --publishable --importPath @cristalise/core`
 1. add guard: `npx nx generate @nrwl/angular:guard guards/Authentication --project=core --implements=CanActivate`
 1. make AuthenticationGuard visible outside the core library
-   1. add AuthenticationGuard to providers in `libs/core/src/lib/core.module.ts`
+   1. add AuthenticationGuard to providers array in `libs/core/src/lib/core.module.ts`
    1. add this line to `libs/core/src/index.ts`
       ```js
       export * from './lib/guards/authentication.guard';
@@ -175,7 +175,7 @@ This section is to test that the essential setup of authentication service works
 
 1. add service: `npx nx generate @nrwl/angular:service services/CookieAuthentication --project=core`
 1. make CookieAuthenticationService visible outside the core library
-   1. add CookieAuthenticationService to providers in `libs/core/src/lib/core.module.ts`
+   1. add CookieAuthenticationService to providers array in `libs/core/src/lib/core.module.ts`
    1. add this line to `libs/core/src/index.ts`
       ```js
       export * from './lib/services/cookie-authentication.service';
@@ -228,9 +228,9 @@ This section is to test that the essential setup of authentication service works
 ## Stage 7 - Integrate with CRISTAL-iSE cookie based authentication
 
 1. add proxy configuration using this tutorial: https://nx.dev/angular-tutorial/06-proxy
-1. add HttpClient to `CookieAuthenticationService`
+1. add HttpClient dependency to `CookieAuthenticationService`
    ```js
-  constructor(private http: HttpClient) {
+   constructor(private http: HttpClient) {}
    ```
 1. reimplement `CookieAuthenticationService.login()`
    ```js
