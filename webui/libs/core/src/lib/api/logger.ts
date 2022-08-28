@@ -34,12 +34,16 @@ export class Logger {
       return
     }
 
-    if (typeof args[0] === 'string' && args[0].endsWith('()')) {
+    /* TODO: make this work
+    // Extend prefix with method name if it was provided in the first paramater
+    if (typeof args[0] === 'string' && args[0].toString().endsWith('()')) {
       const method: string = args.shift();
       this.prefix += '.' + method;
     }
 
-    console.log('Logger', 'prefix:', this.prefix, 'configLevel:', this.configLevel, 'msgLevel:', msgLevel)
+    // eslint-disable-next-line no-restricted-syntax
+    console.debug('Logger', 'prefix:', this.prefix, 'configLevel:', this.configLevel, 'msgLevel:', msgLevel)
+    */
 
     if (msgLevel === LogLevel.ERROR) {
       console.error(this.prefix, ...args);
