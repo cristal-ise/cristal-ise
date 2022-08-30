@@ -1,0 +1,12 @@
+/* You can add global styles to this file, and also import other style files */
+
+// for primeflex grid system
+ $gutter: 1rem;
+
+// the layout of sakai-ng
+@import "assets/layout/styles/layout/layout.scss";
+
+// PrimeNG dependencies
+@import "~primeng/resources/primeng.min.css";
+@import "~primeflex/primeflex.scss";
+@import "~primeicons/primeicons.css";

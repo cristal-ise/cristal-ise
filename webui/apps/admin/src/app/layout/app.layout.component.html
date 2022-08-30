@@ -1,0 +1,14 @@
+<div class="layout-wrapper" [ngClass]="containerClass">
+    <cristalise-topbar></cristalise-topbar>
+    <div class="layout-sidebar">
+        <cristalise-sidebar></cristalise-sidebar>
+    </div>
+    <div class="layout-main-container">
+        <div class="layout-main">
+            <router-outlet></router-outlet>
+        </div>
+        <cristalise-footer></cristalise-footer>
+    </div>
+    <cristalise-config></cristalise-config>
+    <div class="layout-mask"></div>
+</div>

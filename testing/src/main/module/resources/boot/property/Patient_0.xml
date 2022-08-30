@@ -1,5 +1,0 @@
-<AllProperties>
-  <PropertyDescription IsClassIdentifier="false" IsMutable="true" Name="Name" Transitive="false"/>
-  <PropertyDescription DefaultValue="Patient" IsClassIdentifier="true" IsMutable="false" Name="Type" Transitive="true"/>
-  <PropertyDescription DefaultValue="ACTIVE" IsClassIdentifier="false" IsMutable="true" Name="State" Transitive="false"/>
-</AllProperties>
