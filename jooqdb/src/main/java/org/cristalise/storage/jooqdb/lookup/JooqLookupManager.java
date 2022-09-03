@@ -386,6 +386,13 @@ public class JooqLookupManager implements LookupManager {
         return "(?e)^" + path.replaceAll("(" + specialCharsToReplace + ")", "\\\\$1") + "/[^/]*$";
     }
 
+
+    @Override
+    public Iterator<DomainPath> getContextTree(DomainPath path, TransactionKey transactionKey) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
     @Override
     public Iterator<Path> getChildren(Path path, TransactionKey transactionKey) {
         try {

@@ -849,4 +849,9 @@ public class LDAPLookup implements LookupManager {
     public void setPermissions(RolePath role, List<String> permissions, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         throw new NotImplementedException("Permission support is not implemented");
     }
+
+    @Override
+    public Iterator<DomainPath> getContextTree(DomainPath path, TransactionKey transactionKey) {
+        throw new NotImplementedException("Retrieving ContextTree support is not implemented");
+    }
 }
