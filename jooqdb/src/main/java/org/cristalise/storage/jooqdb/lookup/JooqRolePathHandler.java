@@ -205,6 +205,7 @@ public class JooqRolePathHandler {
         Result<Record2<String,Boolean>> result = context
                 .selectDistinct(PATH, JOBLIST).from(ROLE_PATH_TABLE)
                 .where(PATH.likeRegex(pattern))
+                .orderBy(PATH)
                 .fetch();
 
         return getListOfPaths(result);

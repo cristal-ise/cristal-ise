@@ -155,6 +155,7 @@ public class JooqDomainPathHandler {
         Result<Record> result = context
                 .select().from(DOMAIN_PATH_TABLE)
                 .where(PATH.likeRegex(pattern))
+                .orderBy(PATH)
                 .fetch();
 
         return getListOfPath(result);

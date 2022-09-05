@@ -178,9 +178,4 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
     public void postBoostrap() {
         // TODO Auto-generated method stub
     }
-
-    @Override
-    public List<DomainPath> getContextTree(DomainPath path, TransactionKey transactionKey) {
-        throw new NotImplementedException("Retrieving ContextTree support is not implemented");
-    }
 }
