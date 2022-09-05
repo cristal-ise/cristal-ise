@@ -851,7 +851,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     @Override
-    public Iterator<DomainPath> getContextTree(DomainPath path, TransactionKey transactionKey) {
+    public List<DomainPath> getContextTree(DomainPath path, TransactionKey transactionKey) {
         throw new NotImplementedException("Retrieving ContextTree support is not implemented");
     }
 }

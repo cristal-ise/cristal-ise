@@ -34,14 +34,12 @@ import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.upper;
-
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
@@ -72,7 +70,6 @@ import org.jooq.Result;
 import org.jooq.SelectQuery;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
-
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -388,7 +385,7 @@ public class JooqLookupManager implements LookupManager {
 
 
     @Override
-    public Iterator<DomainPath> getContextTree(DomainPath path, TransactionKey transactionKey) {
+    public List<DomainPath> getContextTree(DomainPath path, TransactionKey transactionKey) {
         // TODO Auto-generated method stub
         return null;
     }
