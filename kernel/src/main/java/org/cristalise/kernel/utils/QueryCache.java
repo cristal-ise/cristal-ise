@@ -35,22 +35,22 @@ import lombok.extern.slf4j.Slf4j;
 public class QueryCache extends DescriptionObjectCache<Query> {
 
     @Override
-    public String getTypeCode() {
+    protected String getTypeCode() {
         return QUERY_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
+    protected String getSchemaName() {
         return QUERY_RESOURCE.getSchemaName();
     }
 
     @Override
-    public String getTypeRoot() {
+    protected String getTypeRoot() {
         return QUERY_RESOURCE.getTypeRoot();
     }
 
     @Override
-    public Query buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected Query buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             return new Query(name, version, path, data);
         }

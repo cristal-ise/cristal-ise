@@ -231,9 +231,19 @@ public abstract class ClusterStorage {
     public abstract void put(ItemPath itemPath, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException;
 
     /**
-     * Remove a CRISTAL local object from storage. This should be used sparingly
-     * and responsibly, as it violated traceability. Objects removed in this way
-     * are not expected to be recoverable.
+     * Remove all CRISTAL local object of the given ClusterType from storage. This should be used sparingly
+     * and responsibly, as it violated traceability. Objects removed in this way cannot be recovered.
+     * 
+     * @param itemPath The containing Item
+     * @param cluster The type of the object to be removed
+     * @param transactionKey the key of the transaction, cannot be null
+     * @throws PersistencyException When deletion fails or is not allowed
+     */
+    public abstract void delete(ItemPath itemPath, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException;
+
+    /**
+     * Remove a CRISTAL local object from storage. This should be used sparingly and responsibly, 
+     * as it violated traceability. Objects removed in this way cannot be recovered.
      * 
      * @param itemPath The containing Item
      * @param path The path of the object to be removed
@@ -241,6 +251,17 @@ public abstract class ClusterStorage {
      * @throws PersistencyException When deletion fails or is not allowed
      */
     public abstract void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException;
+
+    /**
+     * Removes all data of an Item. This should be used sparingly
+     * and responsibly, as it violated traceability. Objects removed in this way
+     * are not expected to be recoverable.
+     * 
+     * @param itemPath The containing Item
+     * @param transactionKey the key of the transaction, cannot be null
+     * @throws PersistencyException When deletion fails or is not allowed
+     */
+    public abstract void delete(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException;
 
     /**
      * Queries the local path below of the item and returns the possible next elements.

@@ -23,19 +23,14 @@ package org.cristalise.storage.jooqdb;
 import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
 import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
 import static org.hamcrest.MatcherAssert.assertThat;
-
 import java.util.Arrays;
 import java.util.UUID;
-
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
-import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
-import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.storage.jooqdb.clusterStore.JooqJobHandler;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.After;
@@ -72,40 +67,35 @@ public class JooqJobTest extends StorageTestBase {
 
     private void compareJobs(Job actual, Job expected) throws Exception {
         Assert.assertNotNull(actual);
-        Assert.assertEquals(expected.getId(),              actual.getId());
         Assert.assertEquals(expected.getItemPath(),        actual.getItemPath());
-        Assert.assertEquals(expected.getAgentPath(),       actual.getAgentPath());
         Assert.assertEquals(expected.getName(),            actual.getName());
         Assert.assertEquals(expected.getSchemaName(),      actual.getSchemaName());
         Assert.assertEquals(expected.getSchemaVersion(),   actual.getSchemaVersion());
         Assert.assertEquals(expected.getStepName(),        actual.getStepName());
         Assert.assertEquals(expected.getStepPath(),        actual.getStepPath());
         Assert.assertEquals(expected.getStepType(),        actual.getStepType());
-        Assert.assertEquals(expected.getOriginStateName(), actual.getOriginStateName());
-        Assert.assertEquals(expected.getTargetStateName(), actual.getTargetStateName());
-
-        compareTimestramps(actual.getCreationDate(), expected.getCreationDate());
+        Assert.assertEquals(expected.getRoleOverride(),    actual.getRoleOverride());
+        Assert.assertNull(actual.getAgentPath());
     }
 
-    private Job createJob(UUID itemUUID, int id) throws InvalidItemPathException {
+    private Job createJob(UUID itemUUID, int idx) throws InvalidItemPathException {
+        return createJob(itemUUID, idx, "Done");
+    }
+
+    private Job createJob(UUID itemUUID, int idx, String transition) throws InvalidItemPathException {
         return new Job(
-                id,
-                new ItemPath(UUID.randomUUID()),
-                "stepName"+id, 
-                "stepaPath"+id,
-                "stepType"+id,
-                new Transition(0, "Done"),
-                "originStateName"+id, 
-                "targetStateName"+id,
+                new ItemPath(itemUUID),
+                "stepName"+idx, 
+                "stepaPath"+idx,
+                "stepType"+idx,
+                transition,
                 "admin",
-                new AgentPath(itemUUID),
-                actProps, 
-                DateUtility.getNow());
+                actProps);
     }
 
     @Test
     public void fetchJob() throws Exception {
-        compareJobs((Job)jooq.fetch(context, uuid, "0"), job);
+        compareJobs((Job)jooq.fetch(context, uuid, "stepName0", "Done"), job);
     }
 
     @Test(expected=PersistencyException.class)
@@ -135,8 +125,9 @@ public class JooqJobTest extends StorageTestBase {
     }
 
     @Test
-    public void getEventIDs() throws Exception {
-        assert jooq.put(context, uuid, createJob(uuid, 1)) == 1;
+    public void getStepNames() throws Exception {
+        assert jooq.put(context, uuid, createJob(uuid, 1, "Done")) == 1;
+        assert jooq.put(context, uuid, createJob(uuid, 1, "Start")) == 1;
         assert jooq.put(context, uuid, createJob(uuid, 2)) == 1;
         assert jooq.put(context, uuid, createJob(uuid, 3)) == 1;
 
@@ -146,7 +137,12 @@ public class JooqJobTest extends StorageTestBase {
         assert jooq.put(context, uuid2, createJob(uuid2, 2)) == 1;
 
         String[] keys = jooq.getNextPrimaryKeys(context, uuid);
+        assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("stepName0", "stepName1", "stepName2", "stepName3"));
 
-        assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("0", "1", "2", "3"));
+        keys = jooq.getNextPrimaryKeys(context, uuid, "stepName0");
+        assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("Done"));
+
+        keys = jooq.getNextPrimaryKeys(context, uuid, "stepName1");
+        assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("Done", "Start"));
     }
 }

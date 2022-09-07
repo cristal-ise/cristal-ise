@@ -24,40 +24,31 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Map;
-
+import java.util.List;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.graph.view.SelectedVertexPanel;
 import org.cristalise.gui.tabs.ItemTabPane;
 import org.cristalise.gui.tabs.execution.Executor;
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.State;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-
-/**************************************************************************
- *
- * $Revision: 1.8 $
- * $Date: 2005/09/07 13:46:31 $
- *
- * Copyright (C) 2003 CERN - European Organization for Nuclear Research
- * All rights reserved.
- **************************************************************************/
-
+@Slf4j
 public class TransitionPanel extends SelectedVertexPanel implements ActionListener {
+    private static final long serialVersionUID = -4718182338463317755L;
+
     protected Activity mCurrentAct;
     protected GridBagLayout gridbag;
     protected GridBagConstraints c;
@@ -73,9 +64,11 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
         gridbag = new GridBagLayout();
         setLayout(gridbag);
         c = new GridBagConstraints();
-        c.gridx=0; c.gridy=0;
-        c.weightx=1; c.weighty=0;
-        c.fill=GridBagConstraints.HORIZONTAL;
+        c.gridx = 0;
+        c.gridy = 0;
+        c.weightx = 1;
+        c.weighty = 0;
+        c.fill = GridBagConstraints.HORIZONTAL;
 
         JLabel title = new JLabel("Available Transitions");
         title.setFont(ItemTabPane.titleFont);
@@ -91,7 +84,8 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
         gridbag.setConstraints(transBox, c);
         add(transBox);
 
-        c.weightx=0; c.gridx++;
+        c.weightx = 0;
+        c.gridx++;
         executors = MainFrame.getExecutionPlugins();
         if (executors.getItemCount() > 1) {
             gridbag.setConstraints(executors, c);
@@ -101,17 +95,18 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
 
 
         if (MainFrame.isAdmin) {
-            c.gridx=0; c.gridy++;
+            c.gridx = 0;
+            c.gridy++;
             title = new JLabel("State Hacking");
             title.setFont(ItemTabPane.titleFont);
             gridbag.setConstraints(title, c);
             add(title);
-        	Box hackBox = Box.createHorizontalBox();
-        	hackBox.add(states);
-        	hackBox.add(Box.createHorizontalGlue());
-        	hackBox.add(new JLabel("Active:"));
-        	hackBox.add(active);
-        	c.gridy++;
+            Box hackBox = Box.createHorizontalBox();
+            hackBox.add(states);
+            hackBox.add(Box.createHorizontalGlue());
+            hackBox.add(new JLabel("Active:"));
+            hackBox.add(active);
+            c.gridy++;
             gridbag.setConstraints(hackBox, c);
             add(hackBox);
             states.addActionListener(this);
@@ -121,109 +116,112 @@ public class TransitionPanel extends SelectedVertexPanel implements ActionListen
         clear();
 
     }
+
     /**
      *
      */
     @Override
-	public void select(Vertex vert) {
-	    clear();
-	    if (!(vert instanceof Activity)) return;
-        mCurrentAct = (Activity)vert;
+    public void select(Vertex vert) {
+        clear();
+        if (!(vert instanceof Activity))
+            return;
+        mCurrentAct = (Activity) vert;
         StateMachine sm;
-		try {
-			sm = mCurrentAct.getStateMachine();
-		} catch (InvalidDataException e) {
-			status.setText("Invalid state machine.");
-			Logger.error(e);
-			return;
-		}
+        try {
+            sm = mCurrentAct.getStateMachine();
+        } catch (InvalidDataException e) {
+            status.setText("Invalid state machine.");
+            log.error("",e);
+            return;
+        }
         states.removeAllItems();
         int currentState;
-		try {
-			currentState = mCurrentAct.getState();
-		} catch (InvalidDataException e) {
-			status.setText("Could not find activity state");
-			Logger.error(e);
-			return;
-		}
+        try {
+            currentState = mCurrentAct.getState();
+        } catch (InvalidDataException e) {
+            status.setText("Could not find activity state");
+            log.error("",e);
+            return;
+        }
         for (State thisState : sm.getStates()) {
-			states.addItem(thisState);
-			if (currentState == thisState.getId())
-				states.setSelectedItem(thisState);
-		}
+            states.addItem(thisState);
+            if (currentState == thisState.getId())
+                states.setSelectedItem(thisState);
+        }
         states.setEnabled(true);
         active.setSelected(mCurrentAct.active);
         active.setEnabled(true);
-        Logger.msg(1, "Retrieving possible transitions for activity "+mCurrentAct.getName());
-        Map<Transition, String> transitions;
-		try {
-			transitions = mCurrentAct.getStateMachine().getPossibleTransitions(mCurrentAct, MainFrame.userAgent.getPath());
-		} catch (Exception e) {
-			status.setText("Error loading possible transitions of activity. See log.");
-			Logger.error(e);
-			return;
-		}
-		
+        List<Transition> transitions;
+        try {
+            transitions = mCurrentAct.getStateMachine().getPossibleTransitions(mCurrentAct, MainFrame.userAgent.getPath());
+        } catch (Exception e) {
+            status.setText("Error loading possible transitions of activity. See log.");
+            log.error("", e);
+            return;
+        }
+
         if (transitions.size() == 0) {
             status.setText("None");
             return;
         }
         
-        for (Transition trans:transitions.keySet()) {
-        	boolean hasOutcome = trans.hasOutcome(mCurrentAct.getProperties());
+        for (Transition trans:transitions) {
+            boolean hasOutcome = trans.hasOutcome(mCurrentAct.getProperties());
             if (!hasOutcome || (hasOutcome && !trans.getOutcome().isRequired())) {
                 JButton thisTrans = new JButton(trans.getName());
-                thisTrans.setActionCommand("Trans:"+trans.getId());
+                thisTrans.setActionCommand("Trans:" + trans.getId());
                 thisTrans.addActionListener(this);
                 transBox.add(thisTrans);
                 transBox.add(Box.createHorizontalGlue());
             }
-            status.setText(transitions.size()+" transitions possible.");
+            status.setText(transitions.size() + " transitions possible.");
         }
         revalidate();
     }
 
     @Override
-	public void actionPerformed(ActionEvent e) {
-    	if (active.isEnabled()) {
-    		if (e.getSource() == active && mCurrentAct != null) {
-    			mCurrentAct.active = active.isSelected();
-    			return;
-    		}
-    	}
+    public void actionPerformed(ActionEvent e) {
+        if (active.isEnabled()) {
+            if (e.getSource() == active && mCurrentAct != null) {
+                mCurrentAct.active = active.isSelected();
+                return;
+            }
+        }
         if (states.isEnabled()) {
-    		if (e.getSource() == states && mCurrentAct != null) {
-    			Logger.msg(1, "Setting state of "+mCurrentAct.getName()+" to "+states.getSelectedItem());
-    			mCurrentAct.setState(states.getSelectedIndex());
-    			return;
-    		}
-    	}
-    	if (!e.getActionCommand().startsWith("Trans:")) return;
+            if (e.getSource() == states && mCurrentAct != null) {
+                log.info("Setting state of " + mCurrentAct.getName() + " to "
+                        + states.getSelectedItem());
+                mCurrentAct.setState(states.getSelectedIndex());
+                return;
+            }
+        }
+        if (!e.getActionCommand().startsWith("Trans:"))
+            return;
         int transition = Integer.parseInt(e.getActionCommand().substring(6));
-        Logger.msg("Requesting transition "+transition);
+        log.info("Requesting transition " + transition);
         try {
             StateMachine actSM = mCurrentAct.getStateMachine();
             Job thisJob = new Job(mCurrentAct,
                                   mItem.getPath(),
-                                  actSM.getTransition(transition),
+                                  actSM.getTransition(transition).getName(),
                                   MainFrame.userAgent.getPath(),
                                   "Admin");
             Executor selectedExecutor = (Executor)executors.getSelectedItem();
             selectedExecutor.execute(thisJob, status);
         } catch (Exception ex) {
             String className = ex.getClass().getName();
-            className = className.substring(className.lastIndexOf('.')+1);
-            Logger.error(ex);
-            JOptionPane.showMessageDialog(null, ex.getMessage(), className, JOptionPane.ERROR_MESSAGE);
+            className = className.substring(className.lastIndexOf('.') + 1);
+            log.error("",ex);
+            JOptionPane.showMessageDialog(null, ex.getMessage(), className,
+                    JOptionPane.ERROR_MESSAGE);
         }
-
     }
 
     @Override
-	public void clear() {
-    	states.setEnabled(false);
+    public void clear() {
+        states.setEnabled(false);
         active.setEnabled(false);
-    	mCurrentAct = null;
+        mCurrentAct = null;
         transBox.removeAll();
         status.setText("No activity selected");
         active.setSelected(false);

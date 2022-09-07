@@ -186,7 +186,7 @@ class SchemaBuilder {
      * @return
      */
     public static SchemaBuilder build(String module, String name, int version, Closure cl) {
-        log.info("build(closure) - module:{} name:{} version:{}", module, name, version)
+        log.debug("build(closure) - module:{} name:{} version:{}", module, name, version)
 
         def sb = new SchemaBuilder(module, name, version)
         sb.generateSchema(cl)
@@ -226,7 +226,7 @@ class SchemaBuilder {
      * @return
      */
     public static SchemaBuilder build(String module, String name, int version, File file) {
-        log.info("build(file) - module:{} name:{} version:{} file:{}", module, name, version, file.name)
+        log.debug("build(file) - module:{} name:{} version:{} file:{}", module, name, version, file.name)
 
         def sb = new SchemaBuilder(module, name, version)
         def fileName = file.name

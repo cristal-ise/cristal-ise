@@ -50,7 +50,6 @@ import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
-import org.cristalise.kernel.utils.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -59,6 +58,7 @@ import com.novell.ldap.LDAPEntry;
 import com.novell.ldap.LDAPException;
 import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPSearchResults;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * The LDAPLookup object, statically accessible through the Gateway, manages the LDAP connection for the cristal process. It provides:
@@ -68,6 +68,7 @@ import com.novell.ldap.LDAPSearchResults;
  * <li>Agent and Role lookup/modification - through the RoleManager
  * <li>
  */
+@Slf4j
 public class LDAPLookup implements LookupManager {
 
     protected LDAPAuthManager     mLDAPAuth;
@@ -90,7 +91,7 @@ public class LDAPLookup implements LookupManager {
      */
     protected void initPaths(LDAPProperties props) {
 
-        Logger.msg(8, "LDAPLookup.initPaths(): - initialising with LDAPProperties");
+        log.debug("LDAPLookup.initPaths(): - initialising with LDAPProperties");
         ldapProps = props;
 
         mGlobalPath = props.mGlobalPath;
@@ -156,21 +157,21 @@ public class LDAPLookup implements LookupManager {
                 String[] roleComponents = choppedRole.split(",");
                 String[] rolePathStr = new String[roleComponents.length];
                 for (int i = 0; i < roleComponents.length; i++) {
-                    Logger.msg(i + ": " + roleComponents[i]);
+                    log.info(i + ": " + roleComponents[i]);
                     if (roleComponents[i].matches("^cn=.*"))
                         rolePathStr[roleComponents.length - i - 1] = roleComponents[i].substring(3);
                 }
                 boolean hasJobList = role.getAttribute("jobList").getStringValue().equals("TRUE");
                 RolePath newRole = new RolePath(rolePathStr, hasJobList);
-                Logger.msg("Migrating role: " + newRole.toString());
+                log.info("Migrating role: " + newRole.toString());
                 try {
                     createRole(newRole, transactionKey);
                 }
                 catch (ObjectAlreadyExistsException e1) {
-                    Logger.warning("Role " + newRole.toString() + " already exists");
+                    log.warn("Role " + newRole.toString() + " already exists");
                 }
                 catch (ObjectCannotBeUpdated e1) {
-                    Logger.die("Could not migrate role " + newRole);
+                    log.error("Could not migrate role " + newRole);
                 }
 
                 LDAPAttribute memberAttr = role.getAttribute("uniqueMember");
@@ -184,16 +185,16 @@ public class LDAPLookup implements LookupManager {
                             agent = new AgentPath(item);
                             if (!agent.hasRole(newRole)) {
                                 try {
-                                    Logger.msg("Adding agent " + agent.getAgentName() + " to new role " + newRole.toString());
+                                    log.info("Adding agent " + agent.getAgentName() + " to new role " + newRole.toString());
                                     addRole(agent, newRole, transactionKey);
                                 }
                                 catch (Exception e) {
-                                    Logger.die("Could not add agent " + agent.getAgentName() + " to role " + newRole);
+                                    log.error("Could not add agent " + agent.getAgentName() + " to role " + newRole);
                                 }
                             }
                         }
                         catch (InvalidItemPathException e) {
-                            Logger.die("Invalid agent in role " + newRole + ": " + uuid);
+                            log.error("Invalid agent in role " + newRole + ": " + uuid);
                         }
                     }
                 }
@@ -203,13 +204,12 @@ public class LDAPLookup implements LookupManager {
                     LDAPLookupUtils.delete(mLDAPAuth.getAuthObject(), toDelete.pop().getDN());
                 }
                 catch (Exception ex) { // must be out of order, try again next time
-                    Logger.error("Error deleting old Role. " + ex.getMessage());
+                    log.error("Error deleting old Role. ", ex);
                 }
             }
         }
         catch (LDAPException e) {
-            Logger.error(e);
-            Logger.die("LDAP Exception migrating roles");
+            log.error("LDAP Exception migrating roles",e);
         }
     }
 
@@ -227,7 +227,7 @@ public class LDAPLookup implements LookupManager {
      */
     @Override
     public void close() {
-        Logger.msg(1, "LDAP Lookup: Shutting down LDAP connection.");
+        log.info("LDAP Lookup: Shutting down LDAP connection.");
         if (mLDAPAuth != null) {
             mLDAPAuth.disconnect();
             mLDAPAuth = null;
@@ -239,7 +239,7 @@ public class LDAPLookup implements LookupManager {
         LDAPEntry domEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(domPath), LDAPSearchConstraints.DEREF_ALWAYS);
         String entityKey = LDAPLookupUtils.getFirstAttributeValue(domEntry, "cn");
 
-        Logger.msg(7, "LDAPLookup.resolvePath() - DomainPath " + domPath + " is a reference to " + entityKey);
+        log.debug("LDAPLookup.resolvePath() - DomainPath " + domPath + " is a reference to " + entityKey);
 
         String objClass = LDAPLookupUtils.getFirstAttributeValue(domEntry, "objectClass");
 
@@ -297,11 +297,11 @@ public class LDAPLookup implements LookupManager {
                 if (!LDAPLookupUtils.exists(mLDAPAuth.getAuthObject(), name)) {
                     try {
                         // create cristalcontext
-                        Logger.msg(8, "LDAPLookup::addLDAPContext() context added " + name);
+                        log.debug("addLDAPContext() context added " + name);
                         LDAPLookupUtils.createCristalContext(mLDAPAuth.getAuthObject(), name);
                     }
                     catch (Exception ex) {
-                        Logger.error("LDAPLookup::addContext() " + ex);
+                        log.error("addContext() ",ex);
                     }
                 }
                 i++;
@@ -310,7 +310,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     public void createBootTree() {
-        Logger.msg(8, "Initializing LDAP Boot tree");
+        log.debug("Initializing LDAP Boot tree");
 
         // create org
         LDAPLookupUtils.createOrganizationContext(mLDAPAuth.getAuthObject(), mGlobalPath);
@@ -330,7 +330,7 @@ public class LDAPLookup implements LookupManager {
         }
         catch (ObjectAlreadyExistsException e) {}
         catch (ObjectCannotBeUpdated e) {
-            Logger.die("Could not create root Role");
+            log.error("Could not create root Role");
         }
         if (new DomainPath("agent").exists()) migrateOldRoles(transactionKey);
     }
@@ -338,7 +338,7 @@ public class LDAPLookup implements LookupManager {
     // typically search for cn=barcode
     @Override
     public LDAPPathSet search(Path start, String filter, SearchConstraints constraints, TransactionKey transactionKey) {
-        Logger.msg(8, "LDAPLookup::search() From " + getDN(start) + " for cn=" + filter);
+        log.debug("LDAPLookup::search() From " + getDN(start) + " for cn=" + filter);
         return search(getFullDN(start), "cn=" + LDAPLookupUtils.escapeSearchFilter(filter));
     }
 
@@ -379,7 +379,7 @@ public class LDAPLookup implements LookupManager {
     }
 
     protected LDAPPathSet search(String startDN, int scope, String filter, LDAPSearchConstraints searchCons) {
-        Logger.msg(8, "Searching for " + filter + " in " + startDN);
+        log.debug("Searching for " + filter + " in " + startDN);
         searchCons.setMaxResults(0);
         String[] attr = { LDAPConnection.ALL_USER_ATTRS };
         try {
@@ -388,7 +388,7 @@ public class LDAPLookup implements LookupManager {
             return new LDAPPathSet(res, this);
         }
         catch (LDAPException ex) {
-            Logger.error("LDAPException::LDAPLookup::search() " + ex.toString());
+            log.error("LDAPException::LDAPLookup::search() ", ex);
             return new LDAPPathSet(this);
         }
     }
@@ -430,7 +430,7 @@ public class LDAPLookup implements LookupManager {
         }
         catch (LDAPException ex) {
             if (ex.getResultCode() == LDAPException.NO_SUCH_OBJECT) throw new ObjectNotFoundException("Entity '" + uuid + "' does not exist");
-            Logger.error(ex);
+            log.error("",ex);
             throw new ObjectNotFoundException("Error getting entity class for '" + uuid + "'");
         }
     }
@@ -658,10 +658,10 @@ public class LDAPLookup implements LookupManager {
                 agents.add(path);
             }
             catch (ObjectNotFoundException ex) {
-                Logger.error("Agent " + userDN + " does not exist");
+                log.error("Agent " + userDN + " does not exist");
             }
             catch (InvalidItemPathException ex) {
-                Logger.error("Agent " + userDN + " is not a valid entity");
+                log.error("Agent " + userDN + " is not a valid entity");
             }
         }
         AgentPath[] usersList = new AgentPath[0];
@@ -721,7 +721,7 @@ public class LDAPLookup implements LookupManager {
                     absPath.setHasJobList(LDAPLookupUtils.getFirstAttributeValue(entry, "jobList").equals("TRUE"));
                 }
                 catch (Exception e) {
-                    Logger.error(e);
+                    log.error("",e);
                     throw new ObjectNotFoundException("Could not find role " + roleName);
                 }
                 return absPath;
@@ -761,7 +761,7 @@ public class LDAPLookup implements LookupManager {
     public void setAgentPassword(AgentPath agent, String newPassword, boolean temporary, TransactionKey transactionKey)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, NoSuchAlgorithmException
     {
-        if (temporary) Logger.warning("LDAPLookup.setAgentPassword() - Does NOT support temporary passords!");
+        if (temporary) log.warn("LDAPLookup.setAgentPassword() - Does NOT support temporary passords!");
 
         if (!newPassword.matches("^\\{[a-zA-Z0-5]*\\}")) newPassword = LDAPLookupUtils.generateUserPassword(newPassword);
         LDAPEntry agentEntry;
@@ -783,7 +783,7 @@ public class LDAPLookup implements LookupManager {
     @Override
     public PagedResult getChildren(Path path, int offset, int limit, TransactionKey transactionKey) {
         if (ldapProps.mEnablePagingMethods) {
-            Logger.warning("LDAPLookup.getChildren() - Paging support is not implemented, original method is used");
+            log.warn("LDAPLookup.getChildren() - Paging support is not implemented, original method is used");
             return new PagedResult(-1, IteratorUtils.toList(getChildren(path, transactionKey)));
         }
 
@@ -793,7 +793,7 @@ public class LDAPLookup implements LookupManager {
     @Override
     public PagedResult search(Path start, List<Property> props, int offset, int limit, TransactionKey transactionKey) {
         if (ldapProps.mEnablePagingMethods) {
-            Logger.warning("LDAPLookup.search() - Paging support is not implemented, original method is used");
+            log.warn("LDAPLookup.search() - Paging support is not implemented, original method is used");
             return new PagedResult(-1, IteratorUtils.toList(search(start, props.toArray(new Property[0]))));
         }
 
@@ -803,7 +803,7 @@ public class LDAPLookup implements LookupManager {
     @Override
     public PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit, TransactionKey transactionKey) {
         if (ldapProps.mEnablePagingMethods) {
-            Logger.warning("LDAPLookup.search() - Paging support is not implemented, original method is used");
+            log.warn("LDAPLookup.search() - Paging support is not implemented, original method is used");
             return new PagedResult(-1, IteratorUtils.toList(search(start, props)));
         }
 
@@ -813,7 +813,7 @@ public class LDAPLookup implements LookupManager {
     @Override
     public PagedResult searchAliases(ItemPath itemPath, int offset, int limit, TransactionKey transactionKey) {
         if (ldapProps.mEnablePagingMethods) {
-            Logger.warning("LDAPLookup.searchAliases() - Paging support is not implemented, original method is used");
+            log.warn("LDAPLookup.searchAliases() - Paging support is not implemented, original method is used");
             return new PagedResult(-1, IteratorUtils.toList(searchAliases(itemPath, transactionKey)));
         }
 
@@ -823,7 +823,7 @@ public class LDAPLookup implements LookupManager {
     @Override
     public PagedResult getAgents(RolePath rolePath, int offset, int limit, TransactionKey transactionKey) throws ObjectNotFoundException {
         if (ldapProps.mEnablePagingMethods) {
-            Logger.warning("LDAPLookup.getAgents() - Paging support is not implemented, original method is used");
+            log.warn("LDAPLookup.getAgents() - Paging support is not implemented, original method is used");
             return new PagedResult(-1, Arrays.asList(getAgents(rolePath, transactionKey)));
         }
 
@@ -833,7 +833,7 @@ public class LDAPLookup implements LookupManager {
     @Override
     public PagedResult getRoles(AgentPath agentPath, int offset, int limit, TransactionKey transactionKey) {
         if (ldapProps.mEnablePagingMethods) {
-            Logger.warning("LDAPLookup.getRoles() - Paging support is not implemented, original method is used");
+            log.warn("LDAPLookup.getRoles() - Paging support is not implemented, original method is used");
             return new PagedResult(-1, Arrays.asList(getRoles(agentPath, transactionKey)));
         }
 

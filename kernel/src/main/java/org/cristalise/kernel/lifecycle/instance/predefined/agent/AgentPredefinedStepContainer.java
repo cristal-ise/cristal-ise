@@ -36,6 +36,5 @@ public class AgentPredefinedStepContainer extends PredefinedStepContainer {
         predInit(Logout.class, Logout.description, new Logout());
         predInit(ForcedLogout.class, ForcedLogout.description, new ForcedLogout());
         predInit(Sign.class, Sign.description, new Sign());
-        predInit(RefreshJobList.class, RefreshJobList.description, new RefreshJobList());
     }
 }

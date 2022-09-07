@@ -2,7 +2,8 @@
   <Property mutable="false" name="Type">Factory</Property>
   <Property mutable="false" name="Root">/devtest/TestItemUseConstructorGeneratedNames</Property>
   <Property mutable="false" name="IDPrefix">ID</Property>
-  <Property mutable="true" name="LeftPadSize">6</Property>
+  <Property mutable="false" name="LeftPadSize">6</Property>
+  <Property mutable="true" name="LastCount">0</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/TestItemUseConstructorGeneratedName_0.xml</Outcome>
   <Dependency classProps="" isDescription="false" name="SchemaInitialise">
     <DependencyMember itemPath="/desc/Schema/devtest/TestItemUseConstructorGeneratedName_Details">

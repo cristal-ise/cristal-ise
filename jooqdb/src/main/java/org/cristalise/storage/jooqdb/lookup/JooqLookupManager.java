@@ -217,7 +217,9 @@ public class JooqLookupManager implements LookupManager {
         log.debug("delete() - path:"+path);
 
         try {
-            if (getChildren(path, transactionKey).hasNext()) throw new ObjectCannotBeUpdated("Path is not a leaf");
+            if (getChildren(path, transactionKey).hasNext()) {
+                throw new ObjectCannotBeUpdated("Path '"+path+"' is not a leaf");
+            }
 
             DSLContext context = retrieveContext(transactionKey);
 
@@ -393,8 +395,8 @@ public class JooqLookupManager implements LookupManager {
             log.debug("getChildren() - pattern:" + pattern);
 
             if      (path instanceof ItemPath) return new ArrayList<Path>().iterator(); //empty iterator
-            else if (path instanceof RolePath) return roles  .findByRegex(context, pattern ).iterator();
-            else                               return domains.findByRegex(context, pattern ).iterator();
+            else if (path instanceof RolePath) return roles  .findByRegex(context, pattern).iterator();
+            else                               return domains.findByRegex(context, pattern).iterator();
         }
         catch (Exception e) {
             log.error("getChildren()", e);
@@ -480,7 +482,7 @@ public class JooqLookupManager implements LookupManager {
             SelectQuery<?> selectCount = getSearchSelect(context, start, props);
             selectCount.addSelect(DSL.count());
 
-            log.debug("search(props) - SQL(count):\n{}", selectCount);
+            log.trace("search(props) - SQL(count):\n{}", selectCount);
 
             maxRows = selectCount.fetchOne(0, int.class);
 
@@ -495,7 +497,7 @@ public class JooqLookupManager implements LookupManager {
         if (limit  > 0) select.addLimit(limit);
         if (offset > 0) select.addOffset(offset);
 
-        log.debug("search(props) - SQL:\n{}", select);
+        log.trace("search(props) - SQL:\n{}", select);
 
         return new PagedResult(maxRows, domains.getListOfPath(select.fetch()));
     }

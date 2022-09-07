@@ -343,13 +343,22 @@ public abstract class GraphableVertex extends Vertex {
     }
 
     /**
+     * Retrieve the PairingID of the vertex
+     * 
+     * @return empty string or the value of the PairingID property
+     */
+    public String getPairingId() {
+        return (String) getBuiltInProperty(PAIRING_ID, "");
+    }
+
+    /**
      * Checks if the vertex has a pairing id or not and if it has one compares it with the other vertex pairing id
      * 
      * @param otherVertex the other vertex to check for pairing
      * @return null if vertex has no PAIRING_ID otherwise compare the pairing ids
      */
     public Boolean isMyPair(GraphableVertex otherVertex) {
-        String loopPairingID = (String) getBuiltInProperty(PAIRING_ID);
+        String loopPairingID = getPairingId();
 
         if (StringUtils.isNotBlank(loopPairingID)) {
             return loopPairingID.equals(getOtherPairingID(otherVertex));
@@ -366,11 +375,6 @@ public abstract class GraphableVertex extends Vertex {
      * @return empty string or the value of the PairingID property
      */
     protected String getOtherPairingID(GraphableVertex otherVertex) {
-        if (otherVertex.getProperties().containsKey(PAIRING_ID.getName())) {
-            return (String) otherVertex.getBuiltInProperty(PAIRING_ID);
-        }
-        else {
-            return "";
-        }
+        return (String) otherVertex.getPairingId();
     }
 }

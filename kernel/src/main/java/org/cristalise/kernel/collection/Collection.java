@@ -174,8 +174,7 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
 
     public boolean contains(ItemPath itemPath) {
         for (E element : mMembers.list) {
-            if (element.getItemPath().equals(itemPath))
-                return true;
+            if (element.getItemPath().equals(itemPath)) return true;
         }
         return false;
     }
@@ -208,20 +207,31 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
     }
 
     /**
-     * Find collection member by integer ID
+     * Find collection member by its integer ID
      * 
-     * @param memberId
-     *            to find
+     * @param memberId to find
      * @return the CollectionMember with that ID
-     * @throws ObjectNotFoundException
-     *             when the ID wasn't found
+     * @throws ObjectNotFoundException when the ID wasn't found
      */
     public E getMember(int memberId) throws ObjectNotFoundException {
         for (E element : mMembers.list) {
-            if (element.getID() == memberId)
-                return element;
+            if (element.getID() == memberId) return element;
         }
         throw new ObjectNotFoundException("Member " + memberId + " not found in " + mName);
+    }
+
+    /**
+     * Find first collection member with the given ItemPath.
+     * 
+     * @param itemPath to find
+     * @return the CollectionMember with that ItemPath
+     * @throws ObjectNotFoundException when the ID wasn't found
+     */
+    public E getMember(ItemPath itemPath) throws ObjectNotFoundException {
+        for (E element : mMembers.list) {
+            if (element.getItemPath().equals(itemPath)) return element;
+        }
+        throw new ObjectNotFoundException("Member " + itemPath + " not found in " + mName);
     }
 
     public CollectionMemberList<E> getMembers() {

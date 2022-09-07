@@ -106,8 +106,8 @@ abstract public class StandardClient extends AbstractMain {
             }
         }
         catch(Exception e) {
-            log.error("", e);
-            throw new InvalidDataException(e.getMessage());
+            log.error("getRequiredStateMachine()", e);
+            throw new InvalidDataException(e);
         }
     }
 

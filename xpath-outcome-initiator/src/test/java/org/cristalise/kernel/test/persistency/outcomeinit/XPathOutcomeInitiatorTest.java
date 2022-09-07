@@ -25,11 +25,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.persistency.outcomeinit.XPathOutcomeInitiator;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.Logger;
 import org.junit.Test;
 
 /**
@@ -54,8 +52,6 @@ public class XPathOutcomeInitiatorTest extends OutcomeInitiatorTestBase {
 
         XPathOutcomeInitiator xpathOI = new XPathOutcomeInitiator(prefix);
         String actual = xpathOI.initOutcome(j);
-
-        Logger.msg(actual);
 
         if(!compareXML(expected, actual)) fail("");
     }

@@ -6,6 +6,7 @@
         <xs:element name='MemberPath' type='xs:string' minOccurs='0' maxOccurs='1' />
         <xs:element name='MemberName' type='xs:string' minOccurs='0' maxOccurs='1' />
         <xs:element name='MemberSlotId' type='xs:integer' minOccurs='0' maxOccurs='1' />
+        <xs:element name='MemberProperties' type='xs:string' minOccurs='0' maxOccurs='1' />
         <xs:element name='AddMembersToCollection' minOccurs='0' maxOccurs='1'>
           <xs:annotation>
             <xs:appinfo>

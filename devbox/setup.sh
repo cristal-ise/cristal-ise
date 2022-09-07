@@ -14,11 +14,17 @@ apt-mark unhold keyboard-configuration
 # install utilities
 apt-get -y install vim git zip bzip2 fontconfig curl ca-certificates language-pack-en
 
-# install Openjdk 8 max 10 (java 11 does not contain ejb/corba packages anymore)
+# install Openjdk 8 and 11 (java 11 does not contain ejb/corba packages anymore)
 apt-get install openjdk-8-jdk
+apt-get install openjdk-11-jdk
 
-# install Maven
+# install Maven based on java 8
 apt-get install -y maven
+
+# install Maven based on java 11
+wget https://dlcdn.apache.org/maven/maven-3/3.8.4/binaries/apache-maven-3.8.4-bin.tar.gz -P /tmp
+tar xf /tmp/apache-maven-3.8.4-bin.tar.gz -C /opt
+update-alternatives --install /usr/bin/mvn mvn /opt/apache-maven-3.8.4/bin/mvn 384
 
 # install Node.js - it will install npm as well
 curl -sL https://deb.nodesource.com/setup_10.x | bash

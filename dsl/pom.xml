@@ -218,6 +218,10 @@
             <groupId>org.jfree</groupId>
             <artifactId>jfreesvg</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.jgit</groupId>
+            <artifactId>org.eclipse.jgit</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.cristalise</groupId>
@@ -241,11 +245,11 @@
             <artifactId>spock-unitils</artifactId>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.athaydes</groupId>
-            <artifactId>spock-reports</artifactId>
-            <scope>test</scope>
-        </dependency>
+<!--         <dependency> -->
+<!--             <groupId>com.athaydes</groupId> -->
+<!--             <artifactId>spock-reports</artifactId> -->
+<!--             <scope>test</scope> -->
+<!--         </dependency> -->
         <dependency>
             <groupId>org.cristalise</groupId>
             <artifactId>cristalise-inmemory-lookup</artifactId>

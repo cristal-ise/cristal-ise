@@ -22,6 +22,7 @@ package org.cristalise.dev.dsl.item
 
 import static org.cristalise.kernel.collection.Collection.Type.*
 
+import org.apache.commons.lang3.StringUtils
 import org.atteo.evo.inflector.English
 import org.cristalise.dsl.persistency.outcome.Field
 import org.cristalise.dsl.persistency.outcome.Struct
@@ -58,6 +59,8 @@ class CRUDItem extends Struct {
 
     public String getPlantUml() {
         def model = new StringBuffer("class $name {\n")
+        model.append("  Name : xs:string\n")
+        model.append("  State : xs:string\n")
         fields.each { String name, Field field ->
             model.append("  ${field.name} : ${field.type}\n")
         }
@@ -72,6 +75,22 @@ class CRUDItem extends Struct {
 
     @Override
     public String toString() {
+        return name
+    }
+
+    public String getLowPlur() {
+        return StringUtils.uncapitalize(English.plural(name));
+    }
+
+    public String getUpPlur() {
+        return English.plural(name)
+    }
+
+    public String getLowSing() {
+        return StringUtils.uncapitalize(name)
+    }
+
+    public String getUpSing() {
         return name
     }
 }

@@ -20,8 +20,8 @@
  */
 package org.cristalise.kernel.graph.model;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.util.HashMap;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -59,4 +59,10 @@ public abstract class DirectedEdge {
 
     public void   setName(String name) {}
     public String getName() { return null; }
+
+    @Override
+    public String toString() {
+        String nameOrId = isNotBlank(getName()) ? "name:" + getName() : "id:" + getID();
+        return this.getClass().getSimpleName() + "(" + nameOrId + ")";
+    }
 }

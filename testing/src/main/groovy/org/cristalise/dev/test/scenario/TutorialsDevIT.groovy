@@ -55,9 +55,11 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         }
 
         def wf = CompositeActivityDef("$compActName-$timeStamp", folder) {
-            ElemActDef(elemActName,  ea)
-            actDefList.each { name, actDef ->
-                ElemActDef(name,  actDef)
+            Layout {
+                Act(elemActName,  ea)
+                actDefList.each { name, actDef ->
+                    Act(name,  actDef)
+                }
             }
         }
 
@@ -183,30 +185,5 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         }
 
         return setupPatient(actMap)
-    }
-
-    @Test
-    public void 'Extended Tutorial using Usercode to execute Aggregate Script'() {
-        //def factory = setupUsercode()
-        def factory = agent.getItem("$folder/$factoryName-2021-05-11_23-43-54_514")
-
-        createNewItemByFactory(factory, "CreateNewInstance", "$itemType-$timeStamp", folder)
-        def patient = agent.getItem("$folder/$itemType-$timeStamp")
-
-        RolePath rp = Gateway.getLookup().getRolePath('UserCode')
-        def ucPath = Gateway.getLookup().getAgents(rp)[0]
-        def userCode = new AgentTestBuilder(ucPath)
-
-        executeDoneJob(patient, elemActName)
-        executeDoneJob(patient, 'SetUrinSample')
-
-        PollingConditions pollingWait = new PollingConditions(timeout: 5, initialDelay: 0.5, delay: 0.5, factor: 1)
-        pollingWait.eventually {
-            assert patient.checkViewpoint("AggregatedPatientData-$timeStamp", 'last')
-        }
-
-        //checks if the usercode successfully executed aggregate script and the outcome was stored
-        def vp = patient.getViewpoint("AggregatedPatientData-$timeStamp", 'last')
-        patient.getOutcome(vp)
     }
 }

@@ -127,4 +127,32 @@ public enum BuiltInResources {
 
         return descObj;
     }
+
+    private String getActivityTypeText() {
+        switch (this) {
+            case COMP_ACT_DESC_RESOURCE:
+            case ELEM_ACT_DESC_RESOURCE:
+                return "Activity";
+
+            case ITEM_DESC_RESOURCE:
+            case AGENT_DESC_RESOURCE:
+            case ROLE_DESC_RESOURCE:
+                return getSchemaName() + "Desc";
+
+            default:
+                return getSchemaName();
+        }
+    }
+
+    public String getEditActivityName() {
+        return "EditDefinition";
+    }
+
+    public String getMoveVersionActivityName() {
+        return "MoveLatest" + getActivityTypeText() + "VersionToLast";
+    }
+
+    public String getAssignVersionActivityName() {
+        return "AssignNew" + getActivityTypeText() + "VersionFromLast";
+    }
 }

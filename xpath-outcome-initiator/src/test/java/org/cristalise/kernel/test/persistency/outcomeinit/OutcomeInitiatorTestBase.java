@@ -22,12 +22,10 @@ package org.cristalise.kernel.test.persistency.outcomeinit;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomeinit.EmptyOutcomeInitiator;
 import org.cristalise.kernel.test.persistency.XMLUtils;
-import org.cristalise.kernel.utils.Logger;
 import org.junit.BeforeClass;
 
 /**
@@ -41,7 +39,6 @@ public class OutcomeInitiatorTestBase extends XMLUtils {
      */
     @BeforeClass
     public static void setup() {
-        Logger.addLogStream(System.out, 8);
     }
 
     /**

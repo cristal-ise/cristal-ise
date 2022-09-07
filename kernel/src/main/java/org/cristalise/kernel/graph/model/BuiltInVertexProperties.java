@@ -92,6 +92,11 @@ public enum BuiltInVertexProperties {
     DEPENDENCY_ALLOW_DUPLICATE_ITEMS("DependencyAllowDuplicateItems"),
 
     /**
+     * default: false
+     */
+    DEPENDENCY_DISABLE_TYPE_CHECK("DependencyDisableTypeCheck"),
+
+    /**
      * String property used in ActivityDef to store the description text
      */
     DESCRIPTION("Description"),
@@ -221,6 +226,11 @@ public enum BuiltInVertexProperties {
     REPEAT_WHEN("RepeatWhen"),
 
     /**
+     * String property. Overrides the Root Item Property used in factory Items to specify the Root DomainPath.
+     */
+    ROOT("Root"),
+
+    /**
      * String property. Routing expression associated with Splits. It is interpreted by the Script class. The content should
      * start with the script engine name followed by the expression separated by a column like this:
      *
@@ -323,6 +333,12 @@ public enum BuiltInVertexProperties {
     TYPE("Type"),
 
     /**
+     * Boolean property to trigger Outcome validation before creating the entry in the ClusterStore. 
+     * Default value is false, which can be overwritten by the 'Activity.validateOutcome' system property.
+     */
+    VALIDATE_OUTCOME("ValidateOutcome"),
+
+    /**
      * Integer property. It is used in CollectionMember to store the version of DescriptionDependency
      */
     VERSION("Version"),
@@ -365,5 +381,4 @@ public enum BuiltInVertexProperties {
         }
         return null;
     }
-
 }

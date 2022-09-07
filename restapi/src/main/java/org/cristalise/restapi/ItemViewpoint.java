@@ -148,7 +148,6 @@ public class ItemViewpoint extends ItemUtils {
 
             LinkedHashMap<String, Object> eventList = new LinkedHashMap<String, Object>();
             for (int i = 0; i <= history.getLastId(); i++) {
-                @SuppressWarnings("unlikely-arg-type")
                 Event ev = history.get(i);
                 if (schema.equals(ev.getSchemaName()) && viewName.equals(ev.getViewName())) {
                     String evId = String.valueOf(i);

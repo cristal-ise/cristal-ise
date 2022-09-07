@@ -23,6 +23,7 @@ package org.cristalise.dev.scaffold
 import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.*
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION
+import static org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription.FACTORY_GENERATED_NAME
 
 import org.cristalise.dev.dsl.DevXMLUtility
 import org.cristalise.dsl.csv.TabularGroovyParser
@@ -33,7 +34,6 @@ import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.Erase
 import org.cristalise.kernel.lookup.DomainPath
-import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.persistency.outcomebuilder.Field
@@ -43,12 +43,14 @@ import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.StandardClient
 import org.cristalise.kernel.utils.LocalObjectLoader
 
-import groovy.cli.commons.CliBuilder
+import groovy.cli.picocli.CliBuilder
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
-@CompileStatic @Slf4j
+// Eclipse does not compile with this @CompileStatic
+//@CompileStatic
+@Slf4j
 class CRUDItemCreator extends StandardClient {
 
     public enum UpdateMode {ERASE, UPDATE, SKIP, ERROR}
@@ -79,7 +81,7 @@ class CRUDItemCreator extends StandardClient {
         String schemaName = null
         Integer schemaVersion = null
 
-        if (factory.checkContent(ClusterType.COLLECTION, SCHEMA_INITIALISE.name)) {
+        if (factory.checkCollection(SCHEMA_INITIALISE)) {
             def initSchemaCollection = factory.getCollection(SCHEMA_INITIALISE)
             DependencyMember member = (DependencyMember) initSchemaCollection.getMembers().list[0]
 
@@ -261,7 +263,7 @@ class CRUDItemCreator extends StandardClient {
 
         def dp = new DomainPath(itemRoot+'/'+itemName)
 
-        if (dp.exists()) {
+        if (itemName && FACTORY_GENERATED_NAME != itemName && dp.exists()) {
             item = agent.getItem(dp)
 
             if (itemName && updateMode == ERASE) {

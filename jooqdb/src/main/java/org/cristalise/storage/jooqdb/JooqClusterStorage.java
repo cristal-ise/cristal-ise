@@ -261,11 +261,8 @@ public class JooqClusterStorage extends ClusterStorage {
         else if (cluster == ClusterType.HISTORY) {
             return ((JooqHistoryHandler)handler).getLastEventId(context, itemPath.getUUID());
         }
-        else if (cluster == ClusterType.JOB) {
-            return ((JooqJobHandler)handler).getLastJobId(context, itemPath.getUUID());
-        }
         else {
-            String msg = "Invalid ClusterType! Must be either HISTORY or JOB. Actual cluster:" + cluster;
+            String msg = "Invalid ClusterType! Must be HISTORY. Actual cluster:" + cluster;
             log.error("getLastIntegerId() - {}", msg);
             throw new PersistencyException(msg);
         }
@@ -451,6 +448,21 @@ public class JooqClusterStorage extends ClusterStorage {
     }
 
     @Override
+    public void delete(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
+        log.debug("delete() - complete item:{}", itemPath);
+
+        for(ClusterType cluster: getClusters(itemPath, transactionKey)) {
+            delete(itemPath, cluster, transactionKey);
+        }
+    }
+
+    @Override
+    public void delete(ItemPath itemPath, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
+        log.debug("delete() - item:{} cluster:{}", itemPath, cluster);
+        delete(itemPath, cluster.getName(), transactionKey);
+    }
+
+    @Override
     public void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         if (!JooqDataSourceHandler.getDataSource().isAutoCommit() && transactionKey == null) {
             throw new PersistencyException("transactionKey cannot be null when autoCommit is false");
@@ -463,8 +475,8 @@ public class JooqClusterStorage extends ClusterStorage {
         DSLContext  context     = retrieveContext(transactionKey);
 
         if (handler != null) {
-            log.debug("delete() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
-            handler.delete(context, uuid, primaryKeys);
+            int deletedCount = handler.delete(context, uuid, primaryKeys);
+            log.debug("delete() - DONE uuid:{} cluster:{} primaryKeys:{} deletedCount:{}", uuid, cluster, Arrays.toString(primaryKeys), deletedCount);
         }
         else {
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");

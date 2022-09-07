@@ -52,13 +52,13 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
     }
 
     @Override
-    public String getTypeCode() {
+    protected String getTypeCode() {
         if (isComposite == null) return ACTIVITY_DESC_RESOURCE.getTypeCode();
         return isComposite ? COMP_ACT_DESC_RESOURCE.getTypeCode() : ELEM_ACT_DESC_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
+    protected String getSchemaName() {
         if (isComposite == null)
             return ACTIVITY_DESC_RESOURCE.getSchemaName(); // this won't work for resource loads, but loadObject is overridden below
         else 
@@ -66,7 +66,7 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
     }
 
     @Override
-    public String getTypeRoot() {
+    protected String getTypeRoot() {
         if (isComposite == null) return ACTIVITY_DESC_RESOURCE.getTypeRoot(); 
         else                     return isComposite ? COMP_ACT_DESC_RESOURCE.getTypeRoot() : ELEM_ACT_DESC_RESOURCE.getTypeRoot();
     }
@@ -80,7 +80,7 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
     }
 
     @Override
-    public ActivityDef loadObject(String name, int version, ItemProxy proxy, TransactionKey transactionKey) 
+    protected ActivityDef loadObject(ItemProxy proxy, int version, TransactionKey transactionKey) 
             throws ObjectNotFoundException, InvalidDataException
     {
         String viewName;
@@ -99,16 +99,16 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
         try {
             Viewpoint actView = proxy.getViewpoint(viewName, String.valueOf(version), transactionKey);
             String marshalledAct = actView.getOutcome(transactionKey).getData();
-            return buildObject(name, version, proxy.getPath(), marshalledAct);
+            return buildObject(proxy.getName(), version, proxy.getPath(), marshalledAct);
         }
         catch (PersistencyException ex) {
-            log.error("Problem loading Activity " + name + " v" + version, ex);
-            throw new ObjectNotFoundException("Problem loading Activity " + name + " v" + version + ": " + ex.getMessage());
+            log.error("Problem loading Activity " + proxy + " v" + version, ex);
+            throw new ObjectNotFoundException("Problem loading Activity " + proxy + " v" + version + ": " + ex.getMessage());
         }
     }
 
     @Override
-    public ActivityDef buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected ActivityDef buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             ActivityDef thisActDef = (ActivityDef) Gateway.getMarshaller().unmarshall(data);
             thisActDef.setBuiltInProperty(VERSION, version);

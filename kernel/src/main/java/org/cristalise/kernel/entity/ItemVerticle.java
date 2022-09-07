@@ -61,7 +61,7 @@ public class ItemVerticle extends AbstractVerticle {
      * The number of seconds before a request to an Item times out. Use {@value #REQUEST_TIMEOUT_SECONDS} 
      * SystemProperty to configure it. Default value is 10
      */
-    public static final int requestTimeout = getProperties().getInt(REQUEST_TIMEOUT_SECONDS, 10);
+    public static final int requestTimeout = getProperties().getInt(REQUEST_TIMEOUT_SECONDS, 15);
 
     @Override
     public void start(Promise<Void> startPromise) throws Exception {

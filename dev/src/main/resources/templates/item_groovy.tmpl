@@ -6,9 +6,7 @@ import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
-
-// this is defined in CrudState.groovy of the dev module
-def states = ['ACTIVE', 'INACTIVE']
+import static org.cristalise.kernel.property.BuiltInItemProperties.*;
 
 /**
  * @{item.name} Item
@@ -58,13 +56,13 @@ Activity('@{item.name}_Update', @{version}) {
 Script('@{item.name}_Aggregate', @{version}) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
     output('@{item.name}XML', 'java.lang.String')
-    script('groovy', moduleDir+'/script/@{item.name}_Aggregate.groovy')
+    script('groovy', moduleDir+'/@{item.name}/script/Aggregate.groovy')
 }
 
 Script('@{item.name}_QueryList', @{version}) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
     output('@{item.name}Map', 'java.util.Map')
-    script('groovy', moduleDir+'/script/@{item.name}_QueryList.groovy')
+    script('groovy', moduleDir+'/@{item.name}/script/QueryList.groovy')
 }
 
 Activity('@{item.name}_Aggregate', @{version}) {
@@ -103,8 +101,9 @@ Item(name: '@{item.name}Factory', version: @{version}, folder: '/@{moduleNs}', w
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': '/@{moduleNs}/@{item.name}s')
 @if{generatedName}
-    InmutableProperty('IDPrefix': '@{idPrefix}')
-    Property('LeftPadSize': '@{leftPadSize}')
+    InmutableProperty((ID_PREFIX): '@{idPrefix}')
+    InmutableProperty((LEFT_PAD_SIZE): '@{leftPadSize}')
+    Property((LAST_COUNT): '0')
 @end{}
 
 @if{isAgent}

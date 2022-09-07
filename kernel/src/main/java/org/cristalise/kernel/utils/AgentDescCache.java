@@ -36,22 +36,22 @@ import lombok.extern.slf4j.Slf4j;
 public class AgentDescCache extends DescriptionObjectCache<ImportAgent> {
 
     @Override
-    public String getTypeCode() {
+    protected String getTypeCode() {
         return AGENT_DESC_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
+    protected String getSchemaName() {
         return AGENT_DESC_RESOURCE.getSchemaName();
     }
 
     @Override
-    public String getTypeRoot() {
+    protected String getTypeRoot() {
         return AGENT_DESC_RESOURCE.getTypeRoot(); 
     }
 
     @Override
-    public ImportAgent buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected ImportAgent buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             ImportAgent thisImportAgent = (ImportAgent) Gateway.getMarshaller().unmarshall(data);
             thisImportAgent.setName(name);

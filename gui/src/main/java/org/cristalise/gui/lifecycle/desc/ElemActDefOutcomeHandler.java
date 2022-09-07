@@ -33,18 +33,9 @@ import org.cristalise.gui.tabs.outcome.OutcomeNotInitialisedException;
 import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-
-/**************************************************************************
- *
- * $Revision: 1.5 $
- * $Date: 2005/10/05 07:39:37 $
- *
- * Copyright (C) 2003 CERN - European Organization for Nuclear Research
- * All rights reserved.
- **************************************************************************/
-
+@Slf4j
 public class ElemActDefOutcomeHandler extends VertexPropertyPanel implements OutcomeHandler {
 
     ActivityDef act;
@@ -63,7 +54,7 @@ public class ElemActDefOutcomeHandler extends VertexPropertyPanel implements Out
             act = (ActivityDef)Gateway.getMarshaller().unmarshall(outcome);
             setVertex(act);
         } catch (Exception ex) {
-            Logger.error(ex);
+            log.error("",ex);
             throw new InvalidOutcomeException();
         }
     }
@@ -102,7 +93,7 @@ public class ElemActDefOutcomeHandler extends VertexPropertyPanel implements Out
         try {
             return Gateway.getMarshaller().marshall(act);
         } catch (Exception ex) {
-            Logger.error(ex);
+            log.error("",ex);
             throw new OutcomeException();
         }
     }

@@ -125,6 +125,9 @@ public class ItemPath extends Path {
         return UUID.fromString(mPath[0]);
     }
 
+    /**
+     * Returns the UUID in String form
+     */
     @Override
     public String getName() {
         return mPath[0]; //originally it was 'return getUUID().toString()';
@@ -135,6 +138,11 @@ public class ItemPath extends Path {
         return ClusterType.PATH + "/Item";
     }
 
+    /**
+     * Check if the given string contains a UUID. Remove the cristal-ise specific '/entity/' prefix if present
+     * @param entityKey the entity key of an Item, can contain the '/entity/' prefix
+     * @return whether the entytyKey is a UUID or not
+     */
     public static boolean isUUID(String entityKey) {
         if (entityKey.startsWith("/entity/")) entityKey = entityKey.substring(8);
 

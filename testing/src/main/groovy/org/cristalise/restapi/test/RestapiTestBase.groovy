@@ -1,35 +1,30 @@
 package org.cristalise.restapi.test
 
-import static io.restassured.http.ContentType.JSON
 import static io.restassured.RestAssured.*
+import static io.restassured.http.ContentType.JSON
 import static org.cristalise.restapi.RestHandler.PASSWORD
 import static org.cristalise.restapi.RestHandler.USERNAME
 import static org.hamcrest.Matchers.*
-
 import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
-
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportAgent
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportItem
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportRole
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep
-import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
-import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewItem
-import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
+import org.cristalise.kernel.persistency.outcome.Viewpoint
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.cristalise.kernel.test.utils.KernelXMLUtility
-import org.cristalise.restapi.RestHandler
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.XML;
 import org.junit.Before
 import org.junit.BeforeClass
-
 import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
-import io.restassured.builder.RequestSpecBuilder
 import io.restassured.http.ContentType
 import io.restassured.http.Cookie
 import io.restassured.response.Response
-import io.restassured.specification.RequestSpecification
 
 @CompileStatic
 class RestapiTestBase extends KernelScenarioTestBase {
@@ -231,6 +226,16 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .extract().response().body().asString()
     }
 
+    String checkViewpoint(String uuid, String schema, String view) {
+        return given()
+            .cookie(cauthCookie)
+        .when()
+            .get(apiUri+"/item/$uuid/viewpoint/$schema/$view")
+        .then()
+            .statusCode(STATUS_OK)
+        .extract().response().body().asString()
+    }
+
     String executeActivity(String uuid, String actPath, ContentType outcomeType = JSON, String outcome, File attachment) {
         return given().log().all()
             .header("Content-Type", "multipart/form-data")
@@ -294,7 +299,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
 
         if (type == JSON) param = XML.toJSONObject(param).toString()
 
-        executePredefStep(serverItemUUID, CreateNewItem.class, type, param)
+        executePredefStep(serverItemUUID, ImportImportItem.class, type, param)
         def uuid = resolveDomainPath("/restapiTests/$name")
         assert uuid
         return uuid
@@ -306,7 +311,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
 
         if (type == JSON) param = XML.toJSONObject(param).toString()
 
-        executePredefStep(serverItemUUID, CreateNewAgent.class, type, param)
+        executePredefStep(serverItemUUID, ImportImportAgent.class, type, param)
 
         def agents = resolveRole('Admin')
         def uuid = ""
@@ -328,7 +333,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
 
         if (type == JSON) param = XML.toJSONObject(param).toString()
 
-        executePredefStep(serverItemUUID, CreateNewRole.class, type, param)
+        executePredefStep(serverItemUUID, ImportImportRole.class, type, param)
 
         resolveRole(name)
     }

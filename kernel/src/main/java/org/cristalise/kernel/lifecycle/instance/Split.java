@@ -25,7 +25,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.LAST_NUM
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_EXPR;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_VERSION;
-
+import java.util.Arrays;
 import java.util.Vector;
 
 import org.apache.commons.lang3.StringUtils;
@@ -195,7 +195,7 @@ public abstract class Split extends WfVertex {
         }
         else {
             if (Gateway.getProperties().getBoolean("RoutingScript.enforceStringReturnValue", false))
-                throw new InvalidDataException("Routing script or expression must return String");
+                throw new InvalidDataException("Split id:"+getID()+" Routing script or expression must return String");
             else
                 stringValue = value.toString();
         }
@@ -214,8 +214,8 @@ public abstract class Split extends WfVertex {
                 return getRoutingReturnValue(returnValue);
             }
             catch (PersistencyException | ObjectNotFoundException e) {
-                log.error("", e);
-                throw new InvalidDataException("Routing expression evaluation failed: " + expr + " with " + e.getMessage());
+                log.error("calculateNexts()", e);
+                throw new InvalidDataException("Routing expression evaluation failed: " + expr + " with " + e.getMessage(), e);
             }
         }
         else if (StringUtils.isNotBlank(scriptName)) {
@@ -226,11 +226,14 @@ public abstract class Split extends WfVertex {
             catch (ScriptingEngineException e) {
                 String msg = "Error running Routing script "+scriptName+" v"+scriptVersion;
                 log.error(msg, e);
-                throw new InvalidDataException(msg + " error:" + e.getMessage());
+                throw new InvalidDataException(msg + " error:" + e.getMessage(), e);
             }
         }
-        else
-            throw new InvalidDataException("Split is invalid without valid Routing script or expression");
+        else {
+            String msg = "Split id: "+getID()+" is invalid without valid Routing script or expression";
+            log.error("calculateNexts() - {}", msg);
+            throw new InvalidDataException(msg);
+        }
     }
 
     public String[] nextNames() {
@@ -242,12 +245,68 @@ public abstract class Split extends WfVertex {
         return result;
     }
 
-    protected boolean isInTable(String test, String[] list) {
-        if (test == null) return false;
+    /**
+     * Check if the one of value in the input list matches value(s) defined in the Alias property of output edges. 
+     * Values are trimmed before validity check and before comparison .
+     *
+     * The value(s) in the alias may contain
+     * <pre>
+     * - '|' to define list of accepted values (or match)
+     * - '!' to define value for negative match
+     * - '*' to define value for wildcard matches based startWith(), endsWith(), contains() methods of String
+     * </pre>
+     * 
+     * @param alias Value of the Alias property of an output edge, which could be '|' separated list containing ! and * characters
+     * @param list values returned by the routing script/expression
+     * @return return false if alias is blank otherwise it true/false depending on the rules described above
+     * @throws InvalidDataException value in th input list is blank or or alias value contains both '!' and '*'
+     */
+    protected boolean isInTable(String alias, String[] list) throws InvalidDataException {
+        if (StringUtils.isBlank(alias)) return false;
 
-        for (String element : list) {
-            for (String value: test.split("\\|")) {
-                if (value.equals(element)) return true;
+        for (String listValue: list) {
+            listValue = listValue.trim();
+
+            if (StringUtils.isBlank(listValue)) {
+                String msg = "Split id:" + getID() + " list contains blank value:" + Arrays.toString(list);
+                log.error("isInTable() - {}", msg);
+                throw new InvalidDataException(msg);
+            }
+
+            for (String aliasValue: alias.split("\\|")) {
+                aliasValue = aliasValue.trim();
+
+                if (aliasValue.contains("!") && aliasValue.contains("*")) {
+                    String msg = "Split id:" + getID() + " aliasValue:" + aliasValue + " contains both '!' and '*'";
+                    log.error("isInTable() - {}", msg);
+                    throw new InvalidDataException(msg);
+                }
+
+                if (aliasValue.equals("!") || aliasValue.equals("*")) {
+                    String msg = "Split id:" + getID() + " aliasValue:" + aliasValue + " cannot be a single '!' or '*'";
+                    log.error("isInTable() - {}", msg);
+                    throw new InvalidDataException(msg);
+                }
+
+                if (aliasValue.startsWith("!")) {
+                    String aliasToCompare = aliasValue.substring(1).trim();
+                    if (! listValue.equals(aliasToCompare)) return true;
+                }
+                else if (aliasValue.startsWith("*") && aliasValue.endsWith("*")) {
+                    String aliasToCompare = aliasValue.substring(1, aliasValue.length()-1).trim();
+                    if (listValue.contains(aliasToCompare)) return true;
+                }
+                else if (aliasValue.startsWith("*")) {
+                    String aliasToCompare = aliasValue.substring(1).trim();
+                    if (listValue.startsWith(aliasToCompare)) return true;
+                }
+                else if (aliasValue.endsWith("*")) {
+                    String aliasToCompare = aliasValue.substring(0, aliasValue.length()-1).trim();
+                    if (listValue.endsWith(aliasToCompare)) return true;
+                }
+                else {
+                    if (aliasValue.equals(listValue)) return true;
+                }
             }
         }
 

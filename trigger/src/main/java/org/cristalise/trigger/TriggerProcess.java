@@ -23,13 +23,11 @@ package org.cristalise.trigger;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
-
 import java.util.ArrayList;
 import java.util.Set;
-
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
@@ -43,7 +41,6 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
 import org.quartz.SimpleTrigger;
-
 import io.vertx.core.Vertx;
 import lombok.extern.slf4j.Slf4j;
 
@@ -105,7 +102,7 @@ public class TriggerProcess extends StandardClient {
             });
         });
 
-        Set<String> jobIds = agent.getJobList().keySet();
+        Set<String> jobIds = null;//agent.getJobList().keySet();
         log.debug("initialise() - Retrieving #{} of Jobs.", jobIds.size());
         for (String id: jobIds) add(agent.getJob(id));
     }
@@ -171,7 +168,7 @@ public class TriggerProcess extends StandardClient {
      */
     public void add(Job currentJob) {
         String transName = currentJob.getTransition().getName();
-        String jobID = Integer.toString(currentJob.getId());
+        String jobID = "";//Integer.toString(currentJob.getId());
 
         Boolean enabled      = Gateway.getProperties().getBoolean("Trigger.enabled", true);
         Boolean transitionOn = (Boolean)currentJob.getActProp(transName+"On", true);

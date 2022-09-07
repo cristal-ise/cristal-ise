@@ -40,7 +40,7 @@ import org.cristalise.kernel.collection.Aggregation;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
@@ -227,6 +227,7 @@ public class NodeItem extends Node implements Transferable {
         requiredTabs.add("History");
         requiredTabs.add("Viewpoint");
         requiredTabs.add("Workflow");
+        requiredTabs.add("JobList");
         return requiredTabs;
 
     }

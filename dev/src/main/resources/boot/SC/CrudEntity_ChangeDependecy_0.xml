@@ -1,6 +1,7 @@
 <cristalscript>
   <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
-  <script language="groovy" name="CrudEntity_ChangeDependecy"><![CDATA[ /**
+  <script language="groovy" name="CrudEntity_ChangeDependecy">
+    <![CDATA[ /**
  * This file is part of the CRISTAL-iSE Development Module.
  * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
@@ -24,7 +25,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.common.InvalidDataException
-import org.cristalise.kernel.entity.agent.Job
+import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection
@@ -53,19 +54,22 @@ def Dependency processAddMembersToCollection(AgentProxy theAgent, Job theJob, St
     def memberName = outcome.getField('MemberName')
 
     if (!memberPath && !memberName) {
-        log.error('processAddMembersToCollection() - MemberPath and MemberPath is missing from outcome:{}', outcome)
-        throw new InvalidDataException('Please provide MemberPath or MemberPath')
+        log.error('processAddMembersToCollection() - Both MemberPath and MemberName are missing from outcome:{}', outcome)
+        throw new InvalidDataException('Please provide MemberPath or MemberName')
     }
+
+    def memberPropString = outcome.getField('MemberProperties')
+    def memberProps = memberPropString ? (CastorHashMap)theAgent.unmarshall(memberPropString) : new CastorHashMap()
 
     def dep = new Dependency(dependencyName)
 
     if (memberPath) {
-        dep.addMember(theAgent.getItem(memberPath).getPath(), new CastorHashMap(), '', null);
+        dep.addMember(theAgent.getItem(memberPath).getPath(), memberProps, '', null);
     }
     else {
         // find the item in the 'default' location eg. /integTest/Patients/kovax
         def moduleNs = theJob.getActProp('ModuleNameSpace')
-        dep.addMember(theAgent.getItem("$moduleNs/$dependencyName/$memberName").getPath(), new CastorHashMap(), '', null);
+        dep.addMember(theAgent.getItem("$moduleNs/$dependencyName/$memberName").getPath(), memberProps, '', null);
     }
 
     return dep
@@ -104,16 +108,27 @@ def dependencyName = job.getActProp(DEPENDENCY_NAME)
 def predefinedStep = job.getActProp(PREDEFINED_STEP)
 
 if (predefinedStep == AddMembersToCollection.class.getSimpleName()) {
-    def dep = processAddMembersToCollection(agent, job, dependencyName, outcome)
-    outcome.appendXmlFragment('//AddMembersToCollection', agent.marshall(dep))
+    if (outcome.getNodeByXPath('//AddMembersToCollection/Dependency')) {
+        log.debug('//AddMembersToCollection/Dependency is already in Outcome - job:{}', job);
+    }
+    else {
+        def dep = processAddMembersToCollection(agent, job, dependencyName, outcome)
+        outcome.appendXmlFragment('//AddMembersToCollection', agent.marshall(dep))
+    }
 }
 else if (predefinedStep == RemoveMembersFromCollection.class.getSimpleName()) {
-    def dep = processRemoveMembersFromCollection(item, agent, job, dependencyName, outcome)
-    outcome.appendXmlFragment('//RemoveMembersFromCollection', agent.marshall(dep))
+    if (outcome.getNodeByXPath('//RemoveMembersFromCollection/Dependency')) {
+        log.debug('//RemoveMembersFromCollection/Dependency is already in Outcome - job:{}', job);
+    }
+    else {
+        def dep = processRemoveMembersFromCollection(item, agent, job, dependencyName, outcome)
+        outcome.appendXmlFragment('//RemoveMembersFromCollection', agent.marshall(dep))
+    }
 }
 else {
     throw new InvalidDataException("Script CrudEntity_ChangeDependecy cannot handle predefined step:"+predefinedStep);
 }
 
- ]]></script>
+ ]]>
+  </script>
 </cristalscript>

@@ -31,7 +31,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.xml.xpath.XPathConstants;
@@ -69,7 +71,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class CompositeActivityDef extends ActivityDef {
-    private ArrayList<ActivityDef> refChildActDef = new ArrayList<ActivityDef>();
+    private List<ActivityDef> refChildActDef = new ArrayList<ActivityDef>();
 
     public CompositeActivityDef() {
         super();
@@ -92,11 +94,11 @@ public class CompositeActivityDef extends ActivityDef {
         setVersion(v);
     }
 
-    public ArrayList<ActivityDef> getRefChildActDef() {
+    public List<ActivityDef> getRefChildActDef() {
         return refChildActDef;
     }
 
-    public void setRefChildActDef(ArrayList<ActivityDef> refChildActDef) {
+    public void setRefChildActDef(List<ActivityDef> refChildActDef) {
         this.refChildActDef = refChildActDef;
     }
 
@@ -336,17 +338,17 @@ public class CompositeActivityDef extends ActivityDef {
         return makeDescCollection(ACTIVITY, transactionKey, refChildActDef.toArray(new ActivityDef[refChildActDef.size()]));
     }
 
-    public ArrayList<ActivityDef> findRefActDefs(GraphModel graph, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        ArrayList<ActivityDef> graphActDefs = new ArrayList<ActivityDef>();
+    public List<ActivityDef> findRefActDefs(GraphModel graph, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        Map<String, ActivityDef> graphActDefs = new LinkedHashMap<>();
         for (Vertex elem : graph.getVertices()) {
             if (elem instanceof ActivitySlotDef) {
                 ActivitySlotDef actSlotDef = (ActivitySlotDef) elem;
                 actSlotDef.setTheActivityDef(null); //enforce getTheActivityDef() to do the full search
                 ActivityDef actDef = actSlotDef.getTheActivityDef(transactionKey);
-                if (!graphActDefs.contains(actDef)) graphActDefs.add(actDef);
+                if (!graphActDefs.containsKey(actDef.getActName())) graphActDefs.put(actDef.getActName(), actDef);
             }
         }
-        return graphActDefs;
+        return new ArrayList<ActivityDef>(graphActDefs.values());
     }
 
     /**
@@ -439,7 +441,7 @@ public class CompositeActivityDef extends ActivityDef {
      */
     public void export(Writer imports, File dir, boolean shallow, boolean rebuild) throws InvalidDataException, ObjectNotFoundException, IOException {
         if (rebuild) {
-            ArrayList<ActivityDef> rebuiltActDefList = findRefActDefs(getChildrenGraphModel(), null);
+            List<ActivityDef> rebuiltActDefList = findRefActDefs(getChildrenGraphModel(), null);
             setRefChildActDef(rebuiltActDefList);
         }
 
@@ -468,7 +470,7 @@ public class CompositeActivityDef extends ActivityDef {
             String compactXML = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
             if (Gateway.getProperties().getBoolean("Export.replaceActivitySlotDefUUIDWithName", false)) {
                 compactXML = replaceActivitySlotDefUUIDWithName(compactXML);
-            }            
+            }
             FileStringUtility.string2File(new File(new File(dir, tc), getActName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml"), compactXML);
         }
         catch (Exception e) {

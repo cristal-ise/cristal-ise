@@ -1,0 +1,18 @@
+<CastorHashMap>
+  <KeyValuePair Key="Breakpoint" isAbstract="false" Boolean="false" />
+  <KeyValuePair Key="OutcomeInit" isAbstract="false" String="" />
+  <KeyValuePair Key="StateMachineVersion" isAbstract="false" Integer="0" />
+  <KeyValuePair Key="Description" isAbstract="false" String="" />
+  <KeyValuePair Key="SchemaVersion" isAbstract="false" String="" />
+  <KeyValuePair Key="ScriptVersion" isAbstract="false" String="0" />
+  <KeyValuePair Key="Agent Name" isAbstract="false" String="" />
+  <KeyValuePair Key="ViewName" isAbstract="false" String="Schema" />
+  <KeyValuePair Key="SchemaType" isAbstract="false" String="" />
+  <KeyValuePair Key="Name" isAbstract="false" String="MoveLatestSchemaVersionToLast" />
+  <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+  <KeyValuePair Key="Viewpoint" isAbstract="false" String="" />
+  <KeyValuePair Key="ScriptName" isAbstract="false" String="SetLastNumberedVersionToLast" />
+  <KeyValuePair Key="Show time" isAbstract="false" Boolean="true" />
+  <KeyValuePair Key="StateMachineName" isAbstract="false" String="Default" />
+  <KeyValuePair Key="Agent Role" isAbstract="false" String="" />
+</CastorHashMap>

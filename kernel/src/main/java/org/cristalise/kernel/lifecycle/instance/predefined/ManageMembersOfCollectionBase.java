@@ -24,6 +24,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.cristalise.kernel.collection.Collection.Type.Bidirectional;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_TO;
+import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 
 import java.io.IOException;
 
@@ -45,6 +46,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -152,18 +154,53 @@ public abstract class ManageMembersOfCollectionBase extends PredefinedStep {
     }
 
     /**
+     * Reads the DependencyTo property of the member to retrieve the name of the dependency. The property may 
+     * contain a single Dependency name or a mapping of ItemType to a Dependency e.g.: 'Employee:Employees, Guest:Guests'
+     * 
+     * @param currentItem
+     * @param currentDependency
+     * @param transactionKey
+     * @return 
+     * @throws InvalidDataException
+     */
+    private String retrieveDependencyName(ItemPath currentItem, Dependency currentDependency, TransactionKey transactionKey)
+            throws InvalidDataException
+    {
+        String toDependencyName = "";
+        String currentItemType = PropertyUtility.getPropertyValue(currentItem, TYPE, "", transactionKey);
+        String[] toDependencyNames = ((String)currentDependency.getBuiltInProperty(DEPENDENCY_TO)).trim().split(",");
+
+        for (String nameValueString: toDependencyNames) {
+            String[] nameValue = nameValueString.trim().split(":");
+
+            if (nameValue.length == 1)                             toDependencyName = nameValue[0].trim();
+            else if (currentItemType.equals( nameValue[0].trim())) toDependencyName = nameValue[1].trim();
+
+            if (StringUtils.isNotBlank(toDependencyName)) break;
+        }
+
+        if (StringUtils.isBlank(toDependencyName)) {
+            throw new InvalidDataException(
+                    "Invalid value MemberProperty:" + DEPENDENCY_TO + "=" + currentDependency.getBuiltInProperty(DEPENDENCY_TO) + " item:" + currentItem.getItemName(transactionKey));
+        }
+
+        return toDependencyName;
+    }
+
+    /**
      * Loops all members in the inputDependency and adds an update instruction for each of them. This will result in a call 
      * of AddMembersToCollection on the Items referenced by the member.
      * 
-     * @param currentItem the Item currently processing an Activity.requets()
+     * @param currentItem the Item currently processing an Activity.request()
      * @param toDependencyName the name of the Dependency in the other Item, i.e. referenced by the member.
      * @param inputDependency the Dependency object extracted from the Outcome of the Activity.requets()
+     * @param transactionKey
      * @throws InvalidDataException 
      */
-    private void addToDependencyUpdates(ItemPath currentItem, Dependency currentDependency, Dependency inputDependency)
+    private void addUpdates_DependencyTo(ItemPath currentItem, Dependency currentDependency, Dependency inputDependency, TransactionKey transactionKey)
             throws InvalidDataException, InvalidCollectionModification, ObjectAlreadyExistsException
     {
-        String toDependencyName = (String) currentDependency.getBuiltInProperty(DEPENDENCY_TO);
+        String toDependencyName = retrieveDependencyName(currentItem, currentDependency, transactionKey);
 
         for (DependencyMember inputMember : inputDependency.getMembers().list) {
             Dependency toDep = new Dependency(toDependencyName);
@@ -211,7 +248,7 @@ public abstract class ManageMembersOfCollectionBase extends PredefinedStep {
         }
 
         if (currentDepType != null && currentDepType == Bidirectional) {
-            addToDependencyUpdates(currentItemPath, currentDependency, inputDependency);
+            addUpdates_DependencyTo(currentItemPath, currentDependency, inputDependency, transactionKey);
         }
     }
 }

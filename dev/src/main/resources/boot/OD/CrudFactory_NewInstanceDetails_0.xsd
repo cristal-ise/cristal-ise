@@ -13,15 +13,21 @@
             <xs:documentation>Put the new Item into this sub-forlder</xs:documentation>
           </xs:annotation>
         </xs:element>
-        <xs:element name='LastCount' type='xs:integer' minOccurs='0' maxOccurs='1'>
-          <xs:annotation>
-            <xs:documentation>The last number used to generate the ID</xs:documentation>
-            <xs:appinfo>
-              <dynamicForms>
-                <hidden>true</hidden>
-              </dynamicForms>
-            </xs:appinfo>
-          </xs:annotation>
+        <xs:element name='PropertyList' minOccurs='0' maxOccurs='1'>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name='Property' minOccurs='1' maxOccurs='unbounded'>
+                <xs:complexType>
+                  <xs:simpleContent>
+                    <xs:extension base='xs:string'>
+                      <xs:attribute name='name' type='xs:string' />
+                      <xs:attribute name='mutable' type='xs:boolean' default='true' />
+                    </xs:extension>
+                  </xs:simpleContent>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
         </xs:element>
         <xs:element name='SchemaInitialise' minOccurs='0' maxOccurs='1'>
           <xs:annotation>

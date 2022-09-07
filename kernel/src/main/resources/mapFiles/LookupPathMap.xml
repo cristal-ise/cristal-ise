@@ -55,4 +55,17 @@
             <bind-xml name="Permission" node="element" />
         </field>
     </class>
+
+    <class name="org.cristalise.kernel.lookup.SearchFilter">
+        <map-to xml="SearchFilter" />
+        <field name="searchRoot" type="string" direct="false">
+            <bind-xml name="SearchRoot" node="element" />
+        </field>
+        <field name="properties" collection="arraylist" direct="false" type="org.cristalise.kernel.property.Property">
+            <bind-xml name="Property" node="element" />
+        </field>
+        <field name="recordsFound" type="integer" direct="false">
+            <bind-xml name="RecordsFound" node="element" />
+        </field>
+    </class>
 </mapping>

@@ -1,0 +1,15 @@
+{
+  "column" : [ {
+    "label" : "Cars",
+    "icon" : "fa fa-cubes",
+    "routerLink" : [ "devtest/Cars" ]
+  }, {
+    "label" : "Motorcycles",
+    "icon" : "fa fa-cubes",
+    "routerLink" : [ "devtest/Motorcycles" ]
+  }, {
+    "label" : "ClubMembers",
+    "icon" : "fa fa-cubes",
+    "routerLink" : [ "devtest/ClubMembers" ]
+  } ]
+}

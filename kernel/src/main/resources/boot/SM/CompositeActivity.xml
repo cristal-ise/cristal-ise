@@ -24,8 +24,10 @@
     <State id="0" name="Waiting"/>
     <State id="1" name="Started"/>
     <State id="2" name="Finished" proceeds="true"/>
+    <State id="3" name="Aborted"/>
 
     <Transition id="0" name="Start" origin="0" target="1" reservation="clear"/>
     <Transition id="1" name="Complete" origin="1" target="2" reservation="clear"/>
     <Transition id="2" name="Loop" origin="1" target="1" enablingProperty="RepeatWhen" reinitializes="true" reservation="clear"/>
+    <Transition id="3" name="Abort" origin="1" target="3" reservation="clear"/>
 </StateMachine>

@@ -60,6 +60,7 @@ public abstract class PredefinedStepContainer extends CompositeActivity {
         predInit("CreateAgentFromDescription", "Create a new agent using this item as its description", new CreateAgentFromDescription());
         predInit(ChangeName.class, ChangeName.description, new ChangeName());
         predInit(Erase.class,      Erase.description,      new Erase());
+        predInit(BulkErase.class,  BulkErase.description,  new BulkErase());
 
         predInit(UpdateCollectionsFromDescription.class, UpdateCollectionsFromDescription.description, new UpdateCollectionsFromDescription());
         predInit(UpdateProperitesFromDescription.class,  UpdateProperitesFromDescription.description,  new UpdateProperitesFromDescription());

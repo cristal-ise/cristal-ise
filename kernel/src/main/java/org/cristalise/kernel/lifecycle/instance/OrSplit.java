@@ -50,9 +50,9 @@ public class OrSplit extends Split {
         log.trace("runNext(id:{}) - Finding edge with {} '{}'", id, ALIAS, Arrays.toString(nextsTab));
 
         for (DirectedEdge outEdge : getOutEdges()) {
-            if (isInTable((String)((Next)outEdge).getBuiltInProperty(ALIAS), nextsTab)) {
-                nextsToFollow.add(outEdge);
-            }
+            String alias = (String)((Next)outEdge).getBuiltInProperty(ALIAS, "");
+
+            if (isInTable(alias, nextsTab)) nextsToFollow.add(outEdge);
         }
 
         if (nextsToFollow .size() == 0) {
@@ -61,7 +61,7 @@ public class OrSplit extends Split {
 
         for (DirectedEdge edge : nextsToFollow) {
             Next next = (Next)edge;
-            log.trace("runNext(id:{}) - Running {}", id, next.getBuiltInProperty(ALIAS));
+            log.trace("runNext(id:{}) - Running Alias:{}", id, next.getBuiltInProperty(ALIAS));
             next.getTerminusVertex().run(agent, itemPath, transactionKey);
         }
     }

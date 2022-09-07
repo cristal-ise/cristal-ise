@@ -22,7 +22,7 @@
 package org.cristalise.dev.test.scenario
 
 import org.cristalise.dsl.persistency.outcome.OutcomeBuilder
-import org.cristalise.kernel.entity.agent.Job
+import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.junit.Test
@@ -117,9 +117,11 @@ class XPathOutcomeInitTestIT extends KernelScenarioTestBase {
         //compActDefFactoryName = "/domain/desc/integTest/XPathOutcomeInitTest_CADefFactory"
 
         def wf = CompositeActivityDef("XPathOutcomeInitTestWF-$timeStamp", folder) {
-            ElemActDef('First',  actDefs[0])
-            ElemActDef('Second', actDefs[1])
-            ElemActDef('Third',  actDefs[2])
+            Layout {
+                ElemActDef('First',  actDefs[0])
+                ElemActDef('Second', actDefs[1])
+                ElemActDef('Third',  actDefs[2])
+            }
         }
 
         def factory = DescriptionItem("XPathOutcomeInitTestFactory-$timeStamp", folder) {

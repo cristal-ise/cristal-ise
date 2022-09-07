@@ -20,15 +20,24 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.item;
 
+import static org.apache.commons.lang3.StringUtils.equalsAny;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.leftPad;
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE;
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 import static org.cristalise.kernel.property.BuiltInItemProperties.CREATOR;
+import static org.cristalise.kernel.property.BuiltInItemProperties.ID_PREFIX;
+import static org.cristalise.kernel.property.BuiltInItemProperties.LAST_COUNT;
+import static org.cristalise.kernel.property.BuiltInItemProperties.LEFT_PAD_SIZE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
-
+import static org.cristalise.kernel.property.PropertyUtility.getPropertyDescriptionOutcome;
+import static org.cristalise.kernel.property.PropertyUtility.getPropertyValue;
+import static org.cristalise.kernel.property.PropertyUtility.writeProperty;
 import java.io.IOException;
-
+import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
@@ -41,6 +50,7 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
@@ -53,6 +63,7 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
@@ -61,16 +72,16 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.property.PropertyDescriptionList;
-import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CreateItemFromDescription extends PredefinedStep {
+
+    public static final String FACTORY_GENERATED_NAME = "FACTORY_GENERATED";
 
     public CreateItemFromDescription() {
         super();
@@ -100,19 +111,18 @@ public class CreateItemFromDescription extends PredefinedStep {
                    ObjectCannotBeUpdated,
                    PersistencyException
     {
-        String[] input = getDataList(requestData);
+        String[] inputs = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), descItemPath, (Object)input);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), descItemPath, (Object)inputs);
 
-        String            newName   = input[0];
-        String            domPath   = input[1];
-        String            descVer   = input.length > 2 && StringUtils.isNotBlank(input[2]) ? input[2] : "last";
-        PropertyArrayList initProps = input.length > 3 && StringUtils.isNotBlank(input[3]) ? unmarshallInitProperties(input[3]) : new PropertyArrayList();
-        String            outcome   = input.length > 4 && StringUtils.isNotBlank(input[4]) ? input[4] : "";
+        String            newName   = getItemName(descItemPath, inputs[0], transactionKey);
+        String            domPath   = inputs[1];
+        String            descVer   = inputs.length > 2 && isNotBlank(inputs[2]) ? inputs[2] : "last";
+        PropertyArrayList initProps = inputs.length > 3 && isNotBlank(inputs[3]) ? unmarshallInitProperties(inputs[3]) : new PropertyArrayList();
+        String            outcome   = inputs.length > 4 && isNotBlank(inputs[4]) ? inputs[4] : "";
 
         // check if the path is already taken
         DomainPath context = new DomainPath(new DomainPath(domPath), newName);
-
         if (context.exists(transactionKey)) throw new ObjectAlreadyExistsException("The path " + context + " exists already.");
 
         // generate new item path with random uuid
@@ -125,7 +135,57 @@ public class CreateItemFromDescription extends PredefinedStep {
 
         initialiseItem(newItemPath, agent, descItemPath, initProps, outcome, newName, descVer, context, newItemPath, transactionKey);
 
-        return requestData;
+        // in case of generated name send it back with the update requestData
+        inputs[0] = newName;
+        return bundleData(inputs);
+    }
+
+    /**
+     * 
+     * @param descItemPath
+     * @param newName
+     * @param transactionKey
+     * @return
+     * @throws InvalidDataException
+     * @throws ObjectNotFoundException 
+     * @throws ObjectCannotBeUpdated 
+     * @throws PersistencyException 
+     */
+    public String getItemName(ItemPath descItemPath, String newName, TransactionKey transactionKey) 
+            throws InvalidDataException, PersistencyException, ObjectCannotBeUpdated, ObjectNotFoundException
+    {
+        // Check if Name is generated
+        if (FACTORY_GENERATED_NAME.equals(newName)) {
+            try {
+                String  prefix  = getPropertyValue(descItemPath, ID_PREFIX, "", transactionKey);
+                Integer padSize = new Integer(getPropertyValue(descItemPath, LEFT_PAD_SIZE, (String)null, transactionKey));
+
+                log.debug("getItemName() - generating name prefix:{}, padSize:{}", prefix, padSize);
+
+                if (isBlank(prefix) || padSize == null) {
+                    throw new InvalidDataException("Item:"+descItemPath.getItemName()+" property '"+ID_PREFIX+"' and '"+LEFT_PAD_SIZE+"' must contain value");
+                }
+
+                Integer lastCount = new Integer(getPropertyValue(descItemPath, LAST_COUNT, "0", transactionKey));
+                lastCount++;
+
+                writeProperty(descItemPath, LAST_COUNT, lastCount.toString(), transactionKey);
+
+                return prefix + leftPad(lastCount.toString(), padSize, "0");
+            }
+            catch (NumberFormatException e) {
+                String msg = "Item:"+descItemPath.getItemName()+" properties:'"+LAST_COUNT+"','"+LEFT_PAD_SIZE+"' must contain integer value";
+                log.error(msg, e);
+                throw new InvalidDataException(msg, e);
+            }
+        }
+        else {
+            if (isBlank(newName) || equalsAny(newName, "string", "null")) {
+                throw new InvalidDataException("Name must be provided");
+            }
+        }
+
+        return newName;
     }
 
     /**
@@ -225,7 +285,7 @@ public class CreateItemFromDescription extends PredefinedStep {
             throws ObjectNotFoundException, InvalidDataException
     {
         // copy properties -- intend to create from propdesc
-        PropertyDescriptionList pdList = PropertyUtility.getPropertyDescriptionOutcome(descItemPath, descVer, transactionKey);
+        PropertyDescriptionList pdList = getPropertyDescriptionOutcome(descItemPath, descVer, transactionKey);
         PropertyArrayList       props  = pdList.instantiate(initProps);
 
         // set Name prop or create if not present
@@ -463,7 +523,7 @@ public class CreateItemFromDescription extends PredefinedStep {
             Gateway.getStorage().put(item, initViewpoint, transactionKey);
         }
 
-        // init collections
+        // store collections
         if (colls != null) {
             for (Collection<?> thisColl : colls.list) {
                 Gateway.getStorage().put(item, thisColl, transactionKey);
@@ -471,20 +531,32 @@ public class CreateItemFromDescription extends PredefinedStep {
         }
 
         // create wf
-        Workflow lc = null;
+        Workflow wf = null;
         PredefinedStepContainer cont = (item instanceof AgentPath) ? new AgentPredefinedStepContainer() : new ItemPredefinedStepContainer();
 
         if (ca == null) {
             // FIXME check if this could be a real error
             log.warn("storeItem({}) - CompositeActivity was null. Creating workflow with empty domain CompAct.", item);
-            lc = new Workflow(new CompositeActivity(), cont);
+            wf = new Workflow(new CompositeActivity(), cont);
         }
         else {
-            lc = new Workflow(ca, cont);
+            wf = new Workflow(ca, cont);
         }
 
         // All objects are in place, initialize the workflow
-        lc.initialise(item, agent, transactionKey);
-        Gateway.getStorage().put(item, lc, transactionKey);
+        wf.initialise(item, agent, transactionKey);
+
+        Gateway.getStorage().removeCluster(item, ClusterType.JOB, transactionKey);
+
+        // store the Jobs
+        ArrayList<Job> newJobs = ((CompositeActivity)wf.search("workflow/domain")).calculateJobs(agent, item, true);
+        for (Job newJob: newJobs) {
+            Gateway.getStorage().put(item, newJob, transactionKey);
+
+            if (StringUtils.isNotBlank(newJob.getRoleOverride())) newJob.sendToRoleChannel();
+        }
+
+        // store the workflow
+        Gateway.getStorage().put(item, wf, transactionKey);
     }
 }

@@ -33,7 +33,14 @@ class CRUDModule {
     String namespace
     String resourceURL
 
-    boolean generateDSL = false
+    /**
+     * Set this to true in the DSL file to trigger the generation of the Module.groovy
+     */
+    boolean generateModule = false
+    /**
+     * Set this to true in the DSL file to trigger the generation of JSON files to configure WwebUI
+     */
+    boolean webuiConfigs = false
 
     List<String> orderOfElements = []
     Map<String, CRUDItem> items = [:]
@@ -46,7 +53,7 @@ class CRUDModule {
             def item = items[itemType]
 
             item.dependencies.values().each { dependency ->
-                if (dependency.originator && dependency.type == Bidirectional ) {
+                if (dependency.originator && dependency.type == Bidirectional) {
                     def itemTo = items[dependency.to]
                     itemTo.addBidirectionalDependency(dependency)
                 }

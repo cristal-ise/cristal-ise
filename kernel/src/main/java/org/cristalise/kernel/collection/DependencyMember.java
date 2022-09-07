@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.collection;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_DISABLE_TYPE_CHECK;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_NAME;
 
 import java.util.Iterator;
@@ -29,6 +30,7 @@ import java.util.StringTokenizer;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -97,9 +99,17 @@ public class DependencyMember implements CollectionMember {
         return mClassProps;
     }
 
+    private boolean checkType() {
+        // NOTE that the value of the property ignored
+        return getBuiltInProperty(DEPENDENCY_DISABLE_TYPE_CHECK) == null;
+    }
+
     @Override
     public void assignItem(ItemPath itemPath, TransactionKey transactionKey) throws InvalidCollectionModification {
-        if (itemPath != null) {
+        if (itemPath == null) {
+            log.warn("assignItem() -  Assigning null itemPath to a collection of Item:"+mItemPath.getItemName(transactionKey));
+        }
+        else if (checkType()) {
             if (mClassProps == null || getProperties() == null)
                 throw new InvalidCollectionModification("ClassProps not yet set. Cannot check membership validity.");
 
@@ -116,12 +126,12 @@ public class DependencyMember implements CollectionMember {
                         throw new InvalidCollectionModification("Property " + aClassProp + " does not exist for item " + itemPath);
 
                     if (!itemProperty.getValue().equalsIgnoreCase(memberValue))
-                        throw new InvalidCollectionModification("checkProperty() Values of mandatory prop " + aClassProp
+                        throw new InvalidCollectionModification("Values of mandatory prop " + aClassProp
                                 + " do not match " + itemProperty.getValue() + "!=" + memberValue);
                 }
-                catch (Exception ex) {
-                    log.error("", ex);
-                    throw new InvalidCollectionModification("Error checking properties");
+                catch (PersistencyException | ObjectNotFoundException ex) {
+                    log.error("assignItem() - Error checking properties", ex);
+                    throw new InvalidCollectionModification("Error checking properties", ex);
                 }
             }
         }
@@ -148,12 +158,20 @@ public class DependencyMember implements CollectionMember {
         return mItemPath.getUUID().toString();
     }
 
+    public Object getProperty(String prop) {
+        return mProperties.get(prop);
+    }
+
+    public void setProperty(String prop, Object val) {
+        mProperties.put(prop, val, false);
+    }
+
     public Object getBuiltInProperty(BuiltInVertexProperties prop) {
         return mProperties.get(prop.getName());
     }
 
     public void setBuiltInProperty(BuiltInVertexProperties prop, Object val) {
-        mProperties.put(prop.getName(), val);
+        mProperties.put(prop.getName(), val, false);
     }
 
     /**
@@ -238,8 +256,12 @@ public class DependencyMember implements CollectionMember {
      */
     public void updateProperties(CastorHashMap newProps) throws ObjectNotFoundException, InvalidCollectionModification {
         for (Entry<String, Object> newProp: newProps.entrySet()) {
-            if (mClassProps.contains(newProp.getKey())) {
-                throw new InvalidCollectionModification("Dependency cannot change classProperties:"+mClassProps);
+            String key = newProp.getKey();
+            if (mClassProps.contains(key)) {
+                Object value = newProp.getValue();
+                if (! value.equals(getProperties().get(newProp.getKey()))) {
+                    throw new InvalidCollectionModification("Dependency cannot change classProperties:"+key);
+                }
             }
 
             if (getProperties().containsKey(newProp.getKey())) {

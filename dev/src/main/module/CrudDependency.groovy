@@ -29,6 +29,7 @@ Schema('CrudEntity_Dependecy', 0) {
         field(name: 'MemberPath', type: 'string', multiplicity: '0..1')
         field(name: 'MemberName', type: 'string', multiplicity: '0..1')
         field(name: 'MemberSlotId', type: 'integer', multiplicity: '0..1')
+        field(name: 'MemberProperties', type: 'string', multiplicity: '0..1')
         struct(name: 'AddMembersToCollection', useSequence: true, multiplicity: '0..1') {
             dynamicForms (hidden: true)
             anyField()

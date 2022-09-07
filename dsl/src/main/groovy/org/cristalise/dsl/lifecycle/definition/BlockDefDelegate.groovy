@@ -20,18 +20,15 @@
  */
 package org.cristalise.dsl.lifecycle.definition
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID
-
 import org.cristalise.dsl.property.PropertyDelegate
 import org.cristalise.kernel.graph.model.GraphPoint
-import org.cristalise.kernel.graph.model.GraphableVertex
+import org.cristalise.kernel.graph.model.GraphableEdge
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.ActivitySlotDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.NextDef
 import org.cristalise.kernel.lifecycle.WfVertexDef;
 import org.cristalise.kernel.utils.LocalObjectLoader
-
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -39,6 +36,7 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class BlockDefDelegate extends PropertyDelegate {
 
+    public NextDef firstEdge = null
     public WfVertexDef lastSlotDef = null
     public CompositeActivityDef compActDef
 
@@ -63,6 +61,7 @@ class BlockDefDelegate extends PropertyDelegate {
         else            compActDef.getChildrenGraphModel().setStartVertexId(newSlotDef.ID)
 
         lastSlotDef = newSlotDef;
+        if (!firstEdge) firstEdge = nextDef
 
         return nextDef
     }
@@ -73,13 +72,13 @@ class BlockDefDelegate extends PropertyDelegate {
         return newSlotDef
     }
 
-    protected void setPairingId(id, GraphableVertex...vertices) {
-        for (v in vertices) v.setBuiltInProperty(PAIRING_ID, id)
-    }
+    def LoopInfinitive(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
+        // Add the conditions to make the infinitive
+        if (!initialProps) initialProps = [:]
 
-    def LoopInfinitive(@DelegatesTo(LoopDefDelegate) Closure cl) {
-        // This shall add the conditions to make the infinitive
-        return Loop([groovy: true] as Map, cl)
+        initialProps.groovy = true
+
+        return Loop(initialProps, cl)
     }
 
     def Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
@@ -151,5 +150,23 @@ class BlockDefDelegate extends PropertyDelegate {
         lastSlotDef = andD.lastSlotDef
 
         return andD.andSplitDef
+    }
+
+    def OrSplit(Map<String, Object> props = null, @DelegatesTo(OrSplitDefDelegate) Closure cl) {
+        def orD =  new OrSplitDefDelegate(compActDef, lastSlotDef, props)
+        orD.processClosure(cl)
+
+        lastSlotDef = orD.lastSlotDef
+
+        return orD.orSplitDef
+    }
+
+    def XOrSplit(Map<String, Object> props = null, @DelegatesTo(XOrSplitDefDelegate) Closure cl) {
+        def xorD =  new XOrSplitDefDelegate(compActDef, lastSlotDef, props)
+        xorD.processClosure(cl)
+
+        lastSlotDef = xorD.lastSlotDef
+
+        return xorD.xorSplitDef
     }
 }

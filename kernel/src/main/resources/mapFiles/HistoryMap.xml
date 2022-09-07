@@ -22,6 +22,33 @@
 
 -->
 <mapping>
+   <class name="org.cristalise.kernel.common.GTimeStamp">
+     <map-to xml="TimeStamp" />
+     <field name="mYear" type="java.lang.Integer" direct="true">
+       <bind-xml name="Y" node="attribute" />
+     </field>
+     <field name="mMonth" type="java.lang.Integer" direct="true">
+       <bind-xml name="Mo" node="attribute" />
+     </field>
+     <field name="mDay" type="java.lang.Integer" direct="true">
+       <bind-xml name="D" node="attribute" />
+     </field>
+     <field name="mHour" type="java.lang.Integer" direct="true">
+       <bind-xml name="H" node="attribute" />
+     </field>
+     <field name="mMinute" type="java.lang.Integer" direct="true">
+       <bind-xml name="Mi" node="attribute" />
+     </field>
+     <field name="mSecond" type="java.lang.Integer" direct="true">
+       <bind-xml name="S" node="attribute" />
+     </field>
+     <field name="mNano" type="java.lang.Integer" direct="true">
+       <bind-xml name="N" node="attribute" />
+     </field>
+     <field name="mTimeOffset" type="java.lang.Integer" direct="true">
+       <bind-xml name="O" node="attribute" />
+     </field>
+   </class>
    <class name="org.cristalise.kernel.events.Event">
       <map-to xml="Event"/>
       <field name="mID" type="integer" direct="false" get-method="getID" set-method="setID">
@@ -29,10 +56,10 @@
       </field>
       <field name="mItemPath" type="string" direct="false" get-method="getItemUUID" set-method="setItemUUID">
          <bind-xml name="ItemUUID" node="attribute"/>
-	  </field>
+      </field>
       <field name="mAgentPath" type="string" direct="false" get-method="getAgentUUID" set-method="setAgentUUID">
          <bind-xml name="AgentUUID" node="attribute"/>
-	  </field>
+      </field>
       <field name="mStepName" type="string" direct="false" get-method="getStepName" set-method="setStepName">
          <bind-xml name="StepName" node="attribute"/>
       </field>

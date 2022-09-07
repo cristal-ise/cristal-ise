@@ -41,7 +41,9 @@ class ViewpointCreateIT extends KernelScenarioTestBase {
         }
 
         def wf = CompositeActivityDef("$compActName-$timeStamp", folder) {
-            ElemActDef(elemActName,  ea)
+            Layout {
+                ElemActDef(elemActName,  ea)
+            }
         }
 
         def factory = DescriptionItem("$factoryName-$timeStamp", folder) {
