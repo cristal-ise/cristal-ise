@@ -23,7 +23,9 @@ package org.cristalise.lookup;
 import static org.junit.Assert.assertEquals;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.UUID;
 import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.ItemPath;
 import org.junit.Before;
 import org.junit.Test;
 import io.vertx.core.json.JsonArray;
@@ -37,15 +39,19 @@ public class LookupGetContextTreeTest extends LookupTestBase {
 
         String json = new String(Files.readAllBytes(Paths.get("src/test/data/DomainTree.json")));
 
-        JsonArray array = new JsonArray(json);
+        ItemPath ip1 = new ItemPath(new UUID(0, 1));
+        lookup.add(ip1);
 
+        JsonArray array = new JsonArray(json);
         for (int i = 0; i < array.size(); i++) {
             lookup.add( new DomainPath(array.getString(i)) );
         }
+
+        lookup.add(new DomainPath("servers/localhost", ip1));
     }
     
     @Test
     public void standardTestCase() throws Exception {
-        assertEquals(43, lookup.getContextTree(new DomainPath("")).size());
+        assertEquals(43, lookup.getContextTree(new DomainPath("/")).maxRows);
     }
 }

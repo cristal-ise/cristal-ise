@@ -134,11 +134,11 @@ public interface Lookup {
      */
     public boolean exists(Path path, TransactionKey transactionKey);
 
-    public default List<Path> getContextTree(DomainPath path) {
+    public default PagedResult getContextTree(DomainPath path) {
         return getContextTree(path, null);
     };
 
-    public List<Path> getContextTree(DomainPath path, TransactionKey transactionKey);
+    public PagedResult getContextTree(DomainPath path, TransactionKey transactionKey);
 
     /**
      * List the next-level-deep children of a Path

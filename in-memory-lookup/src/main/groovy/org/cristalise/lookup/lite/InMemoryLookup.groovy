@@ -326,7 +326,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     @Override
-    public List<Path> getContextTree(DomainPath path, TransactionKey transactionKey) {
+    public PagedResult getContextTree(DomainPath path, TransactionKey transactionKey) {
         throw new NotImplementedException("Retrieving ContextTree support is not implemented");
     }
 }

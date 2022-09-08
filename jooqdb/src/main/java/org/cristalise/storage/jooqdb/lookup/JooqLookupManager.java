@@ -414,19 +414,21 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public List<Path> getContextTree(DomainPath path, TransactionKey transactionKey) {
+    public PagedResult getContextTree(DomainPath path, TransactionKey transactionKey) {
         try {
             DSLContext context = retrieveContext(transactionKey);
 
             String pattern = getContextTreePattern(path, context.dialect());
-            log.debug("getChildren() - pattern:" + pattern);
+            log.info("getContextTree() - pattern:" + pattern);
 
-            return domains.findByRegex(context, pattern);
+            List<Path> result = domains.findByRegex(context, pattern, -1, 0, true);
+
+            return new PagedResult(result.size(), result);
         }
         catch (Exception e) {
             log.error("getContextTree()", e);
         }
-        return new ArrayList<Path>();
+        return new PagedResult();
     }
 
     @Override
@@ -439,7 +441,7 @@ public class JooqLookupManager implements LookupManager {
 
             if      (path instanceof ItemPath) return new ArrayList<Path>().iterator(); //empty iterator
             else if (path instanceof RolePath) return roles  .findByRegex(context, pattern).iterator();
-            else                               return domains.findByRegex(context, pattern).iterator();
+            else                               return domains.findByRegex(context, pattern, -1, 0, false).iterator();
         }
         catch (Exception e) {
             log.error("getChildren()", e);
@@ -473,7 +475,7 @@ public class JooqLookupManager implements LookupManager {
         List<Path> pathes = null;
 
         if      (path instanceof RolePath)   pathes = roles  .findByRegex(context, pattern, offset, limit);
-        else if (path instanceof DomainPath) pathes = domains.findByRegex(context, pattern, offset, limit);
+        else if (path instanceof DomainPath) pathes = domains.findByRegex(context, pattern, offset, limit, false);
 
         JooqDataSourceHandler.logConnectionCount("JooqLookupManager.getChildren()", context);
 
