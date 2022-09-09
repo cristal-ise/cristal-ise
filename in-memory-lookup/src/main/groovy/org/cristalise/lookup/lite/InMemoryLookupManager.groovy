@@ -21,7 +21,7 @@
 package org.cristalise.lookup.lite
 
 import java.security.NoSuchAlgorithmException
-
+import org.apache.commons.lang3.NotImplementedException
 import org.cristalise.kernel.common.ObjectAlreadyExistsException
 import org.cristalise.kernel.common.ObjectCannotBeUpdated
 import org.cristalise.kernel.common.ObjectNotFoundException
@@ -172,12 +172,10 @@ class InMemoryLookupManager extends InMemoryLookup implements LookupManager {
     @Override
     public void postStartServer() {
         // TODO Auto-generated method stub
-        
     }
 
     @Override
     public void postBoostrap() {
         // TODO Auto-generated method stub
-        
     }
 }

@@ -34,14 +34,12 @@ import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.upper;
-
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
@@ -69,10 +67,10 @@ import org.jooq.JoinType;
 import org.jooq.Operator;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.SQLDialect;
 import org.jooq.SelectQuery;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
-
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -373,17 +371,64 @@ public class JooqLookupManager implements LookupManager {
         }
     }
 
-    private String getChildrenPattern(Path path, DSLContext context) {
-        //after the path match everything except '/'
-        if (context.dialect().equals(POSTGRES)) {
-            return convertToPostgresPattern(path.getStringPath());
+    public String getFullRegexPattern(Path path, String pattern, SQLDialect dialect) {
+        String begin = "^";
+        String end = "$";
+        String pathString = path.getStringPath();
+
+        if (! pathString.endsWith("/")) pathString = pathString + "/";
+
+        if (dialect.equals(POSTGRES)) {
+            begin = "(?e)" + begin;
+            pathString = escapeSpecialChars(pathString);
         }
-        return "^" + path.getStringPath() + "/[^/]*$";
+
+        return begin + pathString + pattern + end;
     }
 
-    public String convertToPostgresPattern(String path) {
+    /**
+     * use regex to match everything except '/' after the Path 
+     * 
+     * @param path
+     * @param dialect
+     * @return
+     */
+    public String getChildrenPattern(Path path, SQLDialect dialect) {
+        return getFullRegexPattern(path, "[^/]*", dialect);
+    }
+
+    /**
+     * use regex to match everything after the Path
+     * 
+     * @param path
+     * @param dialect
+     * @return
+     */
+    public String getContextTreePattern(Path path, SQLDialect dialect) {
+        return getFullRegexPattern(path, ".*", dialect);
+    }
+
+    private String escapeSpecialChars(String s) {
         String specialCharsToReplace = Gateway.getProperties().getString("JooqLookupManager.getChildrenPattern.specialCharsToReplace", "[^a-zA-Z0-9 ]");
-        return "(?e)^" + path.replaceAll("(" + specialCharsToReplace + ")", "\\\\$1") + "/[^/]*$";
+        return s.replaceAll("(" + specialCharsToReplace + ")", "\\\\$1");
+    }
+
+    @Override
+    public PagedResult getContextTree(DomainPath path, TransactionKey transactionKey) {
+        try {
+            DSLContext context = retrieveContext(transactionKey);
+
+            String pattern = getContextTreePattern(path, context.dialect());
+            log.info("getContextTree() - pattern:" + pattern);
+
+            List<Path> result = domains.findByRegex(context, pattern, -1, 0, true);
+
+            return new PagedResult(result.size(), result);
+        }
+        catch (Exception e) {
+            log.error("getContextTree()", e);
+        }
+        return new PagedResult();
     }
 
     @Override
@@ -391,12 +436,12 @@ public class JooqLookupManager implements LookupManager {
         try {
             DSLContext context = retrieveContext(transactionKey);
 
-            String pattern = getChildrenPattern(path, context);
+            String pattern = getChildrenPattern(path, context.dialect());
             log.debug("getChildren() - pattern:" + pattern);
 
             if      (path instanceof ItemPath) return new ArrayList<Path>().iterator(); //empty iterator
             else if (path instanceof RolePath) return roles  .findByRegex(context, pattern).iterator();
-            else                               return domains.findByRegex(context, pattern).iterator();
+            else                               return domains.findByRegex(context, pattern, -1, 0, false).iterator();
         }
         catch (Exception e) {
             log.error("getChildren()", e);
@@ -419,7 +464,7 @@ public class JooqLookupManager implements LookupManager {
             return new PagedResult();
         }
 
-        String pattern = getChildrenPattern(path, context);
+        String pattern = getChildrenPattern(path, context.dialect());
         log.debug("getChildren() - pattern:{} offset:{} limit:{}", pattern, offset, limit);
 
         if      (path instanceof RolePath)   maxRows = roles  .countByRegex(context, pattern);
@@ -430,7 +475,7 @@ public class JooqLookupManager implements LookupManager {
         List<Path> pathes = null;
 
         if      (path instanceof RolePath)   pathes = roles  .findByRegex(context, pattern, offset, limit);
-        else if (path instanceof DomainPath) pathes = domains.findByRegex(context, pattern, offset, limit);
+        else if (path instanceof DomainPath) pathes = domains.findByRegex(context, pattern, offset, limit, false);
 
         JooqDataSourceHandler.logConnectionCount("JooqLookupManager.getChildren()", context);
 

@@ -43,6 +43,7 @@ import org.jooq.InsertQuery;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
+import org.jooq.SelectSeekStep1;
 import org.jooq.Table;
 
 import lombok.extern.slf4j.Slf4j;
@@ -150,25 +151,22 @@ public class JooqDomainPathHandler {
                 .fetchOne(0, int.class);
     }
 
-    // TODO: Merge with countByRegex()
-    public List<Path> findByRegex(DSLContext context, String pattern) {
-        Result<Record> result = context
-                .select().from(DOMAIN_PATH_TABLE)
-                .where(PATH.likeRegex(pattern))
-                .fetch();
-
-        return getListOfPath(result);
-    }
-
     // TODO: Merge with findByRegex()
-    public List<Path> findByRegex(DSLContext context, String pattern, int offset, int limit) {
-        Result<Record> result = context
+    public List<Path> findByRegex(DSLContext context, String pattern, int offset, int limit, boolean contextOnly) {
+        SelectConditionStep<Record> whereStep = 
+                context
                 .select().from(DOMAIN_PATH_TABLE)
-                .where(PATH.likeRegex(pattern))
-                .orderBy(PATH)
-                .limit(limit)
-                .offset(offset)
-                .fetch();
+                .where(PATH.likeRegex(pattern));
+
+        SelectSeekStep1<Record, String> orderByStep = null;
+
+        if (contextOnly) orderByStep = whereStep.and(TARGET.isNull()).orderBy(PATH);
+        else             orderByStep = whereStep.orderBy(PATH);
+
+        Result<Record> result = null;
+
+        if (limit != 0) result = orderByStep.limit(limit).offset(offset).fetch();
+        else            result = orderByStep.fetch();
 
         return getListOfPath(result);
     }

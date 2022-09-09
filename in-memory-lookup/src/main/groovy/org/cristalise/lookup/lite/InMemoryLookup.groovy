@@ -20,6 +20,7 @@
  */
 package org.cristalise.lookup.lite
 
+import org.apache.commons.lang3.NotImplementedException
 import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.DomainPath
@@ -35,7 +36,6 @@ import org.cristalise.kernel.process.auth.Authenticator
 import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.storage.MemoryOnlyClusterStorage
-
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -323,5 +323,10 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     public PagedResult getRoles(AgentPath agentPath, int offset, int limit, TransactionKey transactionKey) {
         // TODO Auto-generated method stub
         return null
+    }
+
+    @Override
+    public PagedResult getContextTree(DomainPath path, TransactionKey transactionKey) {
+        throw new NotImplementedException("Retrieving ContextTree support is not implemented");
     }
 }
