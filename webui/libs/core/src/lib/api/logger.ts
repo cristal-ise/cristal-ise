@@ -34,28 +34,30 @@ export class Logger {
       return
     }
 
+    let prefixToUse = this.prefix
+
     // Extend prefix with method name if it was provided in the first paramater
     if (typeof args[0] === 'string' && args[0].toString().endsWith('()')) {
       const method: string = args.shift();
-      this.prefix += '.' + method;
+      prefixToUse += '.' + method;
     }
 
     if (msgLevel === LogLevel.ERROR) {
-      console.error(this.prefix, args);
+      console.error(prefixToUse, args);
     }
     else if (msgLevel === LogLevel.WARNING) {
-      console.warn(this.prefix, args);
+      console.warn(prefixToUse, args);
     }
     else if (msgLevel === LogLevel.INFO) {
-      console.log(this.prefix, ...args);
+      console.log(prefixToUse, ...args);
     }
     else if (msgLevel === LogLevel.DEBUG) {
       // eslint-disable-next-line no-restricted-syntax
-      console.debug(this.prefix, ...args);
+      console.debug(prefixToUse, ...args);
     }
     else if (msgLevel === LogLevel.TRACE) {
       // eslint-disable-next-line no-restricted-syntax
-      console.trace(this.prefix, ...args);
+      console.trace(prefixToUse, ...args);
     }
   }
 }
