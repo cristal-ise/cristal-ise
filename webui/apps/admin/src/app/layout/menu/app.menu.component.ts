@@ -85,14 +85,22 @@ export class AppMenuComponent implements OnInit {
   }
 
   private stayThisLevel(rows: LookupData[], parentIdx: number): boolean {
-    if (this.currentIdx + 1 == rows.length) return false;
-    if (parentIdx == -1) return false
+    let returnVal = true
 
-    const parentPath = rows[parentIdx].path
-    const nextPath = rows[this.currentIdx+1].path
-    const returnVal = nextPath.startsWith(parentPath)
-
-    this.log.debug('stayThisLevel()', returnVal, '#'+this.level, 'parentIdx:'+parentIdx, 'parentPath:'+parentPath, 'nextPath:'+nextPath)
+    if (this.currentIdx + 1 == rows.length) {
+      returnVal = false
+      this.log.debug('stayThisLevel()', returnVal, '#'+this.level, 'currentIdx:'+this.currentIdx)
+    }
+    else if (parentIdx == -1) {
+      returnVal = true;
+      this.log.debug('stayThisLevel()', returnVal, '#'+this.level, 'parentIdx:'+parentIdx)
+    }
+    else {
+      const parentPath = rows[parentIdx].path
+      const nextPath = rows[this.currentIdx+1].path
+      returnVal = nextPath.startsWith(parentPath)
+      this.log.debug('stayThisLevel()', returnVal, '#'+this.level, 'parentIdx:'+parentIdx, 'parentPath:'+parentPath, 'nextPath:'+nextPath)
+    }
 
     return returnVal
   }
