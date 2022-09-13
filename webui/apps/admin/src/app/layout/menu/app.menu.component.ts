@@ -34,7 +34,10 @@ export class AppMenuComponent implements OnInit {
       next: (data) => {
         if (data.rows.length != 0) {
           this.log.debug('fetchDomainTree()', 'data.rows.length:'+data.rows.length)
-          this.model = this.buildMenu(data.rows, this.currentIdx)
+          this.model = [
+            {label: 'Home', items: [{label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }]},
+            {label: 'Items', items: this.buildMenu(data.rows, this.currentIdx)}
+          ]
         }
       },
       error: (error) => {
@@ -52,7 +55,7 @@ export class AppMenuComponent implements OnInit {
       this.currentIdx++
       const levelIdx = this.currentIdx
       const currentData = rows[this.currentIdx]
-      this.log.debug('buildMenu()', '    idx:'+this.currentIdx, '#'+this.level+'(idx:'+levelIdx+')', 'parentIdx:'+parentIdx, 'current:'+currentData.path)
+      this.log.debug('buildMenu()', 'idx:'+this.currentIdx, '#'+this.level+'(idx:'+levelIdx+')', 'parentIdx:'+parentIdx, 'current:'+currentData.path)
 
       const newMenuItem = this.getMenuItem(rows[this.currentIdx]);
 
@@ -66,9 +69,7 @@ export class AppMenuComponent implements OnInit {
     }
     while (this.stayThisLevel(rows, parentIdx))
 
-    //this.log.debug('buildMenu()', '    idx:'+this.currentIdx, '#'+this.level+'(idx:'+levelIdx+')', 'parentIdx:'+parentIdx)
     this.level--
-
     return items
   }
 
@@ -108,7 +109,7 @@ export class AppMenuComponent implements OnInit {
   private getMenuItem(lookupData: LookupData): MenuItem {
     return {
       'label': lookupData.name,
-      // 'routerLink': lookupData.path,
+      'routerLink': lookupData.path,
       'icon': 'pi pi-fw pi-list',
       // 'command': (ev?: any) => this.fetchSubmenu(ev)
     };
