@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@cristalise/core": ["libs/core/src/index.ts"]
+      "@cristalise/core": ["libs/core/src/index.ts"],
+      "@cristalise/itemlist": ["libs/itemlist/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

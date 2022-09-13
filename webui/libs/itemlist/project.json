@@ -1,0 +1,38 @@
+{
+  "projectType": "library",
+  "sourceRoot": "libs/itemlist/src",
+  "prefix": "cristalise",
+  "targets": {
+    "build": {
+      "executor": "@nrwl/angular:package",
+      "outputs": ["dist/libs/itemlist"],
+      "options": {
+        "project": "libs/itemlist/ng-package.json"
+      },
+      "configurations": {
+        "production": {
+          "tsConfig": "libs/itemlist/tsconfig.lib.prod.json"
+        },
+        "development": {
+          "tsConfig": "libs/itemlist/tsconfig.lib.json"
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/itemlist"],
+      "options": {
+        "jestConfig": "libs/itemlist/jest.config.ts",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": ["libs/itemlist/**/*.ts", "libs/itemlist/**/*.html"]
+      }
+    }
+  },
+  "tags": []
+}
