@@ -5,6 +5,7 @@
     "admin": "apps/admin",
     "admin-e2e": "apps/admin-e2e",
     "core": "libs/core",
-    "itemlist": "libs/itemlist"
+    "itemlist": "libs/itemlist",
+    "itemlist-e2e": "apps/itemlist-e2e"
   }
 }
