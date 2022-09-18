@@ -50,7 +50,7 @@ import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 import org.json.XML;
 
-public class ResourceAccess extends ItemUtils {
+public abstract class ResourceAccess extends ItemUtils {
 
     public Response.ResponseBuilder listAllResources(BuiltInResources resource, UriInfo uri, int start, int batchSize, NewCookie cookie) {
         DomainPath searchRoot = new DomainPath(resource.getTypeRoot());

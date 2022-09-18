@@ -222,7 +222,7 @@ public class ItemRoot extends ItemUtils {
     @Consumes( {MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN } )
     @Produces({ MediaType.TEXT_XML, MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON })
     public Response getScriptResultPost(
-            String postData,
+                                        String      postData,
             @Context                    HttpHeaders headers,
             @PathParam("uuid")          String      uuid,
             @QueryParam("script")       String      scriptName,
