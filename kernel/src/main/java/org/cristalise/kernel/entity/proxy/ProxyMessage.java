@@ -20,12 +20,16 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
+import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
 
+import java.util.Arrays;
+
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.ClusterType;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -34,67 +38,132 @@ import lombok.Setter;
 @Getter @Setter
 public class ProxyMessage {
 
-    // special server message paths
-    public static final String  BYEPATH  = "bye";
-    public static final String  ADDPATH  = "add";
-    public static final String  DELPATH  = "del";
-    public static final String  PINGPATH = "ping";
-    public static final boolean ADDED    = false;
-    public static final boolean DELETED  = true;
+    public enum Type {ADD, DELETE};
+    public static final String ebAddress = "cristalise-proxyMessage";
+    public static final String ebLocalAddress = "cristalise-localProxyMessage";
 
-    static ProxyMessage byeMessage  = new ProxyMessage(null, BYEPATH, ADDED);
-    static ProxyMessage pingMessage = new ProxyMessage(null, PINGPATH, ADDED);
-
+    /**
+     * The reference of the changed Item. Can be null for messages of Lookup changes
+     */
     private ItemPath itemPath = null;
-    private String   path     = "";
-    private String   server   = null;
-    private boolean  state    = ADDED;
+    /**
+     * Either the clusterPath of the changed Item, or DomainPath in case of a Lookup change
+     */
+    private String path  = "";
+    /**
+     The type of the the actual change
+     */
+    private Type messageType = ADD;
+    /**
+     * If the message was from the ClusterStore or from the Lookup DomainPath change
+     */
+    private boolean clusterStoreMesssage = true;
 
     public ProxyMessage() {
         super();
     }
 
-    public ProxyMessage(ItemPath itemPath, String path, boolean state) {
+    public ProxyMessage(ItemPath itemPath, String path, Type type) {
         this();
         setItemPath(itemPath);
         setPath(path);
-        setState(state);
-    }
-
-    public ProxyMessage(String line) throws InvalidDataException, IOException {
-        if (line == null) throw new IOException("Null proxy message");
-
-        String[] tok = line.split(":", 2);
-
-        if (tok.length != 2)
-            throw new InvalidDataException("String '" + line + "' is not a valid proxy message (i.e. ':' is used as separator");
-
-        if (tok[0].length() > 0 && !tok[0].equals("tree")) {
-            try {
-                itemPath = new ItemPath(tok[0]);
-            }
-            catch (InvalidItemPathException e) {
-                throw new InvalidDataException("Item in proxy message " + line + " was not valid");
-            }
-        }
-        path = tok[1];
-
-        if (path.startsWith("-")) {
-            state = DELETED;
-            path = path.substring(1);
-        }
-    }
-
-    public ProxyMessage(DatagramPacket packet) throws InvalidDataException, IOException {
-        this(new String(packet.getData()));
+        setMessageType(type);
     }
 
     /**
-     * This is also used to create the message sent to the subscribers, therfore the format cannot
+     * Parses the message string using ':' as separator.
+     * 
+     * @param message the string containing the message
+     * @throws InvalidDataException wrong message format
+     */
+    public ProxyMessage(String message) throws InvalidDataException {
+        if (StringUtils.isBlank(message)) throw new InvalidDataException("Blank proxy message");
+
+        String[] msgSections = message.split(":", 2);
+
+        if (msgSections.length != 2) {
+            throw new InvalidDataException("Invalid proxy message (use ':' as separator):'"+Arrays.toString(msgSections)+"'");
+        }
+
+        if (StringUtils.isNotBlank(msgSections[0])) {
+            if (msgSections[0].equals("tree")) {
+                clusterStoreMesssage = false;
+            }
+            else {
+                try {
+                    itemPath = new ItemPath(msgSections[0]);
+                }
+                catch (InvalidItemPathException e) {
+                    throw new InvalidDataException("Invalid UUID in proxy message:'"+Arrays.toString(msgSections)+"'", e);
+                }
+            }
+        }
+
+        if (msgSections[1].startsWith("-")) {
+            messageType = DELETE;
+            path = msgSections[1].substring(1);
+        }
+        else {
+            path = msgSections[1];
+        }
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public ClusterType getClusterType() {
+        if (clusterStoreMesssage) {
+            int slashIdx = path.indexOf('/');
+
+            if (slashIdx != -1) return ClusterType.getValue(path.substring(0, slashIdx));
+            else                return ClusterType.ROOT;
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * The key of the object within the Cluster
+     * @return the ClusterPath without the ClusterType prefix
+     */
+    public String getObjectKey() {
+        if (clusterStoreMesssage) {
+            int slashIdx = path.indexOf('/');
+
+            if (slashIdx != -1) return path.substring(slashIdx + 1);
+            else                return path;
+        }
+        else {
+            return path;
+        }
+    }
+
+    /**
+     * Constructs the UUID/ClusterType local address to be used to send or publish the change notification messages
+     * 
+     * @return returns concatenated string of UUID/ClusterType
+     */
+    public String getLocalEventBusAddress() {
+        if (clusterStoreMesssage) return itemPath.getName() + "/" + getClusterType();
+        else                      return "tree";
+    }
+
+    /**
+     * 
+     * @return
+     */
+    public String getLocalEventBusMessage() {
+        return getObjectKey() + ":" + messageType;
+    }
+
+    /**
+     * This is also used to create the message sent to the subscribers, therefore the format cannot
      * be changed without changing the parsing 
      */
     @Override
     public String toString() {
-        return (itemPath == null ? "tree" : itemPath.getUUID()) + ":" + (state ? "-" : "") + path;
+        return (itemPath == null ? "tree" : itemPath.getUUID()) + ":" + (messageType == DELETE ? "-" : "") + path;
     }
 }

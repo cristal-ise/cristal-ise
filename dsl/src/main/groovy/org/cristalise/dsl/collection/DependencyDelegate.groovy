@@ -21,15 +21,16 @@
 package org.cristalise.dsl.collection
 
 import org.cristalise.dsl.property.PropertyBuilder
+import org.cristalise.dsl.property.PropertyDelegate
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.collection.DependencyDescription
-import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.property.PropertyDescriptionList
+import org.cristalise.kernel.utils.DescriptionObject
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
@@ -48,8 +49,13 @@ class DependencyDelegate {
     }
 
     public DependencyDelegate(String ns, String name, boolean isDescription) {
+        this(ns, name, isDescription, null)
+    }
+
+    public DependencyDelegate(String ns, String name, boolean isDescription, String classProps) {
         moduleNs = ns
         dependency = isDescription ? new DependencyDescription(name) : new Dependency(name)
+        if (classProps) dependency.setClassProps(classProps)
     }
 
     public void  processClosure(Closure cl) {
@@ -58,28 +64,28 @@ class DependencyDelegate {
         cl()
     }
 
-    public void Properties(Closure cl) {
+    public void Properties(@DelegatesTo(PropertyDelegate) Closure cl) {
         dependency.properties = PropertyBuilder.build(cl)
     }
 
-    public void Member(PropertyDescriptionList props, Closure cl = null) {
-        Member(moduleNs: moduleNs, itemPath: props, cl)
+    public void Member(DescriptionObject descObject, @DelegatesTo(DependencyMemberDelegate) Closure cl = null) {
+        Member(moduleNs: moduleNs, itemPath: descObject, cl)
     }
 
-    public void Member(Map attrs, Closure cl = null) {
+    public void Member(Map attrs, @DelegatesTo(DependencyMemberDelegate) Closure cl = null) {
         assert attrs && attrs.itemPath
 
         String iPathStr
 
-        if (attrs.itemPath instanceof PropertyDescriptionList) {
-            def propDesc = (PropertyDescriptionList)attrs.itemPath
-            def typeRoot = BuiltInResources.PROPERTY_DESC_RESOURCE.getTypeRoot()
+        if (attrs.itemPath instanceof DescriptionObject) {
+            def descObject = (DescriptionObject)attrs.itemPath
+            def typeRoot = BuiltInResources.getValue(descObject).getTypeRoot();
 
             moduleNs = moduleNs ?: (String)attrs.moduleNs
 
             assert moduleNs, "'moduleNs' variable shall not be blank"
 
-            iPathStr = "$typeRoot/$moduleNs/${propDesc.name}"
+            iPathStr = "$typeRoot/$moduleNs/${descObject.name}"
         }
         else 
             iPathStr = (String)attrs.itemPath
@@ -92,7 +98,7 @@ class DependencyDelegate {
         //HACK: iPathStr is very likely contains a domainPath. itemPath is created 'manually' because of addMember()
         ItemPath itemPath = new ItemPath()
         itemPath.path[0] = iPathStr
-        def member = dependency.addMember(itemPath)
+        def member = dependency.addMember(itemPath, null)
 
         if (cl) {
             DependencyMemberDelegate delegate = new DependencyMemberDelegate()

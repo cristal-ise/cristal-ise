@@ -37,8 +37,8 @@ import spock.lang.Specification
  */
 class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def 'Field can specify dynamicForms.mask'() {
         expect:
@@ -245,7 +245,7 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
         expect:
         SchemaTestBuilder.build('test', 'FormAppInfo', 0) {
             struct(name: 'Form') {
-                dynamicForms(width: '100%', label: 'testLabel', container: 'ui-g-12')
+                dynamicForms(width: '100%', label: 'testLabel', container: 'ui-g-12', hidden: true)
                 field(name:'stringField1')
             }
         }.compareXML(
@@ -257,6 +257,7 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                           <width>100%</width>
                           <label>testLabel</label>
                           <container>ui-g-12</container>
+                          <hidden>true</hidden>
                         </dynamicForms>
                       </xs:appinfo>
                     </xs:annotation>
@@ -449,7 +450,7 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
 
     def 'Field can specify dynamicForms.updateScriptRef using Script object'() {
         expect:
-        def script = new Script("Script", 0, new ItemPath(), "<cristalscript><script language='javascript' name='Script'>;</script></cristalscript>", true);
+        def script = new Script("Script", 0, new ItemPath(), "<cristalscript><script language='javascript' name='Script'><![CDATA[;]]></script></cristalscript>", true);
 
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails') {

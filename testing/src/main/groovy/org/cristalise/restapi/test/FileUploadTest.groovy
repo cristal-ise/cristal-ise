@@ -59,9 +59,11 @@ class FileUploadTest extends RestapiTestBase {
         }
 
         def wf = CompositeActivityDef("EmployeeWorkflow-$timeStamp", folder) {
-            ElemActDef('UpdateProfile',  ea0)
-            ElemActDef('UpdateContract', ea1)
-            ElemActDef('UpdateListOfPublications', ea2)
+            Layout {
+                ElemActDef('UpdateProfile',  ea0)
+                ElemActDef('UpdateContract', ea1)
+                ElemActDef('UpdateListOfPublications', ea2)
+            }
         }
 
         def factory = DescriptionItem("EmployeeFactory-$timeStamp", folder) {
@@ -115,8 +117,8 @@ class FileUploadTest extends RestapiTestBase {
             profilePic,
         )
 
-        checkOutcome(   itemUuid, "ProfileDetails-$timeStamp", 0, 1)
-        checkAttachment(itemUuid, "ProfileDetails-$timeStamp", 0, 1)
+        checkOutcome(   itemUuid, "ProfileDetails-$timeStamp", 0, 3)
+        checkAttachment(itemUuid, "ProfileDetails-$timeStamp", 0, 3)
 
         executeActivity(
             itemUuid,
@@ -127,8 +129,8 @@ class FileUploadTest extends RestapiTestBase {
             contractPdf,
         )
 
-        checkOutcome(   itemUuid, "ContractDetails-$timeStamp", 0, 2)
-        checkAttachment(itemUuid, "ContractDetails-$timeStamp", 0, 2)
+        checkOutcome(   itemUuid, "ContractDetails-$timeStamp", 0, 4)
+        checkAttachment(itemUuid, "ContractDetails-$timeStamp", 0, 4)
 
         executeActivity(
             itemUuid,
@@ -138,8 +140,8 @@ class FileUploadTest extends RestapiTestBase {
             listOfPubsTxt,
         )
 
-        checkOutcome(   itemUuid, "ListOfPublications-$timeStamp", 0, 3)
-        checkAttachment(itemUuid, "ListOfPublications-$timeStamp", 0, 3)
+        checkOutcome(   itemUuid, "ListOfPublications-$timeStamp", 0, 5)
+        checkAttachment(itemUuid, "ListOfPublications-$timeStamp", 0, 5)
 
         logout(null)
     }

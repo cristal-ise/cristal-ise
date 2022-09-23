@@ -40,19 +40,43 @@ public enum BuiltInItemProperties {
      */
     COMPLEXITY("Complexity"),
 
+    /**
+     *  Used for generating Names: the prefix (e.g. PR) used as a beginning of the Name
+     */
+    ID_PREFIX("IDPrefix"),
+
+    /**
+     * 
+     */
     KERNEL_VERSION("KernelVersion"),
+
+    /**
+     * Used for generating Names: the length of the number part left padded by zeros
+     */
+    LEFT_PAD_SIZE("LeftPadSize"),
+
+    /**
+     *  Used for generating Names: the last number used to generate a Name
+     */
+    LAST_COUNT("LastCount"),
 
     MASTER_SCHEMA_URN("MasterSchemaURN"),
 
     /**
      * The name or ID of the Item, specified by the Factory Item and sent as the first parameter in the
-     * {@link CreateItemFromDescription} predefined Step. It will be automatically added even if it was not defined.
+     * {@link CreateItemFromDescription} predefined Step or generated during the execution of {@link CreateItemFromDescription}.
+     * It will be automatically added even if it was not defined.
      */
     NAME("Name"),
 
     NAMESPACE("Namespace"),
 
     MODULE("Module"),
+
+    /**
+     * Used in factory Items to specify the Root DomainPath.
+     */
+    ROOT("Root"),
 
     /**
      * The type of the Item, it is a good practice to set it as an immutable, fixed value Property. 

@@ -35,6 +35,7 @@ import javax.xml.validation.SchemaFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
@@ -51,6 +52,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Getter @Setter @Slf4j
 public class Schema implements DescriptionObject, ErrorHandler {
+    private String       namespace;
     private String       name;
     private Integer      version;
     private final String schemaData;
@@ -156,7 +158,7 @@ public class Schema implements DescriptionObject, ErrorHandler {
 
     @Override
     public String getItemID() {
-        if (itemPath == null || itemPath == null || itemPath.getUUID() == null) return "";
+        if (itemPath == null || itemPath.getUUID() == null) return "";
         return itemPath.getUUID().toString();
     }
 
@@ -192,7 +194,7 @@ public class Schema implements DescriptionObject, ErrorHandler {
     }
 
     @Override
-    public CollectionArrayList makeDescCollections() {
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) {
         return new CollectionArrayList();
     }
 

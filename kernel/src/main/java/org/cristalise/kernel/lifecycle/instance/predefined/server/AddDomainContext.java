@@ -31,6 +31,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,18 +44,18 @@ public class AddDomainContext extends PredefinedStep {
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectAlreadyExistsException, CannotManageException
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("AddDomainContext: Invalid parameters " + Arrays.toString(params));
 
         DomainPath pathToAdd = new DomainPath(params[0]);
 
-        if (pathToAdd.exists())
+        if (pathToAdd.exists(transactionKey))
             throw new ObjectAlreadyExistsException("Context " + pathToAdd + " already exists");
 
         // collect parent paths if they don't exist
@@ -67,7 +68,7 @@ public class AddDomainContext extends PredefinedStep {
 
         while (!pathsToAdd.empty()) {
             pathToAdd = pathsToAdd.pop();
-            Gateway.getLookupManager().add(pathToAdd);
+            Gateway.getLookupManager().add(pathToAdd, transactionKey);
         }
 
         return requestData;

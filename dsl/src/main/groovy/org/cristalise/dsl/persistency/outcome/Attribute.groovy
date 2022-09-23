@@ -20,6 +20,11 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import java.time.LocalDate
+import java.time.OffsetDateTime
+import java.time.OffsetTime
+
+import org.apache.commons.lang3.StringUtils
 import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.transform.CompileStatic;
@@ -27,6 +32,15 @@ import groovy.transform.CompileStatic;
 
 @CompileStatic
 class Attribute {
+    /**
+     * Keys used for reading the header in the TabularSchemaBuilder
+     */
+    public static final List<String> keys = [
+        'name', 'type', 'multiplicity', 'values', 'pattern', 'default',
+        'range', 'minInclusive', 'maxInclusive', 'minExclusive', 'maxExclusive',
+        'totalDigits', 'fractionDigits'
+    ]
+
     /**
      * accepted types from XSD specification without namespace (i.e. xs:)
      */
@@ -38,7 +52,8 @@ class Attribute {
 
     String documentation
 
-    List values
+    List values = null
+
     BigDecimal minExclusive = null, minInclusive= null, maxExclusive= null, maxInclusive= null
     BigInteger length = null, minLength = null, maxLength = null
 
@@ -48,9 +63,12 @@ class Attribute {
 
     Integer totalDigits = null //precision:
     Integer fractionDigits = null //scale:
-    
-    Reference reference = null
 
+    Reference reference = null
+    Expression expression = null
+
+    String multiplicityString
+    
     /**
      * Checks if the type is acceptable
      * 
@@ -69,28 +87,31 @@ class Attribute {
      * @param val
      * @return
      */
-    def setDefault(val) {
-        if(values && !values.contains(val)) throw new InvalidDataException("Default value '$val' is wrong, it must be one of these: $values")
-
-        defaultVal = val
+    def setDefault(String val) {
+        if(val) {
+            if (values && !values.contains(val)) throw new InvalidDataException("Default value '$val' is wrong, it must be one of these: $values")
+            defaultVal = val
+        }
     }
 
     public void setMultiplicity(String m) {
-        if(m) {
-            if(m == "1")         required = true
-            else if(m == "1..1") required = true
-            else if(m == "0..1") required = false
-            else                 throw new InvalidDataException("Invalid value for attribute multiplicity : '$m'")
+        if (m?.trim()) {
+            if      (m == "1")    required = true
+            else if (m == "1..1") required = true
+            else if (m == "0..1") required = false
+            else                  throw new InvalidDataException("Invalid value for attribute multiplicity : '$m'")
+
+            multiplicityString = m
         }
     }
 
     /**
      * Inclusive uses [], exclusive uses ()
      * 
-     * @param r the string form of the range, e.g. [0..10]
+     * @param r the string form of the range, e.g. [0..10)
      */
     public void setRange(String r) {
-        if(r && r.contains("..")) {
+        if (r?.trim() && r.contains("..")) {
             def vals = r.split(/\.\./)
             
             def minTypeChar  = vals[0].getAt(0)
@@ -106,5 +127,82 @@ class Attribute {
             else if (maxTypeChar == ')') maxExclusive = new BigDecimal(maxValString)
         }
         else throw new UnsupportedOperationException("Range must be in the format of '[0..123)")
+    }
+
+    /**
+     * Sets the minInclusive BigDecimal value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of minInclusive
+     */
+    public void setMinInclusive(String val) {
+        minInclusive = new BigDecimal(val)
+    }
+
+    /**
+     * Sets the maxInclusive BigDecimal value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of maxInclusive
+     */
+    public void setMaxInclusive(String val) {
+        maxInclusive = new BigDecimal(val)
+    }
+
+    /**
+     * Sets the minExclusive BigDecimal value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of minExclusive
+     */
+    public void setMinExclusive(String val) {
+        minExclusive = new BigDecimal(val)
+    }
+
+    /**
+     * Sets the maxExclusive BigDecimal value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of maxExclusive
+     */
+    public void setMaxExclusive(String val) {
+        maxExclusive = new BigDecimal(val)
+    }
+
+    /**
+     * Sets the totalDigits Integer value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of totalDigits
+     */
+    public void setTotalDigits(String val) {
+        totalDigits = new Integer(val)
+    }
+
+    /**
+     * Sets the fractionDigits Integer value from String. It was required for the ExcelSchemaBuilder functionality.
+     * @param val of fractionDigits
+     */
+    public void setFractionDigits(String val) {
+        fractionDigits = new Integer(val)
+    }
+
+    public boolean isRequired() {
+        return required;
+    }
+
+    /**
+     * Remove the 'xs:' prefix from the type string if exists
+     * @return type string without the 'xs:' prefix
+     */
+    public String getDslType() {
+        if (type.startsWith('xs:')) return type.substring(3)
+        else                        return type
+    }
+
+    public Class<?> getJavaType() {
+        switch(type) {
+            case 'xs:string':   return String.class;
+            case 'xs:boolean':  return Boolean.class;
+            case 'xs:integer':  return BigInteger.class;
+            case 'xs:decimal':  return BigDecimal.class;
+            case 'xs:date':     return LocalDate.class;
+            case 'xs:time':     return OffsetTime.class;
+            case 'xs:dateTime': return OffsetDateTime.class;
+        }
+    }
+
+    public String getLabel() {
+        return StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(name), " ")
     }
 }

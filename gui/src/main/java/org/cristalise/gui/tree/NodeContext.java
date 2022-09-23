@@ -23,15 +23,15 @@ package org.cristalise.gui.tree;
 import java.util.Iterator;
 
 import org.cristalise.gui.ItemTabManager;
-import org.cristalise.kernel.entity.proxy.DomainPathSubscriber;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
+import io.vertx.core.Vertx;
+import lombok.extern.slf4j.Slf4j;
 
-
-public class NodeContext extends Node implements DomainPathSubscriber {
+@Slf4j
+public class NodeContext extends Node {
     Iterator<Path> children;
 
     public NodeContext(Path path, ItemTabManager desktop) {
@@ -40,47 +40,50 @@ public class NodeContext extends Node implements DomainPathSubscriber {
         createTreeNode();
         this.makeExpandable();
         this.type = "Cristal Context";
+
+        if (binding instanceof DomainPath) {
+            Vertx vertx = Gateway.getVertx();
+            vertx.eventBus().localConsumer("tree", message -> {
+                String[] tokens = ((String) message.body()).split(":");
+
+                vertx.executeBlocking(promise -> {
+                    if (tokens[1].equals("ADD")) pathAdded(new DomainPath(tokens[0]));
+                    else                         pathRemoved(new DomainPath(tokens[0]));
+                    promise.complete();
+                }, res -> {
+                    //
+                });
+            });
+            
+        }
     }
 
-
     @Override
-	public void loadChildren() {
-        if (children == null) {
-            if (binding instanceof DomainPath) Gateway.getProxyManager().subscribeTree(this, (DomainPath)binding);
-            children = Gateway.getLookup().getChildren(binding);
-        }
+    public void loadChildren() {
+        if (children == null) children = Gateway.getLookup().getChildren(binding);
 
         int batch = 75;
         while (children.hasNext() && batch > 0) {
             Path newPath = children.next();
             if (newPath == null) break;
-            Logger.msg(2, "Subscription.run() - new node: " + newPath );
-            add( newNode(newPath));
+            log.info("Subscription.run() - new node: " + newPath);
+            add(newNode(newPath));
             batch--;
         }
         end(children.hasNext());
     }
 
-    @Override
-	public void pathAdded(DomainPath path) {
+    public void pathAdded(DomainPath path) {
         add(newNode(path));
     }
 
     @Override
-	public void refresh() {
+    public void refresh() {
         children = null;
         super.refresh();
     }
-    @Override
-	public void pathRemoved(DomainPath path) {
+
+    public void pathRemoved(DomainPath path) {
         remove(path);
     }
-
 }
-
-
-
-
-
-
-

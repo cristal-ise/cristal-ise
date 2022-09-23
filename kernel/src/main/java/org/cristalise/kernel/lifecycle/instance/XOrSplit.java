@@ -28,6 +28,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.graph.model.DirectedEdge;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 public class XOrSplit extends Split {
     
@@ -36,23 +37,25 @@ public class XOrSplit extends Split {
     }
 
     @Override
-	public void runNext(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
-        String[] nextsTab = calculateNexts(itemPath, locker);
+	public void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+        String[] nextsTab = calculateNexts(itemPath, transactionKey);
 
         ArrayList<DirectedEdge> nextsToFollow = new ArrayList<DirectedEdge>();
 
         for (DirectedEdge outEdge : getOutEdges()) {
-            if (isInTable((String)((Next)outEdge).getBuiltInProperty(ALIAS), nextsTab))
-                nextsToFollow.add(outEdge);
+            String alias = (String)((Next)outEdge).getBuiltInProperty(ALIAS, "");
+
+            if (isInTable(alias, nextsTab)) nextsToFollow.add(outEdge);
         }
 
-        if (nextsToFollow.size() != 1)
+        if (nextsToFollow.size() != 1) {
             throw new InvalidDataException("not good number of active next! (id:"+getID()+")");
+        }
 
-        followNext((Next)nextsToFollow.get(0), agent, itemPath, locker);
+        followNext((Next)nextsToFollow.get(0), agent, itemPath, transactionKey);
     }
 
-    public void followNext(Next activeNext, AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
-        activeNext.getTerminusVertex().run(agent, itemPath, locker);
+    public void followNext(Next activeNext, AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+        activeNext.getTerminusVertex().run(agent, itemPath, transactionKey);
     }
 }

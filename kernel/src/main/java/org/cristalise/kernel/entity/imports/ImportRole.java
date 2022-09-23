@@ -20,46 +20,69 @@
  */
 package org.cristalise.kernel.entity.imports;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 
+import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.CannotManageException;
+import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
+import org.cristalise.kernel.process.resource.BuiltInResources;
+import org.cristalise.kernel.utils.DescriptionObject;
+import org.cristalise.kernel.utils.FileStringUtility;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
-public class ImportRole extends ModuleImport {
+@Slf4j @Getter @Setter
+public class ImportRole extends ModuleImport implements DescriptionObject {
 
-    public Boolean jobList;
+    public Integer version;
+
+    public Boolean jobList = null;
     public ArrayList<String> permissions = new ArrayList<>();
 
     public ImportRole() {}
 
+    public RolePath getRolePath() {
+        return new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
+    }
+
+    public boolean exists(TransactionKey transactionKey) {
+        return getRolePath().exists(transactionKey);
+    }
+
     @Override
-    public Path create(AgentPath agentPath, boolean reset)
+    public Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey)
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
-        RolePath newRolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
+        RolePath newRolePath = getRolePath();
 
-        if (Gateway.getLookup().exists(newRolePath)) {
+        if (newRolePath.exists(transactionKey)) {
             //If jobList is null it means it was NOT set in the module.xml, therefore existing Role cannot be updated
-            if (jobList != null) update(agentPath);
+            if (jobList != null) update(agentPath, transactionKey);
         }
         else {
-            log.info("ImportRole.create() - Creating Role:"+name+" joblist:"+jobList);
+            log.info("create() - Creating Role:"+name+" joblist:"+jobList);
 
             //Checks if parent exists and throw ObjectNotFoundException
-            newRolePath.getParent();
+            newRolePath.getParent(transactionKey);
 
-            Gateway.getLookupManager().createRole(newRolePath);
-            Gateway.getLookupManager().setPermissions(newRolePath, newRolePath.getPermissionsList());
+            Gateway.getLookupManager().createRole(newRolePath, transactionKey);
+            Gateway.getLookupManager().setPermissions(newRolePath, newRolePath.getPermissionsList(), transactionKey);
         }
         return newRolePath;
     }
@@ -72,16 +95,17 @@ public class ImportRole extends ModuleImport {
      * @throws CannotManageException
      * @throws ObjectNotFoundException
      */
-    public void update(AgentPath agentPath) 
+    public void update(AgentPath agentPath, TransactionKey transactionKey) 
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
     {
-        RolePath rolePath = new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
+        log.info("update() - Updating Role:"+name+" joblist:"+jobList);
+        RolePath rolePath = getRolePath();
 
-        if (!Gateway.getLookup().exists(rolePath)) 
+        if (!rolePath.exists(transactionKey)) 
             throw new ObjectNotFoundException("Role '" + rolePath.getName() + "' does NOT exists.");
 
-        Gateway.getLookupManager().setHasJobList(rolePath, (jobList == null) ? false : jobList);
-        Gateway.getLookupManager().setPermissions(rolePath, rolePath.getPermissionsList());
+        Gateway.getLookupManager().setHasJobList(rolePath, (jobList == null) ? false : jobList, transactionKey);
+        Gateway.getLookupManager().setPermissions(rolePath, rolePath.getPermissionsList(), transactionKey);
     }
 
     /**
@@ -94,8 +118,63 @@ public class ImportRole extends ModuleImport {
 
         ir.setName(rp.getName());
         ir.jobList = rp.hasJobList();
-        ir.permissions = (ArrayList<String>) rp.getPermissionsList();
+        ir.permissions = new ArrayList<String>(rp.getPermissionsList());
 
         return ir;
+    }
+
+    @Override
+    public ItemPath getItemPath(TransactionKey transactionKey) {
+        return getItemPath();
+    }
+
+    @Override
+    public String getItemID() {
+        return getID();
+    }
+
+    @Override
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
+        return new CollectionArrayList();
+    }
+
+    @Override
+    public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
+        String xml;
+        String typeCode = BuiltInResources.ROLE_DESC_RESOURCE.getTypeCode();
+        String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
+
+        try {
+            xml = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
+        }
+        catch (Exception e) {
+            log.error("Couldn't marshall name:" + getName(), e);
+            throw new InvalidDataException("Couldn't marshall name:" + getName());
+        }
+
+        FileStringUtility.string2File(new File(new File(dir, typeCode), fileName), xml);
+
+        if (imports == null) return;
+
+        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
+            imports.write("<Resource "
+                    + "name='" + getName() + "' "
+                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
+                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
+                    + "type='" + typeCode + "'>boot/" + typeCode + "/" + fileName
+                    + "</Resource>\n");
+        }
+        else {
+            imports.write("<RoleResource "
+                    + "name='" + getName() + "' "
+                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
+                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
+                    + "/>\n");
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "ImportRole(name:"+name+" version:"+version+" status:"+resourceChangeStatus+")";
     }
 }

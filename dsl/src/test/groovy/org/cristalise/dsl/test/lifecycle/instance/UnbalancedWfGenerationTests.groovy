@@ -31,16 +31,16 @@ import org.junit.Test
 
 class UnbalancedWfGenerationTests implements CristalTestSetup {
 
-    WorkflowTestBuilder wfBuilder
+    static WorkflowTestBuilder wfBuilder
 
     @Before
-    public void setup() {
+    public void setupSpec() {
         inMemorySetup()
         wfBuilder = new WorkflowTestBuilder()
     }
 
     @After
-    public void cleanup() {
+    public void cleanupSpec() {
         cristalCleanup()
     }
 

@@ -38,6 +38,7 @@ public class DecimalField extends NumberField {
 
     public DecimalField() {
         super(Arrays.asList(strFields), Arrays.asList(excFields));
+        javaType = BigDecimal.class;
     }
 
     /**

@@ -1,0 +1,7 @@
+<Job ItemUUID="70309ee0-f910-4e27-a737-b4c3fd9f03ff" StepName="TestStep2" StepPath="workflow/2" StepType=""
+  TransitionName="Start">
+  <ActProps>
+    <KeyValuePair Integer="0" Key="StateMachineVersion" isAbstract="false" />
+    <KeyValuePair Key="StateMachineName" String="Default" isAbstract="false" />
+  </ActProps>
+</Job>

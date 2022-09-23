@@ -28,15 +28,17 @@ import static org.cristalise.kernel.process.resource.BuiltInResources.ACTIVITY_D
 import static org.cristalise.kernel.process.resource.BuiltInResources.COMP_ACT_DESC_RESOURCE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.ELEM_ACT_DESC_RESOURCE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.COMPLEXITY;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -50,17 +52,23 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
     }
 
     @Override
-    public String getTypeCode() {
+    protected String getTypeCode() {
         if (isComposite == null) return ACTIVITY_DESC_RESOURCE.getTypeCode();
         return isComposite ? COMP_ACT_DESC_RESOURCE.getTypeCode() : ELEM_ACT_DESC_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
+    protected String getSchemaName() {
         if (isComposite == null)
             return ACTIVITY_DESC_RESOURCE.getSchemaName(); // this won't work for resource loads, but loadObject is overridden below
         else 
             return isComposite ? COMP_ACT_DESC_RESOURCE.getSchemaName() : ELEM_ACT_DESC_RESOURCE.getSchemaName();
+    }
+
+    @Override
+    protected String getTypeRoot() {
+        if (isComposite == null) return ACTIVITY_DESC_RESOURCE.getTypeRoot(); 
+        else                     return isComposite ? COMP_ACT_DESC_RESOURCE.getTypeRoot() : ELEM_ACT_DESC_RESOURCE.getTypeRoot();
     }
 
     @Override
@@ -72,7 +80,9 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
     }
 
     @Override
-    public ActivityDef loadObject(String name, int version, ItemProxy proxy) throws ObjectNotFoundException, InvalidDataException {
+    protected ActivityDef loadObject(ItemProxy proxy, int version, TransactionKey transactionKey) 
+            throws ObjectNotFoundException, InvalidDataException
+    {
         String viewName;
 
         if (isComposite == null) {
@@ -87,18 +97,18 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
         }
 
         try {
-            Viewpoint actView = (Viewpoint) proxy.getObject(ClusterType.VIEWPOINT + "/" + viewName + "/" + version);
-            String marshalledAct = actView.getOutcome().getData();
-            return buildObject(name, version, proxy.getPath(), marshalledAct);
+            Viewpoint actView = proxy.getViewpoint(viewName, String.valueOf(version), transactionKey);
+            String marshalledAct = actView.getOutcome(transactionKey).getData();
+            return buildObject(proxy.getName(), version, proxy.getPath(), marshalledAct);
         }
         catch (PersistencyException ex) {
-            log.error("Problem loading Activity " + name + " v" + version, ex);
-            throw new ObjectNotFoundException("Problem loading Activity " + name + " v" + version + ": " + ex.getMessage());
+            log.error("Problem loading Activity " + proxy + " v" + version, ex);
+            throw new ObjectNotFoundException("Problem loading Activity " + proxy + " v" + version + ": " + ex.getMessage());
         }
     }
 
     @Override
-    public ActivityDef buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected ActivityDef buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             ActivityDef thisActDef = (ActivityDef) Gateway.getMarshaller().unmarshall(data);
             thisActDef.setBuiltInProperty(VERSION, version);

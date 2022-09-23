@@ -24,6 +24,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 public interface DataHelper {
 
@@ -36,13 +37,13 @@ public interface DataHelper {
      * @param itemPath the current item to be used
      * @param actContext the current Activity path in which the DataHelper is used
      * @param dataPath its content is implementation specific
-     * @param locker the transaction locker object used for ClusterStorage methods
+     * @param transactionKey the transaction transactionKey object used for ClusterStorage methods
      * @return The resolved value
      * 
      * @throws InvalidDataException data inconsistency
      * @throws PersistencyException persistency issue
      * @throws ObjectNotFoundException  object was not found
      */
-    public String get(ItemPath itemPath, String actContext, String dataPath, Object locker) 
+    public String get(ItemPath itemPath, String actContext, String dataPath, TransactionKey transactionKey) 
             throws InvalidDataException, PersistencyException, ObjectNotFoundException;
 }

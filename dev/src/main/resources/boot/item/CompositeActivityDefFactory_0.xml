@@ -1,0 +1,43 @@
+<Item initialPath="/desc/dev" name="CompositeActivityDefFactory" ns="dev" version="0" workflow="CompositeActivityFactory" workflowVer="0">
+  <Property mutable="false" name="Type">Factory</Property>
+  <Property mutable="false" name="LocalObjectType">CompositeActivityDef</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/CompositeActivityDesc_0.xml</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow">
+    <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageCompositeActDef">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="Activity">
+    <DependencyMember itemPath="/desc/dev/ActivityDefType">
+      <MemberProperties/>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="Schema">
+    <DependencyMember itemPath="/desc/dev/SchemaFactory">
+      <MemberProperties/>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="Script">
+    <DependencyMember itemPath="/desc/dev/ScriptFactory">
+      <MemberProperties/>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="Query">
+    <DependencyMember itemPath="/desc/dev/QueryFactory">
+      <MemberProperties/>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="StateMachine">
+    <DependencyMember itemPath="/desc/dev/StateMachineFactory">
+      <MemberProperties/>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+</Item>

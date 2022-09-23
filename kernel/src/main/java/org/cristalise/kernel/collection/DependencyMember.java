@@ -20,7 +20,9 @@
  */
 package org.cristalise.kernel.collection;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_DISABLE_TYPE_CHECK;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_NAME;
+
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
@@ -28,11 +30,13 @@ import java.util.StringTokenizer;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
@@ -47,7 +51,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class DependencyMember implements CollectionMember {
     private ItemPath      mItemPath   = null;
-    private ItemProxy     mItem       = null;
     private int           mId         = -1;
     private CastorHashMap mProperties = null;
     private String        mClassProps = "";
@@ -96,9 +99,17 @@ public class DependencyMember implements CollectionMember {
         return mClassProps;
     }
 
+    private boolean checkType() {
+        // NOTE that the value of the property ignored
+        return getBuiltInProperty(DEPENDENCY_DISABLE_TYPE_CHECK) == null;
+    }
+
     @Override
-    public void assignItem(ItemPath itemPath) throws InvalidCollectionModification {
-        if (itemPath != null) {
+    public void assignItem(ItemPath itemPath, TransactionKey transactionKey) throws InvalidCollectionModification {
+        if (itemPath == null) {
+            log.warn("assignItem() -  Assigning null itemPath to a collection of Item:"+mItemPath.getItemName(transactionKey));
+        }
+        else if (checkType()) {
             if (mClassProps == null || getProperties() == null)
                 throw new InvalidCollectionModification("ClassProps not yet set. Cannot check membership validity.");
 
@@ -109,37 +120,33 @@ public class DependencyMember implements CollectionMember {
                 String aClassProp = sub.nextToken();
                 try {
                     String memberValue = (String) getProperties().get(aClassProp);
-                    Property itemProperty = (Property) Gateway.getStorage().get(itemPath, ClusterType.PROPERTY + "/" + aClassProp, null);
+                    Property itemProperty = (Property) Gateway.getStorage().get(itemPath, ClusterType.PROPERTY + "/" + aClassProp, transactionKey);
 
                     if (itemProperty == null)
                         throw new InvalidCollectionModification("Property " + aClassProp + " does not exist for item " + itemPath);
 
                     if (!itemProperty.getValue().equalsIgnoreCase(memberValue))
-                        throw new InvalidCollectionModification("checkProperty() Values of mandatory prop " + aClassProp
+                        throw new InvalidCollectionModification("Values of mandatory prop " + aClassProp
                                 + " do not match " + itemProperty.getValue() + "!=" + memberValue);
                 }
-                catch (Exception ex) {
-                    log.error("", ex);
-                    throw new InvalidCollectionModification("Error checking properties");
+                catch (PersistencyException | ObjectNotFoundException ex) {
+                    log.error("assignItem() - Error checking properties", ex);
+                    throw new InvalidCollectionModification("Error checking properties", ex);
                 }
             }
         }
 
         mItemPath = itemPath;
-        mItem = null;
     }
 
     @Override
     public void clearItem() {
         mItemPath = null;
-        mItem = null;
     }
 
     @Override
-    public ItemProxy resolveItem() throws ObjectNotFoundException {
-        if (mItem == null && mItemPath != null)
-            mItem = Gateway.getProxyManager().getProxy(mItemPath);
-        return mItem;
+    public ItemProxy resolveItem(TransactionKey transactionKey) throws ObjectNotFoundException {
+        return Gateway.getProxy(mItemPath, transactionKey);
     }
 
     public void setChildUUID(String uuid) throws InvalidCollectionModification, InvalidItemPathException {
@@ -151,12 +158,20 @@ public class DependencyMember implements CollectionMember {
         return mItemPath.getUUID().toString();
     }
 
+    public Object getProperty(String prop) {
+        return mProperties.get(prop);
+    }
+
+    public void setProperty(String prop, Object val) {
+        mProperties.put(prop, val, false);
+    }
+
     public Object getBuiltInProperty(BuiltInVertexProperties prop) {
         return mProperties.get(prop.getName());
     }
 
     public void setBuiltInProperty(BuiltInVertexProperties prop, Object val) {
-        mProperties.put(prop.getName(), val);
+        mProperties.put(prop.getName(), val, false);
     }
 
     /**
@@ -166,15 +181,15 @@ public class DependencyMember implements CollectionMember {
      * @throws InvalidDataException
      * @throws ObjectNotFoundException
      */
-    protected Object evaluateScript() throws InvalidDataException, ObjectNotFoundException {
+    protected Object evaluateScript(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         log.debug("evaluateScript() - memberUUID:" + getChildUUID());
-        Script script = LocalObjectLoader.getScript(getProperties());
+        Script script = LocalObjectLoader.getScript(getProperties(), transactionKey);
 
         try {
             script.setInputParamValue("dependencyMember", this);
 
             script.setInputParamValue("storage", Gateway.getStorage());
-            script.setInputParamValue("proxy", Gateway.getProxyManager());
+//            script.setInputParamValue("proxy", Gateway.getProxyManager());
             script.setInputParamValue("lookup", Gateway.getLookup());
 
             return script.evaluate(getItemPath(), getProperties(), null, null);
@@ -241,8 +256,12 @@ public class DependencyMember implements CollectionMember {
      */
     public void updateProperties(CastorHashMap newProps) throws ObjectNotFoundException, InvalidCollectionModification {
         for (Entry<String, Object> newProp: newProps.entrySet()) {
-            if (mClassProps.contains(newProp.getKey())) {
-                throw new InvalidCollectionModification("Dependency cannot change classProperties:"+mClassProps);
+            String key = newProp.getKey();
+            if (mClassProps.contains(key)) {
+                Object value = newProp.getValue();
+                if (! value.equals(getProperties().get(newProp.getKey()))) {
+                    throw new InvalidCollectionModification("Dependency cannot change classProperties:"+key);
+                }
             }
 
             if (getProperties().containsKey(newProp.getKey())) {
@@ -263,13 +282,13 @@ public class DependencyMember implements CollectionMember {
      * @throws InvalidDataException
      * @throws ObjectNotFoundException
      */
-    public boolean convertToItemPropertyByScript(PropertyArrayList props)  throws InvalidDataException, ObjectNotFoundException {
+    public boolean convertToItemPropertyByScript(PropertyArrayList props, TransactionKey transactionKey)  throws InvalidDataException, ObjectNotFoundException {
         log.debug("convertToItemPropertyByScript() - memberUUID:"+getChildUUID());
 
         String scriptName = (String)getBuiltInProperty(SCRIPT_NAME);
 
         if (scriptName != null && scriptName.length() > 0) {
-            Object result = evaluateScript();
+            Object result = evaluateScript(transactionKey);
 
             if (result != null && result instanceof PropertyArrayList) {
                 props.merge((PropertyArrayList)result);

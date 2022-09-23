@@ -36,7 +36,6 @@ import javax.swing.JOptionPane;
 import org.cristalise.kernel.persistency.outcome.OutcomeValidator;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Logger;
 
 
 
@@ -160,7 +159,6 @@ class OutcomeEditor extends JFrame implements ActionListener {
         System.exit(0);
     }
     public static void main( String[] argv ) {
-        Logger.addLogStream(System.out, 6);
         File instance = null;
         File schema = null;
         boolean readOnly = false;

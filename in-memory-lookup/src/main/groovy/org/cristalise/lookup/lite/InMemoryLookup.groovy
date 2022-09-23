@@ -20,6 +20,7 @@
  */
 package org.cristalise.lookup.lite
 
+import org.apache.commons.lang3.NotImplementedException
 import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.DomainPath
@@ -28,24 +29,24 @@ import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.Lookup
 import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.lookup.RolePath
-import org.cristalise.kernel.lookup.Lookup.PagedResult
 import org.cristalise.kernel.persistency.ClusterStorage
 import org.cristalise.kernel.persistency.ClusterType
+import org.cristalise.kernel.persistency.TransactionKey
 import org.cristalise.kernel.process.auth.Authenticator
 import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.property.PropertyDescriptionList
-import org.cristalise.kernel.utils.Logger
 import org.cristalise.storage.MemoryOnlyClusterStorage
-
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 
 @CompileStatic
+@Slf4j
 abstract class InMemoryLookup extends ClusterStorage implements Lookup {
 
     @Delegate MemoryOnlyClusterStorage propertyStore = new MemoryOnlyClusterStorage()
 
-    protected Map cache = [:] //LinkedHashMap
+    protected Map<String, Path> cache = [:] //LinkedHashMap
 
     //Maps String RolePath to List of String AgentPath
     protected Map<String,List<String>> role2AgentsCache  = [:]
@@ -62,7 +63,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     public void clear() {
-        Logger.msg(1, "InMemoryLookup.clear() - Clearing lookup cache and property store")
+        log.info("clear() - Clearing lookup cache and property store")
         cache.clear()
         propertyStore.clear()
         role2AgentsCache.clear()
@@ -76,7 +77,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
      * @return
      */
     protected Path retrievePath(String key) throws ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.retrievePath() - key: $key")
+        log.debug("retrievePath() - key: $key")
 
         Path p = (Path) cache[key]
 
@@ -91,7 +92,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
      */
     @Override
     public void open(Authenticator user) {
-        Logger.msg(8, "InMemoryLookup.open(user) - Do nothing")
+        log.info("open(user) - Do nothing")
         clear()
     }
 
@@ -100,7 +101,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
      */
     @Override
     public void close() {
-        Logger.msg(8, "InMemoryLookup.close() - Do nothing")
+        log.info("close() - Do nothing")
         clear()
     }
 
@@ -114,34 +115,34 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
      * @throws ObjectNotFoundException When the Item does not exist in the directory.
      */
     @Override
-    public ItemPath getItemPath(String sysKey) throws InvalidItemPathException, ObjectNotFoundException {
+    public ItemPath getItemPath(String sysKey, TransactionKey transactionKey) throws InvalidItemPathException, ObjectNotFoundException {
         return (ItemPath) retrievePath(new ItemPath(sysKey).stringPath)
     }
 
     @Override
-    public AgentPath getAgentPath(String agentName) throws ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.getAgentPath() - agentName: $agentName")
+    public AgentPath getAgentPath(String agentName, TransactionKey transactionKey) throws ObjectNotFoundException {
+        log.debug("getAgentPath() - agentName: $agentName")
 
         def pList = cache.values().findAll {it instanceof AgentPath && ((AgentPath)it).agentName ==  agentName}
 
         if     (pList.size() == 0) throw new ObjectNotFoundException("$agentName")
         else if(pList.size() > 1)  throw new ObjectNotFoundException("Umbiguous result for agent '$agentName'")
 
-        Logger.msg(5, "InMemoryLookup.getAgentPath() - agentName '$agentName' was found")
+        log.debug("getAgentPath() - agentName '$agentName' was found")
 
         return (AgentPath)pList[0]
     }
 
     @Override
-    public RolePath getRolePath(String roleName) throws ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.getRolePath() - roleName: $roleName")
+    public RolePath getRolePath(String roleName, TransactionKey transactionKey) throws ObjectNotFoundException {
+        log.debug("getRolePath() - roleName: $roleName")
 
         def pList = cache.values().findAll {it instanceof RolePath && ((RolePath)it).name ==  roleName}
 
         if     (pList.size() == 0) throw new ObjectNotFoundException("$roleName")
         else if(pList.size() > 1)  throw new ObjectNotFoundException("Umbiguous result for agent '$roleName'")
 
-        Logger.msg(5, "InMemoryLookup.getRolePath() - roleName '$roleName' was found")
+        log.debug("getRolePath() - roleName '$roleName' was found")
 
         return (RolePath)pList[0]
     }
@@ -155,23 +156,10 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
      * @throws ObjectNotFoundException
      */
     @Override
-    public ItemPath resolvePath(DomainPath domainPath) throws InvalidItemPathException, ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.resolvePath() - domainPath: $domainPath")
+    public ItemPath resolvePath(DomainPath domainPath, TransactionKey transactionKey) throws InvalidItemPathException, ObjectNotFoundException {
+        log.debug("resolvePath() - domainPath: $domainPath")
         DomainPath dp = (DomainPath) retrievePath(domainPath.stringPath)
         return dp.getTarget()
-    }
-
-    /**
-     * Resolve a path to a CORBA Object Item or Agent
-     *
-     * @param path The path to be resolved
-     * @return The CORBA Object
-     * @throws ObjectNotFoundException When the Path doesn't exist, or doesn't have an IOR associated with it
-     */
-    @Override
-    public String getIOR(Path path) throws ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.getIOR() - Path: $path")
-        return ((ItemPath)retrievePath(path.stringPath)).getIORString()
     }
 
     /**
@@ -181,43 +169,45 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
      * @return boolean true if the path exists, false if it doesn't
      */
     @Override
-    public boolean exists(Path path) {
-        //Logger.msg(5, "InMemoryLookup.exists() - Path: $path");
+    public boolean exists(Path path, TransactionKey transactionKey) {
+        //log.debug("exists() - Path: $path");
         return cache.keySet().contains(path.stringPath)
     }
 
     @Override
-    public PagedResult getChildren(Path path, int offset, int limit) {
+    public PagedResult getChildren(Path path, int offset, int limit, TransactionKey transactionKey) {
         //cache.values().findAll { ((Path)it).stringPath =~ /^$path.stringPath\/\w+$/ }
         return null
     }
 
     @Override
-    public Iterator<Path> getChildren(Path path) {
-        Logger.msg(5, "InMemoryLookup.getChildren() - Path: $path")
+    public Iterator<Path> getChildren(Path path, TransactionKey transactionKey) {
+        log.debug("getChildren() - Path: $path")
         return cache.values().findAll { ((Path)it).stringPath =~ /^$path.stringPath\/\w+$/ }.iterator()
     }
 
     @Override
-    public Iterator<Path> search(Path start, String name) {
-        Logger.msg(5, "InMemoryLookup.search(name: $name) - start: $start")
-        def result = cache.values().findAll { ((Path)it).stringPath =~ /^$start.stringPath.*$name/ }
-        Logger.msg(5, "InMemoryLookup.search(name: $name) - returning ${result.size()} pathes")
+    public Iterator<Path> search(Path start, String name, SearchConstraints constraints, TransactionKey transactionKey) {
+        log.debug("search(name: $name) - start: $start")
+        def pattern = "^${start.stringPath}.*$name"
+        if (constraints == SearchConstraints.EXACT_NAME_MATCH) pattern = "^${start.stringPath}/.*/$name\$"
+        def result = cache.values().findAll { ((Path)it).stringPath =~ /$pattern/ }
+        log.debug("search(name: $name) - returning ${result.size()} pathes")
         return result.iterator()
     }
 
     @Override
-    public Iterator<Path> search(Path start, Property... props) {
-        Logger.msg(5,"InMemoryLookup.search(props) - Start: $start, # of props: $props.length")
+    public Iterator<Path> search(Path start, TransactionKey transactionKey, Property... props) {
+        log.debug("search(props) - Start: $start, # of props: $props.length")
         String name = ""
 
         for(def prop in props) {
-            Logger.msg(5,"InMemoryLookup.search(props) - Property: ${prop.name} - ${prop.value}")
+            log.debug("search(props) - Property: ${prop.name} - ${prop.value}")
             if(prop.name == "Name") name = prop.value
         }
 
-        def result = []
-        def foundPathes = search(start, name)
+        List<Path> result = []
+        def foundPathes = search(start, name, SearchConstraints.WILDCARD_MATCH, transactionKey)
 
         foundPathes.each { Path p ->
             ItemPath ip = null
@@ -225,39 +215,39 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
             if     (p instanceof DomainPath) { if(!((DomainPath)p).isContext()) ip = ((DomainPath)p).itemPath }
             else if(p instanceof ItemPath)   { ip = (ItemPath)p}
 
-            if(ip && checkItemProps(ip, props)) { result.add(p) }
+            if(ip && checkItemProps(ip, transactionKey, props)) { result.add(p) }
         }
-        Logger.msg(5, "InMemoryLookup.search(props) - returning ${result.size()} pathes")
+        log.debug("search(props) - returning ${result.size()} pathes")
         return result.iterator()
     }
 
-    private boolean checkItemProps(ItemPath itemP, Property... props) {
-        Logger.msg(5, "InMemoryLookup.checkItemProps(props) - ItemPath:$itemP # of props: $props.length")
+    private boolean checkItemProps(ItemPath itemP, TransactionKey transactionKey, Property... props) {
+        log.debug("checkItemProps(props) - ItemPath:$itemP # of props: $props.length")
 
         for(Property prop: props) {
-            Property p = (Property)propertyStore.get(itemP.itemPath, ""+ClusterType.PROPERTY+"/"+prop.name)
+            Property p = (Property)propertyStore.get(itemP.itemPath, ""+ClusterType.PROPERTY+"/"+prop.name, transactionKey)
             if(!p || p.value != prop.value) return false
         }
         return true
     }
 
     @Override
-    public Iterator<Path> search(Path start, PropertyDescriptionList props) {
+    public Iterator<Path> search(Path start, PropertyDescriptionList props, TransactionKey transactionKey) {
         // TODO: Implement search(Path,PropDescList)
-        throw new RuntimeException("InMemoryLookup.search() - UNIMPLEMENTED Start: $start, # of propDescList: $props.list.size - This implemetation ALWAYS returns empty result!")
+        throw new RuntimeException("search() - UNIMPLEMENTED Start: $start, # of propDescList: $props.list.size - This implemetation ALWAYS returns empty result!")
         //return getEmptyPathIter();
     }
 
     @Override
-    public Iterator<Path> searchAliases(ItemPath itemPath) {
+    public Iterator<Path> searchAliases(ItemPath itemPath, TransactionKey transactionKey) {
         // TODO: Implement searchAliases
-        throw new RuntimeException("InMemoryLookup.searchAliases() - UNIMPLEMENTED ItemPath: $itemPath - This implemetation ALWAYS returns empty result!")
+        throw new RuntimeException("searchAliases() - UNIMPLEMENTED ItemPath: $itemPath - This implemetation ALWAYS returns empty result!")
         //return getEmptyPathIter();
     }
 
     @Override
-    public AgentPath[] getAgents(RolePath role) throws ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.getAgents() - RolePath: $role")
+    public AgentPath[] getAgents(RolePath role, TransactionKey transactionKey) throws ObjectNotFoundException {
+        log.debug("getAgents() - RolePath: $role")
         List<String> agents = role2AgentsCache[retrievePath(role.stringPath).stringPath]
 
         if(agents) {
@@ -270,8 +260,8 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     @Override
-    public RolePath[] getRoles(AgentPath agent) {
-        Logger.msg(5,"InMemoryLookup.getRoles() - AgentPath: $agent")
+    public RolePath[] getRoles(AgentPath agent, TransactionKey transactionKey) {
+        log.debug("getRoles() - AgentPath: $agent")
 
         try {
             List roles = agent2RolesCache[retrievePath(agent.stringPath).stringPath]
@@ -288,8 +278,8 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     @Override
-    public boolean hasRole(AgentPath agent, RolePath role) {
-        Logger.msg(5, "InMemoryLookup.hasRole() - AgentPath: $agent, RolePath: $role")
+    public boolean hasRole(AgentPath agent, RolePath role, TransactionKey transactionKey) {
+        log.debug("hasRole() - AgentPath: $agent, RolePath: $role")
         try {
             return agent2RolesCache[retrievePath(agent.stringPath).stringPath].contains(role.stringPath)
         }
@@ -299,39 +289,44 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     @Override
-    public String getAgentName(AgentPath agentPath) throws ObjectNotFoundException {
-        Logger.msg(5, "InMemoryLookup.getAgentName() - AgentPath: $agentPath")
+    public String getAgentName(AgentPath agentPath, TransactionKey transactionKey) throws ObjectNotFoundException {
+        log.debug("getAgentName() - AgentPath: $agentPath")
         AgentPath p = (AgentPath) retrievePath(agentPath.stringPath)
-        return p.agentName
+        return p.getAgentName(transactionKey)
     }
 
     @Override
-    public PagedResult search(Path start, List<Property> props, int offset, int limit) {
+    public PagedResult search(Path start, List<Property> props, int offset, int limit, TransactionKey transactionKey) {
         // TODO Auto-generated method stub
         return null
     }
 
     @Override
-    public PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit) {
+    public PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit, TransactionKey transactionKey) {
         // TODO Auto-generated method stub
         return null
     }
 
     @Override
-    public PagedResult searchAliases(ItemPath itemPath, int offset, int limit) {
+    public PagedResult searchAliases(ItemPath itemPath, int offset, int limit, TransactionKey transactionKey) {
         // TODO Auto-generated method stub
         return null
     }
 
     @Override
-    public PagedResult getAgents(RolePath rolePath, int offset, int limit) throws ObjectNotFoundException {
+    public PagedResult getAgents(RolePath rolePath, int offset, int limit, TransactionKey transactionKey) throws ObjectNotFoundException {
         // TODO Auto-generated method stub
         return null
     }
 
     @Override
-    public PagedResult getRoles(AgentPath agentPath, int offset, int limit) {
+    public PagedResult getRoles(AgentPath agentPath, int offset, int limit, TransactionKey transactionKey) {
         // TODO Auto-generated method stub
         return null
+    }
+
+    @Override
+    public PagedResult getContextTree(DomainPath path, TransactionKey transactionKey) {
+        throw new NotImplementedException("Retrieving ContextTree support is not implemented");
     }
 }

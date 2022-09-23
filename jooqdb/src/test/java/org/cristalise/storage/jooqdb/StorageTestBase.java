@@ -37,7 +37,9 @@ public class StorageTestBase extends JooqTestConfigurationBase {
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        Gateway.init(new Properties());
+        Properties props = new Properties();
+        setUpStorage(props);
+        Gateway.init(props);
     }
 
     @AfterClass

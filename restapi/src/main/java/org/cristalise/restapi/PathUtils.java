@@ -34,7 +34,9 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class PathUtils extends RestHandler {
 
     public PathUtils() {
@@ -49,6 +51,8 @@ public class PathUtils extends RestHandler {
         UUID uuid = null;
         Boolean hasJoblist = null;
 
+        log.debug("makeLookupData() - uriPath:{} nextPath:{}", uri.getPath(), nextPath);
+
         if (nextPath instanceof DomainPath) {
             type = "domain";
             DomainPath nextDom = (DomainPath) nextPath;
@@ -60,7 +64,7 @@ public class PathUtils extends RestHandler {
                 uuid = nextItem.getUUID();
             }
             catch (ObjectNotFoundException ex) {
-                nextPathURI = uri.getAbsolutePathBuilder().path(nextDom.getName()).build();
+                nextPathURI = uri.getBaseUriBuilder().path(nextDom.getStringPath()).build();
             }
         }
         else if (nextPath instanceof ItemPath) {
@@ -71,7 +75,7 @@ public class PathUtils extends RestHandler {
             uuid = itemPath.getUUID();
 
             try {
-                name = Gateway.getProxyManager().getProxy(itemPath).getName();
+                name = Gateway.getProxy(itemPath).getName();
             }
             catch (ObjectNotFoundException e) {
                 name = itemPath.getUUID().toString();

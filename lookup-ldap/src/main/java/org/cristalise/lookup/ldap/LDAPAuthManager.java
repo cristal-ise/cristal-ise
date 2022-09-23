@@ -25,11 +25,12 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
-import org.cristalise.kernel.utils.Logger;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class LDAPAuthManager implements Authenticator {
 
     protected LDAPConnection mLDAPConn;
@@ -52,18 +53,17 @@ public class LDAPAuthManager implements Authenticator {
                 LDAPLookup anonLookup = new LDAPLookup();
                 anonLookup.initPaths(ldapProps);
                 anonLookup.open(this);
-                String agentDN = anonLookup.getFullDN(anonLookup.getAgentPath(agentName));
+                String agentDN = anonLookup.getFullDN(anonLookup.getAgentPath(agentName, null));
                 anonLookup.close();
 
                 //found agentDN, try to log in with it
-                Logger.msg(5, "LDAPAuthManager.authenticate() - agentDN:: "+agentDN);
                 ldapProps.mUser = agentDN;
                 ldapProps.mPassword = password;
                 mLDAPConn = LDAPLookupUtils.createConnection(ldapProps);
                 return true;
             } 
             catch (LDAPException e) {
-                Logger.error(e);
+                log.error("",e);
                 return false;
             }
         }
@@ -86,7 +86,7 @@ public class LDAPAuthManager implements Authenticator {
             return true;
         }
         catch (LDAPException e) {
-            Logger.error(e);
+            log.error("",e);
             return false;
         }
     }
@@ -94,12 +94,11 @@ public class LDAPAuthManager implements Authenticator {
     @Override
     public LDAPConnection getAuthObject() {
         if (mLDAPConn==null || !mLDAPConn.isConnected()) {
-            Logger.warning("LDAPAuthManager.getAuthObject() - lost connection to LDAP server. Attempting to reconnect.");
             try {
                 mLDAPConn = LDAPLookupUtils.createConnection(ldapProps);
             }
             catch (LDAPException ex) {
-                Logger.error(ex);
+                log.error("",ex);
             }
         }
         return mLDAPConn;
@@ -107,13 +106,12 @@ public class LDAPAuthManager implements Authenticator {
 
     @Override
     public void disconnect() {
-        Logger.msg(1, "LDAPAuthManager.disconnect() - Shutting down LDAP connection.");
         if (mLDAPConn != null) {
             try {
                 mLDAPConn.disconnect();
             }
             catch (LDAPException e) {
-                Logger.error(e);
+                log.error("",e);
             }
             mLDAPConn = null;
         }

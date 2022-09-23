@@ -22,6 +22,7 @@ package org.cristalise.kernel.graph.model;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ACTIVITY_DEF_URN;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.NAME;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -106,6 +107,11 @@ public abstract class GraphableVertex extends Vertex {
     public Vertex[] getOutGraphables() {
         if (parent == null) return new Vertex[0]; // none if no parent
         else                return parent.mChildrenGraphModel.getOutVertices(this);
+    }
+
+    public Vertex[] getInGraphables() {
+        if (parent == null) return new Vertex[0]; // none if no parent
+        else                return parent.mChildrenGraphModel.getInVertices(this);
     }
 
     public DirectedEdge[] getOutEdges() {
@@ -299,6 +305,7 @@ public abstract class GraphableVertex extends Vertex {
         mProperties.put(prop.getName(), val);
     }
 
+    @SuppressWarnings("unlikely-arg-type")
     public void updatePropertiesFromCollection(BuiltInVertexProperties vertexProp, CastorHashMap newProps) throws InvalidDataException {
         switch (vertexProp) {
             case ACTIVITY_DEF_URN:
@@ -327,13 +334,47 @@ public abstract class GraphableVertex extends Vertex {
 
     public void updatePropertiesFromCollection(int slotID, CastorHashMap newProps) throws InvalidDataException {
         if (getID() == slotID) {
-            log.debug("updatePropertiesFromCollection(slotID:" + slotID + ") - MERGING properties for name:" + getName()
-            + " id:" + getID());
-            newProps.dump(5);
+            log.debug("updatePropertiesFromCollection(slotID:" + slotID + ") - MERGING properties for name:" + getName() + " id:" + getID());
             mProperties.merge(newProps);
         }
-        else
-            log.debug("updatePropertiesFromCollection(slotID:" + slotID + ") - SKIPPING name:" + getName() + " id:"
-                    + getID());
+        else {
+            log.debug("updatePropertiesFromCollection(slotID:" + slotID + ") - SKIPPING name:" + getName() + " id:" + getID());
+        }
+    }
+
+    /**
+     * Retrieve the PairingID of the vertex
+     * 
+     * @return empty string or the value of the PairingID property
+     */
+    public String getPairingId() {
+        return (String) getBuiltInProperty(PAIRING_ID, "");
+    }
+
+    /**
+     * Checks if the vertex has a pairing id or not and if it has one compares it with the other vertex pairing id
+     * 
+     * @param otherVertex the other vertex to check for pairing
+     * @return null if vertex has no PAIRING_ID otherwise compare the pairing ids
+     */
+    public Boolean isMyPair(GraphableVertex otherVertex) {
+        String loopPairingID = getPairingId();
+
+        if (StringUtils.isNotBlank(loopPairingID)) {
+            return loopPairingID.equals(getOtherPairingID(otherVertex));
+        }
+        else {
+            return null;
+        }
+    }
+
+    /**
+     * Retrieve the PairingID of the other vertex
+     * 
+     * @param otherVertex the other vertex 
+     * @return empty string or the value of the PairingID property
+     */
+    protected String getOtherPairingID(GraphableVertex otherVertex) {
+        return (String) otherVertex.getPairingId();
     }
 }

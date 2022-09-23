@@ -64,7 +64,7 @@
 				<InEdgeId>29</InEdgeId>
 				<OutEdgeId>31</OutEdgeId>
 				<Properties>
-					<KeyValuePair Key="Name" String="MoveLatestPropertyDescVersionToLast" />
+					<KeyValuePair Key="Name" String="MoveLatestPropertyDescriptionVersionToLast" />
 					<KeyValuePair Key="Version" Integer="0" />
 					<KeyValuePair Key="ViewName" String="PropertyDescription" />
 				</Properties>
@@ -185,7 +185,7 @@
 				<InEdgeId>18</InEdgeId>
 				<OutEdgeId>19</OutEdgeId>
 				<Properties>
-					<KeyValuePair Key="Name" String="AssignNewPropertyDescVersionFromLast" />
+					<KeyValuePair Key="Name" String="AssignNewPropertyDescriptionVersionFromLast" />
 					<KeyValuePair Key="Version" Integer="0" />
 					<KeyValuePair Key="ViewName" String="PropertyDescription" />
 				</Properties>

@@ -20,22 +20,34 @@
  */
 package org.cristalise.kernel.process;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.CorbaServer;
+import org.cristalise.kernel.entity.ItemVerticle;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ProxyManager;
-import org.cristalise.kernel.entity.proxy.ProxyServer;
+import org.cristalise.kernel.entity.proxy.ProxyMessage;
+import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.lookup.LookupManager;
-import org.cristalise.kernel.persistency.TransactionManager;
+import org.cristalise.kernel.persistency.ClusterStorageManager;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.process.module.ModuleManager;
 import org.cristalise.kernel.process.resource.BuiltInResources;
@@ -43,12 +55,29 @@ import org.cristalise.kernel.process.resource.DefaultResourceImportHandler;
 import org.cristalise.kernel.process.resource.Resource;
 import org.cristalise.kernel.process.resource.ResourceImportHandler;
 import org.cristalise.kernel.process.resource.ResourceLoader;
-import org.cristalise.kernel.scripting.ScriptConsole;
 import org.cristalise.kernel.security.SecurityManager;
 import org.cristalise.kernel.utils.CastorXMLUtility;
-import org.cristalise.kernel.utils.Logger;
 import org.cristalise.kernel.utils.ObjectProperties;
 
+import com.hazelcast.config.Config;
+
+import io.vertx.core.DeploymentOptions;
+import io.vertx.core.Vertx;
+import io.vertx.core.VertxOptions;
+import io.vertx.core.cli.Argument;
+import io.vertx.core.cli.CLI;
+import io.vertx.core.cli.CommandLine;
+import io.vertx.core.cli.Option;
+import io.vertx.core.json.JsonArray;
+import io.vertx.core.spi.cluster.ClusterManager;
+import io.vertx.ext.shell.ShellService;
+import io.vertx.ext.shell.ShellServiceOptions;
+import io.vertx.ext.shell.command.CommandBuilder;
+import io.vertx.ext.shell.command.CommandProcess;
+import io.vertx.ext.shell.command.CommandRegistry;
+import io.vertx.ext.shell.term.TelnetTermOptions;
+import io.vertx.spi.cluster.hazelcast.ConfigUtil;
+import io.vertx.spi.cluster.hazelcast.HazelcastClusterManager;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -62,27 +91,22 @@ import lombok.extern.slf4j.Slf4j;
  * search for Items or Agents.
  * <li>ProxyManager - Gives a local proxy object for Entities found
  * in the directory. Execute activities in Items, query or subscribe to Entity data.
- * <li>TransactionManager - Access to the configured CRISTAL databases
- * <li>CorbaServer - Manages the memory pool of active Entities
- * <li>ORB - the CORBA ORB
  * </ul>
  */
 @Slf4j
-public class Gateway
+public class Gateway extends ProxyManager
 {
-    static private ObjectProperties     mC2KProps = new ObjectProperties();
-    static private ModuleManager        mModules;
-    static private org.omg.CORBA.ORB    mORB;
-    static private boolean              orbDestroyed = false;
-    static private Lookup               mLookup;
-    static private LookupManager        mLookupManager = null;
-    static private TransactionManager   mStorage;
-    static private ProxyManager         mProxyManager;
-    static private ProxyServer          mProxyServer;
-    static private CorbaServer          mCorbaServer;
-    static private CastorXMLUtility     mMarshaller;
-    static private ResourceLoader       mResource;
-    static private SecurityManager      mSecurityManager = null;
+    static private ObjectProperties      mC2KProps = new ObjectProperties();
+    static private ModuleManager         mModules;
+    static private Vertx                 mVertx;
+    static private Lookup                mLookup;
+    static private LookupManager         mLookupManager = null;
+    static private ClusterStorageManager mStorage;
+    static private CastorXMLUtility      mMarshaller;
+    static private ResourceLoader        mResource;
+    static private SecurityManager       mSecurityManager = null;
+
+    @Deprecated static private ProxyManager mProxyManager; //this is kept only to minimise migration of user written Scripts
 
     //FIXME: Move this cache to Resource class - requires to extend ResourceLoader with getResourceImportHandler()
     static private HashMap<BuiltInResources, ResourceImportHandler> resourceImportHandlerCache = new HashMap<BuiltInResources, ResourceImportHandler>();
@@ -112,10 +136,13 @@ public class Gateway
      * @throws InvalidDataException - invalid properties caused a failure in initialisation
      */
     static public void init(Properties props, ResourceLoader res) throws InvalidDataException {
+
+        System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory");
+        System.setProperty("hazelcast.logging.type", "slf4j");
+
         // Init properties & resources
         mC2KProps.clear();
 
-        orbDestroyed = false;
         mResource = res;
         if (mResource == null) mResource = new Resource();
 
@@ -152,63 +179,117 @@ public class Gateway
         // Overwrite with argument props
         if (props != null) mC2KProps.putAll(props);
 
-        mSecurityManager = new SecurityManager();
-
         // dump properties
         log.info("Gateway.init() - DONE");
         dumpC2KProps(7);
     }
 
+    private static void clearCacheHandler(CommandProcess process) {
+        CommandLine commandLine = process.commandLine();
+        String cmdName = commandLine.cli().getName();
+
+        try {
+            String item = commandLine.getArgumentValue(0);
+
+            if (StringUtils.isNotBlank(item)) {
+                ItemPath ip = null;
+
+                if (ItemPath.isUUID(item)) ip = getLookup().getItemPath(item);
+                else                       ip = getLookup().resolvePath(new DomainPath(item));
+
+                if (cmdName.startsWith("storage-")) getStorage().clearCache(ip);
+                else                                ; //getProxyManager().clearCache(ip);
+
+                process.write("Command "+cmdName+" was executed for item:"+item+"\n");
+            }
+            else {
+                if (cmdName.startsWith("storage-")) getStorage().clearCache();
+                else                                ; //getProxyManager().clearCache();
+
+                process.write("Command "+cmdName+" was executed for ALL items.\n");
+            }
+        }
+        catch (Exception e) {
+            log.error(cmdName, e);
+            process.write("ERROR executing "+cmdName+":"+e.getMessage()+"\n");
+        }
+
+        process.end();
+    }
+
     /**
-     * Makes this process capable of creating and managing server entities. Runs the
-     * Creates the LookupManager, ProxyServer, initialises the ORB and CORBAServer
      * 
-     * @param auth - this is NOT USED
+     * @param cmdName
      */
-    @Deprecated
-    static public void startServer(Authenticator auth) throws InvalidDataException, CannotManageException {
-        startServer();
+    private static void addClearCacheCommand(String cmdName) {
+        String summary = "Clear the Proxy cache";
+        if (cmdName.startsWith("storage-")) summary = "Clear the Storage cache";
+
+        CLI cli = CLI.create(cmdName).setSummary(summary)
+                .addOption(new Option().setShortName("h").setLongName("help").setHelp(true).setFlag(true))
+                .addArgument(new Argument().setArgName("item").setRequired(false).setDescription("UUID or the DomainPath of the Item"));
+
+        CommandBuilder command = CommandBuilder.command(cli).processHandler(Gateway::clearCacheHandler);
+
+        // Register the command
+        CommandRegistry registry = CommandRegistry.getShared(mVertx);
+        registry.registerCommand(command.build(mVertx));
+    }
+
+    /**
+     * 
+     */
+    static private void createServerVerticles() {
+        DeploymentOptions options = new DeploymentOptions()
+                .setWorker(ItemVerticle.isWorker)
+                .setInstances(ItemVerticle.instances);
+        mVertx.deployVerticle(ItemVerticle.class, options);
+
+        options.setInstances(getProperties().getInt("JobPusherVerticle.instances", 2));
+
+        options.setInstances(1);
+        options.setWorker(false);
+        mVertx.deployVerticle(TcpBridgeVerticle.class, options);
+    }
+
+    /**
+     * 
+     */
+    static private void createTelnetShellService(String host, int port) {
+        // addClearCacheCommand("proxy-clearCache");
+        addClearCacheCommand("storage-clearCache");
+
+        ShellServiceOptions options = new ShellServiceOptions()
+            .setTelnetOptions(new TelnetTermOptions().setHost(host).setPort(port));
+
+        ShellService.create(mVertx, options).start();
     }
 
     /**
      * Makes this process capable of creating and managing server entities. Runs the
-     * Creates the LookupManager, ProxyServer, initialises the ORB and CORBAServer
+     * Creates the LookupManager, ProxyServer, initialises the vertx services
      */
     static public void startServer() throws InvalidDataException, CannotManageException {
         try {
             // check top level directory contexts
             if (mLookup instanceof LookupManager) {
                 mLookupManager = (LookupManager) mLookup;
-                mLookupManager.initializeDirectory();
+                mLookupManager.initializeDirectory(null);
             }
             else {
                 throw new CannotManageException("Lookup implementation is not a LookupManager. Cannot write to directory");
             }
 
+            createServerVerticles();
+
+            String host = Gateway.getProperties().getString("ItemServer.Telnet.host", "localhost");
+            int    port = Gateway.getProperties().getInt(   "ItemServer.Telnet.port", 0);
+
+            if (port != 0) createTelnetShellService(host, port);
+
             // start entity proxy server
-            mProxyServer = new ProxyServer(mC2KProps.getProperty("ItemServer.name"));
-
-            // Init ORB - set various config 
             String serverName = mC2KProps.getProperty("ItemServer.name");
-
-            //TODO: externalize this (or replace corba completely)
-            if (serverName != null) mC2KProps.put("com.sun.CORBA.ORBServerHost", serverName);
-
-            String serverPort = mC2KProps.getProperty("ItemServer.iiop", "1500");
-            mC2KProps.put("com.sun.CORBA.ORBServerPort", serverPort);
-            mC2KProps.put("com.sun.CORBA.POA.ORBServerId", "1");
-            mC2KProps.put("com.sun.CORBA.POA.ORBPersistentServerPort", serverPort);
-            mC2KProps.put("com.sun.CORBA.codeset.charsets", "0x05010001, 0x00010109"); // need to force UTF-8 in the Sun ORB
-            mC2KProps.put("com.sun.CORBA.codeset.wcharsets", "0x00010109, 0x05010001");
-            //Standard initialisation of the ORB
-            orbDestroyed = false;
-            mORB = org.omg.CORBA.ORB.init(new String[0], mC2KProps);
-
-            log.info("ORB initialised. ORB class:'" + mORB.getClass().getName()+"'" );
-
-            // start corba server components
-            mCorbaServer = new CorbaServer();
-
+ 
             log.info("Server '"+serverName+"' STARTED.");
 
             if (mLookupManager != null) mLookupManager.postStartServer();
@@ -228,16 +309,65 @@ public class Gateway
     public static ModuleManager getModuleManager() {
         return mModules;
     }
+    
 
     /**
-     * Initialises the {@link Lookup}, {@link TransactionManager} and {@link ProxyManager}
+     * 
+     * @param options
+     * @param clustered
+     * @throws CriseVertxException 
+     */
+    private static void createVertx(VertxOptions options, boolean clustered) throws CriseVertxException {
+        if (mVertx == null) {
+            if (clustered) {
+                Config hazelcastConfig =  ConfigUtil.loadConfig();
+                if (!AbstractMain.isServer) hazelcastConfig.setLiteMember(true);
+                ClusterManager mgr = new HazelcastClusterManager(hazelcastConfig);
+                options.setClusterManager(mgr);
+
+                CompletableFuture<Void> future = new CompletableFuture<Void>();
+
+                Vertx.clusteredVertx(options, (result) -> {
+                    if (result.succeeded()) {
+                        mVertx = result.result();
+                        log.info("createVertx(clustered) -  Done");
+                        future.complete(null);
+                    }
+                    else {
+                        log.error("createVertx(clustered)", result.cause());
+                        future.completeExceptionally(result.cause());
+                  }
+                });
+
+                try {
+                    future.get(60, SECONDS);
+                }
+                catch (ExecutionException e) {
+                    throw CriseVertxException.convertFutureException(e);
+                }
+                catch (InterruptedException | TimeoutException | CancellationException e) {
+                    log.error("createVertx(clustered)", e);
+                    throw new CannotManageException(e);
+                }
+            }
+            else {
+                mVertx = Vertx.vertx(options);
+                log.info("createVertx() -  Done");
+            }
+        }
+    }
+
+    /**
+     * Initialises the {@link Lookup} and {@link ProxyManager}
      *
      * @param auth the Authenticator instance
-     * @throws InvalidDataException bad params
-     * @throws PersistencyException error starting storages
+     * @throws CriseVertxException 
      */
-    private static void setup(Authenticator auth) throws InvalidDataException, PersistencyException {
+    private static void setup(Authenticator auth) throws CriseVertxException {
         if (mLookup != null) mLookup.close();
+
+        // To use tcpip-bride, the client has to create non-clustered vertx
+        createVertx(new VertxOptions(), mC2KProps.getBoolean("Gateway.clusteredVertx", true));
 
         try {
             mLookup = (Lookup)mC2KProps.getInstance("Lookup");
@@ -248,20 +378,20 @@ public class Gateway
             throw new InvalidDataException("Cannot connect server process. Please check config.");
         }
 
-        mStorage = new TransactionManager(auth);
+        mStorage = new ClusterStorageManager(auth);
         mProxyManager = new ProxyManager();
     }
 
     /**
      * Connects to the Lookup server in an administrative context - using the admin username and
-     * password available in the implementation of the Authenticator. It shall be
-     * used in server processes only.
+     * password available in the implementation of the Authenticator. It shall be used in server processes only.
      *
      * @throws InvalidDataException - bad params
      * @throws PersistencyException - error starting storages
      * @throws ObjectNotFoundException - object not found
      */
-    static public Authenticator connect() throws InvalidDataException, PersistencyException, ObjectNotFoundException {
+    static public Authenticator connect() throws CriseVertxException {
+        mSecurityManager = new SecurityManager();
         mSecurityManager.authenticate();
 
         setup(mSecurityManager.getAuth());
@@ -274,8 +404,8 @@ public class Gateway
     }
 
     /**
-     * Log in with the given username and password, and initialises the {@link Lookup}, 
-     * {@link TransactionManager} and {@link ProxyManager}. It shall be uses in client processes only.
+     * Log in with the given username and password, and initialises the {@link Lookup} and 
+     * {@link ProxyManager}. It shall be used in client processes only.
      * 
      * @param agentName - username
      * @param agentPassword - password
@@ -285,15 +415,13 @@ public class Gateway
      * @throws PersistencyException - error starting storages
      * @throws ObjectNotFoundException - object not found
      */
-    static public AgentProxy connect(String agentName, String agentPassword) 
-            throws InvalidDataException, ObjectNotFoundException, PersistencyException
-    {
+    static public AgentProxy connect(String agentName, String agentPassword)throws CriseVertxException {
         return connect(agentName, agentPassword, null);
     }
 
     /**
-     * Log in with the given username and password, and initialises the {@link Lookup}, 
-     * {@link TransactionManager} and {@link ProxyManager}. It shall be uses in client processes only.
+     * Log in with the given username and password, and initialises the {@link Lookup} 
+     * and {@link ProxyManager}. It shall be uses in client processes only.
      * 
      * @param agentName - username
      * @param agentPassword - password
@@ -305,16 +433,14 @@ public class Gateway
      * @throws ObjectNotFoundException - object not found
      */
     static public AgentProxy connect(String agentName, String agentPassword, String resource)
-            throws InvalidDataException, ObjectNotFoundException, PersistencyException
+            throws CriseVertxException
     {
-        mSecurityManager.authenticate(agentName, agentPassword, resource);
+        mSecurityManager = new SecurityManager();
+        mSecurityManager.authenticate(agentName, agentPassword, resource, true, null);
 
         setup(mSecurityManager.getAuth());
 
-        AgentProxy agent = Gateway.getProxyManager().getAgentProxy(agentName);
-
-        //TODO: swingui specific initialization
-        ScriptConsole.setUser(agent);
+        AgentProxy agent = getAgentProxy(agentName);
 
         // Run module startup scripts. Server does this during bootstrap
         mModules.setUser(agent);
@@ -325,25 +451,6 @@ public class Gateway
         mStorage.postConnect();
 
         return agent;
-    }
-
-    /**
-     * Authenticates the agent
-     * 
-     * @param agentName the name of the agent
-     * @param agentPassword the password of the agent
-     * @param resource check {@link Authenticator#authenticate(String, String, String)}
-     * @return AgentProxy representing the logged in user/agent
-     * 
-     * @throws InvalidDataException - bad params
-     * @throws ObjectNotFoundException - object not found
-     * @deprecated use {@link SecurityManager#authenticate(String, String, String)}
-     */
-    @Deprecated
-    static public AgentProxy login(String agentName, String agentPassword, String resource) 
-            throws InvalidDataException, ObjectNotFoundException
-    {
-        return mSecurityManager.authenticate(agentName, agentPassword, resource);
     }
 
     /**
@@ -372,8 +479,7 @@ public class Gateway
         if (mModules != null) mModules.runScripts("shutdown");
 
         // shut down servers if running
-        if (mCorbaServer != null) mCorbaServer.close();
-        mCorbaServer = null;
+        if (mVertx != null) mVertx.close();
 
         // disconnect from storages
         if (mStorage != null) mStorage.close();
@@ -384,46 +490,16 @@ public class Gateway
         mLookup = null;
         mLookupManager = null;
 
-        // shut down proxy manager & server
-        if (mProxyManager != null) mProxyManager.shutdown();
-        if (mProxyServer != null)  mProxyServer.shutdownServer();
         mProxyManager = null;
-        mProxyServer = null;
 
-        // close log consoles
-        Logger.closeConsole();
-
-        // finally, destroy the ORB
-        if (!orbDestroyed) {
-            getORB().destroy();
-            orbDestroyed = true;
-            mORB = null;
-        }
+        // shutdown vert.x
+        if (mVertx != null) mVertx.close();
 
         // clean up remaining objects
         mModules = null;
         mResource = null;
         mMarshaller = null;
         mC2KProps.clear();
-
-        // abandon any log streams
-        Logger.removeAll();
-    }
-
-    /**
-     * Returns the initialised CORBA ORB Object 
-     * 
-     * @return the CORBA ORB Object
-     */
-    static public org.omg.CORBA.ORB getORB() {
-        if (orbDestroyed) throw new RuntimeException("Gateway has been closed. ORB is destroyed. ");
-
-        if (mORB == null) {
-            mC2KProps.put("com.sun.CORBA.codeset.charsets", "0x05010001, 0x00010109"); // need to force UTF-8 in the Sun ORB
-            mC2KProps.put("com.sun.CORBA.codeset.wcharsets", "0x00010109, 0x05010001");
-            mORB = org.omg.CORBA.ORB.init(new String[0], mC2KProps);
-        }
-        return mORB;
     }
 
     static public SecurityManager getSecurityManager() {
@@ -441,11 +517,11 @@ public class Gateway
             return mLookupManager;
     }
 
-    static public CorbaServer getCorbaServer() {
-        return mCorbaServer;
+    static public Vertx getVertx() {
+        return mVertx;
     }
 
-    static public TransactionManager getStorage() {
+    static public ClusterStorageManager getStorage() {
         return mStorage;
     }
 
@@ -457,13 +533,12 @@ public class Gateway
         return mResource;
     }
 
+    /**
+     * @return the instance of {@link ProxyManager}
+     * @deprecated use static getProxy(...) methods of {@link Gateway}
+     */
     static public ProxyManager getProxyManager() {
         return mProxyManager;
-    }
-
-
-    public static ProxyServer getProxyServer() {
-        return mProxyServer;
     }
 
     static public String getCentreId() {
@@ -548,5 +623,29 @@ public class Gateway
             //creates a new thread to run initialisation and complete checking bootstrap & module items
             Bootstrap.run();
         }
+    }
+
+    /**
+     * Send a single ProxyMessage to the subscribers
+     * @param message the be sent
+     */
+    public static void sendProxyEvent(ProxyMessage message) {
+        Set<ProxyMessage> messages = new HashSet<>();
+        messages.add(message);
+        sendProxyEvent(messages);
+    }
+
+    /**
+     * Send a Set of ProxyMessages to the subscribers
+     * @param messages 
+     */
+    public static void sendProxyEvent(Set<ProxyMessage> messages) {
+        if (getVertx() == null) {
+            log.warn("sendProxyEvent() -  vertx was not initialised, messages were not sent:{}", messages);
+            return;
+        }
+        JsonArray msgArray = new JsonArray();
+        for (ProxyMessage m: messages) msgArray.add(m.toString());
+        getVertx().eventBus().publish(ProxyMessage.ebAddress, msgArray);
     }
 }

@@ -30,99 +30,59 @@ import org.cristalise.kernel.collection.Aggregation;
 import org.cristalise.kernel.collection.AggregationMember;
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.Vertex;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-
-
-/**
- * @version $Revision: 1.24 $ $Date: 2005/12/01 14:23:15 $
- * @author  $Author: abranson $
- */
-
-public class AggregationMemberRenderer implements VertexRenderer
-{
+@Slf4j
+public class AggregationMemberRenderer implements VertexRenderer {
 
     private Aggregation mAggregation = null;
 
-    public AggregationMemberRenderer()
-    {
-    }
+    public AggregationMemberRenderer() {}
 
-	public void setAggregation(Aggregation agg)
-	{
-		mAggregation = agg;
-	}
+    public void setAggregation(Aggregation agg) {
+        mAggregation = agg;
+    }
 
 
     @Override
-	public void draw(Graphics2D g2d, Vertex vertex)
-    {
-        GraphPoint   centre    = vertex.getCentrePoint();
-        GraphPoint[] outline   = vertex.getOutlinePoints();
-        FontMetrics  metrics   = g2d.getFontMetrics();
+    public void draw(Graphics2D g2d, Vertex vertex) {
+        GraphPoint centre = vertex.getCentrePoint();
+        GraphPoint[] outline = vertex.getOutlinePoints();
+        FontMetrics metrics = g2d.getFontMetrics();
 
-		AggregationMember memberPair = mAggregation.getMemberPair(vertex.getID());
+        AggregationMember memberPair = mAggregation.getMemberPair(vertex.getID());
 
-		try
-		{
-			String name = memberPair.getItemName();
+        try {
+            String name = memberPair.getItemName();
 
-			g2d.drawString( name,
-				centre.x-metrics.stringWidth(name)/2,
-				vertex.getID()%2==0?topYOfOutline(outline):bottomYOfOutline(outline)+metrics.getHeight() );
+            g2d.drawString(name, centre.x - metrics.stringWidth(name) / 2,
+                    vertex.getID() % 2 == 0 ? topYOfOutline(outline)
+                            : bottomYOfOutline(outline) + metrics.getHeight());
 
-	        g2d.drawImage
-	        (
-	            getImage(memberPair),
-	            centre.x - 8,
-	            centre.y - 8,
-	            null
-	        );
+            g2d.drawImage(getImage(memberPair), centre.x - 8, centre.y - 8, null);
 
+            // Draw the outline of the vertex
+            if (outline.length > 1) {
+                for (int i = 0; i < outline.length - 1; i++) {
+                    g2d.drawLine(outline[i].x, outline[i].y, outline[i + 1].x, outline[i + 1].y);
+                }
 
-
-	        // Draw the outline of the vertex
-	        if(outline.length > 1)
-	        {
-	            for(int i=0; i<outline.length-1; i++)
-	            {
-	                g2d.drawLine
-	                (
-	                    outline[i].x,
-	                    outline[i].y,
-	                    outline[i+1].x,
-	                    outline[i+1].y
-	                );
-	            }
-
-	            g2d.drawLine
-	            (
-	                outline[outline.length-1].x,
-	                outline[outline.length-1].y,
-	                outline[0].x,
-	                outline[0].y
-	            );
-	        }
-
-
-		}
-		catch (Exception ex)
-		{
-			Logger.error("AggregationMemberRenderer::draw() " + ex);
-		}
+                g2d.drawLine(outline[outline.length - 1].x, outline[outline.length - 1].y,
+                        outline[0].x, outline[0].y);
+            }
+        } catch (Exception ex) {
+            log.error("draw()",ex);
+        }
     }
 
 
-    int topYOfOutline(GraphPoint[] outline)
-    {
+    int topYOfOutline(GraphPoint[] outline) {
         int topY = outline[0].y;
-        int i    = 0;
+        int i = 0;
 
 
-        for(i=1; i<outline.length; i++)
-        {
-            if(outline[i].y < topY)
-            {
+        for (i = 1; i < outline.length; i++) {
+            if (outline[i].y < topY) {
                 topY = outline[i].y;
             }
         }
@@ -130,24 +90,22 @@ public class AggregationMemberRenderer implements VertexRenderer
         return topY;
     }
 
-	int bottomYOfOutline(GraphPoint[] outline)
-	{
-		int bottomY = outline[0].y;
-		int i    = 0;
+    int bottomYOfOutline(GraphPoint[] outline) {
+        int bottomY = outline[0].y;
+        int i = 0;
 
 
-		for(i=1; i<outline.length; i++)
-		{
-			if(outline[i].y > bottomY)
-			{
-				bottomY = outline[i].y;
-			}
-		}
+        for (i = 1; i < outline.length; i++) {
+            if (outline[i].y > bottomY) {
+                bottomY = outline[i].y;
+            }
+        }
 
-		return bottomY;
-	}
-	
+        return bottomY;
+    }
+
     public Image getImage(AggregationMember am) {
-   		return ImageLoader.findImage("typeicons/"+am.getProperties().get("Type")+"_16.png").getImage();
+        return ImageLoader.findImage("typeicons/" + am.getProperties().get("Type") + "_16.png")
+                .getImage();
     }
 }

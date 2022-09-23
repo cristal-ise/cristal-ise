@@ -51,10 +51,9 @@ class PropertyDelegate {
         attrs.each { k, v ->
             if(!v) throw new InvalidDataException("Inmutable EntityProperty '$k' must have valid value")
 
-            log.info "InmutableProperty - name/value: $k/$v"
+            log.debug "InmutableProperty - name / value: $k / $v"
 
-            if(v instanceof String) itemProps.put(new Property(k, (String)v, false))
-            else                    throw new InvalidDataException("Property '$k' value must be String")
+            itemProps.put(new Property(k, v as String, false))
         }
     }
 
@@ -66,10 +65,9 @@ class PropertyDelegate {
         assert attrs, "Mutable EntityProperty must have the name and value pair set"
 
         attrs.each { k, v ->
-            log.info "Property - name/value: $k/$v"
+            log.debug "Property - name / value: $k / $v"
 
-            if(v instanceof String) itemProps.put(new Property(k, (String)v, true))
-            else                    throw new InvalidDataException("EntityProperty '$k' value must be String")
+            itemProps.put(new Property(k, v as String, true))
         }
     }
 }

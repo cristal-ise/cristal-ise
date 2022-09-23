@@ -24,7 +24,8 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.ObjectProperties;
-import org.cristalise.storage.jooqdb.JooqHandler;
+import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
+import org.cristalise.storage.jooqdb.auth.Argon2PasswordService;
 import org.cristalise.storage.jooqdb.auth.JooqAuthenticator;
 import org.cristalise.storage.jooqdb.lookup.JooqLookupManager;
 import org.junit.After;
@@ -34,17 +35,17 @@ import org.junit.Test;
 
 public class AuthenticatorTest {
     
-    JooqAuthenticator auth;
     JooqLookupManager lookup;
+    JooqAuthenticator auth;
 
     @Before
     public void setUp() throws Exception {
         ObjectProperties c2kProps = new ObjectProperties();
 
-        c2kProps.put(JooqHandler.JOOQ_URI,      "jdbc:h2:mem:");
-        c2kProps.put(JooqHandler.JOOQ_USER,     "sa");
-        c2kProps.put(JooqHandler.JOOQ_PASSWORD, "sa");
-        c2kProps.put(JooqHandler.JOOQ_DIALECT,  "H2");
+        c2kProps.put(JooqDataSourceHandler.JOOQ_URI,      "jdbc:h2:mem:");
+        c2kProps.put(JooqDataSourceHandler.JOOQ_USER,     "sa");
+        c2kProps.put(JooqDataSourceHandler.JOOQ_PASSWORD, "sa");
+        c2kProps.put(JooqDataSourceHandler.JOOQ_DIALECT,  "H2");
 
         Gateway.init(c2kProps);
 
@@ -60,12 +61,24 @@ public class AuthenticatorTest {
         lookup.close();
     }
 
-    @Test @Ignore
+    @Test @Ignore("Not Implemented")
     public void authentcateUser() throws Exception {
+        JooqAuthenticator auth = new JooqAuthenticator();
+
         AgentPath agent = new AgentPath(new ItemPath(), "dummyUser");
         lookup.add(agent);
         lookup.setAgentPassword(agent, "123456");
 
         assert auth.authenticate("dummyUser", "123456", null);
+    }
+
+    @Test @Ignore("Not Implemented")
+    public void authentcateUserShiro() throws Exception {
+        AgentPath agent = new AgentPath(new ItemPath(), "dummyUser");
+        lookup.add(agent);
+        lookup.setAgentPassword(agent, "123456");
+
+        Argon2PasswordService shiroPwdService = new Argon2PasswordService();
+        assert shiroPwdService.passwordsMatch("dummyUser", "123456");
     }
 }

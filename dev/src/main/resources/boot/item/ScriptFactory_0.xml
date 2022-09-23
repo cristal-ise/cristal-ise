@@ -1,0 +1,17 @@
+<Item initialPath="/desc/dev" name="ScriptFactory" ns="dev" version="0" workflow="ScriptFactoryWf" workflowVer="0">
+  <Property mutable="false" name="Type">Factory</Property>
+  <Property mutable="false" name="LocalObjectType">Script</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/Script_0.xml</Outcome>
+  <Outcome schema="Script" version="0" viewname="last">boot/SC/New_0.xml</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow">
+    <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageScript">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="Include">
+    <CollectionProperties/>
+  </Dependency>
+</Item>

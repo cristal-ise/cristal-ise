@@ -24,7 +24,7 @@ import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RES
 
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lookup.DomainPath
-import org.cristalise.kernel.lookup.InvalidPathException
+import org.cristalise.kernel.lookup.InvalidItemPathException
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.OutcomeValidator
@@ -83,7 +83,7 @@ class ScriptBuilder {
         else {
             log.error("ScriptBuilder.validateScriptXML() - $error")
             log.error("\n============== XML ==============\n" + xml + "\n=================================\n");
-            throw new InvalidPathException(error)
+            throw new InvalidItemPathException(error)
         }
     }
 
@@ -96,13 +96,13 @@ class ScriptBuilder {
      * @param cl the closure to build the Script
      * @return the ScriptBuilder instance full configured
      */
-    public static ScriptBuilder create(String module, String name, int version, Closure cl) {
+    public static ScriptBuilder create(String module, String name, int version, @DelegatesTo(ScriptDelegate) Closure cl) {
         def sb = build(module, name, version, cl)
         sb.create()
         return sb
     }
 
-    public static Script build(String name, int version, Closure cl) {
+    public static Script build(String name, int version, @DelegatesTo(ScriptDelegate) Closure cl) {
         // FIXME: build method should return Script instead of ScriptBuilder
         return build("", name, version, cl).script
     }
@@ -110,13 +110,13 @@ class ScriptBuilder {
     /**
      * Factory method to build a Script object
      * 
-     * @param module the name of the module the Script belongs to
+     * @param module the namespace of the module the Script belongs to
      * @param name the name of the Script
      * @param version the version of the Script
      * @param cl the closure to build the Script
      * @return the ScriptBuilder instance full configured
      */
-    public static ScriptBuilder build(String module, String name, int version, Closure cl) {
+    public static ScriptBuilder build(String module, String name, int version, @DelegatesTo(ScriptDelegate) Closure cl) {
         def sb = new ScriptBuilder(module, name, version)
 
         def scriptD = new ScriptDelegate(module, name, version)
@@ -134,6 +134,7 @@ class ScriptBuilder {
         sb.validateScriptXML(sb.scriptXML)
 
         sb.script = new Script(name, version, (ItemPath)null, sb.scriptXML)
+        sb.script.namespace = module
         return sb
     }
 
@@ -144,6 +145,6 @@ class ScriptBuilder {
      */
     public DomainPath create() {
         ResourceImportHandler importHandler = Gateway.getResourceImportHandler(SCRIPT_RESOURCE);
-        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, scriptXML, scriptSchema), false)
+        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, scriptXML, scriptSchema), false, null)
     }
 }

@@ -55,7 +55,7 @@ public class ActivityDefRenderer extends DefaultVertexRenderer {
         if (activityDef instanceof ActivitySlotDef) {
             try {
                 linesOfText.add((String) activityDef.getProperties().get("Name"));
-                linesOfText.add("(" + ((ActivitySlotDef) activityDef).getTheActivityDef().getActName() + ")");
+                linesOfText.add("(" + ((ActivitySlotDef) activityDef).getTheActivityDef(null).getActName() + ")");
             }
             catch (Exception e) {
                 linesOfText.add("(Not found)");

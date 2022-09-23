@@ -18,11 +18,6 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-/*
- * Created on 1 sept. 2003
- *
- * To change the template for this generated file go to Window>Preferences>Java>Code Generation>Code and Comments
- */
 package org.cristalise.gui.lifecycle.chooser;
 
 import java.awt.Container;
@@ -44,17 +39,11 @@ import javax.swing.JPanel;
 
 import org.cristalise.gui.ImageLoader;
 import org.cristalise.gui.MainFrame;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 
-/**
- * @author Developpement
- *
- * To change the template for this generated type comment go to
- * Window>Preferences>Java>Code Generation>Code and Comments
- */
-public class ActivityChooser extends JFrame
-{
+@Slf4j
+public class ActivityChooser extends JFrame {
     private LDAPFileChooser mLDAPFileChooserActivity = null;
 
     private JButton mButtonOK = null;
@@ -71,9 +60,9 @@ public class ActivityChooser extends JFrame
 
     HashMap<String, Object> mhashmap = null;
 
-    public ActivityChooser(String type, Image img, WorkflowDialogue parent, HashMap<String, Object> hashmap)
-    {
-        super("Select "+type+" activity definition");
+    public ActivityChooser(String type, Image img, WorkflowDialogue parent,
+            HashMap<String, Object> hashmap) {
+        super("Select " + type + " activity definition");
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         img = ImageLoader.findImage("graph/newvertex_large.png").getImage();
         setIconImage(img);
@@ -82,64 +71,55 @@ public class ActivityChooser extends JFrame
         initialize(type);
     }
 
-    private JButton getJButtonOK()
-    {
+    private JButton getJButtonOK() {
         if (mButtonOK == null)
             mButtonOK = new JButton("OK");
         return mButtonOK;
     }
 
-    private JButton getJButtonCancel()
-    {
+    private JButton getJButtonCancel() {
         if (mButtonCancel == null)
             mButtonCancel = new JButton("Cancel");
         return mButtonCancel;
     }
 
-    private LDAPFileChooser getLDAPFileChooserActivity(String type)
-    {
-        if (mLDAPFileChooserActivity == null)
-        {
-            try
-            {
+    private LDAPFileChooser getLDAPFileChooserActivity(String type) {
+        if (mLDAPFileChooserActivity == null) {
+            try {
                 mLDAPFileChooserActivity = new LDAPFileChooser(type);
                 mLDAPFileChooserActivity.setName("LDAPFileChooserRouting");
-            } catch (Exception mExc)
-            {
-                Logger.error(mExc);
+            } catch (Exception mExc) {
+                log.error("",mExc);
             }
         }
         return mLDAPFileChooserActivity;
     }
 
-    private void initialize(String type)
-    {
-        getJButtonOK().addActionListener(new ActionListener()
-        {
+    private void initialize(String type) {
+        getJButtonOK().addActionListener(new ActionListener() {
             @Override
-			public void actionPerformed(ActionEvent e)
-            {
-                Logger.debug(5, "mLDAPFileChooserActivity.getEntryName()" + mLDAPFileChooserActivity.getEntryName());
+            public void actionPerformed(ActionEvent e) {
+                log.debug("mLDAPFileChooserActivity.getEntryName()"
+                        + mLDAPFileChooserActivity.getEntryName());
                 setCursor(new Cursor(Cursor.WAIT_CURSOR));
                 try {
-					mParent.loadThisWorkflow(mLDAPFileChooserActivity.getEntryName(), mLDAPFileChooserActivity.getEntryVersion(), mhashmap);
-				} catch (Exception ex) {
-					Logger.error(ex);
-					MainFrame.exceptionDialog(ex);
-				}
+                    mParent.loadThisWorkflow(mLDAPFileChooserActivity.getEntryName(),
+                            mLDAPFileChooserActivity.getEntryVersion(), mhashmap);
+                } catch (Exception ex) {
+                    log.error("",ex);
+                    MainFrame.exceptionDialog(ex);
+                }
                 setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
                 close();
             }
         });
-        getJButtonCancel().addActionListener(new ActionListener()
-        {
+        getJButtonCancel().addActionListener(new ActionListener() {
             @Override
-			public void actionPerformed(ActionEvent e)
-            {
+            public void actionPerformed(ActionEvent e) {
                 close();
             }
         });
-        //getContentPane().add(getJPanelVertical());
+        // getContentPane().add(getJPanelVertical());
         Container contentPane = getContentPane();
         contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
         contentPane.add(getJPanelVertical(type));
@@ -149,24 +129,20 @@ public class ActivityChooser extends JFrame
         setLocation((d.width - getWidth()) / 2, (d.height - getHeight()) / 2);
         setResizable(true);
         pack();
-        setSize(new Dimension(getWidth(), getJButtonCancel().getHeight() + getLDAPFileChooserActivity(type).getHeight() + label.getHeight() + 100));
+        setSize(new Dimension(getWidth(), getJButtonCancel().getHeight()
+                + getLDAPFileChooserActivity(type).getHeight() + label.getHeight() + 100));
         setVisible(true);
     }
 
-    private void close()
-    {
+    private void close() {
         mParent = null;
         this.setEnabled(false);
         this.setVisible(false);
     }
 
-    private JPanel getJPanelVertical(String type)
-    {
-        if (mJPanelVertical == null)
-        {
-            try
-            {
-                Logger.debug(8, "Panel button");
+    private JPanel getJPanelVertical(String type) {
+        if (mJPanelVertical == null) {
+            try {
                 mJPanelVertical = new JPanel();
                 mJPanelVertical.setName("JPanelV");
                 mJPanelVertical.setLayout(new BoxLayout(mJPanelVertical, BoxLayout.Y_AXIS));
@@ -178,26 +154,21 @@ public class ActivityChooser extends JFrame
                 mJPanelVertical.add(labelP);
                 mJPanelVertical.add(Box.createRigidArea(new Dimension(0, 5)));
                 mJPanelVertical.add(getLDAPFileChooserActivity(type));
-                //mJPanelVertical.add(Box.createRigidArea(new Dimension(0,
+                // mJPanelVertical.add(Box.createRigidArea(new Dimension(0,
                 // 10)));
                 mJPanelVertical.add(Box.createGlue());
                 mJPanelVertical.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
                 mJPanelVertical.setVisible(true);
-            } catch (java.lang.Throwable mExc)
-            {
-                //handleException(mExc);
+            } catch (java.lang.Throwable mExc) {
+                // handleException(mExc);
             }
         }
         return mJPanelVertical;
     }
 
-    private JPanel getJPanelHorizontal()
-    {
-        if (mJPanelHorizontal == null)
-        {
-            try
-            {
-                Logger.debug(8, "Panel button");
+    private JPanel getJPanelHorizontal() {
+        if (mJPanelHorizontal == null) {
+            try {
                 mJPanelHorizontal = new JPanel();
                 mJPanelHorizontal.setName("JPanelH");
                 mJPanelHorizontal.setLayout(new BoxLayout(mJPanelHorizontal, BoxLayout.X_AXIS));
@@ -205,9 +176,8 @@ public class ActivityChooser extends JFrame
                 mJPanelHorizontal.add(Box.createRigidArea(new Dimension(10, 0)));
                 mJPanelHorizontal.add(getJButtonCancel(), getJButtonCancel().getName());
                 mJPanelHorizontal.setVisible(true);
-            } catch (java.lang.Throwable mExc)
-            {
-                //handleException(mExc);
+            } catch (java.lang.Throwable mExc) {
+                // handleException(mExc);
             }
         }
         return mJPanelHorizontal;

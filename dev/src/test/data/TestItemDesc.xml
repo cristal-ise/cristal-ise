@@ -1,0 +1,32 @@
+<Item name="TestItemGeneratedNameFactory" initialPath="/integTest" workflow="Factory_Workflow" workflowVer="0">
+  <Property name="Type" mutable="false">Factory</Property>
+  <Property name="Root" mutable="false">integTest/TestItemGeneratedNames</Property>
+  <Property name="IDPrefix" mutable="false">ID</Property>
+  <Property name="LeftPadSize" mutable="true">6</Property>
+  <Property name="UpdateSchema" mutable="false">TestItemGeneratedName_Details:0</Property>
+  <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItemGeneratedName.xml</Outcome>
+  <Dependency name="workflow" isDescription="false">
+    <DependencyMember itemPath="/desc/ActivityDesc/integTest/TestItemGeneratedName_Workflow">
+      <MemberProperties>
+        <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties />
+  </Dependency>
+  <Dependency name="MasterSchema" isDescription="false">
+    <DependencyMember itemPath="/desc/Schema/integTest/TestItemGeneratedName">
+      <MemberProperties>
+        <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties />
+  </Dependency>
+  <Dependency name="AggregateScript" isDescription="false">
+    <DependencyMember itemPath="/desc/Script/integTest/TestItemGeneratedName_Aggregate">
+      <MemberProperties>
+        <KeyValuePair Key="Version" isAbstract="false" Integer="0" />
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties />
+  </Dependency>
+</Item>

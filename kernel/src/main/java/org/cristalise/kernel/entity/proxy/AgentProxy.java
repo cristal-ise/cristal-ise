@@ -29,16 +29,15 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.InvalidTransitionException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.Agent;
-import org.cristalise.kernel.entity.AgentHelper;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.instance.predefined.ChangeName;
 import org.cristalise.kernel.lifecycle.instance.predefined.Erase;
@@ -52,6 +51,7 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescriptionList;
@@ -61,21 +61,19 @@ import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.CorbaExceptionUtility;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
+import com.google.errorprone.annotations.Immutable;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * It is a wrapper for the connection and communication with Agent It caches
  * data loaded from the Agent to reduce communication
  */
-@Slf4j
+@Slf4j @Immutable
 public class AgentProxy extends ItemProxy {
-
-    AgentPath     mAgentPath;
-    String        mAgentName;
+    String mAgentName;
 
     /**
      * Creates an AgentProxy without cache and change notification
@@ -84,19 +82,12 @@ public class AgentProxy extends ItemProxy {
      * @param agentPath
      * @throws ObjectNotFoundException
      */
-    protected AgentProxy(org.omg.CORBA.Object ior, AgentPath agentPath) throws ObjectNotFoundException {
-        super(ior, agentPath);
-        mAgentPath = agentPath;
+    protected AgentProxy(AgentPath agentPath) throws ObjectNotFoundException {
+        super(agentPath);
     }
 
-    @Override
-    public Agent narrow() throws ObjectNotFoundException {
-        try {
-            return AgentHelper.narrow(mIOR);
-        }
-        catch (org.omg.CORBA.BAD_PARAM ex) {
-        }
-        throw new ObjectNotFoundException("CORBA Object was not an Agent, or the server is down.");
+    protected AgentProxy(AgentPath agentPath, TransactionKey transKey) {
+        super(agentPath, transKey);
     }
 
     /**
@@ -118,10 +109,7 @@ public class AgentProxy extends ItemProxy {
      * @throws ScriptErrorException Thrown by scripting classes
      * @throws InvalidCollectionModification Thrown by steps that create/modify collections
      */
-    public String execute(Job job, Job errorJob)
-            throws ObjectNotFoundException, AccessRightsException, InvalidTransitionException, InvalidDataException,
-            PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification, ScriptErrorException
-    {
+    public String execute(Job job, Job errorJob) throws CriseVertxException {
         if (errorJob == null) throw new InvalidDataException("errorJob cannot be null");
 
         try {
@@ -131,7 +119,7 @@ public class AgentProxy extends ItemProxy {
             log.error("", ex);
 
             try {
-                errorJob.setAgentPath(mAgentPath);
+                errorJob.setAgentPath(getPath());
                 errorJob.setOutcome(Gateway.getMarshaller().marshall(new ErrorInfo(job, ex)));
 
                 return execute(errorJob);
@@ -150,26 +138,16 @@ public class AgentProxy extends ItemProxy {
      * @param job the Actual Job to be executed
      * @return The outcome after processing. May have been altered by the step.
      *
-     * @throws AccessRightsException The agent was not allowed to execute this step
-     * @throws InvalidDataException The parameters supplied were incorrect
-     * @throws InvalidTransitionException The step wasn't available
-     * @throws ObjectNotFoundException Thrown by some steps that try to locate additional objects
-     * @throws PersistencyException Problem writing or reading the database
-     * @throws ObjectAlreadyExistsException Thrown by steps that create additional object
-     * @throws ScriptErrorException Thrown by scripting classes
-     * @throws InvalidCollectionModification Thrown by steps that create/modify collections
+     * @throws CriseVertxException
      */
-    public String execute(Job job)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
-    {
-        ItemProxy item = Gateway.getProxyManager().getProxy(job.getItemPath());
+    public String execute(Job job) throws CriseVertxException {
+        ItemProxy item = Gateway.getProxy(job.getItemPath(), transactionKey);
         Date startTime = new Date();
 
-        log.info("execute(job) - act:" + job.getStepPath() + " agent:" + mAgentPath.getAgentName());
+        log.info("execute(job) - {}", job);
 
         if (job.hasScript()) {
-            log.info("execute(job) - executing script");
+            log.debug("execute(job) - executing script");
             try {
                 // load script
                 ErrorInfo scriptErrors = callScript(item, job);
@@ -182,65 +160,50 @@ public class AgentProxy extends ItemProxy {
                 if (errorString.length() > 0) log.warn("Script errors: {}", errorString);
             }
             catch (ScriptingEngineException ex) {
+                //script.evaluate() wraps all exception in ScriptingEngineException
                 Throwable cause = ex.getCause();
 
-                if (cause == null) cause = ex;
-
-                log.error("", ex);
-
-                throw new InvalidDataException(CorbaExceptionUtility.unpackMessage(cause));
+                if (cause != null) {
+                    if (cause instanceof CriseVertxException) throw ((CriseVertxException)cause);
+                    else                                      throw new ScriptErrorException(cause);
+                }
+                else {
+                    throw new ScriptErrorException(ex);
+                }
             }
         }
-        else if (job.hasQuery() &&  !"Query".equals(job.getActProp(BuiltInVertexProperties.OUTCOME_INIT))) {
-            log.info("execute(job) - executing query (OutcomeInit != Query)");
+        else if (job.hasQuery() && !"Query".equals(job.getActProp(BuiltInVertexProperties.OUTCOME_INIT))) {
+            log.debug("execute(job) - executing query (OutcomeInit != Query)");
 
             job.setOutcome(item.executeQuery(job.getQuery()));
         }
 
-        // #196: Outcome is validated after script execution, becuase client(e.g. webui) 
+        // #196: Outcome is validated after script execution, because client(e.g. webui) 
         // can submit an incomplete outcome which is made complete by the script
         if (job.hasOutcome() && job.isOutcomeSet()) job.getOutcome().validateAndCheck();
 
-        job.setAgentPath(mAgentPath);
+        job.setAgentPath(getPath());
 
-        if ((boolean)job.getActProp(SIMPLE_ELECTRONIC_SIGNATURE, false)) {
-            executeSimpleElectonicSignature(job);
+        if (job.hasOutcome() && (boolean)job.getActProp(SIMPLE_ELECTRONIC_SIGNATURE, false)) {
+            log.info("execute(job) - executing SimpleElectonicSignature predefStep");
+            String xml = Sign.getSimpleElectonicSignature(job);
+
+            if (xml != null) execute(this, Sign.class, xml);
         }
 
-        log.info("execute(job) - submitting job to item proxy");
-        String result = item.requestAction(job);
+        log.debug("execute(job) - submitting job to item proxy");
 
+        String result = item.requestAction(job);
+                
         if (log.isDebugEnabled()) {
             Date timeNow = new Date();
             long secsNow = (timeNow.getTime() - startTime.getTime()) / 1000;
-            log.debug("execute(job) - execution DONE in " + secsNow + " seconds");
+            log.debug("execute(job) - execution DONE in {} seconds", secsNow);
         }
 
         return result;
     }
-
-    public void executeSimpleElectonicSignature(Job job)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException, ScriptErrorException, InvalidCollectionModification
-    {
-        StringBuffer xml = new StringBuffer("<SimpleElectonicSignature>");
-        xml.append("<AgentName>").append(job.getOutcome().getField("AgentName")).append("</AgentName>");
-        xml.append("<Password>") .append(job.getOutcome().getField("Password")) .append("</Password>");
-
-        xml.append("<ExecutionContext>");
-        xml.append("<ItemPath>")     .append(job.getItemUUID())           .append("</ItemPath>");
-        xml.append("<SchemaName>")   .append(job.getSchema().getName())   .append("</SchemaName>");
-        xml.append("<SchemaVersion>").append(job.getSchema().getVersion()).append("</SchemaVersion>");
-        xml.append("<ActivityType>") .append(job.getStepType())           .append("</ActivityType>");
-        xml.append("<ActivityName>") .append(job.getStepName())           .append("</ActivityName>");
-        xml.append("<StepPath>")     .append(job.getStepPath())           .append("</StepPath>");
-        xml.append("</ExecutionContext>");
-
-        xml.append("</SimpleElectonicSignature>");
-
-        execute(this, Sign.class, xml.toString());
-    }
-
+    
     @SuppressWarnings("rawtypes")
     private  ErrorInfo callScript(ItemProxy item, Job job) throws ScriptingEngineException, InvalidDataException, ObjectNotFoundException {
         Script script = job.getScript();
@@ -291,10 +254,7 @@ public class AgentProxy extends ItemProxy {
      * @throws ObjectAlreadyExistsException
      * @throws InvalidCollectionModification
      */
-    public String execute(ItemProxy item, Class<?> predefStep, C2KLocalObject obj)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException, 
-                   PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification 
-    {
+    public String execute(ItemProxy item, Class<?> predefStep, C2KLocalObject obj) throws CriseVertxException {
         return execute(item, predefStep.getSimpleName(), obj);
     }
 
@@ -312,10 +272,7 @@ public class AgentProxy extends ItemProxy {
      * @throws ObjectAlreadyExistsException
      * @throws InvalidCollectionModification
      */
-    public String execute(ItemProxy item, String predefStep, C2KLocalObject obj)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException, 
-                   PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification 
-    {
+    public String execute(ItemProxy item, String predefStep, C2KLocalObject obj) throws CriseVertxException {
         String param;
         try {
             param = marshall(obj);
@@ -341,10 +298,7 @@ public class AgentProxy extends ItemProxy {
      * @throws ObjectAlreadyExistsException
      * @throws InvalidCollectionModification
      */
-    public String execute(ItemProxy item, Class<?> predefStep, String...params)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
-    {
+    public String execute(ItemProxy item, Class<?> predefStep, String...params) throws CriseVertxException    {
         return execute(item, predefStep.getSimpleName(), params);
     }
 
@@ -366,23 +320,29 @@ public class AgentProxy extends ItemProxy {
      * @throws ObjectAlreadyExistsException Thrown by steps that create additional object
      * @throws InvalidCollectionModification Thrown by steps that create/modify collections
      */
-    public String execute(ItemProxy item, String predefStep, String...params)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException, InvalidCollectionModification
-    {
+    public String execute(ItemProxy item, String predefStep, String...params) throws CriseVertxException {
         String schemaName = PredefinedStep.getPredefStepSchemaName(predefStep);
-        String param;
+        String param = null;
 
-        if (schemaName.equals("PredefinedStepOutcome")) param = PredefinedStep.bundleData(params);
-        else                                            param = params[0];
+        if (schemaName.equals("PredefinedStepOutcome")) {
+            param = PredefinedStep.bundleData(params);
+        }
+        else {
+            if(params.length == 0)      param = "";
+            else if(params.length == 1) param = params[0];
+            else                        throw new InvalidDataException("predefStep:'"+predefStep+"' schemaName:'"+schemaName+"' incorrect params:"+Arrays.toString(params));
+        }
 
-        String result = item.getItem().requestAction(
-                mAgentPath.getSystemKey(), 
+        log.info("execute(predefStep) - item:{} step:{}", item, predefStep);
+
+        String result = requestAction(
+                item.getPath().toString(),
+                getPath().toString(), 
                 "workflow/predefined/" + predefStep, 
                 PredefinedStep.DONE, 
                 param,
                 "",
-                new byte[0]);
+                new ArrayList<Byte>());
 
         String[] clearCacheSteps = {
                 ChangeName.class.getSimpleName(), 
@@ -392,8 +352,7 @@ public class AgentProxy extends ItemProxy {
         };
 
         if (Arrays.asList(clearCacheSteps).contains(predefStep)) {
-            Gateway.getStorage().clearCache(item.getPath(), null);
-            Gateway.getProxyManager().clearCache(item.getPath());
+            Gateway.getStorage().clearCache(item.getPath());
         }
 
         return result;
@@ -405,10 +364,7 @@ public class AgentProxy extends ItemProxy {
      * 
      * @see #execute(ItemProxy, String)
      */
-    public String execute(ItemProxy item, Class<?> predefStep)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException,InvalidCollectionModification
-    {
+    public String execute(ItemProxy item, Class<?> predefStep) throws CriseVertxException {
         return execute(item, predefStep.getSimpleName());
     }
 
@@ -417,10 +373,7 @@ public class AgentProxy extends ItemProxy {
      * 
      * @see #execute(ItemProxy, String, String[])
      */
-    public String execute(ItemProxy item, String predefStep)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException,InvalidCollectionModification
-    {
+    public String execute(ItemProxy item, String predefStep) throws CriseVertxException {
         return execute(item, predefStep, new String[0]);
     }
 
@@ -430,10 +383,7 @@ public class AgentProxy extends ItemProxy {
      *
      * @see #execute(ItemProxy, String, String)
      */
-    public String execute(ItemProxy item, Class<?> predefStep, String param)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException,InvalidCollectionModification
-    {
+    public String execute(ItemProxy item, Class<?> predefStep, String param) throws CriseVertxException {
         return execute(item, predefStep.getSimpleName(), param);
     }
 
@@ -442,20 +392,8 @@ public class AgentProxy extends ItemProxy {
      *
      * @see #execute(ItemProxy, String, String[])
      */
-    public String execute(ItemProxy item, String predefStep, String param)
-            throws AccessRightsException, InvalidDataException, InvalidTransitionException, ObjectNotFoundException,
-            PersistencyException, ObjectAlreadyExistsException,InvalidCollectionModification
-    {
+    public String execute(ItemProxy item, String predefStep, String param) throws CriseVertxException {
         return execute(item, predefStep, new String[] { param });
-    }
-
-    /** Wrappers for scripts */
-    public String marshall(Object obj) throws Exception {
-        return Gateway.getMarshaller().marshall(obj);
-    }
-
-    public Object unmarshall(String obj) throws Exception {
-        return Gateway.getMarshaller().unmarshall(obj);
     }
 
     public ItemProxy searchItem(String name) throws ObjectNotFoundException {
@@ -497,7 +435,7 @@ public class AgentProxy extends ItemProxy {
         if (returnPath == null) {
             throw new ObjectNotFoundException(name);
         }
-        return Gateway.getProxyManager().getProxy(returnPath);
+        return Gateway.getProxy(returnPath, transactionKey);
     }
 
     private boolean isItemPathAndNotNull(Path pPath) {
@@ -527,7 +465,7 @@ public class AgentProxy extends ItemProxy {
         while (results.hasNext()) {
             Path nextMatch = results.next();
             try {
-                returnList.add(Gateway.getProxyManager().getProxy(nextMatch));
+                returnList.add(Gateway.getProxy(nextMatch, transactionKey));
             }
             catch (ObjectNotFoundException e) {
                 log.error("Path '" + nextMatch + "' did not resolve to an Item");
@@ -542,18 +480,18 @@ public class AgentProxy extends ItemProxy {
 
     @Override
     public AgentPath getPath() {
-        return mAgentPath;
+        return (AgentPath) mItemPath;
     }
 
     public ItemProxy getItem(Path itemPath) throws ObjectNotFoundException {
-        return Gateway.getProxyManager().getProxy(itemPath);
+        return Gateway.getProxy(itemPath, transactionKey);
     }
 
     public ItemProxy getItemByUUID(String uuid) throws ObjectNotFoundException, InvalidItemPathException {
-        return Gateway.getProxyManager().getProxy(new ItemPath(uuid));
+        return Gateway.getProxy(new ItemPath(uuid), transactionKey);
     }
 
     public RolePath[] getRoles() {
-        return Gateway.getLookup().getRoles(mAgentPath);
+        return Gateway.getLookup().getRoles(getPath(), transactionKey);
     }
 }

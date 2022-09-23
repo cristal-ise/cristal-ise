@@ -21,6 +21,10 @@
 package org.cristalise.kernel.process.module;
 
 import static org.cristalise.kernel.collection.BuiltInCollections.CONTENTS;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.IDENTICAL;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.NEW;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.REMOVED;
+import static org.cristalise.kernel.process.resource.ResourceImportHandler.Status.SKIPPED;
 import static org.cristalise.kernel.property.BuiltInItemProperties.COMPLEXITY;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
@@ -51,10 +55,11 @@ import org.cristalise.kernel.lifecycle.instance.predefined.UpdateImportReport;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.process.AbstractMain;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
+import org.cristalise.kernel.process.resource.ResourceImportHandler.Status;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.scripting.ErrorInfo;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
@@ -73,7 +78,7 @@ public class Module extends ImportItem {
 
     public Module() {
         super();
-        properties.add(new Property(TYPE, "Module", false));
+        properties.put(new Property(TYPE, "Module", false));
 
         setInitialPath(BuiltInResources.MODULE_RESOURCE.getTypeRoot());
         setWorkflow(   BuiltInResources.MODULE_RESOURCE.getWorkflowDef());
@@ -120,14 +125,14 @@ public class Module extends ImportItem {
     }
 
     private void replaceProp(Property newProp) {
-        for (Property prop : properties) {
+        for (Property prop : properties.list) {
             if (prop.getName().equals(newProp.getName())) {
                 prop.setMutable(newProp.isMutable());
                 prop.setValue(newProp.getValue());
                 return;
             }
         }
-        properties.add(newProp);
+        properties.put(newProp);
     }
 
     private void addItemToContents(Path itemPath) {
@@ -146,50 +151,27 @@ public class Module extends ImportItem {
     public void importAll(ItemProxy serverEntity, AgentProxy systemAgent, boolean reset) throws Exception {
         String moduleChanges = "";
 
-        if (!Bootstrap.shutdown) moduleChanges = importResources(systemAgent, reset);
-        if (!Bootstrap.shutdown) importRoles( systemAgent, reset);
-        if (!Bootstrap.shutdown) importAgents(systemAgent, reset);
-        if (!Bootstrap.shutdown) importItems( systemAgent, reset);
+        TransactionKey transactionKey = new TransactionKey("Module-ImportAll");
+        Gateway.getStorage().begin(transactionKey);
 
-        //Finally create this Module Item
-        if (!Bootstrap.shutdown) this.create(systemAgent.getPath(), reset);
+        try {
+            if (!Bootstrap.shutdown) moduleChanges = importResources(systemAgent, reset, transactionKey);
+            if (!Bootstrap.shutdown) importRoles( systemAgent, reset, transactionKey);
+            if (!Bootstrap.shutdown) importAgents(systemAgent, reset, transactionKey);
+            if (!Bootstrap.shutdown) importItems( systemAgent, reset, transactionKey);
 
-        if (StringUtils.isNotBlank(moduleChanges))
-            new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(), itemPath, moduleChanges);
-    }
+            //Finally create this Module Item
+            if (!Bootstrap.shutdown) this.create(systemAgent.getPath(), reset, transactionKey);
 
-    /**
-     * @param systemAgent
-     * @param reset
-     * @throws Exception
-     */
-    private void importItems(AgentProxy systemAgent, boolean reset) throws Exception {
-        for (ImportItem thisItem : imports.getItems()) {
-            if (Bootstrap.shutdown) return;
-
-            thisItem.setNamespace(ns);
-            addItemToContents( thisItem.create(systemAgent.getPath(), reset) );
-        }
-    }
-
-    /**
-     * @param systemAgent
-     * @param reset
-     * @throws Exception
-     */
-    private void importAgents(AgentProxy systemAgent, boolean reset) throws Exception {
-        for (ImportAgent thisAgent : imports.getAgents()) {
-            if (Bootstrap.shutdown) return;
-
-            try {
-                Gateway.getLookup().getAgentPath(thisAgent.name);
-                log.info("importAgents() - Agent '"+thisAgent.name+"' found.");
-                continue;
+            if (!Bootstrap.shutdown && StringUtils.isNotBlank(moduleChanges)) {
+                new UpdateImportReport().request((AgentPath)SYSTEM_AGENT.getPath(transactionKey), itemPath, moduleChanges, transactionKey);
             }
-            catch (ObjectNotFoundException ex) { }
 
-            log.info("importAgents() - Agent '"+thisAgent.name+"' not found. Creating.");
-            addItemToContents( thisAgent.create(systemAgent.getPath(), reset) );
+            Gateway.getStorage().commit(transactionKey);
+        }
+        catch (Exception e) {
+            Gateway.getStorage().abort(transactionKey);
+            throw e;
         }
     }
 
@@ -198,11 +180,68 @@ public class Module extends ImportItem {
      * @param reset
      * @throws Exception
      */
-    private void importRoles(AgentProxy systemAgent, boolean reset) throws Exception {
-        for (ImportRole thisRole : imports.getRoles()) {
+    private void importItems(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
+        for (ImportItem thisItem : imports.getItems(transactionKey)) {
             if (Bootstrap.shutdown) return;
 
-            thisRole.create(systemAgent.getPath(), reset);
+            log.info("importItems() - {}", thisItem);
+
+            Status changeStatus = thisItem.getResourceChangeStatus();
+
+            // make sure that item is created if not exists
+            if (! thisItem.exists(transactionKey) && changeStatus == IDENTICAL) changeStatus = NEW;
+
+            if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED && changeStatus != REMOVED)) {
+                thisItem.setNamespace(ns);
+                Path p = thisItem.create(systemAgent.getPath(), reset, transactionKey);
+                addItemToContents(p);
+            }
+        }
+    }
+
+    /**
+     * @param systemAgent
+     * @param reset
+     * @throws Exception
+     */
+    private void importAgents(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
+        for (ImportAgent thisAgent : imports.getAgents(transactionKey)) {
+            if (Bootstrap.shutdown) return;
+
+            log.info("importAgents() - {}", thisAgent);
+
+            Status changeStatus = thisAgent.getResourceChangeStatus();
+
+            // make sure that item is created if not exists
+            if (! thisAgent.exists(transactionKey) && changeStatus == IDENTICAL) changeStatus = NEW;
+
+            if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED && changeStatus != REMOVED)) {
+                thisAgent.setNamespace(ns);
+                Path p = thisAgent.create(systemAgent.getPath(), reset, transactionKey);
+                addItemToContents(p);
+            }
+        }
+    }
+
+    /**
+     * @param systemAgent
+     * @param reset
+     * @throws Exception
+     */
+    private void importRoles(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
+        for (ImportRole thisRole : imports.getRoles(transactionKey)) {
+            if (Bootstrap.shutdown) return;
+
+            log.info("importRoles() - {}", thisRole);
+
+            Status changeStatus = thisRole.getResourceChangeStatus();
+
+            // make sure that item is created if not exists
+            if (! thisRole.exists(transactionKey) && changeStatus == IDENTICAL) changeStatus = NEW;
+
+            if (changeStatus == null || (changeStatus != IDENTICAL && changeStatus != SKIPPED && changeStatus != REMOVED)) {
+                thisRole.create(systemAgent.getPath(), reset, transactionKey);
+            }
         }
     }
 
@@ -210,24 +249,20 @@ public class Module extends ImportItem {
      * @param systemAgent
      * @param reset
      */
-    private String importResources(AgentProxy systemAgent, boolean reset) throws Exception {
+    private String importResources(AgentProxy systemAgent, boolean reset, TransactionKey transactionKey) throws Exception {
         List<String> moduleChanges = new ArrayList<String>();
 
         for (ModuleResource thisRes : imports.getResources()) {
             if (Bootstrap.shutdown) return "";
 
-            try {
-                thisRes.setNamespace(ns);
-                addItemToContents(thisRes.create(systemAgent.getPath(), reset));
-                moduleChanges.add(thisRes.getResourceChangeDetails());
-            }
-            catch (Exception ex) {
-                log.error("Error importing module resources. Unsafe to continue.", ex);
-                AbstractMain.shutdown(1);
-            }
+            thisRes.setNamespace(ns);
+            addItemToContents(thisRes.create(systemAgent.getPath(), reset, transactionKey));
+            moduleChanges.add(thisRes.getResourceChangeDetails());
         }
 
         StringBuffer moduleChangesXML = new StringBuffer("<ModuleChanges>\n");
+        moduleChangesXML.append("<ModuleName>"+name.replaceAll("\\s+","")+"</ModuleName>"); //remove whitespace because it is not allowed in Viewpoint name
+        moduleChangesXML.append("<ModuleVersion>"+getModuleVersion()+"</ModuleVersion>");
         for (String oneChange: moduleChanges) moduleChangesXML.append(oneChange).append("\n");
         moduleChangesXML.append("</ModuleChanges>");
 
@@ -259,8 +294,20 @@ public class Module extends ImportItem {
     public String getDesc() {
         return info.desc;
     }
-    public String getVersion() {
+
+    public String getModuleVersion() {
         return info.version;
+    }
+
+    @Override
+    public Integer getVersion() {
+        try {
+            return new Integer(info.version);
+        }
+        catch (NumberFormatException e) {
+            log.warn("getVersion() - failed to convert module version to integer", e);
+            return -1;
+        }
     }
     public String getResURL() {
         return resURL;
@@ -317,7 +364,7 @@ public class Module extends ImportItem {
     public void addImports(Collection<?> contents) throws ObjectNotFoundException, InvalidDataException {
         for (CollectionMember mem : contents.getMembers().list) {
             if (mem.getItemPath() != null) {
-                ItemProxy    child   = mem.resolveItem();
+                ItemProxy    child   = mem.resolveItem(null);
                 String       name    = child.getName();
                 Integer      version = Integer.valueOf(mem.getProperties().get(VERSION.getName()).toString());
                 String       type    = child.getProperty(TYPE);

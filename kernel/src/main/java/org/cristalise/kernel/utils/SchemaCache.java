@@ -27,23 +27,29 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.resource.BuiltInResources;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SchemaCache extends DescriptionObjectCache<Schema> {
 
     @Override
-    public String getTypeCode() {
+    protected String getTypeCode() {
         return BuiltInResources.SCHEMA_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
+    protected String getSchemaName() {
         return BuiltInResources.SCHEMA_RESOURCE.getSchemaName();
     }
 
     @Override
-    public Schema buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected String getTypeRoot() {
+        return BuiltInResources.SCHEMA_RESOURCE.getTypeRoot();
+    }
+
+    @Override
+    protected Schema buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             Schema thisSchema = new Schema(name, version, path, data);
             thisSchema.validate();

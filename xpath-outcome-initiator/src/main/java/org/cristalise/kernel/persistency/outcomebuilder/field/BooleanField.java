@@ -33,7 +33,9 @@ public class BooleanField extends StringField {
     Boolean checkbox;
 
     public BooleanField() {
+        super();
         checkbox = false;
+        javaType = Boolean.class;
     }
 
     @Override

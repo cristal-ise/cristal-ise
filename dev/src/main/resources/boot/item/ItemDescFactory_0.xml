@@ -1,0 +1,13 @@
+<Item initialPath="/desc/dev" name="ItemDescFactory" ns="dev" version="0" workflow="ItemDescFactoryWf" workflowVer="0">
+  <Property mutable="false" name="Type">Factory</Property>
+  <Property mutable="false" name="LocalObjectType">ItemDesc</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/ItemDesc_0.xml</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow">
+    <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageItemDesc">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+</Item>

@@ -18,306 +18,151 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-/*
- * StatusPane.java
- *
- * Created on March 20, 2001, 3:30 PM
- */
-
 package org.cristalise.gui.tabs;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.Iterator;
-
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import javax.swing.Box;
-import javax.swing.JButton;
-import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.AbstractTableModel;
-
-import org.cristalise.gui.MainFrame;
-import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.entity.agent.JobList;
-import org.cristalise.kernel.entity.proxy.MemberSubscription;
-import org.cristalise.kernel.entity.proxy.ProxyObserver;
-import org.cristalise.kernel.events.Event;
-import org.cristalise.kernel.persistency.ClusterStorage;
+import org.cristalise.gui.ItemDetails;
+import org.cristalise.kernel.entity.Job;
+import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.utils.DateUtility;
-import org.cristalise.kernel.utils.Logger;
-
+import io.vertx.core.Vertx;
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * Pane to display all work orders that this agent can execute, and activate
- * them on request from the user. Subscribes to NodeItem for WorkOrder objects.
- * @version $Revision: 1.4 $ $Date: 2004/10/21 08:02:21 $
- * @author  $Author: abranson $
+ * Pane to display all Jobs available in the Item. Jobs are persistent in the ClusterStorage.
  */
-public class JobListPane extends ItemTabPane implements ActionListener, ProxyObserver<Job> {
+@SuppressWarnings("serial")
+@Slf4j
+public class JobListPane extends ItemTabPane {
 
-    JobList joblist;
-    JoblistTableModel model;
-    JTable eventTable;
-	JButton startButton = new JButton("<<");
-    JButton prevButton = new JButton("<");
-	JButton nextButton = new JButton(">");
-	JButton endButton = new JButton(">>");
-    public static final int SIZE = 30;
-    int currentSize = SIZE;
+    C2KLocalObjectMap<Job>  joblist;
+    JoblistTableModel       model;
+    JTable                  eventTable;
 
     public JobListPane() {
-        super("Job List", "Agent Job List");
+        super("Job List", "Job List");
         initPanel();
 
-		// add buttons
-        Box navBox = Box.createHorizontalBox();
-        navBox.add(startButton); navBox.add(prevButton);
-		navBox.add(nextButton); navBox.add(endButton);
+        add(Box.createVerticalStrut(5));
 
-        // setup buttons
-		//startButton.setEnabled(false); nextButton.setEnabled(false);
-		//prevButton.setEnabled(false); endButton.setEnabled(false);
-		startButton.setActionCommand("start");
-		startButton.addActionListener(this);
-		prevButton.setActionCommand("prev");
-		prevButton.addActionListener(this);
-		nextButton.setActionCommand("next");
-		nextButton.addActionListener(this);
-		endButton.setActionCommand("end");
-		endButton.addActionListener(this);
-		add(navBox);
+        // Create table
+        eventTable = new JTable();
+        JScrollPane eventScroll = new JScrollPane(eventTable);
+        add(eventScroll);
+    }
+    
+    @Override
+    public void setParent(ItemDetails parent) {
+        super.setParent(parent);
 
-		add(Box.createVerticalStrut(5));
-		
-		// Create table
-		eventTable = new JTable();
-		JScrollPane eventScroll= new JScrollPane(eventTable);
-		add(eventScroll);
-
-        // detect double clicked jobs
-        eventTable.addMouseListener(new JobListMouseListener());
+        Vertx vertx = Gateway.getVertx();
+        vertx.eventBus().localConsumer(parent.getItemPath().getUUID() + "/" + JOB, message -> {
+            vertx.executeBlocking(promise -> {
+                reload();
+                promise.complete();
+            }, result -> {
+                if (result.failed()) log.warn("", result.cause());
+            });
+        });
     }
 
     @Override
-	public void reload() {
-        joblist.clear();
-        jumpToEnd();
+    public void reload() {
+        Gateway.getStorage().clearCache(parent.getItemPath(), JOB);
+        if (model != null) model.setView();
     }
 
     @Override
-	public void run() {
+    public void run() {
         Thread.currentThread().setName("Joblist Pane Builder");
-		try {
-            joblist = (JobList)sourceItem.getItem().getObject(ClusterStorage.JOB);
-            joblist.activate();
-            sourceItem.getItem().subscribe(new MemberSubscription<Job>(this, ClusterStorage.JOB, false));
-		} catch (ObjectNotFoundException e) {
-			Logger.error(e);
-		}
-		model = new JoblistTableModel(joblist);
-		eventTable.setModel(model);
-		jumpToEnd();
+
+        joblist = sourceItem.getItem().getJobs();
+
+        model = new JoblistTableModel();
+        eventTable.setModel(model);
+        model.setView();
     }
-
-
-    public void jumpToEnd() {
-		int lastEvent = joblist.getLastId();
-		int firstEvent = 0; currentSize = SIZE;
-		if (lastEvent > currentSize) firstEvent = lastEvent - currentSize + 1;
-		if (lastEvent < currentSize) currentSize = lastEvent + 1;
-		Logger.msg(5, "JobListPane.run() - init table start "+firstEvent+" for "+currentSize);
-		model.setView(firstEvent, currentSize);
-    }
-
-    @Override
-	public void add(Job contents) {
-        reload();
-    }
-
-    @Override
-	public void remove(String id) {
-        reload();
-    }
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if (e.getActionCommand().equals("end")) {
-			jumpToEnd();
-			return;
-		}
-
-		int lastEvent = joblist.getLastId();
-		int startEvent = model.getStartId();
-		if (e.getActionCommand().equals("start")) {
-			currentSize = SIZE;
-			startEvent = 0;
-		}
-
-		else if (e.getActionCommand().equals("prev")) {
-			currentSize = SIZE;
-			startEvent-=currentSize;
-			if (startEvent<0) startEvent = 0;
-		}
-		else if (e.getActionCommand().equals("next")) {
-			currentSize = SIZE;
-			startEvent+=currentSize;
-			if (startEvent > lastEvent)
-				startEvent = lastEvent - currentSize +1;
-		}
-		else { // unknown action
-			return;
-		}
-
-		model.setView(startEvent, currentSize);
-	}
 
     private class JoblistTableModel extends AbstractTableModel {
-    	Job[] job;
-    	Integer[] ids;
-        String[] itemNames;
-    	int loaded = 0;
-    	int startId = 0;
+        Job[] jobArray;
 
-    	public JoblistTableModel(JobList joblist) {
-    		job = new Job[0];
-    		ids = new Integer[0];
-    	}
+        public void setView() {
+            jobArray = joblist.values().toArray(new Job[0]);
 
-    	public int getStartId() {
-    		return startId;
-    	}
+            log.debug("JoblistTableModel.setView() - jobArray.length:{}", jobArray.length);
 
-		public void setView(int startId, int size) {
-			job = new Job[size];
-			ids = new Integer[size];
-            itemNames = new String[size];
-			this.startId = startId;
-            int count = 0;
-            for (Iterator<?> i = joblist.keySet().iterator(); i.hasNext();) {
-                Integer thisJobId = new Integer((String)i.next());
-                if (count >= startId) {
-                    int idx = count-startId;
-                    ids[idx] = thisJobId;
-                    job[idx] = joblist.getJob(thisJobId.intValue());
-                    itemNames[idx] = "Item Not Found";
-                    try {
-                        itemNames[idx] = ((Property)Gateway.getStorage().get(job[count-startId].getItemPath(), ClusterStorage.PROPERTY+"/Name", null)).getValue();
-                    } catch (Exception ex) {
-                        Logger.error(ex);
-                    }
-
-                }
-                count++;
-                loaded = count-startId;
-                if (count > (startId + size)) break;
-            }
-			fireTableStructureChanged();
-		}
-		/**
-		 * @see javax.swing.table.TableModel#getColumnClass(int)
-		 */
-		@Override
-		public Class<?> getColumnClass(int columnIndex) {
-			switch(columnIndex) {
-				case 0:
-					return Integer.class;
-				default:
-					return String.class;
-			}
-		}
-
-		/**
-		 * @see javax.swing.table.TableModel#getColumnCount()
-		 */
-		@Override
-		public int getColumnCount() {
-			return 5;
-		}
-
-		/**
-		 * @see javax.swing.table.TableModel#getColumnName(int)
-		 */
-		@Override
-		public String getColumnName(int columnIndex) {
-			switch(columnIndex) {
-				case 0: return "ID";
-				case 1: return "Subject";
-				case 2: return "Activity";
-				case 3: return "Transition";
-				case 4: return "Date";
-				default: return "";
-			}
-		}
-
-		/**
-		 * @see javax.swing.table.TableModel#getRowCount()
-		 */
-		@Override
-		public int getRowCount() {
-			return loaded;
-		}
-
-		/**
-		 * @see javax.swing.table.TableModel#getValueAt(int, int)
-		 */
-		@Override
-		public Object getValueAt(int rowIndex, int columnIndex) {
-			if (job.length <= rowIndex || job[rowIndex] == null)
-				return "";
-			try {
-				switch (columnIndex) {
-					case 0: return ids[rowIndex];
-                    case 1: return itemNames[rowIndex];
-					case 2: return job[rowIndex].getStepName();
-					case 3: return job[rowIndex].getTransition().getName();
-					case 4: return DateUtility.timeToString(job[rowIndex].getCreationDate());
-					default: return "";
-				}
-			} catch (Exception e) {
-				return null;
-			}
-		}
-
-		/**
-		 * @see javax.swing.table.TableModel#isCellEditable(int, int)
-		 */
-		@Override
-		public boolean isCellEditable(int rowIndex, int columnIndex) {
-			return false;
-		}
-
-        public Job getJobAtRow(int rowIndex) {
-            return job[rowIndex];
+            fireTableStructureChanged();
         }
 
-	}
-
-    private class JobListMouseListener extends MouseAdapter {
-
+        /**
+         * @see javax.swing.table.TableModel#getColumnClass(int)
+         */
         @Override
-		public void mouseClicked(MouseEvent e) {
-            super.mouseClicked(e);
-            if (e.getClickCount() == 2) {
-                Job selectedJob = model.getJobAtRow(eventTable.getSelectedRow());
-                try {
-                    MainFrame.itemFinder.pushNewKey(selectedJob.getItemProxy().getName());
-                } catch (Exception ex) {
-                    Logger.error(ex);
-                    JOptionPane.showMessageDialog(null, "No Item Found", "Job references an unknown item", JOptionPane.ERROR_MESSAGE);
+        public Class<?> getColumnClass(int columnIndex) {
+            return String.class;
+        }
+
+        /**
+         * @see javax.swing.table.TableModel#getColumnCount()
+         */
+        @Override
+        public int getColumnCount() {
+            return 6;
+        }
+
+        /**
+         * @see javax.swing.table.TableModel#getColumnName(int)
+         */
+        @Override
+        public String getColumnName(int columnIndex) {
+            switch (columnIndex) {
+                case 0: return "Activity";
+                case 1: return "Transition";
+                case 2: return "Schema";
+                case 3: return "Script";
+                case 4: return "StateMachine";
+                case 5: return "RoleOverride";
+                default: return "";
+            }
+        }
+
+        /**
+         * @see javax.swing.table.TableModel#getRowCount()
+         */
+        @Override
+        public int getRowCount() {
+            return jobArray != null ? jobArray.length : 0;
+        }
+
+        /**
+         * @see javax.swing.table.TableModel#getValueAt(int, int)
+         */
+        @Override
+        public Object getValueAt(int rowIndex, int columnIndex) {
+            if (jobArray.length <= rowIndex || jobArray[rowIndex] == null) {
+                log.warn("JoblistTableModel.getValueAt() - INVALID rowIndex:{}", rowIndex);
+                return "";
+            }
+
+            try {
+                switch (columnIndex) {
+                    case 0: return jobArray[rowIndex].getStepName();
+                    case 1: return jobArray[rowIndex].getTransitionName();
+                    case 2: return jobArray[rowIndex].getSchema() != null ? jobArray[rowIndex].getSchemaName() : "";
+                    case 3: return jobArray[rowIndex].getScript() != null ? jobArray[rowIndex].getScriptName() : "";
+                    case 4: return jobArray[rowIndex].getStateMachine() != null ? jobArray[rowIndex].getStateMachine().name : "";
+                    case 5: return jobArray[rowIndex].getRoleOverride();
+                    default: return "";
                 }
+            }
+            catch (Exception e) {
+                log.warn("JoblistTableModel.getValueAt() - rowIndex:{} columnIndex:{}", rowIndex, columnIndex, e);
+                return "";
             }
         }
     }
-
-	@Override
-	public void control(String control, String msg) {
-		// TODO Auto-generated method stub
-		
-	}
 }

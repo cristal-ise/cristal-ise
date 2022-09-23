@@ -32,25 +32,22 @@
         </xs:complexType>
     </xs:element>
 
+    <!-- IMPORTANT: copied from JobArrayList.xsd -->
     <xs:complexType name="JobType">
         <xs:all>
-            <xs:element minOccurs="0" maxOccurs="1" name="Transition" type="TransitionType" />
             <xs:element minOccurs="0" maxOccurs="1" name="ActProps" type="PropertyType" />
-            <xs:element minOccurs="0" maxOccurs="1" name="CreationDate" type="GTimeStampType" />
         </xs:all>
-        <xs:attribute name="Id" type="xs:decimal" use="optional"/>
-        <xs:attribute name="ItemUUID" type="xs:string" use="required"/>
-        <xs:attribute name="StepName" type="xs:string" />
-        <xs:attribute name="StepPath" type="xs:string" />
-        <xs:attribute name="StepType" type="xs:string" />
-        <xs:attribute name="OriginState" type="xs:string" />
-        <xs:attribute name="TargetState" type="xs:string" />
-        <xs:attribute name="AgentRole" type="xs:string" />
-        <xs:attribute name="AgentUUID" type="xs:string" />
-        <xs:attribute name="DelegatePath" type="xs:string" />
+        <xs:attribute name="ItemUUID"       type="xs:string" use="required" />
+        <xs:attribute name="StepName"       type="xs:string" use="required" />
+        <xs:attribute name="TransitionName" type="xs:string" use="required" />
+        <xs:attribute name="StepPath"       type="xs:string" />
+        <xs:attribute name="StepType"       type="xs:string" />
+        <xs:attribute name="RoleOverride"   type="xs:string" />
+        <xs:attribute name="AgentUUID"      type="xs:string" />
+        <xs:attribute name="DelegatePath"   type="xs:string" />
     </xs:complexType>
 
-    <!-- This type is copied from StateMachine.xsd -->
+    <!-- IMPORTANT: copied from StateMachine.xsd -->
     <xs:complexType name="TransitionType">
         <xs:sequence>
             <xs:element name="Outcome" maxOccurs="1" minOccurs="0">
@@ -92,7 +89,7 @@
         <xs:attribute name="errorHandler" type="xs:boolean" />
     </xs:complexType>
 
-    <!-- This type is copied from ElementaryActivityDef.xsd -->
+    <!-- IMPORTANT: copied from ElementaryActivityDef.xsd -->
     <xs:complexType name="PropertyType">
         <xs:sequence>
             <xs:element name="KeyValuePair" maxOccurs="unbounded">
@@ -106,16 +103,6 @@
                 </xs:complexType>
             </xs:element>
         </xs:sequence>
-    </xs:complexType>
-
-    <xs:complexType name="GTimeStampType">
-        <xs:attribute name="Y"  type="xs:decimal" use="required"/>
-        <xs:attribute name="Mo" type="xs:decimal" use="required"/>
-        <xs:attribute name="D"  type="xs:decimal" use="required"/>
-        <xs:attribute name="H"  type="xs:decimal" use="required"/>
-        <xs:attribute name="Mi" type="xs:decimal" use="required"/>
-        <xs:attribute name="S"  type="xs:decimal" use="required"/>
-        <xs:attribute name="O"  type="xs:decimal" use="required"/>
     </xs:complexType>
 
 </xs:schema>

@@ -1,7 +1,7 @@
 <!--
 
-    This file is part of the CRISTAL-iSE eXist-DB storage plugin.
-    Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
+    This file is part of the CRISTAL-iSE Development Module.
+    Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
     under the terms of the GNU Lesser General Public License as published
@@ -122,34 +122,50 @@
         </resources>
         <plugins>
             <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
+                <groupId>org.codehaus.groovy</groupId>
+                <artifactId>groovy-eclipse-compiler</artifactId>
+                <version>${groovy-eclipse-compiler.version}</version>
+                <extensions>true</extensions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.4.1</version>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>${source.version}</source>
+                    <target>${target.version}</target>
+                    <compilerId>groovy-eclipse-compiler</compilerId>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-eclipse-compiler</artifactId>
+                        <version>${groovy-eclipse-compiler.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.codehaus.groovy</groupId>
+                        <artifactId>groovy-eclipse-batch</artifactId>
+                        <version>${groovy-eclipse-batch.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
+            <plugin>
+                <groupId>com.bluetrainsoftware.maven</groupId>
+                <artifactId>groovydoc-maven-plugin</artifactId>
+                <version>2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-docs</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-docs</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <configuration>
-                    <header>HEADER.txt</header>
-                    <excludes>
-                        <exclude>pom.xml</exclude>
-                        <exclude>.flattened-pom.xml</exclude>
-                        <exclude>**/server.conf</exclude>
-                        <exclude>**/*.gpg.enc</exclude>
-                        <exclude>**/*.example</exclude>
-                        <exclude>**/*.launch</exclude>
-                        <exclude>**/*.conf</exclude>
-                        <exclude>**/src/main/config/**</exclude>
-                    </excludes>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -164,10 +180,7 @@
                 <version>1.8</version>
                 <configuration>
                     <repositoryLayout>flat</repositoryLayout>
-                    <configurationDirectory>conf</configurationDirectory>
-                    <copyConfigurationDirectory>true</copyConfigurationDirectory>
                     <useTimestampInSnapshotFileName>false</useTimestampInSnapshotFileName>
-                    <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
                     <assembleDirectory>${project.build.directory}/dist</assembleDirectory>
                     <showConsoleWindow>true</showConsoleWindow>
                     <repositoryName>lib</repositoryName>
@@ -176,46 +189,8 @@
                     </defaultJvmSettings>
                     <programs>
                         <program>
-                            <mainClass>org.cristalise.kernel.process.StandardServer</mainClass>
-                            <id>cristalise-server</id>
-                            <commandLineArguments>
-                                <commandLineArgument>-logLevel</commandLineArgument>
-                                <commandLineArgument>0</commandLineArgument>
-                                <commandLineArgument>-logFile</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/server.log</commandLineArgument>
-                                <commandLineArgument>-config</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/conf/server.conf</commandLineArgument>
-                                <commandLineArgument>-connect</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/conf/local.clc</commandLineArgument>
-                            </commandLineArguments>
-                        </program>
-                        <program>
-                            <mainClass>org.cristalise.gui.Main</mainClass>
-                            <id>cristalise-gui</id>
-                            <commandLineArguments>
-                                <commandLineArgument>-logLevel</commandLineArgument>
-                                <commandLineArgument>0</commandLineArgument>
-                                <commandLineArgument>-logFile</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/gui.log</commandLineArgument>
-                                <commandLineArgument>-config</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/conf/client.conf</commandLineArgument>
-                                <commandLineArgument>-connect</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/conf/local.clc</commandLineArgument>
-                            </commandLineArguments>
-                        </program>
-                        <program>
-                            <mainClass>org.cristalise.kernel.process.UserCodeProcess</mainClass>
-                            <id>cristalise-usercode</id>
-                            <commandLineArguments>
-                                <commandLineArgument>-logLevel</commandLineArgument>
-                                <commandLineArgument>0</commandLineArgument>
-                                <commandLineArgument>-logFile</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/usercode.log</commandLineArgument>
-                                <commandLineArgument>-config</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/conf/client.conf</commandLineArgument>
-                                <commandLineArgument>-connect</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/conf/local.clc</commandLineArgument>
-                            </commandLineArguments>
+                            <mainClass>org.cristalise.dev.scaffold.CRUDGenerator</mainClass>
+                            <id>cristalise-generator</id>
                         </program>
                     </programs>
                 </configuration>
@@ -229,24 +204,68 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- exec:java configs to execute module generation -->
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>exec-maven-plugin</artifactId>
+              <version>3.0.0</version>
+              <dependencies>
+                <dependency>
+                  <groupId>ch.qos.logback</groupId>
+                  <artifactId>logback-classic</artifactId>
+                  <version>1.2.3</version>
+                </dependency>
+              </dependencies>
+              <executions>
+                <execution>
+                  <id>module</id>
+                  <goals>
+                    <goal>java</goal>
+                  </goals>
+                  <configuration>
+                    <mainClass>org.codehaus.groovy.tools.GroovyStarter</mainClass>
+                    <commandlineArgs>--main groovy.ui.GroovyMain --encoding UTF-8 src/main/module/Module.groovy</commandlineArgs>
+                    <cleanupDaemonThreads>false</cleanupDaemonThreads>
+                    <includePluginDependencies>true</includePluginDependencies>
+                    <includeProjectDependencies>true</includeProjectDependencies>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
         </plugins>
     </build>
 
     <dependencies>
         <dependency>
             <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-kernel</artifactId>
+            <artifactId>cristalise-dsl</artifactId>
             <version>${revision}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-gui</artifactId>
+            <artifactId>cristalise-xpath-outcomeinit</artifactId>
             <version>${revision}</version>
         </dependency>
         <dependency>
-            <groupId>org.cristalise</groupId>
-            <artifactId>cristalise-jooqdb</artifactId>
-            <version>${revision}</version>
+            <groupId>org.codehaus.groovy</groupId>
+            <artifactId>groovy-all</artifactId>
+            <version>${groovy.version}</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>4.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.atteo</groupId>
+            <artifactId>evo-inflector</artifactId>
+            <version>1.2.2</version>
         </dependency>
         <dependency>
             <groupId>org.mozilla</groupId>
@@ -259,6 +278,43 @@
             <artifactId>rhino-script-engine</artifactId>
             <version>1.1.1</version>
             <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility-groovy</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.spockframework</groupId>
+            <artifactId>spock-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.spockframework</groupId>
+            <artifactId>spock-unitils</artifactId>
+            <scope>test</scope>
+        </dependency>
+<!--         <dependency> -->
+<!--             <groupId>com.athaydes</groupId> -->
+<!--             <artifactId>spock-reports</artifactId> -->
+<!--             <scope>test</scope> -->
+<!--         </dependency> -->
+        <dependency>
+            <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-inmemory-lookup</artifactId>
+            <version>${revision}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

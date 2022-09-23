@@ -1,22 +1,22 @@
 <CristalModule ns="integTest" name="IntegrationTest">
     <Info>
         <Description>CRISTAL-iSE Items for testing</Description>
-        <Version>3.3-SNAPSHOT</Version>
-        <KernelVersion>3.3</KernelVersion>
+        <Version>${version}</Version>
+        <KernelVersion>${version}</KernelVersion>
         <Dependency>CristaliseDev</Dependency>
     </Info>
     <ResourceURL>org/cristalise/testing/resources/</ResourceURL>
     <Config name="Module.dev.debug">true</Config>
     <Config name="OutcomeInit.Query">org.cristalise.kernel.persistency.outcome.QueryOutcomeInitiator</Config>
     <Imports>
-        <Workflow name="TestSchemaFactoryWf" version="0" resource="boot/CA/TestSchemaFactoryWf.xml">
+        <Workflow name="TestSchemaFactoryWf" version="0">
             <StateMachine name="CompositeActivity" version="0"/>
             <Activity name="EditPropertyDescription" version="0"/>
             <Activity name="EditDefinition" version="0"/>
             <Activity name="CreateNewLocalObjectDef" version="0"/>
         </Workflow>
 
-        <Workflow name="AssetDescriptionWf" version="0" resource="boot/CA/AssetDescriptionWf.xml">
+        <Workflow name="AssetDescriptionWf" version="0">
             <Activity name="EditPropertyDescription" version="0" />
             <Activity name="SetInstanceWorkflow" version="0" />
             <Activity name="CreateItem" version="0" />
@@ -29,7 +29,7 @@
             <Property name="LocalObjectType">Schema</Property>
             <Property name="Type">Factory</Property>
 
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/SchemaProp.xml</Outcome>
+            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/SchemaProp_0.xml</Outcome>
 <!--        <Outcome viewname="last" schema="Schema"              version="0">boot/OD/New.xsd</Outcome> -->
 
             <Dependency name="workflow" isDescription="false">
@@ -47,7 +47,7 @@
         <Item name="AssetDescriptionFactory" initialPath="/desc/integTest" workflow="ItemDescriptionFactoryWf">
             <Property name="Type">Factory</Property>
 
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/AssetDescProp.xml</Outcome>
+            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/AssetDescProp_0.xml</Outcome>
 
             <Dependency name="workflow" isDescription="false">
                 <DependencyMember itemPath="desc/ActivityDesc/integTest/AssetDescriptionWf">
@@ -74,17 +74,17 @@
         <SchemaResource name="XPathOutcomeInitTest_Details"             version="0"/>
         <ScriptResource name="XPathOutcomeInitTest_DetailsInstantiator" version="0"/>
 
-        <Activity name="XPathOutcomeInitTest_SetDetails" resource="boot/EA/XPathOutcomeInitTest_SetDetails.xml" version="0">
+        <Activity name="XPathOutcomeInitTest_SetDetails">
             <Schema name="XPathOutcomeInitTest_Details" version="0"/>
         </Activity>
 
-        <Workflow name="XPathOutcomeInitTest_DetailsLifecycle" version="0" resource="boot/CA/XPathOutcomeInitTest_DetailsLifecycle.xml">
+        <Workflow name="XPathOutcomeInitTest_DetailsLifecycle" version="0">
             <Activity name="MoveLatestVersionToLast"         version="0"/>
             <Activity name="AssignNewVersionFromLast"        version="0"/>
             <Activity name="XPathOutcomeInitTest_SetDetails" version="0"/>
         </Workflow>
 
-        <Workflow name="XPathOutcomeInitTest_FactoryLifecycle" version="0" resource="boot/CA/XPathOutcomeInitTest_FactoryLifecycle.xml">
+        <Workflow name="XPathOutcomeInitTest_FactoryLifecycle" version="0">
             <StateMachine name="CompositeActivity"   version="0"/>
             <Activity name="CreateItem"              version="0"/>
             <Activity name="EditPropertyDescription" version="0"/>
@@ -93,7 +93,7 @@
         <Item name="XPathOutcomeInitTest_DetailsFactory" initialPath="/desc/integTest" workflow="XPathOutcomeInitTest_FactoryLifecycle">
             <Property name="Type">Factory</Property>
 
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/XPathOutcomeInitTest_DetailsInitialProps.xml</Outcome>
+            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/XPathOutcomeInitTest_DetailsInitialProps_0.xml</Outcome>
 
             <Dependency name="workflow" isDescription="false">
                 <DependencyMember itemPath="/desc/ActivityDesc/integTest/XPathOutcomeInitTest_DetailsLifecycle">
@@ -105,7 +105,7 @@
             </Dependency>
         </Item>
 
-        <Workflow name="XPathOutcomeInitTest_ManageCADef" version="0" resource="boot/CA/XPathOutcomeInitTest_ManageCADef.xml">
+        <Workflow name="XPathOutcomeInitTest_ManageCADef" version="0">
             <StateMachine name="CompositeActivity" version="0"/>
             <Activity name="MoveLatestVersionToLast" version="0"/>
             <Activity name="EditDefinition" version="0"/>
@@ -116,7 +116,7 @@
         <Item name="XPathOutcomeInitTest_CADefFactory" initialPath="/desc/integTest" workflow="CompositeActivityFactory">
             <Property name="LocalObjectType">CompositeActivityDef</Property>
             <Property name="Type">Factory</Property>
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/CAProp.xml</Outcome>
+            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/CAProp_0.xml</Outcome>
             <Dependency name="workflow" isDescription="false">
                 <DependencyMember itemPath="/desc/ActivityDesc/integTest/XPathOutcomeInitTest_ManageCADef">
                     <MemberProperties>
@@ -145,10 +145,7 @@
         <!-- QueryTest -->
         <QueryResource name="TestQuery" version="0"/>
 
-        <Role name="User" jobList="false">
-            <Permission>p1</Permission>
-            <Permission>p2</Permission>
-        </Role>
+        <RoleResource name="User" version="0"/>
         <Role name="User/SubUser" jobList="false">
             <Permission>p11</Permission>
             <Permission>p12</Permission>
@@ -156,283 +153,44 @@
 
         <Agent name="user" password="test">
             <Role name="Admin"/>
-            <Role name="SubUser"/>
+            <Role name="User/SubUser"/>
         </Agent>
+        <AgentResource name="mainUser" version="0"/>
 
-        <Agent name="mainUser" password="test©£" initialPath="/integTest/agents">
-            <Role name="Admin"/>
-            <Role name='User'/>
-        </Agent>
+        <!-- Patient Descriptions -->
 
-
-        <!-- Scaffolding tests -->
-
-        <SchemaResource name="Factory_NewInstanceDetails" version="0"/>
-        <ScriptResource name="Factory_InstantiateItem" version="0"/>
-        <ScriptResource name="Entity_ChangeName" version="0"/>
-        <Activity name="Factory_CreateItem" version="0">
-          <Schema name="Factory_NewInstanceDetails" version="0"/>
-          <Script name="Factory_InstantiateItem" version="0"/>
+        <PropertyDescriptionResource name="Doctor" version="0"/>
+        <PropertyDescriptionResource name="Patient" version="0"/>
+        <SchemaResource name="Patient_Details" version="0"/>
+        <Activity name="Patient_SetDetails" version="0">
+          <Schema name="Patient_Details" version="0"/>
         </Activity>
-        <Workflow name="Factory_Workflow" version="0">
-          <Activity name="Factory_CreateItem" version="0"/>
+        <SchemaResource name="Patient_UrinSample" version="0"/>
+        <Activity name="Patient_SetUrinSample" version="0">
+          <Schema name="Patient_UrinSample" version="0"/>
+        </Activity>
+        <SchemaResource name="Patient" version="0"/>
+        <ScriptResource name="Patient_Aggregate" version="0"/>
+        <Activity name="Patient_Aggregate" version="0">
+          <Schema name="Patient" version="0"/>
+          <Script name="Patient_Aggregate" version="0"/>
+        </Activity>
+        <Workflow name="Patient_Workflow" version="0">
+          <Activity name="Patient_SetDetails" version="0"/>
+          <Activity name="Patient_SetUrinSample" version="0"/>
+          <Activity name="Patient_Aggregate" version="0"/>
         </Workflow>
-        <Activity name="State_Activate" version="0"/>
-        <Activity name="State_Deactivate" version="0"/>
-        <Workflow name="State_Manage" version="0">
-          <Activity name="State_Activate" version="0"/>
-          <Activity name="State_Deactivate" version="0"/>
+        <ItemResource name="PatientFactory" version="0"/>
+        <SchemaResource name="Doctor_Patient" version="0"/>
+        <ScriptResource name="Doctor_AddPatient" version="0"/>
+        <Activity name="Doctor_AddPatient" version="0">
+          <Schema name="Doctor_Patient" version="0"/>
+          <Script name="Doctor_AddPatient" version="0"/>
+        </Activity>
+        <Workflow name="Doctor_Workflow" version="0">
+          <Activity name="Doctor_AddPatient" version="0"/>
         </Workflow>
-        <SchemaResource name="TestItem" version="0"/>
-        <SchemaResource name="TestItem_Details" version="0"/>
-        <Activity name="TestItem_Update" version="0">
-          <Schema name="TestItem_Details" version="0"/>
-        </Activity>
-        <ScriptResource name="TestItem_Aggregate" version="0"/>
-        <ScriptResource name="TestItem_QueryList" version="0"/>
-        <Activity name="TestItem_Aggregate" version="0">
-          <Schema name="TestItem" version="0"/>
-          <Script name="TestItem_Aggregate" version="0"/>
-        </Activity>
-        <Workflow name="TestItem_Workflow" version="0">
-          <Activity name="TestItem_Update" version="0"/>
-          <Activity name="State_Manage" version="0"/>
-        </Workflow>
-        <PropertyDescriptionResource name="TestItem" version="0"/>
-        <Item name="TestItemFactory" initialPath="/integTest" workflow="Factory_Workflow" workflowVer="0">
-          <Property name="Type" mutable="false">Factory</Property>
-          <Property name="Root" mutable="false">integTest/TestItems</Property>
-          <Property name="UpdateSchema" mutable="false">TestItem_Details:0</Property>
-          <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItem.xml</Outcome>
-          <Dependency name="workflow" isDescription="false">
-            <DependencyMember itemPath="/desc/ActivityDesc/integTest/TestItem_Workflow">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-          <Dependency name="MasterSchema" isDescription="false">
-            <DependencyMember itemPath="/desc/Schema/integTest/TestItem">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-          <Dependency name="AggregateScript" isDescription="false">
-            <DependencyMember itemPath="/desc/Script/integTest/TestItem_Aggregate">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-        </Item>
-        <SchemaResource name="TestItemUseConstructor" version="0"/>
-        <SchemaResource name="TestItemUseConstructor_Details" version="0"/>
-        <Activity name="TestItemUseConstructor_Update" version="0">
-          <Schema name="TestItemUseConstructor_Details" version="0"/>
-        </Activity>
-        <ScriptResource name="TestItemUseConstructor_Aggregate" version="0"/>
-        <ScriptResource name="TestItemUseConstructor_QueryList" version="0"/>
-        <Activity name="TestItemUseConstructor_Aggregate" version="0">
-          <Schema name="TestItemUseConstructor" version="0"/>
-          <Script name="TestItemUseConstructor_Aggregate" version="0"/>
-        </Activity>
-        <Workflow name="TestItemUseConstructor_Workflow" version="0">
-          <Activity name="TestItemUseConstructor_Update" version="0"/>
-          <Activity name="State_Manage" version="0"/>
-        </Workflow>
-        <PropertyDescriptionResource name="TestItemUseConstructor" version="0"/>
-        <Item name="TestItemUseConstructorFactory" initialPath="/integTest" workflow="Factory_Workflow" workflowVer="0">
-          <Property name="Type" mutable="false">Factory</Property>
-          <Property name="Root" mutable="false">integTest/TestItemUseConstructors</Property>
-          <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItemUseConstructor.xml</Outcome>
-          <Dependency name="SchemaInitialise" isDescription="false">
-            <DependencyMember itemPath="/desc/Schema/integTest/TestItemUseConstructor_Details">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-          <Dependency name="workflow" isDescription="false">
-            <DependencyMember itemPath="/desc/ActivityDesc/integTest/TestItemUseConstructor_Workflow">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-          <Dependency name="MasterSchema" isDescription="false">
-            <DependencyMember itemPath="/desc/Schema/integTest/TestItemUseConstructor">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-          <Dependency name="AggregateScript" isDescription="false">
-            <DependencyMember itemPath="/desc/Script/integTest/TestItemUseConstructor_Aggregate">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-        </Item>
-        <SchemaResource name="TestAgentUseConstructor" version="0"/>
-        <SchemaResource name="TestAgentUseConstructor_Details" version="0"/>
-        <Activity name="TestAgentUseConstructor_Update" version="0">
-          <Schema name="TestAgentUseConstructor_Details" version="0"/>
-        </Activity>
-        <ScriptResource name="TestAgentUseConstructor_Aggregate" version="0"/>
-        <ScriptResource name="TestAgentUseConstructor_QueryList" version="0"/>
-        <Activity name="TestAgentUseConstructor_Aggregate" version="0">
-          <Schema name="TestAgentUseConstructor" version="0"/>
-          <Script name="TestAgentUseConstructor_Aggregate" version="0"/>
-        </Activity>
-        <Workflow name="TestAgentUseConstructor_Workflow" version="0">
-          <Activity name="TestAgentUseConstructor_Update" version="0"/>
-          <Activity name="State_Manage" version="0"/>
-        </Workflow>
-        <PropertyDescriptionResource name="TestAgentUseConstructor" version="0"/>
-        <Item name="TestAgentUseConstructorFactory" initialPath="/integTest" workflow="Factory_Workflow" workflowVer="0">
-          <Property name="Type" mutable="false">Factory</Property>
-          <Property name="Root" mutable="false">integTest/TestAgentUseConstructors</Property>
-          <Property name="CreateAgent" mutable="false">true</Property>
-          <Property name="DefaultRoles" mutable="true">Admin</Property>
-          <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestAgentUseConstructor.xml</Outcome>
-          <Dependency name="SchemaInitialise" isDescription="false">
-            <DependencyMember itemPath="/desc/Schema/integTest/TestAgentUseConstructor_Details">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-          <Dependency name="workflow" isDescription="false">
-            <DependencyMember itemPath="/desc/ActivityDesc/integTest/TestAgentUseConstructor_Workflow">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-          <Dependency name="MasterSchema" isDescription="false">
-            <DependencyMember itemPath="/desc/Schema/integTest/TestAgentUseConstructor">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-          <Dependency name="AggregateScript" isDescription="false">
-            <DependencyMember itemPath="/desc/Script/integTest/TestAgentUseConstructor_Aggregate">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-        </Item>
-        <SchemaResource name="TestAgent" version="0"/>
-        <SchemaResource name="TestAgent_Details" version="0"/>
-        <Activity name="TestAgent_Update" version="0">
-          <Schema name="TestAgent_Details" version="0"/>
-        </Activity>
-        <ScriptResource name="TestAgent_Aggregate" version="0"/>
-        <ScriptResource name="TestAgent_QueryList" version="0"/>
-        <Activity name="TestAgent_Aggregate" version="0">
-          <Schema name="TestAgent" version="0"/>
-          <Script name="TestAgent_Aggregate" version="0"/>
-        </Activity>
-        <Workflow name="TestAgent_Workflow" version="0">
-          <Activity name="TestAgent_Update" version="0"/>
-          <Activity name="State_Manage" version="0"/>
-        </Workflow>
-        <PropertyDescriptionResource name="TestAgent" version="0"/>
-        <Item name="TestAgentFactory" initialPath="/integTest" workflow="Factory_Workflow" workflowVer="0">
-          <Property name="Type" mutable="false">Factory</Property>
-          <Property name="Root" mutable="false">integTest/TestAgents</Property>
-          <Property name="CreateAgent" mutable="false">true</Property>
-          <Property name="DefaultRoles" mutable="true">Admin</Property>
-          <Property name="UpdateSchema" mutable="false">TestAgent_Details:0</Property>
-          <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestAgent.xml</Outcome>
-          <Dependency name="workflow" isDescription="false">
-            <DependencyMember itemPath="/desc/ActivityDesc/integTest/TestAgent_Workflow">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-          <Dependency name="MasterSchema" isDescription="false">
-            <DependencyMember itemPath="/desc/Schema/integTest/TestAgent">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-          <Dependency name="AggregateScript" isDescription="false">
-            <DependencyMember itemPath="/desc/Script/integTest/TestAgent_Aggregate">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-        </Item>
-        <SchemaResource name="TestItemGeneratedName" version="0"/>
-        <SchemaResource name="TestItemGeneratedName_Details" version="0"/>
-        <Activity name="TestItemGeneratedName_Update" version="0">
-          <Schema name="TestItemGeneratedName_Details" version="0"/>
-        </Activity>
-        <ScriptResource name="TestItemGeneratedName_Aggregate" version="0"/>
-        <ScriptResource name="TestItemGeneratedName_QueryList" version="0"/>
-        <Activity name="TestItemGeneratedName_Aggregate" version="0">
-          <Schema name="TestItemGeneratedName" version="0"/>
-          <Script name="TestItemGeneratedName_Aggregate" version="0"/>
-        </Activity>
-        <Workflow name="TestItemGeneratedName_Workflow" version="0">
-          <Activity name="TestItemGeneratedName_Update" version="0"/>
-          <Activity name="State_Manage" version="0"/>
-        </Workflow>
-        <PropertyDescriptionResource name="TestItemGeneratedName" version="0"/>
-        <Item name="TestItemGeneratedNameFactory" initialPath="/integTest" workflow="Factory_Workflow" workflowVer="0">
-          <Property name="Type" mutable="false">Factory</Property>
-          <Property name="Root" mutable="false">integTest/TestItemGeneratedNames</Property>
-          <Property name="IDPrefix" mutable="false">ID</Property>
-          <Property name="LeftPadSize" mutable="true">6</Property>
-          <Property name="UpdateSchema" mutable="false">TestItemGeneratedName_Details:0</Property>
-          <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/TestItemGeneratedName.xml</Outcome>
-          <Dependency name="workflow" isDescription="false">
-            <DependencyMember itemPath="/desc/ActivityDesc/integTest/TestItemGeneratedName_Workflow">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-          <Dependency name="MasterSchema" isDescription="false">
-            <DependencyMember itemPath="/desc/Schema/integTest/TestItemGeneratedName">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-          <Dependency name="AggregateScript" isDescription="false">
-            <DependencyMember itemPath="/desc/Script/integTest/TestItemGeneratedName_Aggregate">
-              <MemberProperties>
-                <KeyValuePair Key="Version" isAbstract="false" Integer="0"/>
-              </MemberProperties>
-            </DependencyMember>
-            <CollectionProperties/>
-          </Dependency>
-        </Item>
+        <ItemResource name="DoctorFactory" version="0"/>
 
     </Imports>
 </CristalModule>

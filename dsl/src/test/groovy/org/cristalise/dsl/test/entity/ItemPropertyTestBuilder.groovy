@@ -35,7 +35,7 @@ import org.cristalise.kernel.property.PropertyArrayList
 @CompileStatic
 class ItemPropertyTestBuilder {
 
-    public static ArrayList<Property> build(Closure cl) {
+    public static ArrayList<Property> build(@DelegatesTo(PropertyDelegate) Closure cl) {
         def pd = new PropertyDelegate()
 
         pd.processClosure(cl)

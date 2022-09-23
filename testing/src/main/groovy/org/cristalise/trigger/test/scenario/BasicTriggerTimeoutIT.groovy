@@ -63,7 +63,9 @@ class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
         }
 
         triggerWF = CompositeActivityDef("TriggerWF-$timeStamp", folder) {
-            ElemActDef('TriggerTestAct',  triggerTestActDef)
+            Layout {
+                ElemActDef('TriggerTestAct',  triggerTestActDef)
+            }
         }
 
         factory = DescriptionItem("TriggerableItemFactory-$timeStamp", folder) {

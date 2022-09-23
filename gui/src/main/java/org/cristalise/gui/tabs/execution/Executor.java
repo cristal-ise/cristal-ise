@@ -22,7 +22,7 @@ package org.cristalise.gui.tabs.execution;
 
 import javax.swing.JLabel;
 
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 
 
 /**************************************************************************

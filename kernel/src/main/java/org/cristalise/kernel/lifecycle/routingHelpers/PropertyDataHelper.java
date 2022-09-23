@@ -25,6 +25,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 
@@ -34,10 +35,10 @@ public class PropertyDataHelper implements DataHelper {
      * Syntax of search: PropertyName
      */
     @Override
-    public String get(ItemPath itemPath, String actContext, String dataPath, Object locker)
+    public String get(ItemPath itemPath, String actContext, String dataPath, TransactionKey transactionKey)
             throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
-        Property prop = (Property)Gateway.getStorage().get(itemPath, ClusterType.PROPERTY+"/"+dataPath, locker);
+        Property prop = (Property)Gateway.getStorage().get(itemPath, ClusterType.PROPERTY+"/"+dataPath, transactionKey);
         return prop.getValue();
     }
 }

@@ -20,40 +20,31 @@
  */
 package org.cristalise.kernel.lookup;
 
+import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.process.Gateway;
-
-import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.property.PropertyUtility;
 
 /**
  * Extends Path to enforce SystemKey structure and support UUID form
  */
-@Slf4j
 public class ItemPath extends Path {
-
-    protected String mIOR;
+    
+    String itemName;
 
     public ItemPath() {
         setSysKey(UUID.randomUUID());
     }
 
-    public ItemPath(UUID uuid, String ior) {
-        setSysKey(uuid);
-        setIORString(ior);
-    }
-
     public ItemPath(UUID uuid) {
         setSysKey(uuid);
-    }
-
-    public ItemPath(SystemKey syskey) {
-        setSysKey(syskey);
     }
 
     public ItemPath(String[] path) throws InvalidItemPathException {
@@ -106,37 +97,8 @@ public class ItemPath extends Path {
     }
 
     @Override
-    public ItemPath getItemPath() throws ObjectNotFoundException {
+    public ItemPath getItemPath(TransactionKey transactionKey) throws ObjectNotFoundException {
         return this;
-    }
-
-    @Override
-    public org.omg.CORBA.Object getIOR() {
-        if (mIOR == null) {
-            try {
-                mIOR = Gateway.getLookup().getIOR(this);
-            }
-            catch (ObjectNotFoundException ex) {
-                log.warn(ex.getMessage());
-                return null;
-            }
-        }
-
-        if (mIOR == null) return null;
-        else              return Gateway.getORB().string_to_object(mIOR);
-    }
-
-    @Override
-    public void setIOR(org.omg.CORBA.Object IOR) {
-        mIOR = Gateway.getORB().object_to_string(IOR);
-    }
-
-    public String getIORString() {
-        return mIOR;
-    }
-
-    public void setIORString(String ior) {
-        mIOR = ior;
     }
 
     public byte[] getOID() {
@@ -153,19 +115,9 @@ public class ItemPath extends Path {
         setPathFromUUID(uuid);
     }
 
-    protected void setSysKey(SystemKey sysKey) {
-        setPathFromUUID(new UUID(sysKey.msb, sysKey.lsb));
-    }
-
     private void setPathFromUUID(UUID uuid) {
         mPath = new String[1];
         mPath[0] = uuid.toString();
-    }
-
-    @Override
-    public SystemKey getSystemKey() {
-        UUID uuid = getUUID();
-        return new SystemKey(uuid.getMostSignificantBits(), uuid.getLeastSignificantBits());
     }
 
     @Override
@@ -173,9 +125,12 @@ public class ItemPath extends Path {
         return UUID.fromString(mPath[0]);
     }
 
+    /**
+     * Returns the UUID in String form
+     */
     @Override
     public String getName() {
-        return getUUID().toString();
+        return mPath[0]; //originally it was 'return getUUID().toString()';
     }
 
     @Override
@@ -183,9 +138,26 @@ public class ItemPath extends Path {
         return ClusterType.PATH + "/Item";
     }
 
+    /**
+     * Check if the given string contains a UUID. Remove the cristal-ise specific '/entity/' prefix if present
+     * @param entityKey the entity key of an Item, can contain the '/entity/' prefix
+     * @return whether the entytyKey is a UUID or not
+     */
     public static boolean isUUID(String entityKey) {
         if (entityKey.startsWith("/entity/")) entityKey = entityKey.substring(8);
 
         return entityKey.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+    }
+
+    public String getItemName() {
+        return getItemName(null);
+    }
+
+    public String getItemName(TransactionKey transactionKey) {
+        if (StringUtils.isBlank(itemName)) {
+            itemName = PropertyUtility.getPropertyValue(this, NAME, "", transactionKey);
+        }
+
+        return itemName;
     }
 }

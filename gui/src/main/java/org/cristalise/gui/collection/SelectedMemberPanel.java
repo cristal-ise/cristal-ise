@@ -134,7 +134,7 @@ public class SelectedMemberPanel extends SelectedVertexPanel implements DomainKe
         String name = "Empty";
         if (memberPath != null)
         	try {
-        		ItemProxy member = Gateway.getProxyManager().getProxy(memberPath);
+        		ItemProxy member = Gateway.getProxy(memberPath);
         		name = member.getName();
         	} catch (Exception e) { }
         memberKey.setText(name);
@@ -164,7 +164,7 @@ public class SelectedMemberPanel extends SelectedVertexPanel implements DomainKe
     @Override
 	public void push(DomainPath key) {
         try {
-            selectedMember.assignItem(key.getItemPath());
+            selectedMember.assignItem(key.getItemPath(), null);
             select(selectedMember);
         } catch (InvalidCollectionModification ex) {
             JOptionPane.showMessageDialog(null, "Item does not fit in this slot", "Error", JOptionPane.ERROR_MESSAGE);

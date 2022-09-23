@@ -1,0 +1,27 @@
+{
+  "column" : [ {
+    "itemType" : "Car",
+    "domain" : "/devtest/Cars",
+    "factory" : "/devtest/CarFactory",
+    "lowSing" : "car",
+    "lowPlur" : "cars",
+    "upSing" : "Car",
+    "upPlur" : "Cars"
+  }, {
+    "itemType" : "Motorcycle",
+    "domain" : "/devtest/Motorcycles",
+    "factory" : "/devtest/MotorcycleFactory",
+    "lowSing" : "motorcycle",
+    "lowPlur" : "motorcycles",
+    "upSing" : "Motorcycle",
+    "upPlur" : "Motorcycles"
+  }, {
+    "itemType" : "ClubMember",
+    "domain" : "/devtest/ClubMembers",
+    "factory" : "/devtest/ClubMemberFactory",
+    "lowSing" : "clubMember",
+    "lowPlur" : "clubMembers",
+    "upSing" : "ClubMember",
+    "upPlur" : "ClubMembers"
+  } ]
+}

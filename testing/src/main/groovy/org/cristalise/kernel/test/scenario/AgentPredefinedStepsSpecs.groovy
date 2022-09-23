@@ -24,17 +24,16 @@ import spock.lang.Specification
  */
 class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetup {
 
-    AgentProxy agent
-    String timeStamp = null
+    static AgentProxy agent
+    static String timeStamp
 
-    def setup()   {
-        cristalInit(8, 'src/main/bin/client.conf', 'src/main/bin/integTest.clc')
+    def setupSpec() {
+        cristalInit('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
         agent = Gateway.connect('user', 'test')
         timeStamp = LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")
     }
 
-    def cleanup() { cristalCleanup() }
-
+    def cleanupSpec() { cristalCleanup() }
 
     private ItemProxy getServerItem() { return agent.getItem("/domain/servers/localhost") }
 
@@ -59,7 +58,7 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
 
         agent.execute(serverItem, CreateNewAgent.class, Gateway.getMarshaller().marshall(importAgent));
 
-        return Gateway.getProxyManager().getAgentProxy( Gateway.getLookup().getAgentPath(name) )
+        return Gateway.getAgentProxy( Gateway.getLookup().getAgentPath(name) )
     }
 
     def 'SetAgentRole can be used to assign/unassing roles with agent'() {
@@ -89,7 +88,7 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
     def 'SetAgentPassword can be called by admin or by the agent itself'() {
         when: 'Admin changes the password of triggerAgent'
         String[] params = [ 'test', timeStamp ]
-        def triggerAgent = Gateway.getProxyManager().getAgentProxy( Gateway.getLookup().getAgentPath('triggerAgent') )
+        def triggerAgent = Gateway.getAgentProxy( Gateway.getLookup().getAgentPath('triggerAgent') )
         assert ! triggerAgent.getPath().isPasswordTemporary()
         agent.execute(triggerAgent, SetAgentPassword.class, params)
 

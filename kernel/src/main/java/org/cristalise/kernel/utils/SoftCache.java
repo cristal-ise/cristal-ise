@@ -29,8 +29,10 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * SoftReferences are reaped if no strong references are left and the vm is
- * running out of memory. Most caches in the kernel use this.
+ * SoftReferences are reaped if no strong references are left and the 
+ * java VM is running out of memory. Most caches in the kernel use this.
+ * 
+ * @deprecated should be replaced by Cache from Guava
  *
  * @param <K> key
  * @param <V> value

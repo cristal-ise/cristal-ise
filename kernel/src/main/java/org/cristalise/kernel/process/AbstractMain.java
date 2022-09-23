@@ -27,7 +27,6 @@ import java.util.Properties;
 
 import org.cristalise.kernel.process.resource.BadArgumentsException;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Logger;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,12 +39,8 @@ abstract public class AbstractMain {
     public static boolean          isServer = false;
     private static ShutdownHandler shutdownHandler;
 
-    public static final String MAIN_ARG_NONEWLOGSTREAM = "noNewLogStream";
     public static final String MAIN_ARG_CONFIG         = "config";
-    public static final String MAIN_ARG_LOGLEVEL       = "logLevel";
-    public static final String MAIN_ARG_LOGFILE        = "logFile";
     public static final String MAIN_ARG_CONNECT        = "connect";
-    public static final String MAIN_ARG_RESETIOR       = "resetIOR";
     public static final String MAIN_ARG_SKIPBOOTSTRAP  = "skipBootstrap";
 
     /**
@@ -53,9 +48,6 @@ abstract public class AbstractMain {
      *
      * Known arguments :
      * <ul>
-     * <li>logLevel: the log level 0-9 (+10 to have time, +20 to have only one level)</li>
-     * <li>logFile: the full path of the target log file. if none, the Logstream is the stdOut</li>
-     * <li>noNewLogStream: if present no new Logstream is added to the logger (considers that the Logger is already configured)</li>
      * <li>config</li> specifies the connect file
      * <li>connect</li> specifies the clc file
      * <li>LocalCentre</li> sets the local centre id
@@ -67,7 +59,6 @@ abstract public class AbstractMain {
      */
     public static Properties readC2KArgs( String[] args ) throws BadArgumentsException {
         Properties argProps = new Properties();
-        int logLevel = 0;
 
         int i = 0;
         while( i < args.length ) {
@@ -85,16 +76,6 @@ abstract public class AbstractMain {
             }
             else
                 throw new BadArgumentsException("Bad argument: "+args[i]);
-        }
-
-        // if the optional arg "noNewLogStream" isn't present => add a new LogStream
-        boolean wMustAddNewLogStream = !argProps.contains(MAIN_ARG_NONEWLOGSTREAM);
-        if (wMustAddNewLogStream) {
-            // Set up log stream
-            if (argProps.containsKey(MAIN_ARG_LOGLEVEL)) logLevel = Integer.parseInt(argProps.getProperty(MAIN_ARG_LOGLEVEL));
-
-            //This is required until the Logger class is fully phased out
-            Logger.addLogStream(null, logLevel);
         }
 
         // Dump params if log high enough

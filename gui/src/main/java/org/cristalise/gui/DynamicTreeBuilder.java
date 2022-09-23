@@ -27,21 +27,20 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
 import org.cristalise.gui.tree.Node;
+import org.cristalise.gui.tree.NodeCollectionMember;
 import org.cristalise.gui.tree.NodeItem;
 import org.cristalise.gui.tree.NodeSubscriber;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.utils.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
  * Installed as the user object on a single child node of a new node known to be composite.
  * <p>Shows 'Loading . . .' when the branch is opened, but a TreeExpansionListener attempts to fire this thread off in the first child node.
  * <br>When started, this thread will retrieve all of the real child nodes and add them to its parent while removing itself (hopefully for garbage collection)
- *
- * @version $Revision: 1.24 $ $Date: 2004/12/15 12:12:06 $
- * @author  $Author: abranson $
  */
-
+@Slf4j
 public class DynamicTreeBuilder extends Node implements NodeSubscriber {
     private DefaultTreeModel treeModel;
     private final DefaultMutableTreeNode parent;
@@ -77,7 +76,7 @@ public class DynamicTreeBuilder extends Node implements NodeSubscriber {
     public void start() {
         // find the clicked tree node
         Node parentNode = (Node)parent.getUserObject();
-        Logger.msg(2, "DynamicTreeBuilder.start() - Filling in children of '"+parentNode.toString()+"'");
+        log.info("start() - Filling in children of '"+parentNode.toString()+"'");
         if (state == IDLE)
             parentNode.subscribeNode(this);
         else
@@ -120,7 +119,7 @@ public class DynamicTreeBuilder extends Node implements NodeSubscriber {
 
     @Override
 	public void add(Node newNode) {
-        Logger.msg(2, "DynamicTreeBuilder.add() - Received item for tree. Name: "+newNode);
+        log.info("add() - Received item for tree. Name: "+newNode);
 
         // have we inserted the node yet?
         SwingUtilities.invokeLater(new TreeAddThread(newNode));
@@ -136,18 +135,29 @@ public class DynamicTreeBuilder extends Node implements NodeSubscriber {
             boolean inserted = false;
             DefaultMutableTreeNode newTreeNode = newNode.getTreeNode();
             // loop though all children unless we have done the insertion
-            for (int i=0; i<parent.getChildCount() && !inserted; i++) {
+            for (int i = 0; i < parent.getChildCount() && !inserted; i++) {
                 DefaultMutableTreeNode child = (DefaultMutableTreeNode)treeModel.getChild(parent, i);
                 if (child == loading)  continue; // skip loading node
 
                 Node childNode = (Node)child.getUserObject();
                 if (childNode.getName().equals(newNode.getName())) {
-                    // we already have this one, skip it
-                    inserted = true;
-                    break;
+                    if (newNode instanceof NodeCollectionMember) {
+                        NodeCollectionMember newCollMember = (NodeCollectionMember) newNode;
+                        NodeCollectionMember childCollMember = (NodeCollectionMember) childNode;
+                        if (childCollMember.getSlotNo() ==  newCollMember.getSlotNo()) {
+                            log.debug("run() - already have node:'{}(slotId:{})' - SKIPPING", newNode, newCollMember.getMember().getID());
+                            inserted = true;
+                            break;
+                        }
                     }
+                    else {
+                        log.debug("run() - already have node:'{}' - SKIPPING", newNode);
+                        inserted = true;
+                        break;
+                    }
+                }
                 if (childNode.getName().compareTo(newNode.getName()) >= 0) {
-                    // if the next string is 'greater than' ours, insert the node before
+                    log.info("run() - insert the node '{}' before index:{}", newNode, i);
                     treeModel.insertNodeInto(newTreeNode, parent, i);
                     inserted = true;
                     break;

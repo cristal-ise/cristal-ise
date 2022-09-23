@@ -24,13 +24,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import org.cristalise.kernel.utils.Logger;
 import org.xml.sax.SAXException;
 import org.xmlunit.builder.DiffBuilder;
 import org.xmlunit.diff.DefaultNodeMatcher;
 import org.xmlunit.diff.Diff;
 import org.xmlunit.diff.ElementSelectors;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class XMLUtils {
 
     public static final String root = "src/test/data";
@@ -77,7 +78,7 @@ public class XMLUtils {
                 .checkForSimilar()
                 .build();
 
-        if(diffIdentical.hasDifferences()) Logger.warning(diffIdentical.toString());
+        if(diffIdentical.hasDifferences()) log.warn(diffIdentical.toString());
 
         return !diffIdentical.hasDifferences();
     }

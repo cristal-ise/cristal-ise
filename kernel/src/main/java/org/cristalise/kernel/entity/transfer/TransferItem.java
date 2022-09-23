@@ -33,7 +33,6 @@ import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.entity.TraceableEntity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
@@ -41,6 +40,7 @@ import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
@@ -62,7 +62,7 @@ public class TransferItem {
 
     public TransferItem() throws Exception {
         try {
-            importAgentId = Gateway.getLookup().getAgentPath(SYSTEM_AGENT.getName());
+            importAgentId = Gateway.getLookup().getAgentPath(SYSTEM_AGENT.getName(), null);
         }
         catch (ObjectNotFoundException e) {
             log.error("TransferItem - System agent not found!");
@@ -73,7 +73,7 @@ public class TransferItem {
     public TransferItem(ItemPath itemPath) throws Exception {
         this.itemPath = itemPath;
         domainPaths = new ArrayList<String>();
-        Iterator<Path> paths = Gateway.getLookup().searchAliases(itemPath);
+        Iterator<Path> paths = Gateway.getLookup().searchAliases(itemPath, null);
         while (paths.hasNext()) {
             DomainPath thisPath = (DomainPath) paths.next();
             domainPaths.add(thisPath.toString());
@@ -100,6 +100,7 @@ public class TransferItem {
         log.info("Exporting path " + path + " in " + itemPath);
 
         String[] contents = Gateway.getStorage().getClusterContents(itemPath, path);
+
         if (contents.length > 0) {
             FileStringUtility.createNewDir(dir.getCanonicalPath());
             for (String content : contents) {
@@ -108,7 +109,7 @@ public class TransferItem {
         }
         else { // no children, try to dump object
             try {
-                C2KLocalObject obj = Gateway.getStorage().get(itemPath, path, null);
+                C2KLocalObject obj = Gateway.getStorage().get(itemPath, path);
                 log.info("Dumping object " + path + " in " + itemPath);
                 File dumpPath = new File(dir.getCanonicalPath() + ".xml");
                 FileStringUtility.string2File(dumpPath, Gateway.getMarshaller().marshall(obj));
@@ -119,9 +120,12 @@ public class TransferItem {
     }
 
     public void importItem(File dir) throws Exception {
+        TransactionKey transactionKey = new TransactionKey(itemPath);
+        Gateway.getStorage().begin(transactionKey);
+
         // check if already exists
         try {
-            Property name = (Property) Gateway.getStorage().get(itemPath, PROPERTY + "/" + NAME, null);
+            Property name = (Property) Gateway.getStorage().get(itemPath, PROPERTY + "/" + NAME, transactionKey);
             throw new Exception("Item " + itemPath + " already in use as " + name.getValue());
         }
         catch (Exception ex) {}
@@ -137,14 +141,14 @@ public class TransferItem {
             log.info(choppedPath);
 
             if (choppedPath.startsWith(OUTCOME.getName())) newObj = new Outcome(choppedPath, xmlFile);
-            else                                                newObj = (C2KLocalObject) Gateway.getMarshaller().unmarshall(xmlFile);
+            else                                           newObj = (C2KLocalObject) Gateway.getMarshaller().unmarshall(xmlFile);
 
             objects.add(newObj);
         }
 
         // create item
-        TraceableEntity newItem = Gateway.getCorbaServer().createItem(itemPath);
-        Gateway.getLookupManager().add(itemPath);
+//        TraceableEntity newItem = Gateway.getCorbaServer().createItem(itemPath, transactionKey);
+        Gateway.getLookupManager().add(itemPath, transactionKey);
 
         PropertyArrayList props = new PropertyArrayList();
         CollectionArrayList colls = new CollectionArrayList();
@@ -159,28 +163,29 @@ public class TransferItem {
         if (wf == null) throw new Exception("No workflow found in import for " + itemPath);
 
         // init item
-        newItem.initialise(importAgentId.getSystemKey(),
-                           Gateway.getMarshaller().marshall(props),
-                           Gateway.getMarshaller().marshall(wf.search("workflow/domain")),
-                           Gateway.getMarshaller().marshall(colls),
-                           "", "");
+//        newItem.initialise(importAgentId,
+//                           Gateway.getMarshaller().marshall(props),
+//                           Gateway.getMarshaller().marshall(wf.search("workflow/domain")),
+//                           Gateway.getMarshaller().marshall(colls),
+//                           "", "");
 
         // store objects
-        importByType(ClusterType.HISTORY, objects);
-        importByType(ClusterType.OUTCOME, objects);
-        importByType(ClusterType.VIEWPOINT, objects);
-        Gateway.getStorage().commit(this);
+        importByType(ClusterType.HISTORY, objects, transactionKey);
+        importByType(ClusterType.OUTCOME, objects, transactionKey);
+        importByType(ClusterType.VIEWPOINT, objects, transactionKey);
 
         // add domPaths
         for (String element : domainPaths) {
             DomainPath newPath = new DomainPath(element, itemPath);
-            Gateway.getLookupManager().add(newPath);
+            Gateway.getLookupManager().add(newPath, transactionKey);
         }
+
+        Gateway.getStorage().commit(transactionKey);
     }
 
-    private void importByType(ClusterType type, ArrayList<C2KLocalObject> objects) throws Exception {
+    private void importByType(ClusterType type, ArrayList<C2KLocalObject> objects, TransactionKey transactionKey) throws Exception {
         for (C2KLocalObject element : objects) {
-            if (element.getClusterType().equals(type)) Gateway.getStorage().put(itemPath, element, this);
+            if (element.getClusterType().equals(type)) Gateway.getStorage().put(itemPath, element, transactionKey);
         }
 
     }

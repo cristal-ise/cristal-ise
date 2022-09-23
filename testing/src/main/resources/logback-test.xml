@@ -29,8 +29,14 @@
     </encoder>
   </appender>
 
-<!--   <logger name="org.jooq" level="DEBUG" /> -->
-  <logger name="org.cristalise.restapi" level="DEBUG" />
+<!-- <logger name="org.jooq" level="DEBUG" /> -->
+<!-- <logger name="org.cristalise" level="DEBUG" /> -->
+<!-- <logger name="org.cristalise.kernel.process" level="TRACE" /> -->
+<!-- <logger name="org.cristalise.storage.jooqdb" level="DEBUG" /> -->
+<!-- <logger name="org.cristalise.kernel.lifecycle" level="TRACE" /> -->
+<!-- <logger name="org.cristalise.kernel.scripting" level="DEBUG" /> -->
+<!-- <logger name="org.cristalise.storage.jooqdb.JooqClusterStorage" level="DEBUG" /> -->
+<!-- <logger name="org.cristalise.storage.jooqdb.lookup.JooqLookupManager" level="DEBUG" /> -->
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />

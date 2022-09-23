@@ -46,7 +46,7 @@ public interface C2KLocalObject {
     public String getName();
 
     /**
-     * Each object belongs to a specific type defined in {@link org.cristalise.kernel.persistency.ClusterStorage}
+     * Each object belongs to a specific type defined in {@link org.cristalise.kernel.persistency.ClusterType}
      * 
      * @return string id of the type
      */

@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.process.module;
 
+import java.util.Arrays;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -28,6 +30,7 @@ import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.process.resource.ResourceImportHandler;
@@ -39,12 +42,9 @@ import lombok.extern.slf4j.Slf4j;
 @Getter @Setter @Slf4j
 public class ModuleResource extends ModuleImport {
 
-    public int              version;
+    public Integer          version;
     public BuiltInResources type;
     public String           resourceLocation;
-
-    @Getter
-    String resourceChangeDetails = null;
 
     public ModuleResource() {
         // if not given, version defaults to 0
@@ -75,13 +75,18 @@ public class ModuleResource extends ModuleImport {
         return (type == BuiltInResources.SCHEMA_RESOURCE ? "xsd": "xml");
     }
 
-    public String getResourceLocation() {
+    public String getResourceFileName() {
         if (StringUtils.isBlank(resourceLocation) && ns != null) {
-            if (Gateway.getProperties().getString("Resource.moduleUseFileNameWithVersion", "").equals(ns)) {
+            String[] vals = Gateway.getProperties().getString("Resource.moduleUseFileNameWithVersion", "").split(",");
+            log.debug("getResourceFileName(ns:{}) - moduleUseFileNameWithVersion:{}", ns, Arrays.toString(vals));
+
+            if (Arrays.asList(vals).contains(ns)) {
                 resourceLocation = getResourceDir() + "/" + name + "_" + version + "." + getResourceExt();
+                log.debug("getResourceFileName(WithVersion) - {}", resourceLocation );
             }
             else {
                 resourceLocation = getResourceDir() + "/" + name + "." + getResourceExt();
+                log.debug("getResourceFileName(NoVersion) - {}", resourceLocation );
             }
         }
 
@@ -89,16 +94,17 @@ public class ModuleResource extends ModuleImport {
     }
 
     @Override
-    public Path create(AgentPath agentPath, boolean reset) 
+    public Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey) 
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException, InvalidDataException
     {
         try {
             ResourceImportHandler importHandler = Gateway.getResourceImportHandler(type);
 
-            domainPath = importHandler.importResource(ns, name, version, itemPath, getResourceLocation(), reset);
+            domainPath = importHandler.importResource(ns, name, version, itemPath, getResourceFileName(), reset, transactionKey);
+            resourceChangeStatus = importHandler.getResourceChangeStatus();
             resourceChangeDetails = importHandler.getResourceChangeDetails();
 
-            if (itemPath == null) itemPath = domainPath.getItemPath();
+            if (itemPath == null) itemPath = domainPath.getItemPath(transactionKey);
 
             return domainPath;
         }

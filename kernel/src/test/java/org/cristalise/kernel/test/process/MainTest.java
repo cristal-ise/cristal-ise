@@ -34,7 +34,6 @@ import org.cristalise.kernel.persistency.outcome.SchemaValidator;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,8 +46,6 @@ public class MainTest {
     public void setup() throws InvalidDataException, IOException {
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
-        XMLUnit.setIgnoreWhitespace(true);
-        XMLUnit.setIgnoreComments(true);
     }
 
     @Test
@@ -66,6 +63,7 @@ public class MainTest {
             String thisItem = str.nextToken();
             StringTokenizer str2 = new StringTokenizer(thisItem, "/,");
             String id = str2.nextToken();
+            assert id != null;
             String itemType = str2.nextToken(), resName = str2.nextToken();
             log.info("Validating " + itemType+" "+resName);
             OutcomeValidator validator = validators.get(itemType);
@@ -86,14 +84,8 @@ public class MainTest {
                 log.info("Marshall/remarshall of " + itemType + " "+ resName + " took " + (now - then) + "ms");
                 errors = validator.validate(remarshalled);
                 assert errors.length() == 0 : "Remarshalled resource " + itemType + " "+ resName + " has errors :" + errors + "\nRemarshalled form:\n" + remarshalled;
-
-                // Diff xmlDiff = new Diff(data, remarshalled);
-                // if (!xmlDiff.identical()) {
-                // log.info("Difference found in remarshalled "+thisItem+": "+xmlDiff.toString());
-                // Logger.msg("Original: "+data);
-                // Logger.msg("Remarshalled: "+remarshalled);
-                // }
-                // assert xmlDiff.identical();
+                // XMLDiff cannot be used here, because remarshalled xml will have lot of extra optional attributes
+                //assert new Outcome(data).isIdentical(new Outcome(remarshalled));
             }
 
             if (itemType.equals("SC")) {

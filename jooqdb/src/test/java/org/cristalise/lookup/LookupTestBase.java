@@ -20,10 +20,6 @@
  */
 package org.cristalise.lookup;
 
-import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
-import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
-import static org.cristalise.JooqTestConfigurationBase.DBModes.H2_PostgreSQL;
-import static org.cristalise.JooqTestConfigurationBase.DBModes.H2_MYSQL;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
 import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
 
@@ -68,13 +64,15 @@ public class LookupTestBase extends JooqTestConfigurationBase {
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookup",        lookup, true);
 
         lookup.open(null);
-        lookup.initializeDirectory();
+        lookup.initializeDirectory(null);
     }
 
     @After
     public void tearDown() throws Exception {
-        if (lookup != null) lookup.close();
-        if (dbType == MYSQL || dbType == PostgreSQL || dbType == H2_PostgreSQL || dbType == H2_MYSQL) lookup.dropHandlers();
+        if (lookup != null) {
+            lookup.dropHandlers();
+            lookup.close();
+        }
     }
 
     public void compare(List<Path> expecteds, Iterator<Path> actualsIter) {

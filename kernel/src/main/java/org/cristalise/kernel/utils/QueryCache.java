@@ -23,27 +23,34 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.process.resource.BuiltInResources.QUERY_RESOURCE;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.querying.Query;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class QueryCache extends DescriptionObjectCache<Query> {
 
     @Override
-    public String getTypeCode() {
-        return BuiltInResources.QUERY_RESOURCE.getTypeCode();
+    protected String getTypeCode() {
+        return QUERY_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
-        return BuiltInResources.QUERY_RESOURCE.getSchemaName();
+    protected String getSchemaName() {
+        return QUERY_RESOURCE.getSchemaName();
     }
 
     @Override
-    public Query buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected String getTypeRoot() {
+        return QUERY_RESOURCE.getTypeRoot();
+    }
+
+    @Override
+    protected Query buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             return new Query(name, version, path, data);
         }

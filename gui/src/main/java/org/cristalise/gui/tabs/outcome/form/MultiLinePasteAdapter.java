@@ -34,7 +34,6 @@ import javax.swing.JTable;
 import javax.swing.KeyStroke;
 
 import org.cristalise.gui.MainFrame;
-import org.cristalise.kernel.utils.Logger;
 
 /**
 * ExcelAdapter enables Copy-Paste Clipboard functionality on JTables.
@@ -130,13 +129,11 @@ public class MultiLinePasteAdapter implements ActionListener {
             system.setContents(stsel, stsel);
         }
         if (e.getActionCommand().compareTo("Paste") == 0) {
-            Logger.msg(5, "Trying to Paste");
             int startRow = (jTable1.getSelectedRows())[0];
             int startCol = (jTable1.getSelectedColumns())[0];
             try {
                 String trstring =
                     (String) (system.getContents(this).getTransferData(DataFlavor.stringFlavor));
-                Logger.msg(8, "String is:" + trstring);
                 StringTokenizer st1 = new StringTokenizer(trstring, "\n\r");
                 for (int i = 0; st1.hasMoreTokens(); i++) {
                     rowstring = st1.nextToken();
@@ -151,7 +148,6 @@ public class MultiLinePasteAdapter implements ActionListener {
                                 value,
                                 startRow + i,
                                 startCol + j);
-                        Logger.msg(5, "Putting "+value+" at row="+(startRow+i)+" column="+(startCol+j));
                     }
                 }
             } catch (Exception ex) {

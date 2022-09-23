@@ -20,16 +20,33 @@
  */
 package org.cristalise.kernel.process;
 
+import java.util.Properties;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.entity.proxy.TcpBridgeClientVerticle;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
+import org.cristalise.kernel.process.resource.ResourceLoader;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 abstract public class StandardClient extends AbstractMain {
     protected AgentProxy agent = null;
+
+    /**
+     * 
+     */
+     public static void createClientVerticles() {
+         if (StringUtils.isNotBlank(TcpBridgeClientVerticle.HOST)) {
+             Gateway.getVertx().deployVerticle(new TcpBridgeClientVerticle());
+         }
+
+         //deploy only one such verticle per client process
+         Gateway.getVertx().deployVerticle(new LocalChangeVerticle());
+    }
 
     /**
      * 
@@ -89,8 +106,25 @@ abstract public class StandardClient extends AbstractMain {
             }
         }
         catch(Exception e) {
-            log.error("", e);
-            throw new InvalidDataException(e.getMessage());
+            log.error("getRequiredStateMachine()", e);
+            throw new InvalidDataException(e);
         }
+    }
+
+    public static void standardInitialisation(Properties props, ResourceLoader res) throws Exception {
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                AbstractMain.shutdown(0);
+            }
+        });
+
+        Gateway.init(props, res);
+        Gateway.connect();
+        createClientVerticles();
+    }
+
+    public static void standardInitialisation(String[] args) throws Exception {
+        standardInitialisation(readC2KArgs(args), null);
     }
 }

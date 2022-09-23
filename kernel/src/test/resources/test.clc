@@ -3,8 +3,6 @@ Name=Test Cristal Server
 
 // TCP server ports
 ItemServer.name=localhost
-ItemServer.iiop=1500
-ItemServer.Proxy.port=1553
 
 // LDAP Lookup config
 LDAP.GlobalPath=o=cern,c=ch

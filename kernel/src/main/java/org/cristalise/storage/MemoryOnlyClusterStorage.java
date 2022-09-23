@@ -24,12 +24,14 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
 
@@ -38,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class MemoryOnlyClusterStorage extends ClusterStorage {
 
-    HashMap<ItemPath, Map<String, C2KLocalObject>> memoryCache = new HashMap<ItemPath, Map<String, C2KLocalObject>>();
+    Map<ItemPath, Map<String, C2KLocalObject>> memoryCache = new ConcurrentHashMap<ItemPath, Map<String, C2KLocalObject>>();
 
     public void clear() {
         memoryCache.clear();
@@ -66,7 +68,7 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public short queryClusterSupport(String clusterType) {
+    public short queryClusterSupport(ClusterType clusterType) {
         return ClusterStorage.READWRITE;
     }
 
@@ -81,12 +83,12 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String executeQuery(Query query) throws PersistencyException {
+    public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("UNIMPLEMENTED funnction");
     }
 
     @Override
-    public C2KLocalObject get(ItemPath thisItem, String path)
+    public C2KLocalObject get(ItemPath thisItem, String path, TransactionKey transactionKey)
             throws PersistencyException
     {
         Map<String, C2KLocalObject> sysKeyMemCache = memoryCache.get(thisItem);
@@ -97,7 +99,7 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void put(ItemPath thisItem, C2KLocalObject obj) throws PersistencyException {
+    public void put(ItemPath thisItem, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException {
         // create item cache if not present
         Map<String, C2KLocalObject> sysKeyMemCache;
         synchronized (memoryCache) {
@@ -114,20 +116,47 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
         synchronized(sysKeyMemCache) {
             sysKeyMemCache.put(path, obj);
         }
+    }
 
+    private void removeCluster(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
+        String[] children = getClusterContents(itemPath, path, transactionKey);
+
+        for (String element : children) {
+            removeCluster(itemPath, path+(path.length()>0?"/":"")+element, transactionKey);
+        }
+
+        if (children.length == 0 && path.indexOf("/") > -1) {
+            delete(itemPath, path, transactionKey);
+        }
     }
 
     @Override
-    public void delete(ItemPath thisItem, String path) throws PersistencyException {
+    public void delete(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
+        removeCluster(itemPath, "", transactionKey);
+    }
+
+    @Override
+    public void delete(ItemPath thisItem, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
+        Map<String, C2KLocalObject> sysKeyMemCache = memoryCache.get(thisItem);
+        if (sysKeyMemCache != null) {
+            synchronized (sysKeyMemCache) {
+                sysKeyMemCache.keySet().removeIf(key -> key.startsWith(cluster.getName()));
+                if (sysKeyMemCache.isEmpty()) {
+                    memoryCache.remove(thisItem);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void delete(ItemPath thisItem, String path, TransactionKey transactionKey) throws PersistencyException {
         Map<String, C2KLocalObject> sysKeyMemCache = memoryCache.get(thisItem);
         if (sysKeyMemCache != null) {
             synchronized (sysKeyMemCache) {
                 if (sysKeyMemCache.containsKey(path)) {
                     sysKeyMemCache.remove(path);
                     if (sysKeyMemCache.isEmpty()) {
-                        synchronized (memoryCache) {
-                            memoryCache.remove(thisItem);
-                        }
+                        memoryCache.remove(thisItem);
                     }
                 }
             }
@@ -135,12 +164,11 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String[] getClusterContents(ItemPath thisItem, String path) throws PersistencyException {
+    public String[] getClusterContents(ItemPath thisItem, String path, TransactionKey transactionKey) throws PersistencyException {
         Map<String, C2KLocalObject> sysKeyMemCache = memoryCache.get(thisItem);
         ArrayList<String> result = new ArrayList<String>();
         if (sysKeyMemCache != null) {
-            while (path.endsWith("/")) 
-                path = path.substring(0,path.length()-1);
+            while (path.endsWith("/")) path = path.substring(0,path.length()-1);
             path = path+"/";
             for (String thisPath : sysKeyMemCache.keySet()) {
                 if (thisPath.startsWith(path)) {
@@ -155,8 +183,8 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String[] getClusterContents(ItemPath itemPath, ClusterType type) throws PersistencyException {
-        return getClusterContents(itemPath, type.getName());
+    public String[] getClusterContents(ItemPath itemPath, ClusterType type, TransactionKey transactionKey) throws PersistencyException {
+        return getClusterContents(itemPath, type.getName(), transactionKey);
     }
 
     public void dumpContents(ItemPath thisItem) {
@@ -201,10 +229,10 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+    public int getLastIntegerId(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         int lastId = -1;
         try {
-            String[] keys = getClusterContents(itemPath, path);
+            String[] keys = getClusterContents(itemPath, path, transactionKey);
             for (String key : keys) {
                 int newId = Integer.parseInt(key);
                 lastId = newId > lastId ? newId : lastId;
@@ -216,5 +244,21 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
         }
 
         return lastId;
+    }
+
+    @Override
+    public void begin(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+    @Override
+    public void commit(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+    @Override
+    public void abort(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
     }
 }

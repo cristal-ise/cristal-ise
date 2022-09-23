@@ -21,16 +21,15 @@
 package org.cristalise.dsl.test.builders
 
 import org.cristalise.dsl.entity.AgentBuilder
-import org.cristalise.kernel.entity.agent.Job
-import org.cristalise.kernel.entity.agent.JobList
+import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
+import org.cristalise.kernel.persistency.C2KLocalObjectMap
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
-
 import groovy.transform.CompileStatic
 
 
@@ -45,7 +44,7 @@ class AgentTestBuilder extends AgentBuilder {
     AgentPath   newAgentPath
     AgentProxy  newAgentProxy
 
-    JobList jobList = null
+    C2KLocalObjectMap<Job> jobList = null
 
     public AgentTestBuilder() {}
 
@@ -66,11 +65,9 @@ class AgentTestBuilder extends AgentBuilder {
     }
 
     public void setupJobList() {
-        if(!newAgentProxy) newAgentProxy = Gateway.proxyManager.getAgentProxy(newAgentPath)
+        if(!newAgentProxy) newAgentProxy = Gateway.getAgentProxy(newAgentPath)
 
-        jobList = new JobList( newAgentPath, null)
-        //jobList = (JobList)newAgentProxy.getObject(ClusterType.JOB)
-        jobList.activate()
+        jobList = null//newAgentProxy.getJobList()
     }
 
     public static AgentTestBuilder create(Map<String, Object> attrs, Closure cl) {
@@ -87,41 +84,41 @@ class AgentTestBuilder extends AgentBuilder {
     }
 
     public void jobListContains(Map<String, Object> expectedJob) {
-        assert expectedJob && jobList
-        assert jobList.values().find { Job j ->
-            j.stepName == expectedJob.stepName && j.agentRole == expectedJob.agentRole && j.transition.name == expectedJob.transitionName
+        Collection<Job> currentJobs = jobList.values();
+        assert expectedJob && currentJobs
+        assert currentJobs.find { Job j ->
+            j.stepName == expectedJob.stepName && j.transition.name == expectedJob.transitionName
         }//, "Cannot find Job: ${expectedJob.stepName} , ${expectedJob.agentRole} , ${expectedJob.transitionName}"
     }
 
     public void checkJobList(List<Map<String, Object>> expectedJobs) {
-        assert expectedJobs && jobList && jobList.size() == expectedJobs.size()
+        Collection<Job> currentJobs = jobList.values();
+
+        assert currentJobs.size() == expectedJobs.size()
 
         expectedJobs.each { Map jobMap ->
             assert jobMap && jobMap.stepName && jobMap.agentRole && jobMap.transitionName
-            //assert jobMap && jobMap.stepName && jobMap.agentRole != null && jobMap.transitionName
-
-            assert jobList.values().find {
-                ((Job) it).stepName == jobMap.stepName &&
-                        ((Job) it).agentRole == jobMap.agentRole &&
-                        ((Job) it).transition.name == jobMap.transitionName
+            assert currentJobs.find { Job job ->
+                    job.stepName == jobMap.stepName &&
+                    job.transition.name == jobMap.transitionName
             }, "Cannot find Job: ${jobMap.stepName} , ${jobMap.agentRole} , ${jobMap.transitionName}"
         }
     }
 
     public String executeJob(ItemPath itemPath, String actName, String transName, Outcome outcome = null) {
-        return executeJob(Gateway.getProxyManager().getProxy(itemPath), actName, transName, outcome)
+        return executeJob(Gateway.getProxy(itemPath), actName, transName, outcome)
     }
 
     public String executeJob(ItemProxy itemProxy, String actName, String transName, Outcome outcome = null) {
-        if(!newAgentProxy) newAgentProxy = Gateway.getProxyManager().getAgentProxy(newAgentPath)
+        if(!newAgentProxy) newAgentProxy = Gateway.getAgentProxy(newAgentPath)
 
         Job j = itemProxy.getJobByTransitionName(actName, transName, newAgentPath)
-        assert j, "Could not find job - act:'$actName' agent:'${newAgentProxy}'"
+        assert j, "Could not find job - act:'$actName : $transName' agent:'${newAgentProxy}'"
         if (outcome) j.setOutcome(outcome)
         return newAgentProxy.execute(j)
     }
 
-    public ArrayList<Job> getJobs(ItemPath itemPath) {
-        return Gateway.getProxyManager().getProxy(itemPath).getJobList(newAgentProxy)
+    public List<Job> getJobs(ItemPath itemPath) {
+        return Gateway.getProxy(itemPath).getJobs(newAgentProxy)
     }
 }

@@ -23,27 +23,34 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.scripting.Script;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ScriptCache extends DescriptionObjectCache<Script> {
 
     @Override
-    public String getTypeCode() {
-        return BuiltInResources.SCRIPT_RESOURCE.getTypeCode();
+    protected String getTypeCode() {
+        return SCRIPT_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
-        return BuiltInResources.SCRIPT_RESOURCE.getSchemaName();
+    protected String getSchemaName() {
+        return SCRIPT_RESOURCE.getSchemaName();
     }
 
     @Override
-    public Script buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected String getTypeRoot() {
+        return SCRIPT_RESOURCE.getTypeRoot();
+    }
+
+    @Override
+    protected Script buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             return new Script(name, version, path, data);
         }

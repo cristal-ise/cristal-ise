@@ -22,8 +22,7 @@ package org.cristalise.gui.tree;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -40,7 +39,6 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
 
 public abstract class Node implements Runnable {
@@ -54,7 +52,7 @@ public abstract class Node implements Runnable {
     protected String toolTip = null;
     protected Icon icon;
     protected boolean isExpandable = false;
-    protected HashMap<Path, Node> childNodes = new HashMap<Path, Node>();
+    protected List<Node> childNodes = new ArrayList<>();
     protected ArrayList<NodeSubscriber> subscribers = new ArrayList<NodeSubscriber>();
     protected DynamicTreeBuilder loader = null;
     private boolean loaded = false;
@@ -133,12 +131,7 @@ public abstract class Node implements Runnable {
         }
         else {
             synchronized (childNodes) {
-                Node newNode;
-                for (Iterator<Node> nodes = childNodes.values().iterator(); nodes.hasNext();) {
-                    newNode = nodes.next();
-                    Logger.msg("subscribeNode target.add("+newNode.name+")");
-                    target.add(newNode);
-                }
+                for (Node node : childNodes) target.add(node);
             }
         }
     }
@@ -154,7 +147,7 @@ public abstract class Node implements Runnable {
 
     public void add(Node newNode) {
         synchronized(childNodes) {
-            childNodes.put(newNode.getPath(), newNode);
+            childNodes.add(newNode);
             for (NodeSubscriber thisSub : subscribers) {
                 thisSub.add(newNode);
             }
@@ -163,7 +156,6 @@ public abstract class Node implements Runnable {
 
     public void remove(Path oldPath) {
         synchronized(childNodes) {
-            childNodes.remove(oldPath);
             for (NodeSubscriber thisSub : subscribers) {
                 thisSub.remove(oldPath);
             }
@@ -172,16 +164,15 @@ public abstract class Node implements Runnable {
 
     public void removeAllChildren() {
         synchronized(childNodes) {
-            while (childNodes.keySet().iterator().hasNext()) {
-                remove(childNodes.keySet().iterator().next());
+            for (Node node : childNodes) {
+                remove(node.getPath());
             }
         }
     }
 
     public Node getChildNode(Path itsPath) {
-        for (Iterator<Path> i = childNodes.keySet().iterator(); i.hasNext();) {
-            Object next = i.next();
-            if ( next.equals(itsPath) ) return childNodes.get(next);
+        for (Node node : childNodes) {
+            if ( node.getPath().equals(itsPath) ) return node;
         }
         return null;
     }

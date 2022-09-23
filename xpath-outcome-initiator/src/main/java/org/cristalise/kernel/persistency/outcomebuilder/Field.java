@@ -243,4 +243,19 @@ public class Field extends OutcomeStructure {
 
         return fieldJson;
     }
+
+    /**
+     * Finds the named Element in the named AppInfo node, and returns the value
+     * 
+     * @param nodeName the name of the AppInfo node 
+     * @param elementName the name of the Element in the named AppInfo node
+     * @return value of the named Element in the named AppInfo node if exists, otherwise returns null.
+     */
+    public String getAppInfoNodeElementValue(String nodeName, String elementName) {
+        return StructureWithAppInfo.getAppInfoNodeElementValue(model, nodeName, elementName);
+    }
+
+    public Class<?> getJavaType() {
+        return myFieldInstance.getJavaType();
+    }
 }

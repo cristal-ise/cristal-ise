@@ -20,10 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
-
 import java.util.Vector;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -32,7 +29,7 @@ import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-
+import org.cristalise.kernel.persistency.TransactionKey;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -53,16 +50,16 @@ public class Join extends WfVertex {
      * @throws InvalidDataException
      */
     private boolean hasPrevActiveActs() throws InvalidDataException {
-        String pairingID = (String) getBuiltInProperty(PAIRING_ID);
+        String pairingID = getPairingId();
         boolean findPair = false;
 
         if (StringUtils.isNotBlank(pairingID)) {
             findPair = true;
 
             for (Vertex outVertex: getOutGraphables()) {
-                String otherPairingID = (String) ((GraphableVertex)outVertex).getBuiltInProperty(PAIRING_ID);
+                String otherPairingID = ((GraphableVertex)outVertex).getPairingId();
 
-                // the pairingID was added to pair with the loop (see issue #251), so do not it use for this calculation
+                // the pairingID was added to pair with the loop/split (see issue #251), so do not it use for this calculation
                 if (pairingID.equals(otherPairingID) && outVertex instanceof Loop) {
                     findPair = false;
                     break;
@@ -73,18 +70,18 @@ public class Join extends WfVertex {
         Vertex[] vertices;
 
         if (findPair) {
-            GraphableVertex endVertex = findPair(pairingID);
+            GraphableVertex endVertex = findPair();
 
             if (endVertex == null) throw new InvalidDataException("Could not find pair for Join using PairingID:"+pairingID);
 
             vertices = GraphTraversal.getTraversal(getParent().getChildrenGraphModel(), this, endVertex, GraphTraversal.kUp, true);
 
-            log.debug("hasPrevActiveActs(id:{}) - vertices[PairingID:"+pairingID+"]={}", getID(), (Object)vertices);
+            log.trace("hasPrevActiveActs(id:{}) - vertices[PairingID:"+pairingID+"]={}", getID(), (Object)vertices);
         }
         else {
             vertices = GraphTraversal.getTraversal(getParent().getChildrenGraphModel(), this, GraphTraversal.kUp, true);
 
-            log.debug("hasPrevActiveActs(id:{}) - vertices={}", getID(), (Object)vertices);
+            log.trace("hasPrevActiveActs(id:{}) - vertices={}", getID(), (Object)vertices);
         }
 
         for (Vertex v : vertices) {
@@ -99,11 +96,11 @@ public class Join extends WfVertex {
     }
 
     @Override
-    public void runNext(AgentPath agent, ItemPath item, Object locker) throws InvalidDataException {
+    public void runNext(AgentPath agent, ItemPath item, TransactionKey transactionKey) throws InvalidDataException {
         if (!hasPrevActiveActs()) {
             Vertex[] outVertices = getOutGraphables();
 
-            if (ArrayUtils.isNotEmpty(outVertices)) ((WfVertex) outVertices[0]).run(agent, item, locker);
+            if (ArrayUtils.isNotEmpty(outVertices)) ((WfVertex) outVertices[0]).run(agent, item, transactionKey);
         }
     }
 
@@ -118,7 +115,7 @@ public class Join extends WfVertex {
 
     @Override
     public void reinit(int idLoop) throws InvalidDataException {
-        log.debug("reinit(id:{}, idLoop:{}) - parent:{}", getID(), idLoop, getParent().getName());
+        log.trace("reinit(id:{}, idLoop:{}) - parent:{}", getID(), idLoop, getParent().getName());
 
         Vertex[] outVertices = getOutGraphables();
         if (outVertices.length == 1) {
@@ -189,8 +186,8 @@ public class Join extends WfVertex {
     }
 
     @Override
-    public void run(AgentPath agent, ItemPath item, Object locker) throws InvalidDataException {
-        runNext(agent, item, locker);
+    public void run(AgentPath agent, ItemPath item, TransactionKey transactionKey) throws InvalidDataException {
+        runNext(agent, item, transactionKey);
     }
 
     /**
@@ -211,8 +208,8 @@ public class Join extends WfVertex {
     }
 
     @Override
-    public void runFirst(AgentPath agent, ItemPath item, Object locker) throws InvalidDataException {
-        runNext(agent, item, locker);
+    public void runFirst(AgentPath agent, ItemPath item, TransactionKey transactionKey) throws InvalidDataException {
+        runNext(agent, item, transactionKey);
     }
 
     @Override

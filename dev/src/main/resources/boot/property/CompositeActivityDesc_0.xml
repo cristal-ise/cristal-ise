@@ -1,0 +1,6 @@
+<AllProperties>
+  <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="true" Name="Name" Transitive="false"/>
+  <PropertyDescription DefaultValue="ActivityDesc" IsClassIdentifier="true" IsMutable="false" Name="Type" Transitive="true"/>
+  <PropertyDescription DefaultValue="Composite" IsClassIdentifier="true" IsMutable="false" Name="Complexity" Transitive="true"/>
+  <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="false" Name="Module" Transitive="false"/>
+</AllProperties>

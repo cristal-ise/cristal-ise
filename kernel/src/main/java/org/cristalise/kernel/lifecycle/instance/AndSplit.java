@@ -24,6 +24,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 public class AndSplit extends Split {
 
@@ -32,11 +33,11 @@ public class AndSplit extends Split {
     }
 
     @Override
-    public void runNext(AgentPath agent, ItemPath item, Object locker) throws InvalidDataException {
+    public void runNext(AgentPath agent, ItemPath item, TransactionKey transactionKey) throws InvalidDataException {
         // AdvancementCalculator adv = new AdvancementCalculator();
         // adv.calculate((CompositeActivity) getParent());
         Vertex[] outVertices = getOutGraphables();
         for (Vertex outVertice : outVertices)
-            ((WfVertex) outVertice).run(agent, item, locker);
+            ((WfVertex) outVertice).run(agent, item, transactionKey);
     }
 }

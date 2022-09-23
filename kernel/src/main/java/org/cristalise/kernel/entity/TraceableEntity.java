@@ -20,25 +20,47 @@
  */
 package org.cristalise.kernel.entity;
 
-
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
-import org.cristalise.kernel.common.InvalidCollectionModification;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.InvalidTransitionException;
-import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.common.SystemKey;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.lifecycle.instance.Activity;
+import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
+import org.cristalise.kernel.lifecycle.instance.Workflow;
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
+import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
+import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
-
+import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.C2KLocalObjectMap;
+import org.cristalise.kernel.persistency.ClusterStorageManager;
+import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.scripting.ErrorInfo;
+import org.cristalise.kernel.security.SecurityManager;
+import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
+import io.vertx.core.Handler;
+import io.vertx.core.shareddata.Lock;
+import io.vertx.core.shareddata.SharedData;
+import lombok.extern.slf4j.Slf4j;
 
 /**************************************************************************
-*  TraceableEntity is the implementation of the CORBA Item, although it 
-*  delegates all non-CORBA functions to ItemImplementation.
-*  
-*  Traditional Pinky/Brain ASCII art:
-*  
-* <pre>
+ * TraceableEntity is the implementation of the vertx service interface
+ * 
+ * Traditional Pinky/Brain ASCII art:
+ * 
+ * <pre>
 *                                ,.   '\'\    ,---.
 *                            .  | \\  l\\l_ //    |
 *        _              _       |  \\/ `/  `.|    |
@@ -59,118 +81,301 @@ import org.cristalise.kernel.lookup.ItemPath;
 *          _\ >-__-< /_           ,-\  ,-~~->. \  `:._,/
 *        (___\    /___)         (____/    (____)   `-'
 *             Kovax            and, paradoxically, Kovax
-* </pre>
-***************************************************************************/
+ * </pre>
+ ***************************************************************************/
+@Slf4j
+public class TraceableEntity implements Item {
 
-public class TraceableEntity extends ItemPOA
-{
+    protected final ClusterStorageManager mStorage;
 
-    private final org.omg.PortableServer.POA  mPoa;
-    private final ItemImplementation	      mItemImpl;
-
-    public TraceableEntity( ItemPath                   key,
-                            org.omg.PortableServer.POA poa )
-    {
-        mPoa	= poa;	
-        mItemImpl = new ItemImplementation(key);
+    public TraceableEntity() {
+        this.mStorage = Gateway.getStorage();
     }
 
-
-    @Override
-	public org.omg.PortableServer.POA _default_POA()
-    {
-        if(mPoa != null)
-            return mPoa;
-        else
-            return super._default_POA();
-    }
-
-
-    @Override
-	public SystemKey getSystemKey()
-    {
-        return mItemImpl.getSystemKey();
+    protected PredefinedStepContainer getNewPredefStepContainer() {
+        return new ItemPredefinedStepContainer();
     }
 
     @Override
-	public void initialise( SystemKey agentId,
-                            String propString,
-                            String initWfString,
-                            String initCollsString,
-                            String initViewpointString,
-                            String initOutcomeString
-                            )
-        throws AccessRightsException,
-               InvalidDataException,
-               PersistencyException
+    public void requestAction(String itemUuid, String agentUuid, String stepPath, int transitionID, String requestData, String fileName,
+            List<Byte> attachment, Handler<AsyncResult<String>> returnHandler)
     {
-        synchronized (this) {
-        	mItemImpl.initialise(agentId, propString, initWfString, initCollsString, initViewpointString, initOutcomeString);
+        ItemPath item;
+        AgentPath agent;
+        TransactionKey transactionKey;
+
+        try {
+            item  = Gateway.getLookup().getItemPath(itemUuid);
+            agent = (AgentPath) Gateway.getLookup().getItemPath(agentUuid);
+            transactionKey = new TransactionKey(item);
+        }
+        catch (InvalidItemPathException | ObjectNotFoundException e) {
+            log.error("requestAction()", e);
+            returnHandler.handle(e.failService());
+            return;
+        }
+
+        SharedData sharedData = Gateway.getVertx().sharedData();
+
+        sharedData.getLockWithTimeout(itemUuid, 5000,  lockResult -> {
+            if (lockResult.succeeded()) {
+                // Got the lock!
+                Lock lock = lockResult.result();
+
+                try {
+                    mStorage.begin(transactionKey);
+                    String finalOutcome = requestAction(Gateway.getProxy(item), Gateway.getAgentProxy(agent), stepPath, transitionID, requestData, fileName, attachment, transactionKey);
+                    mStorage.commit(transactionKey);
+                    returnHandler.handle(Future.succeededFuture(finalOutcome));
+                }
+                catch (Exception originalEx) {
+                    log.error("requestAction() - " + item + " by " + agent + " executing " + stepPath, originalEx);
+                    try {
+                        mStorage.abort(transactionKey);
+                    }
+                    catch (PersistencyException e) {
+                        log.debug("requestAction() - Could not abort original transaction {}", transactionKey , e);
+                    }
+
+                    if (Gateway.getProperties().getBoolean("StateMachine.enableErrorHandling", false)) {
+                        handleError(stepPath, item, agent, originalEx);
+                    }
+
+                    // Now throw the original exception
+                    if (originalEx instanceof CriseVertxException) {
+                        CriseVertxException criseEx = (CriseVertxException) originalEx;
+                        returnHandler.handle(criseEx.failService());
+                    }
+                    else {
+                        returnHandler.handle(CriseVertxException.failService(originalEx));
+                    }
+                }
+                finally {
+                    lock.release();
+                }
+            }
+            else {
+                Throwable cause = lockResult.cause();
+                log.error("requestAction() - could not lock item:{}", itemUuid, cause);
+                returnHandler.handle(CriseVertxException.failService(cause));
+            }
+        });
+    }
+
+    /**
+     * 
+     * @param item
+     * @param agent
+     * @param stepPath
+     * @param transitionID
+     * @param requestData
+     * @param fileName
+     * @param attachment
+     * @param transactionKey
+     * @return
+     * @throws Exception
+     */
+    private String requestAction(ItemProxy item, AgentProxy agent, String stepPath, int transitionID, String requestData, String fileName,
+            List<Byte> attachment, TransactionKey transactionKey) throws Exception
+    {
+        log.info("=======================================================================================");
+        log.info("requestAction("+item+") Transition " + transitionID + " on " + stepPath + " by agent " + agent);
+
+        Workflow lifeCycle = (Workflow) mStorage.get(item.getPath(), ClusterType.LIFECYCLE + "/workflow", transactionKey);
+
+        SecurityManager secMan = Gateway.getSecurityManager();
+
+        Activity act = (Activity) lifeCycle.search(stepPath);
+
+        if (act != null) {
+            if (secMan.isShiroEnabled() && !secMan.checkPermissions(agent.getPath(), act, item.getPath(), transactionKey)) {
+                String errorMsg = "'" + agent.getName() + "' is NOT permitted to execute step:" + stepPath;
+                if (log.isTraceEnabled()) {
+                    log.error(errorMsg);
+                    for (RolePath role : agent.getRoles()) log.error(role.dump());
+                }
+                throw new AccessRightsException(errorMsg);
+            }
+        }
+        else {
+            throw new InvalidDataException("Step '" + stepPath + "' is not available for item:" + item);
+        }
+
+        byte[] bytes = ArrayUtils.toPrimitive(attachment.toArray(new Byte[0]));
+        String finalOutcome = lifeCycle.requestAction(agent.getPath(), stepPath, item.getPath(), transitionID, requestData, fileName, bytes, transactionKey);
+
+        // store the workflow and the Jobs if we've changed the state of the domain workflow
+        if ( ! stepPath.startsWith("workflow/predefined")) {
+            mStorage.put(item.getPath(), lifeCycle, transactionKey);
+
+            mStorage.removeCluster(item.getPath(), ClusterType.JOB, transactionKey);
+
+            ArrayList<Job> newJobs = ((CompositeActivity)lifeCycle.search("workflow/domain")).calculateJobs(agent.getPath(), item.getPath(), true);
+            for (Job newJob: newJobs) {
+                mStorage.put(item.getPath(), newJob, transactionKey);
+                if (StringUtils.isNotBlank(newJob.getRoleOverride())) newJob.sendToRoleChannel();
+            }
+        }
+
+        // remove entity path if transaction was successful
+        if (stepPath.equals("workflow/predefined/Erase")) {
+            log.info("requestAction() - deleting ItemPath:{}", item);
+            Gateway.getLookupManager().delete(item.getPath(), transactionKey);
+        }
+
+        return finalOutcome;
+    }
+
+    /**
+     * 
+     * @param stepPath
+     * @param item
+     * @param agent
+     * @param cause
+     */
+    private void handleError(String stepPath, ItemPath item, AgentPath agent, Exception cause) {
+        TransactionKey errorTransactionKey = new TransactionKey(item);
+
+        try {
+            // Start a new transaction
+            mStorage.begin(errorTransactionKey);
+
+            String errorOutcome = requestErrorAction(item, agent, stepPath, cause, errorTransactionKey);
+
+            if (isNotBlank(errorOutcome)) {
+                // Error handling was defined and successful therefore commit transaction to store error outcome
+                mStorage.commit(errorTransactionKey);
+            }
+            else{
+                // Error handling was not defined or there was an exception therefore abort transaction
+                mStorage.abort(errorTransactionKey);
+            }
+        }
+        catch (PersistencyException pex) {
+            try {
+                mStorage.abort(errorTransactionKey);
+            }
+            catch (PersistencyException e) {
+                log.debug("handleError() - Could not abort error transaction {}", errorTransactionKey , e);
+            }
+
+            log.error("handleError() - ", pex);
         }
     }
 
-    @Override
-	public String requestAction( SystemKey agentId,
-                               String stepPath,
-                               int transitionID,
-                               String requestData,
-                               String attachmentType,
-                               byte[] attachment
-                              )
-        throws AccessRightsException,
-               InvalidTransitionException,
-               ObjectNotFoundException,
-               InvalidDataException,
-               PersistencyException,
-               ObjectAlreadyExistsException, InvalidCollectionModification
-    {
-        synchronized (this) {
-            return mItemImpl.requestAction(agentId, stepPath, transitionID, requestData, attachmentType, attachment);
+    /**
+     * 
+     * @param itemPath
+     * @param agent
+     * @param stepPath
+     * @param lifeCycle
+     * @param cause
+     * @param transactionKey
+     * @return
+     */
+    private String requestErrorAction(ItemPath itemPath, AgentPath agent, String stepPath, Exception cause, TransactionKey transactionKey) {
+        try {
+            Workflow lifeCycle = (Workflow) mStorage.get(itemPath, ClusterType.LIFECYCLE + "/workflow", transactionKey);
+
+            int errorTransitionId = ((Activity) lifeCycle.search(stepPath)).getErrorTransitionId();
+
+            if (errorTransitionId == -1) {
+                log.debug("requestErrorAction({}) - StateMachine does not define error transition for step:{}", itemPath, stepPath);
+                return null;
+            }
+
+            log.info("---------------------------------------------------------------------------------------");
+            log.info("requestErrorAction({}) - transitionId {} on {} by {}", itemPath, errorTransitionId, stepPath, agent);
+
+            String errorOutcome = Gateway.getMarshaller().marshall(new ErrorInfo(cause));
+
+            errorOutcome = lifeCycle.requestAction(agent, stepPath, itemPath, errorTransitionId, errorOutcome, "", null, transactionKey);
+
+            // store the workflow if we've changed the state of the domain wf
+            mStorage.put(itemPath, lifeCycle, transactionKey);
+
+            return errorOutcome;
+        }
+        catch (Exception e) {
+            log.error("requestErrorAction()", e);
+            return "";
         }
     }
 
+    /**
+     * 
+     */
     @Override
-    public String delegatedAction( SystemKey agentId,
-                                SystemKey delegateAgentId,
-                                String stepPath,
-                                int transitionID,
-                                String requestData,
-                                String attachmentType,
-                                byte[] attachment
-                              )
-        throws AccessRightsException,
-               InvalidTransitionException,
-               ObjectNotFoundException,
-               InvalidDataException,
-               PersistencyException,
-               ObjectAlreadyExistsException, InvalidCollectionModification
-    {
-        synchronized (this) {
-            return mItemImpl.delegatedAction(agentId, delegateAgentId, stepPath, transitionID, requestData, attachmentType, attachment);
-        }
-    }
+    @Deprecated
+    public void queryLifeCycle(String itemUuid, String agentUuid, boolean filter, Handler<AsyncResult<String>> returnHandler) {
+        ItemProxy item = null;
+        AgentProxy agent = null;
 
-    @Override
-	public String queryLifeCycle( SystemKey agentId,
-                                  boolean     filter
-                                )
-        throws AccessRightsException,
-               ObjectNotFoundException,
-               PersistencyException
-    {
-        synchronized (this) {
-            return mItemImpl.queryLifeCycle(agentId, filter);
+        try {
+            item  = Gateway.getProxy(Gateway.getLookup().getItemPath(itemUuid));
+            agent = Gateway.getAgentProxy((AgentPath) Gateway.getLookup().getItemPath(agentUuid));
         }
-    }
+        catch (InvalidItemPathException | ObjectNotFoundException e) {
+            log.error("queryLifeCycle("+item+")", e);
+            returnHandler.handle(e.failService());
+            return;
+        }
 
-    @Override
-	public String queryData(String path)
-        throws AccessRightsException,
-               ObjectNotFoundException,
-               PersistencyException
-    {
-        synchronized (this) {
-            return mItemImpl.queryData(path);
+        log.info("=======================================================================================");
+        log.info("queryLifeCycle(" + item + ") - agent: " + agent);
+
+        try {
+            Workflow wf = (Workflow) mStorage.get(item.getPath(), ClusterType.LIFECYCLE + "/workflow", null);
+            @SuppressWarnings("unchecked")
+            C2KLocalObjectMap<Job> jobs = (C2KLocalObjectMap<Job>)mStorage.get(item.getPath(), ClusterType.JOB.getName(), null);
+
+            SecurityManager secMan = Gateway.getSecurityManager();
+            JobArrayList jobBag = new JobArrayList();
+
+            if (secMan.isShiroEnabled()) {
+                for (Job j : jobs.values()) {
+                    Activity act = (Activity) wf.search(j.getStepPath());
+                    if (secMan.checkPermissions(agent.getPath(), act, item.getPath(), null)) {
+                        try {
+                            j.getTransition().checkPerformingRole(act, agent.getPath());
+                            jobBag.list.add(j);
+                        }
+                        catch (AccessRightsException e) {
+                            // AccessRightsException is thrown if Job requires specific Role that agent does not have
+                        }
+                    }
+                }
+            }
+            else {
+                jobBag.list = (ArrayList<Job>) jobs.values();
+            }
+
+            log.info("queryLifeCycle(" + item + ") - Returning " + jobBag.list.size() + " jobs.");
+
+            try {
+                String result = Gateway.getMarshaller().marshall(jobBag);
+                returnHandler.handle(Future.succeededFuture(result));
+            }
+            catch (Exception ex) {
+                log.error("queryLifeCycle(" + item + ")", ex);
+                if (ex instanceof CriseVertxException) {
+                    CriseVertxException e = (CriseVertxException) ex;
+                    returnHandler.handle(e.failService());
+                }
+                else {
+                    returnHandler.handle(CriseVertxException.failService(ex));
+                }
+            }
+        }
+        catch (Exception ex) {
+            log.error("queryLifeCycle(" + item + ") - Unknown error", ex);
+            if (ex instanceof CriseVertxException) {
+                CriseVertxException e = (CriseVertxException) ex;
+                returnHandler.handle(e.failService());
+            }
+            else {
+                returnHandler.handle(CriseVertxException.failService(ex));
+            }
         }
     }
 }

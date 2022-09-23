@@ -32,6 +32,8 @@ import java.util.Set;
  * WeakReferences are reaped if no strong references are left next time the gc has a chance. 
  * The ClusterStorageManager caches can optionally use this one, for high volume imports etc
  *
+ * @deprecated should be replaced by Cache from Guava
+ * 
  * @param <K> key
  * @param <V> value
  */

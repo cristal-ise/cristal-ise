@@ -23,28 +23,35 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.PropertyDescriptionList;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PropertyDescriptionCache extends DescriptionObjectCache<PropertyDescriptionList> {
 
     @Override
-    public String getTypeCode() {
-        return BuiltInResources.PROPERTY_DESC_RESOURCE.getTypeCode();
+    protected String getTypeCode() {
+        return PROPERTY_DESC_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
-        return BuiltInResources.PROPERTY_DESC_RESOURCE.getSchemaName();
+    protected String getSchemaName() {
+        return PROPERTY_DESC_RESOURCE.getSchemaName();
     }
 
     @Override
-    public PropertyDescriptionList buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected String getTypeRoot() {
+        return PROPERTY_DESC_RESOURCE.getTypeRoot();
+    }
+
+    @Override
+    protected PropertyDescriptionList buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             PropertyDescriptionList pdl = (PropertyDescriptionList) Gateway.getMarshaller().unmarshall(data);
             pdl.setName(name);

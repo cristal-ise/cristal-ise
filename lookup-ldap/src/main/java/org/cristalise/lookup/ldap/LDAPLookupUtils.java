@@ -37,7 +37,6 @@ import javax.net.ssl.X509TrustManager;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.utils.Logger;
 
 import com.novell.ldap.LDAPAttribute;
 import com.novell.ldap.LDAPAttributeSet;
@@ -51,7 +50,9 @@ import com.novell.ldap.LDAPSearchConstraints;
 import com.novell.ldap.LDAPSearchResults;
 import com.novell.ldap.LDAPSocketFactory;
 import com.novell.ldap.util.Base64;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 final public class LDAPLookupUtils {
     static final char[]         META_CHARS   = { '+', '=', '"', ',', '<', '>', ';', '/' };
     static final String[]       META_ESCAPED = { "2B", "3D", "22", "2C", "3C", "3E", "3B", "2F" };
@@ -115,15 +116,12 @@ final public class LDAPLookupUtils {
                 LDAPConnection.setSocketFactory(lsf);
             }
             catch (Exception ex) {
-                Logger.error(ex);
-                Logger.die("Could not enable TLS over LDAP");
+                log.error("Could not enable TLS over LDAP",ex);
             }
         }
 
         if (lp.mTimeOut == 0) ld = new LDAPConnection();
         else                  ld = new LDAPConnection(lp.mTimeOut);
-
-        Logger.msg(3, "LDAPLookup - connecting to " + lp.mHost);
 
         ld.connect(lp.mHost, Integer.valueOf(lp.mPort).intValue());
 
@@ -132,15 +130,11 @@ final public class LDAPLookupUtils {
                 ld.startTLS();
             }
             catch (Exception ex) {
-                Logger.error(ex);
-                Logger.die("Could not enable TLS over LDAP");
+                log.error("Could not enable TLS over LDAP",ex);
             }
         }
-
-        Logger.msg(3, "LDAPLookup - authenticating user:" + lp.mUser);
         ld.bind(LDAPConnection.LDAP_V3, lp.mUser, String.valueOf(lp.mPassword).getBytes());
 
-        Logger.msg(3, "LDAPLookup - authentication successful");
         LDAPSearchConstraints searchCons = new LDAPSearchConstraints();
         searchCons.setMaxResults(0);
         ld.setConstraints(searchCons);
@@ -224,7 +218,7 @@ final public class LDAPLookupUtils {
             ld.modify(anEntry.getDN(), new LDAPModification(LDAPModification.REPLACE, new LDAPAttribute(attribute, newValue)));
         }
         catch (LDAPException ex) {
-            Logger.error(ex);
+            log.error("",ex);
             throw new ObjectCannotBeUpdated("Attribute " + attribute + " of entry " + anEntry.getDN() + " could not be modified");
         }
     }
@@ -235,7 +229,7 @@ final public class LDAPLookupUtils {
             ld.modify(anEntry.getDN(), new LDAPModification(LDAPModification.ADD, new LDAPAttribute(attribute, value)));
         }
         catch (LDAPException ex) {
-            Logger.error(ex);
+            log.error("",ex);
             throw new ObjectCannotBeUpdated("Attribute " + attribute + " of entry " + anEntry.getDN() + " could not be added.");
         }
     }
@@ -246,7 +240,7 @@ final public class LDAPLookupUtils {
             ld.modify(anEntry.getDN(), new LDAPModification(LDAPModification.DELETE, new LDAPAttribute(attribute, value)));
         }
         catch (LDAPException ex) {
-            Logger.error(ex);
+            log.error("",ex);
             throw new ObjectCannotBeUpdated("Attribute " + attribute + " of entry " + anEntry.getDN() + " could not be deleted");
         }
     }
@@ -259,7 +253,6 @@ final public class LDAPLookupUtils {
                 return true;
         }
         catch (LDAPException ex) {
-            Logger.debug(9, "LDAPLookupUtils.exists(" + name + ": " + ex.getMessage());
             return false;
         }
         return false;
@@ -287,7 +280,7 @@ final public class LDAPLookupUtils {
             if (res.hasMore()) return true;
         }
         catch (LDAPException ex) {
-            Logger.error(ex);
+            log.error("",ex);
         }
         return false;
     }
@@ -311,18 +304,17 @@ final public class LDAPLookupUtils {
             }
         }
         catch (Exception ex) {
-            Logger.error(ex);
+            log.error("",ex);
         }
         return result;
     }
 
     static public void delete(LDAPConnection ld, String dn) throws LDAPException {
         try {
-            Logger.msg(7, "LDAPLookupUtils.delete() - " + dn);
             ld.delete(dn);
         }
         catch (LDAPException ex) {
-            Logger.error("LDAPLookupUtils.remove() - Cannot remove " + dn + ": " + ex.getMessage());
+            log.error("LDAPLookupUtils.remove() - Cannot remove " + dn + ": " + ex.getMessage());
             throw ex;
         }
     }
@@ -348,8 +340,7 @@ final public class LDAPLookupUtils {
             LDAPLookupUtils.addEntry(ld, new LDAPEntry(dn, attrs));
         }
         catch (Exception ex) {
-            Logger.error(ex);
-            Logger.die("Error creating CRISTAL LDAP roots. Is the cristal.schema configured correctly in the LDAP server?");
+            log.error("Error creating CRISTAL LDAP roots. Is the cristal.schema configured correctly in the LDAP server?", ex);
         }
     }
 
@@ -366,7 +357,7 @@ final public class LDAPLookupUtils {
             LDAPLookupUtils.addEntry(ld, new LDAPEntry(dn, attrs));
         }
         catch (Exception ex) {
-            Logger.msg(ex.toString());
+            log.error("", ex);
         }
     }
 
@@ -386,7 +377,7 @@ final public class LDAPLookupUtils {
             escapedStr = escapedStr.replaceAll("\\" + META_CHARS[i], "\\\\" + META_ESCAPED[i]);
         }
         
-        if (!name.equals(escapedStr)) Logger.msg(3, "LDAP DN " + name + " escaped to " + escapedStr);
+        //if (!name.equals(escapedStr)) Logger.msg(3, "LDAP DN " + name + " escaped to " + escapedStr);
 
         return escapedStr;
     }
@@ -406,7 +397,7 @@ final public class LDAPLookupUtils {
         // Any remaining escaped backslashes
         unescapedStr = unescapedStr.replaceAll("\\\\", "\\");
 
-        if (!dn.equals(unescapedStr)) Logger.msg(3, "LDAP DN " + dn + " unescaped to " + unescapedStr);
+        //if (!dn.equals(unescapedStr)) Logger.msg(3, "LDAP DN " + dn + " unescaped to " + unescapedStr);
         return unescapedStr;
     }
 
@@ -418,7 +409,7 @@ final public class LDAPLookupUtils {
         // escapedStr = escapedStr.replaceAll("\\*","\\\\2a"); // we need stars for searching
         escapedStr = escapedStr.replaceAll("\\(", "\\\\28");
         escapedStr = escapedStr.replaceAll("\\)", "\\\\29");
-        if (!filter.equals(escapedStr)) Logger.msg(3, "LDAP Search Filter " + filter + " escaped to " + escapedStr);
+        //if (!filter.equals(escapedStr)) Logger.msg(3, "LDAP Search Filter " + filter + " escaped to " + escapedStr);
         return escapedStr;
     }
 }

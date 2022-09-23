@@ -1,3 +1,23 @@
+/**
+ * This file is part of the CRISTAL-iSE kernel.
+ * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * http://www.fsf.org/licensing/licenses/lgpl.html
+ */
 Schema('SimpleElectonicSignature', 0) {
     struct(name: 'SimpleElectonicSignature', documentation: "Minimum form to provide electronic signature") {
         field(name:'AgentName', type: 'string')
@@ -54,11 +74,43 @@ Schema('LoggerConfig', 0) {
 
 Schema('ModuleChanges', 0) {
     struct(name: 'ModuleChanges', useSequence: true) {
+        field(name:'ModuleName', type: 'string')
+        field(name:'ModuleVersion', type: 'string')
         struct(name: 'ResourceChangeDetails', useSequence: true, multiplicity: '0..*') {
             field(name:'ResourceName', type: 'string')
             field(name:'ResourceVersion', type: 'string')
             field(name:'SchemaName', type: 'string')
             field(name:'ChangeType', type: 'string', values: ['IDENTICAL', 'NEW', 'UPDATED', 'OVERWRITTEN', 'SKIPPED', 'REMOVED'])
         }
+    }
+}
+
+def uuidPattern = '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}'
+
+def fieldKeyValuePair = {
+    field(name:'KeyValuePair', type: 'string',  multiplicity: '0..*') {
+        attribute(name: 'Key',        type: 'string',  multiplicity: '1..1')
+        attribute(name: 'isAbstract', type: 'boolean', multiplicity: '1..1')
+        attribute(name: 'Integer',    type: 'integer', multiplicity: '0..1')
+        attribute(name: 'String',     type: 'string',  multiplicity: '0..1')
+        attribute(name: 'Float',      type: 'decimal', multiplicity: '0..1')
+        attribute(name: 'Boolean',    type: 'boolean', multiplicity: '0..1')
+    }
+}
+
+Schema('Dependency', 0) {
+    struct(name: 'Dependency', useSequence: true) {
+        attribute(name: 'CollectionName', type: 'string', multiplicity: '1..1')
+        attribute(name: 'ClassProps',     type: 'string', multiplicity: '1..1')
+        struct(name: 'CollectionMemberList', useSequence: true, multiplicity: '1..1') {
+            struct(name: 'DependencyMember', useSequence: true, multiplicity: '0..*') {
+                attribute(name: 'ChildUUID',  type: 'string', pattern: uuidPattern, length : 36)
+                attribute(name: 'ID',         type: 'integer')
+                attribute(name: 'ClassProps', type: 'string')
+
+                struct(name: 'Properties', useSequence: true,  multiplicity: '1..*', fieldKeyValuePair)
+            }
+        }
+        struct(name: 'Properties', useSequence: true, multiplicity: '1..*', fieldKeyValuePair)
     }
 }

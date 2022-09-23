@@ -32,6 +32,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
@@ -44,11 +45,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.crypto.AesCipherService;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
-import org.cristalise.kernel.lookup.InvalidAgentPathException;
+import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.lookup.Path;
@@ -95,7 +95,7 @@ abstract public class RestHandler {
      * @throws InvalidDataException Cookie too old
      */
     protected synchronized AuthData decryptAuthData(String authData)
-            throws InvalidAgentPathException, InvalidDataException
+            throws InvalidItemPathException, InvalidDataException
     {
         int cntRetries = 5; // try to decrypt 5 times before throwing an exception
 
@@ -226,7 +226,7 @@ abstract public class RestHandler {
             AuthData data = decryptAuthData(authData);
             return data;
         }
-        catch (InvalidAgentPathException | InvalidDataException e) {
+        catch (InvalidItemPathException | InvalidDataException e) {
             log.debug("Invalid agent or login data",  e);
 
             throw new WebAppExceptionBuilder().message("Invalid agent or login data").status(Response.Status.UNAUTHORIZED).build();
@@ -275,7 +275,7 @@ abstract public class RestHandler {
                 agentPath = agentAuthData.agent;
             }
 
-            return (AgentProxy)Gateway.getProxyManager().getProxy(agentPath);
+            return (AgentProxy)Gateway.getProxy(agentPath);
         }
         catch (ObjectNotFoundException e) {
             log.error("Agent not found", e);
@@ -418,10 +418,9 @@ abstract public class RestHandler {
             timestamp = new Date();
         }
 
-        public AuthData(byte[] bytes) throws InvalidAgentPathException, InvalidDataException {
+        public AuthData(byte[] bytes) throws InvalidItemPathException, InvalidDataException {
             ByteBuffer buf = ByteBuffer.wrap(bytes);
-            SystemKey sysKey = new SystemKey(buf.getLong(), buf.getLong());
-            agent = new AgentPath(new ItemPath(sysKey));
+            agent = new AgentPath(new ItemPath(new UUID(buf.getLong(), buf.getLong())));
             timestamp = new Date(buf.getLong());
             int cookieLife = Gateway.getProperties().getInt("REST.loginCookieLife", 0);
 
@@ -433,13 +432,19 @@ abstract public class RestHandler {
         }
 
         public byte[] getBytes() {
-            byte[] bytes = new byte[Long.SIZE * 3];
-            SystemKey sysKey = agent.getSystemKey();
-            ByteBuffer buf = ByteBuffer.wrap(bytes);
-            buf.putLong(sysKey.msb);
-            buf.putLong(sysKey.lsb);
-            buf.putLong(timestamp.getTime());
-            return bytes;
+            try {
+                byte[] bytes = new byte[Long.SIZE * 3];
+                ItemPath sysKey = agent.getItemPath();
+                ByteBuffer buf = ByteBuffer.wrap(bytes);
+                buf.putLong(sysKey.getUUID().getMostSignificantBits());
+                buf.putLong(sysKey.getUUID().getLeastSignificantBits());
+                buf.putLong(timestamp.getTime());
+                return bytes;
+            }
+            catch (ObjectNotFoundException e) {
+                log.error("getBytes()", e);
+            }
+            return null;
         }
     }
 }

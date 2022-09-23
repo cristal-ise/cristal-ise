@@ -25,16 +25,21 @@ import java.util.Vector;
 import org.cristalise.kernel.graph.model.DirectedEdge;
 import org.cristalise.kernel.graph.model.GraphModel;
 import org.cristalise.kernel.graph.model.GraphPoint;
+import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.graph.model.Vertex;
+import org.cristalise.kernel.lifecycle.JoinDef;
+import org.cristalise.kernel.lifecycle.LoopDef;
+import org.cristalise.kernel.lifecycle.instance.Join;
+import org.cristalise.kernel.lifecycle.instance.Loop;
 
 import lombok.extern.slf4j.Slf4j;
 
  @Slf4j
 public class DefaultGraphLayoutGenerator {
-    private static int mTopMargin = 100;
+    private static int mTopMargin = 50;
     private static int mLeftMargin = 100;
     private static int mHorzGap = 180;
-    private static int mVertGap = 100;
+    private static int mVertGap = 80;
 
     private DefaultGraphLayoutGenerator() {
     }
@@ -91,31 +96,39 @@ public class DefaultGraphLayoutGenerator {
             rowsWidth = mHorzGap * (rowsVertices.size() - 1);
             midPoints[i] = rowsWidth / 2;
             if (midPoints[i] > newValueOfLargestMidPoint) {
-            	newValueOfLargestMidPoint = midPoints[i];
+                newValueOfLargestMidPoint = midPoints[i];
             }
         }
         return newValueOfLargestMidPoint;
     }
 
     private static void fillInVertexLocations(GraphModel graphModel, Vector<Vector<Vertex>> rowVector,
-        int valueOfLargestMidPoint, int[] midPoints) {
-            Vector<Vertex> rowsVertices = null;
-            Vertex vertex = null;
-            int rowIndex = 0;
-            int column = 0;
-            int rowsLeftMargin = 0;
-            GraphPoint point = new GraphPoint(0, 0);
-            for (rowIndex = 0; rowIndex < rowVector.size(); rowIndex++) {
-                rowsVertices = rowVector.elementAt(rowIndex);
-                rowsLeftMargin = mLeftMargin + valueOfLargestMidPoint - midPoints[rowIndex];
-                for (column = 0; column < rowsVertices.size(); column++) {
-                    vertex = rowsVertices.elementAt(column);
-                    point.x = rowsLeftMargin + column * mHorzGap;
-                    point.y = mTopMargin + rowIndex * mVertGap;
-                    vertex.moveAbsolute(point);
-                    graphModel.checkSize(vertex);
+        int valueOfLargestMidPoint, int[] midPoints)
+    {
+        Vector<Vertex> rowsVertices = null;
+        int rowsLeftMargin = 0;
+        GraphPoint point = new GraphPoint(0, 0);
+        for (int rowIndex = 0; rowIndex < rowVector.size(); rowIndex++) {
+            rowsVertices = rowVector.elementAt(rowIndex);
+            rowsLeftMargin = mLeftMargin + valueOfLargestMidPoint - midPoints[rowIndex];
+            for (int column = 0; column < rowsVertices.size(); column++) {
+                GraphableVertex currentVertex = (GraphableVertex)rowsVertices.elementAt(column);
+                point.x = rowsLeftMargin + column * mHorzGap;
+                point.y = mTopMargin + rowIndex * mVertGap;
+                if (currentVertex instanceof Loop || currentVertex instanceof LoopDef) {
+                    point.x += mVertGap;
                 }
+                else if (currentVertex instanceof Join || currentVertex instanceof JoinDef) {
+                    for (Vertex inVertex : currentVertex.getInGraphables()) {
+                        Boolean isMyPair = currentVertex.isMyPair((GraphableVertex) inVertex);
+
+                        if (isMyPair != null && isMyPair) point.x += mVertGap;
+                    }
+                }
+                currentVertex.moveAbsolute(point);
+                graphModel.checkSize(currentVertex);
             }
+        }
     }
 
     private static void fillInEdgeLocations(GraphModel graphModel) {

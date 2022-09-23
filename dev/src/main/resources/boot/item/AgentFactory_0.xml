@@ -1,0 +1,12 @@
+<Item initialPath="/desc/dev" name="AgentFactory" ns="dev" version="0" workflow="AgentFactoryWf" workflowVer="0">
+  <Property mutable="false" name="Type">Factory</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/Agent_0.xml</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow">
+    <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageAgent">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+</Item>
