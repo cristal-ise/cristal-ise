@@ -275,9 +275,9 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
             "/$folder/ClubMemberFactory")
 
         assert clubMember.getCollection('Cars').members.list.size() == 0
-        clubMember.getCollection('Motorcycles').members.list.size() == 0
-        car.getCollection('ClubMember').members.list.size() == 0
-        motorcycle.getCollection('ClubMember').members.list.size() == 0
+        assert clubMember.getCollection('Motorcycles').members.list.size() == 0
+        assert car.getCollection('ClubMember').members.list.size() == 0
+        assert motorcycle.getCollection('ClubMember').members.list.size() == 0
 
         //Add to Cars
         def addToCarsJob = clubMember.getJobByName('AddToCars', agent)
@@ -291,7 +291,6 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
         assert clubMemberCars.members.list.size() == 1
         assert clubMemberCars.getMember(0).itemPath == car.path
-
         assert carClubMember.members.list.size() == 1
         assert carClubMember.getMember(0).itemPath == clubMember.path
 
@@ -307,7 +306,6 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
         assert clubMemberMotorcycles.members.list.size() == 1
         assert clubMemberMotorcycles.getMember(0).itemPath == motorcycle.path
-
         assert motorcycleClubMember.members.list.size() == 1
         assert motorcycleClubMember.getMember(0).itemPath == clubMember.path
 
@@ -323,5 +321,11 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
         assert clubMemberCars.members.list.size() == 0
         assert carClubMember.members.list.size() == 0
+
+        // FIXME: inmemory-lookup does not support getAliases used by ChangeName predef step
+//        def clubMemberUpdateJob = clubMember.getJobByName('Update', agent)
+//        clubMemberUpdateJob.outcome.setField('Name', "ClubMember2-$timeStamp")
+//        agent.execute(clubMemberUpdateJob)
+//        assert agent.getItem("/$folder/ClubMembers/ClubMember2-$timeStamp")
     }
 }
