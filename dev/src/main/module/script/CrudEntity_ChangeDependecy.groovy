@@ -101,10 +101,10 @@ def Dependency processRemoveMembersFromCollection(ItemProxy theItem, AgentProxy 
  * Script starts here 
  */
 Outcome outcome = job.getOutcome()
-def dependencyName = job.getActProp(DEPENDENCY_NAME)
-def predefinedStep = job.getActProp(PREDEFINED_STEP)
+def dependencyName = job.getActProp(DEPENDENCY_NAME) as String
+def predefinedStep = job.getActProp(PREDEFINED_STEP) as String
 
-if (predefinedStep == AddMembersToCollection.class.getSimpleName()) {
+if (predefinedStep.contains(AddMembersToCollection.class.getSimpleName())) {
     if (outcome.getNodeByXPath('//AddMembersToCollection/Dependency')) {
         log.debug('//AddMembersToCollection/Dependency is already in Outcome - job:{}', job);
     }
@@ -113,7 +113,7 @@ if (predefinedStep == AddMembersToCollection.class.getSimpleName()) {
         outcome.appendXmlFragment('//AddMembersToCollection', agent.marshall(dep))
     }
 }
-else if (predefinedStep == RemoveMembersFromCollection.class.getSimpleName()) {
+else if (predefinedStep.contains(RemoveMembersFromCollection.class.getSimpleName())) {
     if (outcome.getNodeByXPath('//RemoveMembersFromCollection/Dependency')) {
         log.debug('//RemoveMembersFromCollection/Dependency is already in Outcome - job:{}', job);
     }

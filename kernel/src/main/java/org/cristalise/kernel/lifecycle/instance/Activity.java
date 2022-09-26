@@ -361,6 +361,8 @@ public class Activity extends WfVertex {
                 String propName = entry.getKey().substring(13);
 
                 if(StringUtils.isNotBlank(propName)) {
+                    if (propName.equals(NAME.getName())) throw new InvalidDataException("Use ChangeName predef step");
+
                     String propValue = entry.getValue().toString();
 
                     //FIXME: use DataHelper if possible, because it will make code more general

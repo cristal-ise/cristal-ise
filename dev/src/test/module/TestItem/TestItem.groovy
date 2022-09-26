@@ -19,6 +19,10 @@ Schema('TestItem', 0) {
 
         field(name: 'Description', type: 'string')
 
+        struct(name: 'ChangeName', useSequence: true, multiplicity: '0..1') {
+            dynamicForms (required: false, hidden: true)
+            anyField()
+        }
     }
 }
 
