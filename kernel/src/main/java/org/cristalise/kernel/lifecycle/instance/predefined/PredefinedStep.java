@@ -175,7 +175,7 @@ public abstract class PredefinedStep extends Activity {
      */
     public boolean outcomeHasValidData(Outcome outcome) {
         try {
-            return outcome.getNodeByXPath("//" + this.getClass().getSimpleName()) != null;
+            return outcome.getNodeByXPath("//" + getType()) != null;
         }
         catch (XPathExpressionException e) {
             log.error("outcomeHasValidData()", e);
@@ -271,7 +271,7 @@ public abstract class PredefinedStep extends Activity {
     @Deprecated
     protected void addAdminAgentRole() {
         if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
-            String extraRoles = Gateway.getProperties().getString("PredefinedStep."+ this.getClass().getSimpleName() +".roles");
+            String extraRoles = Gateway.getProperties().getString("PredefinedStep."+ getType() +".roles");
             getProperties().setBuiltInProperty(AGENT_ROLE, ADMIN_ROLE.getName() + (StringUtils.isNotBlank(extraRoles) ? ","+extraRoles : ""));
         }
     }
@@ -378,15 +378,31 @@ public abstract class PredefinedStep extends Activity {
     public void computeUpdates(ItemPath currentItem, Activity currentActivity, Outcome inputOutcome, TransactionKey transactionKey)
             throws InvalidDataException, PersistencyException, ObjectNotFoundException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
-        //empty implementation
-        log.debug("computeUpdates() - UNIMPLEMENTED!");
+        String xpath = "//" + getType() + "/" + getBuiltInProperty(SCHEMA_NAME);
+        log.info("computeUpdates(item:{}) - xpath:{}", currentItem.getItemName(transactionKey), xpath);
+
+        try {
+            Node node = inputOutcome.getNodeByXPath(xpath);
+
+            if (node != null) {
+                getAutoUpdates().put(currentItem, Outcome.serialize(node, false));
+            }
+            else {
+                log.error("The outcome must contain {}: {}", xpath, inputOutcome.getData());
+                throw new InvalidDataException("The outcome must contain PredefinedStepOutcome");
+            }
+        }
+        catch (XPathExpressionException e) {
+            log.error("The outcome must contain {}: {}", xpath, inputOutcome.getData(), e);
+            throw new InvalidDataException("The outcome must contain PredefinedStepOutcome", e);
+        }
     };
 
     public void mergeProperties(CastorHashMap newProps) {
         for (KeyValuePair kvPair : newProps.getKeyValuePairs()) {
             BuiltInVertexProperties key = BuiltInVertexProperties.getValue((String)kvPair.getKey());
 
-          //only check built-in properties
+            // only check built-in properties
             if (key == null) continue;
 
             switch (key) {

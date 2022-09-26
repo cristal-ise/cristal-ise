@@ -87,7 +87,7 @@ public class ChangeName extends PredefinedStep {
                 }
             }
 
-            if (currentDP == null) throw new InvalidDataException(item + " does not domainPath with name:" + oldName);
+            if (currentDP == null) throw new InvalidDataException(item + " does not have DomainPath with name:" + oldName);
 
             newDP = changeDomianPath(item, newName, currentDP, transactionKey);
         }
