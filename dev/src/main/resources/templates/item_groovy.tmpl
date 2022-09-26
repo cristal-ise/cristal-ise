@@ -27,6 +27,10 @@ Schema('@{item.name}', @{version}) {
 @else{}
         field(name: 'Description', type: 'string')
 @end{}
+        struct(name: 'ChangeName', useSequence: true, multiplicity: '0..1') {
+            dynamicForms (required: false, hidden: true)
+            anyField()
+        }
     }
 }
 
