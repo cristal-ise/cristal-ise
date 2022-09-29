@@ -64,7 +64,7 @@ public enum BuiltInVertexProperties {
     DEPENDENCY_CARDINALITY("DependencyCardinality"),
 
     /**
-     * String property of Activity specifying he name of the Dependency update by the Activity. In DSL it is used like this:
+     * String property of Activity specifying the name of the Dependency update by the Activity. In DSL it is used like this:
      *
      * <pre>
      * Activity('User_AddAddress', 0) {

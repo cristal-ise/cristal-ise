@@ -138,7 +138,7 @@ public class Schema implements DescriptionObject, ErrorHandler {
                 javaxSchema = factory.newSchema(source);
             }
             catch (SAXException e) {
-                log.error("Invalid Schemae", e);
+                log.error("Invalid Schema", e);
             }
         }
         return javaxSchema;
@@ -233,5 +233,4 @@ public class Schema implements DescriptionObject, ErrorHandler {
         else
             return false;
     }
-
 }
