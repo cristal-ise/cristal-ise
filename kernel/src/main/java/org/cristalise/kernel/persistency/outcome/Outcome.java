@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
+import java.util.function.Consumer;
+
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -1047,23 +1049,33 @@ public class Outcome implements C2KLocalObject {
     }
 
     /**
+     * 
+     */
+    public static void traverseChildElements(Node node, Consumer<Node> action) {
+        NodeList childNodes = node.getChildNodes();
+
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            if (childNodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                action.accept(childNodes.item(i));
+            }
+        }
+    }
+
+    /**
      * Reads the all Attributes and child Elements of the given Node. Use TreeMap to keep the order of Nodes.
      *
      * @param node the node to work with
      * @return a Map as a key/value pairs of Attribute/Element names with their value
      */
-    public  Map<String, String> getRecordOfNode(Node node) {
-        Map<String, String> record = new TreeMap<>();
-        NodeList elements = node.getChildNodes();
+    public Map<String, String> getRecordOfNode(Node node) {
+        final Map<String, String> record = new TreeMap<>();
 
-        for (int i = 0; i < elements.getLength(); i++) {
-            if (elements.item(i).getNodeType() == Node.ELEMENT_NODE) {
-                String name = elements.item(i).getNodeName();
-                String value = elements.item(i).getTextContent();
+        traverseChildElements(node, (element) -> {
+            String name = element.getNodeName();
+            String value = element.getTextContent();
 
-                record.put(name, value);
-            }
-        }
+            record.put(name, value);
+        });
 
         NamedNodeMap attrs = node.getAttributes();
 
