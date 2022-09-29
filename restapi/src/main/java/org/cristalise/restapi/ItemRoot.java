@@ -56,6 +56,7 @@ import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
@@ -546,9 +547,15 @@ public class ItemRoot extends ItemUtils {
 
                 // set outcome if required
                 if (thisJob.hasOutcome()) {
-                    return Response.ok(new OutcomeBuilder(thisJob.getSchema(), false).generateNgDynamicForms(inputs))
-                            .cookie(cookie).build();
-                } else {
+                    OutcomeBuilder ob;
+                    Outcome outcome = thisJob.getOutcome();
+                    
+                    if (outcome == null) ob = new OutcomeBuilder(thisJob.getSchema());
+                    else                 ob = new OutcomeBuilder(thisJob.getSchema(), outcome);
+
+                    return Response.ok(ob.generateNgDynamicForms(inputs)).cookie(cookie).build();
+                }
+                else {
                     log.debug("getJobFormTemplate() - no outcome needed for job:{}", thisJob);
                     return Response.noContent().cookie(cookie).build();
                 }
