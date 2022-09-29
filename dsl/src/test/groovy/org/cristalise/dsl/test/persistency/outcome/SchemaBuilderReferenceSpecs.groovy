@@ -57,6 +57,21 @@ class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSe
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                         <xs:complexType>
+                           <xs:sequence>
+                             <xs:any minOccurs='0' processContents='lax' />
+                           </xs:sequence>
+                         </xs:complexType>
+                       </xs:element>
                      </xs:sequence>
                    </xs:complexType>
                  </xs:element>
@@ -89,6 +104,21 @@ class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSe
                              </reference>
                            </xs:appinfo>
                          </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                         <xs:complexType>
+                           <xs:sequence>
+                             <xs:any minOccurs='0' processContents='lax' />
+                           </xs:sequence>
+                         </xs:complexType>
                        </xs:element>
                      </xs:sequence>
                    </xs:complexType>
