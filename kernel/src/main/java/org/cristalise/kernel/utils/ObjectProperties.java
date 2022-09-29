@@ -23,6 +23,7 @@ package org.cristalise.kernel.utils;
 import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -191,7 +192,7 @@ public class ObjectProperties extends Properties {
     }
 
     public Object getInstance(String propName, Object defaultVal)
-            throws InstantiationException, IllegalAccessException, ClassNotFoundException
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException
     {
         Object prop = getObject(propName, defaultVal);
 
@@ -199,17 +200,17 @@ public class ObjectProperties extends Properties {
             throw new InstantiationException("Property '" + propName + "' was not defined. Cannot instantiate.");
         }
         if (prop instanceof String) {
-            return Class.forName(((String) prop).trim()).newInstance();
+            return Class.forName(((String) prop).trim()).getDeclaredConstructor().newInstance();
         }
         return prop;
     }
 
-    public Object getInstance(String propName) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+    public Object getInstance(String propName) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         return getInstance(propName, null);
     }
 
     public ArrayList<?> getInstances(String propName, Object defaultVal)
-            throws InstantiationException, IllegalAccessException, ClassNotFoundException
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException
     {
         Object val = getObject(propName, defaultVal);
         if (val == null) return null;
@@ -219,8 +220,7 @@ public class ObjectProperties extends Properties {
         else if (val instanceof String) {
             ArrayList<Object> retArr = new ArrayList<Object>();
             StringTokenizer tok = new StringTokenizer((String) val, ",");
-            while (tok.hasMoreTokens())
-                retArr.add(getInstance(tok.nextToken()));
+            while (tok.hasMoreTokens()) retArr.add(getInstance(tok.nextToken()));
             return retArr;
         }
         else {
@@ -230,7 +230,7 @@ public class ObjectProperties extends Properties {
         }
     }
 
-    public ArrayList<?> getInstances(String propName) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+    public ArrayList<?> getInstances(String propName) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         return getInstances(propName, null);
     }
 

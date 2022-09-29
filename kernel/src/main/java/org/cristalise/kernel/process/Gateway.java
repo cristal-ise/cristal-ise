@@ -22,6 +22,7 @@ package org.cristalise.kernel.process;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -373,7 +374,7 @@ public class Gateway extends ProxyManager
             mLookup = (Lookup)mC2KProps.getInstance("Lookup");
             mLookup.open(auth);
         }
-        catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
             log.error("", ex);
             throw new InvalidDataException("Cannot connect server process. Please check config.");
         }
@@ -465,7 +466,7 @@ public class Gateway extends ProxyManager
         try {
             return (Authenticator)mC2KProps.getInstance("Authenticator");
         }
-        catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
             log.error("Authenticator "+mC2KProps.getString("Authenticator")+" could not be instantiated", ex);
             throw new InvalidDataException("Authenticator "+mC2KProps.getString("Authenticator")+" could not be instantiated");
         } 

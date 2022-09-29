@@ -817,7 +817,7 @@ public class Script implements DescriptionObject {
 
             Object emptyObject = null;
             try {
-                emptyObject = outputParam.getType().newInstance();
+                emptyObject = outputParam.getType().getDeclaredConstructor().newInstance();
             }
             catch (Exception e) {
                 //This case was originally not logged
