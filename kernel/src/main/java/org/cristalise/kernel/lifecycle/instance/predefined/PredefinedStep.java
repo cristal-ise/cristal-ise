@@ -28,12 +28,13 @@ import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
@@ -167,20 +168,22 @@ public abstract class PredefinedStep extends Activity {
         return null;
     }
 
-    /**
-     * Check if the Outcome contains the data required to execute it. Uses its own simple name.
-     * 
-     * @param outcome 
-     * @return
-     */
-    public boolean outcomeHasValidData(Outcome outcome) {
-        try {
-            return outcome.getNodeByXPath("//" + getType()) != null;
+    public Node getPredefStepOutcomeNode(Node predefStepNode) throws InvalidDataException {
+        final List<Node> found = new ArrayList<>();
+
+        Outcome.traverseChildElements(predefStepNode, (outcomeNode) -> {
+            if (outcomeNode.getNodeName().equals(getType())) found.add(predefStepNode);
+        });
+        
+        if (found.size() == 0) {
+            return null;
         }
-        catch (XPathExpressionException e) {
-            log.error("outcomeHasValidData()", e);
+        else if (found.size() > 1) {
+            throw new InvalidDataException();
         }
-        return false;
+        else {
+            return found.get(0);
+        }
     }
 
     /**
@@ -375,27 +378,10 @@ public abstract class PredefinedStep extends Activity {
      * @param inputOutcome
      * @param transactionKey
      */
-    public void computeUpdates(ItemPath currentItem, Activity currentActivity, Outcome inputOutcome, TransactionKey transactionKey)
+    public void computeUpdates(ItemPath currentItem, Activity currentActivity, Node outcomeNode, TransactionKey transactionKey)
             throws InvalidDataException, PersistencyException, ObjectNotFoundException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
-        String xpath = "//" + getType() + "/" + getBuiltInProperty(SCHEMA_NAME);
-        log.info("computeUpdates(item:{}) - xpath:{}", currentItem.getItemName(transactionKey), xpath);
-
-        try {
-            Node node = inputOutcome.getNodeByXPath(xpath);
-
-            if (node != null) {
-                getAutoUpdates().put(currentItem, Outcome.serialize(node, false));
-            }
-            else {
-                log.error("The outcome must contain {}: {}", xpath, inputOutcome.getData());
-                throw new InvalidDataException("The outcome must contain PredefinedStepOutcome");
-            }
-        }
-        catch (XPathExpressionException e) {
-            log.error("The outcome must contain {}: {}", xpath, inputOutcome.getData(), e);
-            throw new InvalidDataException("The outcome must contain PredefinedStepOutcome", e);
-        }
+        getAutoUpdates().put(currentItem, Outcome.serialize(outcomeNode, false));
     };
 
     public void mergeProperties(CastorHashMap newProps) {

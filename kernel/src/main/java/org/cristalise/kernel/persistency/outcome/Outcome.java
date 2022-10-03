@@ -649,8 +649,9 @@ public class Outcome implements C2KLocalObject {
 
             setNodeValue(elements.item(0), data);
         }
-        else
+        else {
             throw new InvalidDataException("'"+name+"' is invalid or not a single field");
+        }
     }
 
     /**

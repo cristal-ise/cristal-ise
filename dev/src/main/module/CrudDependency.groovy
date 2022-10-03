@@ -23,21 +23,13 @@ import static org.cristalise.kernel.collection.Collection.Cardinality.*
 import static org.cristalise.kernel.collection.Collection.Type.*
 import static org.cristalise.kernel.collection.BuiltInCollections.*
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
- 
+
 Schema('CrudEntity_Dependecy', 0) {
     struct(name: 'CrudEntity_Dependecy', useSequence: true) {
         field(name: 'MemberPath', type: 'string', multiplicity: '0..1')
         field(name: 'MemberName', type: 'string', multiplicity: '0..1')
         field(name: 'MemberSlotId', type: 'integer', multiplicity: '0..1')
         field(name: 'MemberProperties', type: 'string', multiplicity: '0..1')
-        struct(name: 'AddMembersToCollection', useSequence: true, multiplicity: '0..1') {
-            dynamicForms (hidden: true)
-            anyField()
-        }
-        struct(name: 'RemoveMembersFromCollection', useSequence: true, multiplicity: '0..1') {
-            dynamicForms (hidden: true)
-            anyField()
-        }
     }
 }
 

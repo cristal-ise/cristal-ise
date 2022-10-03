@@ -25,6 +25,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.OUTCOME_
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.PropertyUtility.getPropertyValue;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -368,7 +369,7 @@ public class Job implements C2KLocalObject {
                         ocInit = (OutcomeInitiator)Gateway.getProperties().getInstance(ocConfigPropName);
                         ocInitCache.put(ocConfigPropName, ocInit);
                     }
-                    catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+                    catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
                         log.error("OutcomeInstantiator {} couldn't be instantiated", ocConfigPropName, e);
                         throw new InvalidDataException("OutcomeInstantiator "+ocConfigPropName+" couldn't be instantiated:"+e.getMessage());
                     }
