@@ -36,7 +36,7 @@ class SchemaBuilderFieldSpecs extends Specification implements CristalTestSetup 
     def setup()   {}
     def cleanup() {}
 
-    def 'Field accepts a number of types: string, boolean, integer, decimal, date, time, dateTime'() {
+    def 'Field accepts a number of xsd types: string, boolean, integer, decimal, date, time, dateTime, anyType'() {
         expect: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Field.types}"
         SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData') {
@@ -55,6 +55,7 @@ class SchemaBuilderFieldSpecs extends Specification implements CristalTestSetup 
                                 <xs:element name='dateField'     type='xs:date'     minOccurs='1' maxOccurs='1' />
                                 <xs:element name='timeField'     type='xs:time'     minOccurs='1' maxOccurs='1' />
                                 <xs:element name='dateTimeField' type='xs:dateTime' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='anyTypeField'  type='xs:anyType'  minOccurs='1' maxOccurs='1' />
                               </xs:all>
                             </xs:complexType>
                           </xs:element>

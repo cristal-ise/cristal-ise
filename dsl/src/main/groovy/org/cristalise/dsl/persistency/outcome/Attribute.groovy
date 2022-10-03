@@ -44,7 +44,7 @@ class Attribute {
     /**
      * accepted types from XSD specification without namespace (i.e. xs:)
      */
-    public static final List types = ['string', 'boolean', 'integer', 'decimal', 'date', 'time', 'dateTime']
+    public static final List types = ['string', 'boolean', 'integer', 'decimal', 'date', 'time', 'dateTime', 'anyType']
 
     String name
     String type = 'xs:string'
