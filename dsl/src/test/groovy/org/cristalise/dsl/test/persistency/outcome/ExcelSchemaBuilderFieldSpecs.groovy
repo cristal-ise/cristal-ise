@@ -38,7 +38,7 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
 
     def xlsxFile = 'src/test/data/ExcelSchemaBuilderField.xlsx'
 
-    def 'Field accepts a number of types: string, boolean, integer, decimal, date, time, dateTime'() {
+    def 'Field accepts a number of types: string, boolean, integer, decimal, date, time, dateTime, anyType'() {
         expect: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Field.types}"
         SchemaTestBuilder.build('test', 'Types', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
@@ -52,6 +52,17 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                 <xs:element name='dateField'     type='xs:date'     minOccurs='1' maxOccurs='1' />
                                 <xs:element name='timeField'     type='xs:time'     minOccurs='1' maxOccurs='1' />
                                 <xs:element name='dateTimeField' type='xs:dateTime' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='anyTypeField'  type='xs:anyType'  minOccurs='1' maxOccurs='1' />
+                                <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
+                                </xs:element>
                               </xs:sequence>
                             </xs:complexType>
                           </xs:element>
@@ -79,6 +90,16 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                         <xs:element name='zeroToMany'  type='xs:string' minOccurs='0' maxOccurs='unbounded' />
                                         <xs:element name='oneToFive'   type='xs:string' minOccurs='1' maxOccurs='5' />
                                         <xs:element name='reset'       type='xs:string' />
+                                        <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                          <xs:annotation>
+                                            <xs:appinfo>
+                                              <dynamicForms>
+                                                <hidden>true</hidden>
+                                                <required>false</required>
+                                              </dynamicForms>
+                                            </xs:appinfo>
+                                          </xs:annotation>
+                                        </xs:element>
                                     </xs:sequence>
                                 </xs:complexType>
                             </xs:element>
@@ -124,6 +145,16 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
+                                <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
+                                </xs:element>
                               </xs:all>
                             </xs:complexType>
                           </xs:element>
@@ -167,6 +198,16 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
+                                <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
+                                </xs:element>
                               </xs:sequence>
                             </xs:complexType>
                           </xs:element>
@@ -181,6 +222,16 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                 <xs:complexType>
                                     <xs:sequence>
                                         <xs:element minOccurs="1" maxOccurs="1" name="Gender" type='xs:string' default="female"/>
+                                        <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                          <xs:annotation>
+                                            <xs:appinfo>
+                                              <dynamicForms>
+                                                <hidden>true</hidden>
+                                                <required>false</required>
+                                              </dynamicForms>
+                                            </xs:appinfo>
+                                          </xs:annotation>
+                                        </xs:element>
                                     </xs:sequence>
                                 </xs:complexType>
                             </xs:element>
@@ -197,6 +248,16 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                 <xs:element name='stringField' type='xs:string' minOccurs='1' maxOccurs='1'>
                                   <xs:annotation>
                                     <xs:documentation>Field has Documentation</xs:documentation>
+                                  </xs:annotation>
+                                </xs:element>
+                                <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
                                   </xs:annotation>
                                 </xs:element>
                               </xs:sequence>
@@ -220,6 +281,16 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                                    <xs:enumeration value="she male" />
                                                 </xs:restriction>
                                             </xs:simpleType>
+                                        </xs:element>
+                                        <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                          <xs:annotation>
+                                            <xs:appinfo>
+                                              <dynamicForms>
+                                                <hidden>true</hidden>
+                                                <required>false</required>
+                                              </dynamicForms>
+                                            </xs:appinfo>
+                                          </xs:annotation>
                                         </xs:element>
                                     </xs:sequence>
                                 </xs:complexType>
@@ -250,6 +321,16 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                  </xs:restriction>
                                </xs:simpleType>
                              </xs:element>
+                             <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                               <xs:annotation>
+                                 <xs:appinfo>
+                                   <dynamicForms>
+                                     <hidden>true</hidden>
+                                     <required>false</required>
+                                   </dynamicForms>
+                                 </xs:appinfo>
+                               </xs:annotation>
+                             </xs:element>
                            </xs:sequence>
                          </xs:complexType>
                        </xs:element>
@@ -269,6 +350,16 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                       <xs:pattern value="male|female"/>
                                     </xs:restriction>
                                   </xs:simpleType>
+                                </xs:element>
+                                <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
                                 </xs:element>
                               </xs:sequence>
                             </xs:complexType>
@@ -290,6 +381,16 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                                       <xs:fractionDigits value="2"/>
                                     </xs:restriction>
                                   </xs:simpleType>
+                                </xs:element>
+                                <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
                                 </xs:element>
                               </xs:sequence>
                             </xs:complexType>
@@ -314,6 +415,16 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                          </xs:simpleContent>
                        </xs:complexType>
                      </xs:element>
+                                <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
+                                </xs:element>
                    </xs:sequence>
                  </xs:complexType>
                </xs:element>
@@ -343,6 +454,16 @@ class ExcelSchemaBuilderFieldSpecs extends Specification implements CristalTestS
                              </xs:extension>
                            </xs:simpleContent>
                          </xs:complexType>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
                        </xs:element>
                      </xs:sequence>
                    </xs:complexType>

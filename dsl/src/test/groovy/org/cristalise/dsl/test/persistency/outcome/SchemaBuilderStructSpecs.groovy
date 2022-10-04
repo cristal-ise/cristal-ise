@@ -116,7 +116,7 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                               <xs:sequence>
                                 <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
                                 <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
-                                <xs:element name='PredefinedSteps' minOccurs='0' maxOccurs='1'>
+                                <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
                                   <xs:annotation>
                                     <xs:appinfo>
                                       <dynamicForms>
@@ -125,11 +125,6 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                                       </dynamicForms>
                                     </xs:appinfo>
                                   </xs:annotation>
-                                  <xs:complexType>
-                                    <xs:sequence>
-                                      <xs:any minOccurs='0' processContents='lax' />
-                                    </xs:sequence>
-                                  </xs:complexType>
                                 </xs:element>
                               </xs:sequence>
                             </xs:complexType>
@@ -172,7 +167,7 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                               <xs:all minOccurs='0'>
                                 <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
                                 <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
-                                <xs:element name='PredefinedSteps' minOccurs='0' maxOccurs='1'>
+                                <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
                                   <xs:annotation>
                                     <xs:appinfo>
                                       <dynamicForms>
@@ -181,11 +176,6 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                                       </dynamicForms>
                                     </xs:appinfo>
                                   </xs:annotation>
-                                  <xs:complexType>
-                                    <xs:sequence>
-                                      <xs:any minOccurs='0' processContents='lax' />
-                                    </xs:sequence>
-                                  </xs:complexType>
                                 </xs:element>
                               </xs:all>
                             </xs:complexType>
@@ -240,7 +230,7 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                          </xs:simpleContent>
                        </xs:complexType>
                      </xs:element>
-                     <xs:element name='PredefinedSteps' minOccurs='0' maxOccurs='1'>
+                     <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
                        <xs:annotation>
                          <xs:appinfo>
                            <dynamicForms>
@@ -249,11 +239,6 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                            </dynamicForms>
                          </xs:appinfo>
                        </xs:annotation>
-                       <xs:complexType>
-                         <xs:sequence>
-                           <xs:any minOccurs='0' processContents='lax' />
-                         </xs:sequence>
-                       </xs:complexType>
                      </xs:element>
                    </xs:all>
                    <xs:attribute name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>
@@ -336,7 +321,7 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                             </xs:sequence>
                           </xs:complexType>
                         </xs:element>
-                     <xs:element name='PredefinedSteps' minOccurs='0' maxOccurs='1'>
+                     <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
                        <xs:annotation>
                          <xs:appinfo>
                            <dynamicForms>
@@ -345,11 +330,6 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                            </dynamicForms>
                          </xs:appinfo>
                        </xs:annotation>
-                       <xs:complexType>
-                         <xs:sequence>
-                           <xs:any minOccurs='0' processContents='lax' />
-                         </xs:sequence>
-                       </xs:complexType>
                      </xs:element>
                       </xs:sequence>
                     </xs:complexType>
@@ -394,7 +374,7 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                                   </xs:complexType>
                                 </xs:element>
                                 <xs:element name='stringField3' type='xs:string' minOccurs='1' maxOccurs='1' />
-                                <xs:element name='PredefinedSteps' minOccurs='0' maxOccurs='1'>
+                                <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
                                   <xs:annotation>
                                     <xs:appinfo>
                                       <dynamicForms>
@@ -403,11 +383,6 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                                       </dynamicForms>
                                     </xs:appinfo>
                                   </xs:annotation>
-                                  <xs:complexType>
-                                    <xs:sequence>
-                                      <xs:any minOccurs='0' processContents='lax' />
-                                    </xs:sequence>
-                                  </xs:complexType>
                                 </xs:element>
                               </xs:all>
                             </xs:complexType>

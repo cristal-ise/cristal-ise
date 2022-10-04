@@ -63,22 +63,21 @@ class SchemaDelegate {
         }
     }
 
-    private void addPredefinedStepsStruct(Struct s) {
+    private void addPredefinedStepsField(Struct s) {
         // empty schema is not extended further
         if (!s || !s.fields) return
 
         // Schema can only contain one xsd:any
         if (s.anyField) return
 
-        def predefinedStepsS = new Struct(
+        def predefinedSteps = new Field(
             name: 'PredefinedSteps', 
-            useSequence: true, 
             multiplicity: '0..1', 
-            anyField: new AnyField(),
+            type: 'anyType',
             dynamicForms: new DynamicForms(required: false, hidden: true)
         )
 
-        s.addStruct(predefinedStepsS)
+        s.addField(predefinedSteps)
     }
 
     @CompileDynamic
@@ -93,7 +92,7 @@ class SchemaDelegate {
         cl.delegate = objBuilder
 
         Struct s = cl()
-        addPredefinedStepsStruct(s)
+        addPredefinedStepsField(s)
         updateScriptReferences(s)
         xsdString = buildXSD(s)
     }
@@ -103,7 +102,7 @@ class SchemaDelegate {
 
         Struct s = tsb.build(parser)
 
-        addPredefinedStepsStruct(s)
+        addPredefinedStepsField(s)
         updateScriptReferences(s)
         xsdString = buildXSD(s)
     }

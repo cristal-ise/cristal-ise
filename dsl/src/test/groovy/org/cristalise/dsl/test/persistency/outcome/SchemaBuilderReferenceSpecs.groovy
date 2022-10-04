@@ -57,7 +57,7 @@ class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSe
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
-                       <xs:element name='PredefinedSteps' minOccurs='0' maxOccurs='1'>
+                       <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
                              <dynamicForms>
@@ -66,11 +66,6 @@ class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSe
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
-                         <xs:complexType>
-                           <xs:sequence>
-                             <xs:any minOccurs='0' processContents='lax' />
-                           </xs:sequence>
-                         </xs:complexType>
                        </xs:element>
                      </xs:sequence>
                    </xs:complexType>
@@ -105,7 +100,7 @@ class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSe
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
-                       <xs:element name='PredefinedSteps' minOccurs='0' maxOccurs='1'>
+                       <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
                          <xs:annotation>
                            <xs:appinfo>
                              <dynamicForms>
@@ -114,11 +109,6 @@ class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSe
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
-                         <xs:complexType>
-                           <xs:sequence>
-                             <xs:any minOccurs='0' processContents='lax' />
-                           </xs:sequence>
-                         </xs:complexType>
                        </xs:element>
                      </xs:sequence>
                    </xs:complexType>

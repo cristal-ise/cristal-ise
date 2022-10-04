@@ -59,6 +59,16 @@ class ExcelSchemaBuilderListOfValuesSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:sequence>
                    </xs:complexType>
                  </xs:element>
@@ -79,6 +89,16 @@ class ExcelSchemaBuilderListOfValuesSpecs extends Specification implements Crist
                              <listOfValues>
                                <values>v1,v2,v3</values>
                              </listOfValues>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
