@@ -27,9 +27,6 @@ import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class AnyTypeBuildOutcomeTest extends XMLUtils {
 
     String dir = "src/test/data/outcomeBuilder";
@@ -59,9 +56,8 @@ public class AnyTypeBuildOutcomeTest extends XMLUtils {
         new Outcome(getXML(dir, "AnyTypeAndFieldPredefinedSteps2"), new Schema(type, 0, xsd)).validateAndCheck();
     }
 
-    @Test
-    public void appendXmlFragmentsToPredefeinedSteps() throws Exception {
-        OutcomeBuilder ob = new OutcomeBuilder(new Schema("AnyTypePredefinedSteps", 0, getXSD(dir, "AnyTypePredefinedSteps")));
+    private void appendXmlFragments(String schemaName) throws Exception {
+        OutcomeBuilder ob = new OutcomeBuilder(new Schema(schemaName, 0, getXSD(dir, schemaName)));
 
         ob.getOutcome().setField("StringField", "toto");
 
@@ -75,9 +71,8 @@ public class AnyTypeBuildOutcomeTest extends XMLUtils {
         assert compareXML(getXML(dir, "AnyTypeAndFieldPredefinedSteps2"), ob.getXml());
     }
 
-    @Test
-    public void addFieldsToPredefeinedSteps() throws Exception {
-        OutcomeBuilder ob = new OutcomeBuilder(new Schema("AnyTypePredefinedSteps", 0, getXSD(dir, "AnyTypePredefinedSteps")));
+    private void addFields(String schemaName) throws Exception {
+        OutcomeBuilder ob = new OutcomeBuilder(new Schema(schemaName, 0, getXSD(dir, schemaName)));
 
         ob.getOutcome().setField("StringField", "toto");
 
@@ -91,5 +86,25 @@ public class AnyTypeBuildOutcomeTest extends XMLUtils {
         ob.addField("/PredefinedStepsTest/PredefinedSteps/AddMembersToCollection");
         ob.getOutcome(false).appendXmlFragment("/PredefinedStepsTest/PredefinedSteps/AddMembersToCollection[2]", "<Dependency id='2'/>");
         assert compareXML(getXML(dir, "AnyTypeAndFieldPredefinedSteps2"), ob.getXml());
+    }
+
+    @Test
+    public void anyTypeAppendXmlFragmentsToPredefeinedSteps() throws Exception {
+        appendXmlFragments("AnyTypePredefinedSteps");
+    }
+
+    @Test
+    public void anyTypeAddFieldsToPredefeinedSteps() throws Exception {
+        addFields("AnyTypePredefinedSteps");
+    }
+
+    @Test
+    public void anyFieldAppendXmlFragmentsToPredefeinedSteps() throws Exception {
+        appendXmlFragments("AnyFieldPredefinedSteps");
+    }
+
+    @Test
+    public void anyFieldAddFieldsToPredefeinedSteps() throws Exception {
+        addFields("AnyFieldPredefinedSteps");
     }
 }
