@@ -27,6 +27,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
 import org.exolab.castor.xml.schema.ElementDecl;
+import org.exolab.castor.xml.schema.Wildcard;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
@@ -41,15 +42,23 @@ public class Field extends OutcomeStructure {
     StringField   myFieldInstance = null;
     AttributeList myAttributes;
     Text          textNode;
+    boolean       isAnyField = false;
+
+    public Field(Wildcard model) {
+        super(model);
+        isAnyField = true;
+    }
 
     public Field(ElementDecl model) {
         super(model);
 
+        log.debug("name:{} optional:{} isAnyType:{}", model.getName(), isOptional(), isAnyType());
+
+        if (isAnyType()) return;
+
         // field can have attributes
         myAttributes = new AttributeList(model);
 
-        log.debug("name:"+model.getName()+" optional:" + isOptional());
-        
         // skipping optional fields
         //if (isOptional()) return;
 
@@ -199,7 +208,16 @@ public class Field extends OutcomeStructure {
         }
 
         // set up attributes
-        myAttributes.initNew(myElement);
+        if (myAttributes != null) myAttributes.initNew(myElement);
+
+        return myElement;
+    }
+
+    public Element initNewAny(Document rootDocument, String name) {
+        log.debug("initNewAny() - Creating '"+name+"'");
+
+        // make a new Element
+        myElement = rootDocument.createElement(name);
 
         return myElement;
     }

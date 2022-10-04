@@ -20,19 +20,25 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<configuration>
-
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-    <!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
-    <encoder>
-      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-    </encoder>
-  </appender>
-
-<!--   <logger name="org.jooq" level="DEBUG" /> -->
-
-  <root level="DEBUG">
-    <appender-ref ref="STDOUT" />
-  </root>
-
-</configuration>
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name='PredefinedStepsTest'>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name='StringField' type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='PredefinedSteps' minOccurs='0' maxOccurs='1'>
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name='AddMembersToCollection' minOccurs='0' maxOccurs='unbounded'>
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:any minOccurs='0' processContents="lax"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
