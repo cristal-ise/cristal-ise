@@ -40,13 +40,23 @@ public class AnyTypeBuildOutcomeTest extends XMLUtils {
     }
 
     @Test 
-    public void basicOutcomeValidateTest() throws Exception {
+    public void anyTypeOutcomeValidateTest() throws Exception {
         String type = "AnyTypePredefinedSteps";
         String xsd  = getXSD(dir, type);
 
-        new Outcome(getXML(dir, "AnyTypePredefinedSteps0"), new Schema(type, 0, xsd)).validateAndCheck();
-        new Outcome(getXML(dir, "AnyTypePredefinedSteps1"), new Schema(type, 0, xsd)).validateAndCheck();
-        new Outcome(getXML(dir, "AnyTypePredefinedSteps2"), new Schema(type, 0, xsd)).validateAndCheck();
+        new Outcome(getXML(dir, "AnyTypeAndFieldPredefinedSteps0"), new Schema(type, 0, xsd)).validateAndCheck();
+        new Outcome(getXML(dir, "AnyTypeAndFieldPredefinedSteps1"), new Schema(type, 0, xsd)).validateAndCheck();
+        new Outcome(getXML(dir, "AnyTypeAndFieldPredefinedSteps2"), new Schema(type, 0, xsd)).validateAndCheck();
+    }
+
+    @Test 
+    public void anyFieldOutcomeValidateTest() throws Exception {
+        String type = "AnyFieldPredefinedSteps";
+        String xsd  = getXSD(dir, type);
+
+        new Outcome(getXML(dir, "AnyTypeAndFieldPredefinedSteps0"), new Schema(type, 0, xsd)).validateAndCheck();
+        new Outcome(getXML(dir, "AnyTypeAndFieldPredefinedSteps1"), new Schema(type, 0, xsd)).validateAndCheck();
+        new Outcome(getXML(dir, "AnyTypeAndFieldPredefinedSteps2"), new Schema(type, 0, xsd)).validateAndCheck();
     }
 
     @Test
@@ -55,23 +65,15 @@ public class AnyTypeBuildOutcomeTest extends XMLUtils {
 
         ob.getOutcome().setField("StringField", "toto");
 
-        log.info(ob.getXml());
-
         ob.addField("PredefinedSteps");
-        assert compareXML(getXML(dir, "AnyTypePredefinedSteps0"), ob.getXml());
-
-        log.info(ob.getXml());
+        assert compareXML(getXML(dir, "AnyTypeAndFieldPredefinedSteps0"), ob.getXml());
 
         ob.getOutcome().appendXmlFragment("/PredefinedStepsTest/PredefinedSteps", "<AddMembersToCollection><Dependency id='1'/></AddMembersToCollection>");
-        assert compareXML(getXML(dir, "AnyTypePredefinedSteps1"), ob.getXml());
-
-        log.info(ob.getXml());
+        assert compareXML(getXML(dir, "AnyTypeAndFieldPredefinedSteps1"), ob.getXml());
 
         ob.getOutcome().appendXmlFragment("/PredefinedStepsTest/PredefinedSteps", "<AddMembersToCollection><Dependency id='2'/></AddMembersToCollection>");
-        assert compareXML(getXML(dir, "AnyTypePredefinedSteps2"), ob.getXml());
-
-        log.info(ob.getXml());
-}
+        assert compareXML(getXML(dir, "AnyTypeAndFieldPredefinedSteps2"), ob.getXml());
+    }
 
     @Test
     public void addFieldsToPredefeinedSteps() throws Exception {
@@ -79,23 +81,15 @@ public class AnyTypeBuildOutcomeTest extends XMLUtils {
 
         ob.getOutcome().setField("StringField", "toto");
 
-        log.info(ob.getXml());
-
         ob.addField("PredefinedSteps", "");
-        assert compareXML(getXML(dir, "AnyTypePredefinedSteps0"), ob.getXml());
-
-        log.info(ob.getXml());
+        assert compareXML(getXML(dir, "AnyTypeAndFieldPredefinedSteps0"), ob.getXml());
 
         ob.addField("/PredefinedStepsTest/PredefinedSteps/AddMembersToCollection");
         ob.getOutcome().appendXmlFragment("/PredefinedStepsTest/PredefinedSteps/AddMembersToCollection[1]", "<Dependency id='1'/>");
-        assert compareXML(getXML(dir, "AnyTypePredefinedSteps1"), ob.getXml());
-
-        log.info(ob.getXml());
+        assert compareXML(getXML(dir, "AnyTypeAndFieldPredefinedSteps1"), ob.getXml());
 
         ob.addField("/PredefinedStepsTest/PredefinedSteps/AddMembersToCollection");
         ob.getOutcome(false).appendXmlFragment("/PredefinedStepsTest/PredefinedSteps/AddMembersToCollection[2]", "<Dependency id='2'/>");
-        assert compareXML(getXML(dir, "AnyTypePredefinedSteps2"), ob.getXml());
-
-        log.info(ob.getXml());
+        assert compareXML(getXML(dir, "AnyTypeAndFieldPredefinedSteps2"), ob.getXml());
     }
 }
