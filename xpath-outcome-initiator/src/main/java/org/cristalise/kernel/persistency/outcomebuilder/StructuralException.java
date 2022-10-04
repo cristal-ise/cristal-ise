@@ -32,7 +32,11 @@ public class StructuralException extends OutcomeBuilderException {
         super(e);
     }
 
-    public StructuralException(String ex) {
-        super(ex);
+    public StructuralException(String msg) {
+        super(msg);
+    }
+
+    public StructuralException(String msg, Exception ex) {
+        super(msg, ex);
     }
 }

@@ -178,8 +178,13 @@ public class DataRecord extends OutcomeStructure {
         // populate
         for (String elementName : subStructureOrder) {
             OutcomeStructure childStructure = subStructure.get(elementName);
-
-            if (childStructure instanceof Dimension) ((Dimension) childStructure).setParentElement(myElement);
+            
+            if (childStructure instanceof Field) {
+                if (((Field)childStructure).isAnyField) continue;
+            }
+            else if (childStructure instanceof Dimension) {
+                ((Dimension) childStructure).setParentElement(myElement);
+            }
 
             for (int i = 0; i < childStructure.getModel().getMinOccurs(); i++) {
                 myElement.appendChild(childStructure.initNew(rootDocument));
