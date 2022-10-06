@@ -39,7 +39,6 @@ Script('CrudEntity_ChangeDependecy', 0) {
 }
 
 Activity('CrudEntity_ChangeDependecy', 0) {
-    Property((OUTCOME_INIT): 'Empty')
     Property((PREDEFINED_STEP): 'TO BE OVERRIDDEN')
     Property((DEPENDENCY_NAME): 'TO BE OVERRIDDEN')
 

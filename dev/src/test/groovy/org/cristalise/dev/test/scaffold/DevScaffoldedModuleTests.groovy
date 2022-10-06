@@ -31,6 +31,7 @@ import org.cristalise.dev.dsl.DevItemDSL
 import org.cristalise.dev.scaffold.CRUDItemCreator
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.entity.proxy.ItemProxy
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
 import org.cristalise.kernel.test.utils.KernelXMLUtility
@@ -283,7 +284,9 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         def addToCarsJob = clubMember.getJobByName('AddToCars', agent)
         assert addToCarsJob, "Cannot get Job $addToCarsJob of Item '$clubMember.name'"
 
-        addToCarsJob.getOutcome().setField("MemberName", "Car-$timeStamp",)
+        def ob = new OutcomeBuilder(addToCarsJob.schema)
+        ob.addField("MemberName", "Car-$timeStamp")
+        addToCarsJob.setOutcome(ob.outcome)
         agent.execute(addToCarsJob)
 
         def clubMemberCars = (Dependency)clubMember.getCollection('Cars')
@@ -298,7 +301,9 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         def addToMotorcyclesJob = clubMember.getJobByName('AddToMotorcycles', agent)
         assert addToMotorcyclesJob, "Cannot get Job $addToCarsJob of Item '$clubMember'"
 
-        addToMotorcyclesJob.getOutcome().setField("MemberName", "Motorcycle-$timeStamp",)
+        ob = new OutcomeBuilder(addToMotorcyclesJob.schema)
+        ob.addField("MemberName", "Motorcycle-$timeStamp")
+        addToMotorcyclesJob.setOutcome(ob.outcome)
         agent.execute(addToMotorcyclesJob)
 
         def clubMemberMotorcycles = (Dependency)clubMember.getCollection('Motorcycles')
@@ -313,7 +318,9 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         def removeFromCarsJob = clubMember.getJobByName('RemoveFromCars', agent)
         assert removeFromCarsJob, "Cannot get Job $removeFromCarsJob of Item '$clubMember.name'"
 
-        addToCarsJob.getOutcome().setField("MemberSlotId", "0")
+        ob = new OutcomeBuilder(removeFromCarsJob.schema)
+        ob.addField("MemberSlotId", "0")
+        removeFromCarsJob.setOutcome(ob.outcome)
         agent.execute(removeFromCarsJob)
 
         clubMemberCars = (Dependency)clubMember.getCollection('Cars')

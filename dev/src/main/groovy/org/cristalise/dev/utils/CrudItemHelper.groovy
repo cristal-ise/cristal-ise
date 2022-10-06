@@ -21,6 +21,8 @@
  */
 package org.cristalise.dev.utils
 
+import static org.cristalise.kernel.lifecycle.instance.Activity.PREDEF_STEPS_ELEMENT
+
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection
@@ -49,13 +51,13 @@ class CrudItemHelper {
      * @return the XPath to the initialised element
      */
     public static String initOutcomePredefStepField(Outcome outcome, Schema schema, Class predefStepClazz) {
-        String predefStepXpath = '/' + outcome.rootName + '/PredefinedSteps/' + predefStepClazz.getSimpleName()
+        String predefStepXpath = '/' + outcome.rootName + '/' + PREDEF_STEPS_ELEMENT + '/' + predefStepClazz.getSimpleName()
         OutcomeBuilder builder = new OutcomeBuilder(schema, outcome)
 
-        if (! outcome.getNodeByXPath('//PredefinedSteps')) {
-            builder.addField('PredefinedSteps', '')
+        if (! outcome.getNodeByXPath( '/' + outcome.rootName + '/' + PREDEF_STEPS_ELEMENT)) {
+            builder.addField(PREDEF_STEPS_ELEMENT)
         }
-        builder.addField(predefStepXpath, '')
+        builder.addField(predefStepXpath)
 
         return predefStepXpath
     }

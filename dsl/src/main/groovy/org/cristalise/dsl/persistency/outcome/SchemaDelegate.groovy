@@ -20,6 +20,8 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import static org.cristalise.kernel.lifecycle.instance.Activity.PREDEF_STEPS_ELEMENT
+
 import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.property.BuiltInItemProperties
@@ -70,14 +72,14 @@ class SchemaDelegate {
         // Schema can only contain one xsd:any
         if (s.anyField) return
 
-        def predefinedSteps = new Field(
-            name: 'PredefinedSteps', 
+        def predefinedStepsF = new Field(
+            name: PREDEF_STEPS_ELEMENT, 
             multiplicity: '0..1', 
             type: 'anyType',
             dynamicForms: new DynamicForms(required: false, hidden: true)
         )
 
-        s.addField(predefinedSteps)
+        s.addField(predefinedStepsF)
     }
 
     @CompileDynamic

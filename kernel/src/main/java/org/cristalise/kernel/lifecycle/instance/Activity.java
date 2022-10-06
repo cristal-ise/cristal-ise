@@ -76,6 +76,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Activity extends WfVertex {
+    public static final String PREDEF_STEPS_ELEMENT = "PredefinedSteps";
+
     protected static final String XPATH_TOKEN = "xpath:";
 
     /**
@@ -311,7 +313,7 @@ public class Activity extends WfVertex {
             PersistencyException, ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification
     {
         try {
-            Node predefinedStepsNode = newOutcome.getNodeByXPath("//PredefinedSteps");
+            Node predefinedStepsNode = newOutcome.getNodeByXPath("/"+newOutcome.getRootName()+"/"+ PREDEF_STEPS_ELEMENT);
 
             // PredefinedSteps element is optional so in this case there is nothing to do
             if (predefinedStepsNode == null) return;
@@ -324,10 +326,10 @@ public class Activity extends WfVertex {
                     String predefStepName = predefStepNode.getNodeName();
 
                     PredefinedStep predefStep = PredefinedStep.getStepInstance(predefStepName.trim());
-                    Objects.requireNonNull(predefStep, "Outome does not contain valid PredefinedStep:"+predefStepName);
+                    Objects.requireNonNull(predefStep, "Outome does not contain valid PredefinedStep:"+predefStepName+" outcome:"+newOutcome);
 
                     Node predefSteptOutcomeNode = predefStep.getPredefStepOutcomeNode(predefStepNode);
-                    Objects.requireNonNull(predefSteptOutcomeNode, "Outome does not contain data to execute PredefinedStep:"+predefStepName);
+                    Objects.requireNonNull(predefSteptOutcomeNode, "Outome does not contain data to execute PredefinedStep:"+predefStepName+" outcome:"+newOutcome);
 
                     predefStep.computeUpdates(itemPath, this, predefSteptOutcomeNode, transactionKey);
 

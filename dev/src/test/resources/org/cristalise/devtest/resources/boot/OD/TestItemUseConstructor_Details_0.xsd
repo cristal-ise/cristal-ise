@@ -5,7 +5,7 @@
       <xs:all minOccurs='0'>
         <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
         <xs:element name='Description' type='xs:string' minOccurs='1' maxOccurs='1' />
-        <xs:element name='PredefinedSteps' minOccurs='0' maxOccurs='1'>
+        <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
           <xs:annotation>
             <xs:appinfo>
               <dynamicForms>
@@ -14,11 +14,6 @@
               </dynamicForms>
             </xs:appinfo>
           </xs:annotation>
-          <xs:complexType>
-            <xs:sequence>
-              <xs:any minOccurs='0' processContents='lax' />
-            </xs:sequence>
-          </xs:complexType>
         </xs:element>
       </xs:all>
     </xs:complexType>
