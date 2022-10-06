@@ -55,6 +55,16 @@ class ExcelSchemaBuilderReferenceSpecs extends Specification implements CristalT
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:sequence>
                    </xs:complexType>
                  </xs:element>

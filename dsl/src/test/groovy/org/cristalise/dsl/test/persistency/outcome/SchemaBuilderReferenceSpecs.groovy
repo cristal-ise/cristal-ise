@@ -57,6 +57,16 @@ class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSe
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:sequence>
                    </xs:complexType>
                  </xs:element>
@@ -87,6 +97,16 @@ class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSe
                              <reference>
                                <itemType>UnitTest</itemType>
                              </reference>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>

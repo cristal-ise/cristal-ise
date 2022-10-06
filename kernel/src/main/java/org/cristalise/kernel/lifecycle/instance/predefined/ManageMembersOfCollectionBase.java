@@ -118,37 +118,27 @@ public abstract class ManageMembersOfCollectionBase extends PredefinedStep {
     }
 
     /**
-     * Adds an update instruction to call the predefined step on the current Item based on 
-     * the Dependency data in the Outcome, i.e. the outcome must contain the serialized Dependency.
+     * Adds an update instruction to call the predefined step on the current Item based on  serialized Dependency.
      * 
      * @param currentItem the Item currently processing an Activity.requets()
      * @param inputOutcome contains the marshaled input Dependency
      * @return the input Dependency object unmarshaled from the Outcome
      * @throws InvalidDataException processing outcome had an error
      */
-    protected Dependency addCurrentDependencyUpdate(ItemPath currentItem, Outcome inputOutcome) throws InvalidDataException {
-        Node dependencyNode = null;
+    protected Dependency addCurrentDependencyUpdate(ItemPath currentItem, Node dependencyNode) throws InvalidDataException {
+        String dependencyString = Outcome.serialize(dependencyNode, false);
 
         try {
-            dependencyNode = inputOutcome.getNodeByXPath("//Dependency");
+            getAutoUpdates().put(currentItem, dependencyString);
 
-            if (dependencyNode != null) {
-                String dependencyString = Outcome.serialize(dependencyNode, false);
-                getAutoUpdates().put(currentItem, dependencyString);
-
-                if (log.isTraceEnabled()) {
-                    log.trace("addCurrentDependencyUpdate() - currentItem:{} outcome:{}", currentItem.getItemName(), dependencyString);
-                }
-
-                return (Dependency) Gateway.getMarshaller().unmarshall(dependencyString);
+            if (log.isTraceEnabled()) {
+                log.trace("addCurrentDependencyUpdate() - currentItem:{} outcome:{}", currentItem.getItemName(), dependencyString);
             }
-            else {
-                log.error("The outcome must contain the serialized Dependency - outcome:{}", inputOutcome.getData());
-                throw new InvalidDataException("The outcome must contain the serialized Dependency");
-            }
+
+            return (Dependency) Gateway.getMarshaller().unmarshall(dependencyString);
         }
-        catch (XPathExpressionException | MarshalException | ValidationException | IOException | MappingException e) {
-            log.error("The outcome must contain the serialized Dependency - outcome:{}", inputOutcome.getData(), e);
+        catch (MarshalException | ValidationException | IOException | MappingException e) {
+            log.error("The outcome must contain the serialized Dependency - outcome:{}", dependencyString, e);
             throw new InvalidDataException("The outcome must contain the serialized Dependency", e);
         }
     }
@@ -227,7 +217,7 @@ public abstract class ManageMembersOfCollectionBase extends PredefinedStep {
     }
 
     @Override
-    public void computeUpdates(ItemPath currentItemPath, Activity currentActivity, Outcome inputOutcome, TransactionKey transactionKey)
+    public void computeUpdates(ItemPath currentItemPath, Activity currentActivity, Node inputNode, TransactionKey transactionKey)
             throws InvalidDataException, PersistencyException, ObjectNotFoundException, ObjectAlreadyExistsException, InvalidCollectionModification 
     {
         ItemProxy item = Gateway.getProxy(currentItemPath, transactionKey);
@@ -241,7 +231,7 @@ public abstract class ManageMembersOfCollectionBase extends PredefinedStep {
         Dependency currentDependency = (Dependency) item.getCollection(dependencyName, null, transactionKey);
         Type currentDepType = currentDependency.getType();
 
-        Dependency inputDependency = addCurrentDependencyUpdate(currentItemPath, inputOutcome);
+        Dependency inputDependency = addCurrentDependencyUpdate(currentItemPath, inputNode);
 
         if (isBlank(inputDependency.getName()) || !dependencyName.equals(inputDependency.getName())) {
             throw new InvalidDataException(dependencyName + " != " + inputDependency.getName());

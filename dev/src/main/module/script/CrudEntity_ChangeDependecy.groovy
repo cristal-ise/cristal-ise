@@ -18,17 +18,15 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+import static org.cristalise.dev.utils.CrudItemHelper.*
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
-import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
-import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection
 import org.cristalise.kernel.lifecycle.instance.predefined.RemoveMembersFromCollection
-import org.cristalise.kernel.persistency.outcome.Outcome
-import org.cristalise.kernel.utils.CastorHashMap
+import org.cristalise.kernel.lookup.ItemPath
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -36,93 +34,50 @@ import groovy.transform.CompileStatic
 import groovy.transform.Field
 
 @Field
-final Logger log = LoggerFactory.getLogger("org.cristalise.dev.Script.CrudEntity_ChangeDependecy")
-
-
-/**
- * 
- * @param dependencyName
- * @param outcome
- * @return
- */
-@CompileStatic
-def Dependency processAddMembersToCollection(AgentProxy theAgent, Job theJob, String dependencyName, Outcome outcome) {
-    def memberPath = outcome.getField('MemberPath')
-    def memberName = outcome.getField('MemberName')
-
-    if (!memberPath && !memberName) {
-        log.error('processAddMembersToCollection() - Both MemberPath and MemberName are missing from outcome:{}', outcome)
-        throw new InvalidDataException('Please provide MemberPath or MemberName')
-    }
-
-    def memberPropString = outcome.getField('MemberProperties')
-    def memberProps = memberPropString ? (CastorHashMap)theAgent.unmarshall(memberPropString) : new CastorHashMap()
-
-    def dep = new Dependency(dependencyName)
-
-    if (memberPath) {
-        dep.addMember(theAgent.getItem(memberPath).getPath(), memberProps, '', null);
-    }
-    else {
-        // find the item in the 'default' location eg. /integTest/Patients/kovax
-        def moduleNs = theJob.getActProp('ModuleNameSpace')
-        dep.addMember(theAgent.getItem("$moduleNs/$dependencyName/$memberName").getPath(), memberProps, '', null);
-    }
-
-    return dep
-}
-
-/**
- * 
- * @param dependencyName
- * @param outcome
- * @return
- */
-@CompileStatic
-def Dependency processRemoveMembersFromCollection(ItemProxy theItem, AgentProxy theAgent, Job theJob, String dependencyName, Outcome outcome) {
-    def memberSlotId = outcome.hasField('MemberSlotId') ? outcome.getField('MemberSlotId') as Integer : -1
-    def dep = new Dependency(dependencyName)
-
-    if (memberSlotId != -1) {
-        def currDep = (Dependency)theItem.getCollection(dependencyName)
-        def member = currDep.getMember(memberSlotId)
-
-        dep.addMember(member)
-    }
-    else {
-        log.error('processRemoveMembersFromCollection() - MemberSlotId was not set in outcome:{}', outcome)
-        throw new InvalidDataException('Please provide MemberSlotId')
-    }
-
-    return dep
-}
+final Logger log = LoggerFactory.getLogger("org.cristalise.dev.Script.CrudEntity.ChangeDependecy")
 
 /*
  * Script starts here 
  */
-Outcome outcome = job.getOutcome()
 def dependencyName = job.getActProp(DEPENDENCY_NAME) as String
 def predefinedStep = job.getActProp(PREDEFINED_STEP) as String
 
-if (predefinedStep.contains(AddMembersToCollection.class.getSimpleName())) {
-    if (outcome.getNodeByXPath('//AddMembersToCollection/Dependency')) {
-        log.debug('//AddMembersToCollection/Dependency is already in Outcome - job:{}', job);
-    }
-    else {
-        def dep = processAddMembersToCollection(agent, job, dependencyName, outcome)
-        outcome.appendXmlFragment('//AddMembersToCollection', agent.marshall(dep))
-    }
+if (predefinedStep == AddMembersToCollection.class.getSimpleName()) {
+    ItemPath memberItemPath = resolveMember(job, agent, dependencyName)
+
+    updateOutcomeWithAddMembersToCollection(item, job.outcome, job.schema, dependencyName, memberItemPath)
 }
 else if (predefinedStep.contains(RemoveMembersFromCollection.class.getSimpleName())) {
-    if (outcome.getNodeByXPath('//RemoveMembersFromCollection/Dependency')) {
-        log.debug('//RemoveMembersFromCollection/Dependency is already in Outcome - job:{}', job);
-    }
-    else {
-        def dep = processRemoveMembersFromCollection(item, agent, job, dependencyName, outcome)
-        outcome.appendXmlFragment('//RemoveMembersFromCollection', agent.marshall(dep))
-    }
+    def memberSlotId = job.outcome.hasField('MemberSlotId') ? job.outcome.getField('MemberSlotId') as Integer : -1
+    ItemPath memberItemPath
+
+    if (memberSlotId == -1) memberItemPath = resolveMember(job, agent, dependencyName)
+
+    updateOutcomeWithRemoveMembersFromCollection(item, job.outcome, job.schema, dependencyName, memberSlotId, memberItemPath)
 }
 else {
-    throw new InvalidDataException("Script CrudEntity_ChangeDependecy cannot handle predefined step:"+predefinedStep);
+    throw new InvalidDataException('Cannot handle predefined step:'+predefinedStep+' outcome:'+job.outcome);
 }
 
+log.debug('outcome:{}', job.outcome)
+
+@CompileStatic
+def ItemPath resolveMember(Job job, AgentProxy agent, String dependencyName) {
+    def memberPath = job.outcome.getField('MemberPath')
+    def memberName = job.outcome.getField('MemberName')
+
+    ItemPath memberItemPath
+
+    if (!memberPath && !memberName) {
+        log.error('resolveMember() - Both MemberPath and MemberName are missing from outcome:{}', job.outcome)
+        throw new InvalidDataException('Please provide MemberPath or MemberName')
+    }
+
+    if (memberPath) {
+        memberItemPath = new ItemPath(memberPath)
+    }
+    else {
+        def moduleNs = job.getActProp('ModuleNameSpace')
+        memberItemPath = agent.getItem("$moduleNs/$dependencyName/$memberName").path
+    }
+}

@@ -69,6 +69,16 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:sequence>
                    </xs:complexType>
                  </xs:element>
@@ -98,6 +108,16 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                            <xs:appinfo>
                              <dynamicForms>
                                <placeholder>99/99/9999</placeholder>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
@@ -138,6 +158,16 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                          </xs:annotation>
                        </xs:element>
                        <xs:element name='signatureTSNoSeconds' type='xs:dateTime' minOccurs='1' maxOccurs='1' />
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:sequence>
                    </xs:complexType>
                  </xs:element>
@@ -162,6 +192,16 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                     </xs:appinfo>
                   </xs:annotation>
                 </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
               </xs:sequence>
             </xs:complexType>
           </xs:element>
@@ -205,6 +245,16 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:sequence>
                    </xs:complexType>
                  </xs:element>
@@ -225,6 +275,16 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                              <dynamicForms>
                                <precision>5-</precision>
                                <scale>2</scale>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
@@ -254,6 +314,16 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                             </xs:appinfo>
                           </xs:annotation>
                         </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                       </xs:sequence>
                     </xs:complexType>
                   </xs:element>
@@ -279,6 +349,16 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:sequence>
                    </xs:complexType>
                  </xs:element>
@@ -298,6 +378,16 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                            <xs:appinfo>
                              <dynamicForms>
                                <autoComplete>on</autoComplete>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
@@ -328,6 +418,16 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:sequence>
                    </xs:complexType>
                  </xs:element>
@@ -349,6 +449,16 @@ class ExcelSchemaBuilderDynymicFormsSpecs extends Specification implements Crist
                                <additional>
                                  <updateScriptRef>Script:0</updateScriptRef>
                                </additional>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>

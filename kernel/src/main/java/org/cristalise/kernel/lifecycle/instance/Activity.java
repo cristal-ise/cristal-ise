@@ -24,15 +24,18 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NA
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.BREAKPOINT;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PREDEFINED_STEP;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VALIDATE_OUTCOME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Vector;
+
 import javax.xml.xpath.XPathExpressionException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
@@ -66,10 +69,15 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Activity extends WfVertex {
+    public static final String PREDEF_STEPS_ELEMENT = "PredefinedSteps";
+
     protected static final String XPATH_TOKEN = "xpath:";
 
     /**
@@ -298,34 +306,41 @@ public class Activity extends WfVertex {
      * @param itemPath the current Item
      * @param newOutcome the Outcome submitted to the Activity
      * @param transactionKey the key of the current transaction 
+     * @throws  
      */
     private void executePredefinedSteps(AgentPath agent, ItemPath itemPath, Outcome newOutcome, TransactionKey transactionKey) 
             throws AccessRightsException, InvalidTransitionException, InvalidDataException, ObjectNotFoundException, 
             PersistencyException, ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification
     {
-        String predefStepProperty = getBuiltInProperty(PREDEFINED_STEP, "").toString();
+        try {
+            Node predefinedStepsNode = newOutcome.getNodeByXPath("/"+newOutcome.getRootName()+"/"+ PREDEF_STEPS_ELEMENT);
 
-        if (StringUtils.isNotBlank(predefStepProperty)) {
-            log.debug("executePredefinedStep() - predefStepProperty:{}", predefStepProperty);
+            // PredefinedSteps element is optional so in this case there is nothing to do
+            if (predefinedStepsNode == null) return;
 
-            for (String predefStepName : StringUtils.split(predefStepProperty, ',')) {
-                PredefinedStep predefStep = PredefinedStep.getStepInstance(predefStepName.trim());
+            NodeList predefinedStepsChildNodes = predefinedStepsNode.getChildNodes();
 
-                if (predefStep == null) {
-                    log.warn("executePredefinedStep() - SKIPPING Invalid PredefinedStep name:'{}'", predefStepName);
-                }
-                else if (predefStep.outcomeHasValidData(newOutcome)) {
-                    predefStep.mergeProperties(getProperties());
-                    predefStep.computeUpdates(itemPath, this, newOutcome, transactionKey);
+            for (int i = 0; i < predefinedStepsChildNodes.getLength(); i++) {
+                if (predefinedStepsChildNodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                    Node predefStepNode = predefinedStepsChildNodes.item(i);
+                    String predefStepName = predefStepNode.getNodeName();
+
+                    PredefinedStep predefStep = PredefinedStep.getStepInstance(predefStepName.trim());
+                    Objects.requireNonNull(predefStep, "Outome does not contain valid PredefinedStep:"+predefStepName+" outcome:"+newOutcome);
+
+                    Node predefSteptOutcomeNode = predefStep.getPredefStepOutcomeNode(predefStepNode);
+                    Objects.requireNonNull(predefSteptOutcomeNode, "Outome does not contain data to execute PredefinedStep:"+predefStepName+" outcome:"+newOutcome);
+
+                    predefStep.computeUpdates(itemPath, this, predefSteptOutcomeNode, transactionKey);
 
                     for (Entry<ItemPath, String> entry : predefStep.getAutoUpdates().entrySet()) {
                         predefStep.request(agent, entry.getKey(), entry.getValue(), transactionKey);
                     }
                 }
-                else {
-                    log.debug("executePredefinedStep() - SKIPPING optional PredefinedStep:'{}'", predefStepName);
-                }
             }
+        }
+        catch (XPathExpressionException e) {
+            log.error("executePredefinedSteps()", e);
         }
     }
 

@@ -24,6 +24,7 @@ import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
 import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
 import static org.cristalise.kernel.persistency.ClusterType.*;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -176,9 +177,9 @@ public class ClusterStorageManager {
             String newStorageClass = tok.nextToken();
             try {
                 if (!newStorageClass.contains(".")) newStorageClass = "org.cristalise.storage."+newStorageClass;
-                newStorage = (ClusterStorage)(Class.forName(newStorageClass).newInstance());
+                newStorage = (ClusterStorage)(Class.forName(newStorageClass).getDeclaredConstructor().newInstance());
             }
-            catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+            catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
                 throw new PersistencyException("init() - The cluster storage handler class "+newStorageClass+" could not be found.");
             }
             rootStores.add(newStorage);

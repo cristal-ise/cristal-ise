@@ -70,6 +70,16 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:all>
                    </xs:complexType>
                  </xs:element>
@@ -102,6 +112,16 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                            <xs:appinfo>
                              <dynamicForms>
                                <placeholder>99/99/9999</placeholder>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
@@ -148,6 +168,16 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                          </xs:annotation>
                        </xs:element>
                        <xs:element name='signatureTSNoSeconds' type='xs:dateTime' minOccurs='1' maxOccurs='1' />
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:all>
                    </xs:complexType>
                  </xs:element>
@@ -180,6 +210,16 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                     </xs:appinfo>
                   </xs:annotation>
                 </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
               </xs:all>
             </xs:complexType>
           </xs:element>
@@ -235,6 +275,16 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:all>
                    </xs:complexType>
                  </xs:element>
@@ -245,7 +295,7 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
         expect:
         SchemaTestBuilder.build('test', 'FormAppInfo', 0) {
             struct(name: 'Form') {
-                dynamicForms(width: '100%', label: 'testLabel', container: 'ui-g-12', hidden: true)
+                dynamicForms(width: '100%', label: 'testLabel', container: 'ui-g-12', hidden: true, required: false)
                 field(name:'stringField1')
             }
         }.compareXML(
@@ -258,12 +308,23 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                           <label>testLabel</label>
                           <container>ui-g-12</container>
                           <hidden>true</hidden>
+                          <required>false</required>
                         </dynamicForms>
                       </xs:appinfo>
                     </xs:annotation>
                     <xs:complexType>
                       <xs:all minOccurs='0'>
                         <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                        <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <dynamicForms>
+                                <hidden>true</hidden>
+                                <required>false</required>
+                              </dynamicForms>
+                            </xs:appinfo>
+                          </xs:annotation>
+                        </xs:element>
                       </xs:all>
                     </xs:complexType>
                   </xs:element>
@@ -287,6 +348,16 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                              <dynamicForms>
                                <precision>5-</precision>
                                <scale>2</scale>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
@@ -315,6 +386,16 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                                 <container>ui-g-12</container>
                                 <control>ui-g-10</control>
                                 <labelGrid>ui-g-2</labelGrid>
+                              </dynamicForms>
+                            </xs:appinfo>
+                          </xs:annotation>
+                        </xs:element>
+                        <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <dynamicForms>
+                                <hidden>true</hidden>
+                                <required>false</required>
                               </dynamicForms>
                             </xs:appinfo>
                           </xs:annotation>
@@ -349,6 +430,16 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:all>
                    </xs:complexType>
                  </xs:element>
@@ -373,6 +464,16 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                            <xs:appinfo>
                              <dynamicForms>
                                <autoComplete>on</autoComplete>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
@@ -411,6 +512,16 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:all>
                    </xs:complexType>
                  </xs:element>
@@ -438,6 +549,16 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                                <additional>
                                  <updateScriptRef>Script:0</updateScriptRef>
                                </additional>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
@@ -471,6 +592,16 @@ class SchemaBuilderDynymicFormsSpecs extends Specification implements CristalTes
                                <additional>
                                  <updateScriptRef>Script:0</updateScriptRef>
                                </additional>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
                              </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
