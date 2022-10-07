@@ -119,8 +119,14 @@ public class SchemaAccess extends ResourceAccess {
             return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms()).cookie(cookie).build();
         }
         catch (ObjectNotFoundException | InvalidDataException | OutcomeBuilderException e) {
-            throw new WebAppExceptionBuilder().message("Schema "+name+" v"+version+" doesn't point to any data")
-                    .status(Response.Status.NOT_FOUND).newCookie(cookie).build();
+            throw new WebAppExceptionBuilder()
+                .message("Schema "+name+" v"+version+" doesn't point to any data")
+                .status(Response.Status.NOT_FOUND)
+                .newCookie(cookie)
+                .build();
+        }
+        catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
@@ -141,8 +147,14 @@ public class SchemaAccess extends ResourceAccess {
             return Response.ok(new OutcomeBuilder(schema).exportViewTemplate()).cookie(cookie).build();
         }
         catch (ObjectNotFoundException | InvalidDataException | OutcomeBuilderException e) {
-            throw new WebAppExceptionBuilder().message("Schema "+name+" v"+version+" doesn't point to any data")
-                    .status(Response.Status.NOT_FOUND).newCookie(cookie).build();
+            throw new WebAppExceptionBuilder()
+                .message("Schema "+name+" v"+version+" doesn't point to any data")
+                .status(Response.Status.NOT_FOUND)
+                .newCookie(cookie)
+                .build();
+        }
+        catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 }

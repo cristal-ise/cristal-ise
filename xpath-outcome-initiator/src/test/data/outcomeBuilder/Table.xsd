@@ -47,6 +47,7 @@
           </xs:complexType>
         </xs:element>
         <xs:element name='Comment'  type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='PredefinedSteps' minOccurs='0' maxOccurs='1' type='xs:anyType' />
       </xs:sequence>
     </xs:complexType>
   </xs:element>

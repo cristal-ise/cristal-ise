@@ -249,6 +249,11 @@ public class Field extends OutcomeStructure {
 
     @Override
     public Object generateNgDynamicForms(Map<String, Object> inputs) {
+        if (isAnyType() || isAnyField) {
+            log.debug("generateNgDynamicForms() - skipping anyField or fileld with anyType name:{} ", getName());
+            return null;
+        }
+
         String defVal = getDefaultValue();
 
         JSONObject fieldJson = myFieldInstance.generateNgDynamicForms(inputs);

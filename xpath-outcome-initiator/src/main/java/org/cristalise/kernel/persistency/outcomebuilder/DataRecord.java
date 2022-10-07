@@ -240,7 +240,10 @@ public class DataRecord extends OutcomeStructure {
 
         JSONArray array = myAttributes.generateNgDynamicForms(inputs);
 
-        for (String elementName : subStructureOrder) array.put(subStructure.get(elementName).generateNgDynamicForms(inputs));
+        for (String elementName : subStructureOrder) {
+            Object formFregment = subStructure.get(elementName).generateNgDynamicForms(inputs);
+            if (formFregment != null) array.put(formFregment);
+        }
 
         if (!isRootElement && !dr.has("label")) {
             String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
