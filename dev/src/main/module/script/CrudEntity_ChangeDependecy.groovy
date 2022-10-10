@@ -18,9 +18,8 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-import static org.cristalise.dev.utils.CrudItemHelper.*
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
-
+import org.cristalise.dev.utils.PredefinedStepsOutcomeBuilder
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
@@ -35,6 +34,8 @@ import groovy.transform.Field
 
 @Field
 final Logger log = LoggerFactory.getLogger("org.cristalise.dev.Script.CrudEntity.ChangeDependecy")
+@Field
+final PredefinedStepsOutcomeBuilder builder = new PredefinedStepsOutcomeBuilder(item, job.outcome, job.schema)
 
 /*
  * Script starts here 
@@ -42,10 +43,11 @@ final Logger log = LoggerFactory.getLogger("org.cristalise.dev.Script.CrudEntity
 def dependencyName = job.getActProp(DEPENDENCY_NAME) as String
 def predefinedStep = job.getActProp(PREDEFINED_STEP) as String
 
+
 if (predefinedStep == AddMembersToCollection.class.getSimpleName()) {
     ItemPath memberItemPath = resolveMember(job, agent, dependencyName)
 
-    updateOutcomeWithAddMembersToCollection(item, job.outcome, job.schema, dependencyName, memberItemPath)
+    builder.updateOutcomeWithAddMembersToCollection(dependencyName, memberItemPath)
 }
 else if (predefinedStep.contains(RemoveMembersFromCollection.class.getSimpleName())) {
     def memberSlotId = job.outcome.hasField('MemberSlotId') ? job.outcome.getField('MemberSlotId') as Integer : -1
@@ -53,7 +55,7 @@ else if (predefinedStep.contains(RemoveMembersFromCollection.class.getSimpleName
 
     if (memberSlotId == -1) memberItemPath = resolveMember(job, agent, dependencyName)
 
-    updateOutcomeWithRemoveMembersFromCollection(item, job.outcome, job.schema, dependencyName, memberSlotId, memberItemPath)
+    builder.updateOutcomeWithRemoveMembersFromCollection(dependencyName, memberSlotId, memberItemPath)
 }
 else {
     throw new InvalidDataException('Cannot handle predefined step:'+predefinedStep+' outcome:'+job.outcome);

@@ -37,22 +37,64 @@ import org.cristalise.kernel.utils.CastorHashMap
 
 import groovy.transform.CompileStatic
 
+/**
+ * Helper class on top of  {@link org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder}.
+ * Contains methods to update Outcome with PredefinedStpes.
+ */
 @CompileStatic
-class CrudItemHelper {
+class PredefinedStepsOutcomeBuilder {
 
-    private CrudItemHelper() {}
+    private ItemProxy      item
+    private OutcomeBuilder builder;
+
+    /**
+     * Constructor to initialise the builder
+     *  
+     * @param anItem to be updated
+     * @param outcome to be initialised
+     * @param schema required to build the Outcome
+     */
+    public PredefinedStepsOutcomeBuilder(ItemProxy anItem, Outcome outcome, Schema schema) {
+        item = anItem
+        builder = new OutcomeBuilder(schema, outcome)
+    }
+
+    /**
+     * Convenience method to retrieve the Outcome. Outcome will not be validate.
+     * 
+     * @return the Outcome (not validated) 
+     */
+    public Outcome getOutcome() {
+        return getOutcome(false)
+    }
+
+    /**
+     * Convenience method to retrieve the Outcome. Outcome will not be validate.
+     * 
+     * @param validate whether the Outcome shall be validated or not
+     * @return the Outcome 
+     */
+    public Outcome getOutcome(boolean validate) {
+        return builder.getOutcome(validate)
+    }
+
+    /**
+     * Convenience method to retrieve the Schema
+     * 
+     * @return the Schema
+     */
+    public Schema getSchema() {
+        return getOutcome().getSchema()
+    }
 
     /**
      * Initialises the Outcome with the /PrdefeinedSteps/${PredefStepName} element 
      * 
-     * @param outcome to be initialised
-     * @param schema required to build the Outcome
      * @param predefStepClazz the class of the predefined step
      * @return the XPath to the initialised element
      */
-    public static String initOutcomePredefStepField(Outcome outcome, Schema schema, Class predefStepClazz) {
+    public String initOutcomePredefStepField(Class predefStepClazz) {
         String predefStepXpath = '/' + outcome.rootName + '/' + PREDEF_STEPS_ELEMENT + '/' + predefStepClazz.getSimpleName()
-        OutcomeBuilder builder = new OutcomeBuilder(schema, outcome)
 
         if (! outcome.getNodeByXPath( '/' + outcome.rootName + '/' + PREDEF_STEPS_ELEMENT)) {
             builder.addField(PREDEF_STEPS_ELEMENT)
@@ -64,19 +106,13 @@ class CrudItemHelper {
 
     /**
      * Updates the Outcome with the data required to execute AddMembersToCollection 
-     * automatically on the item server
+     * automatically on the item server.
      * 
-     * @param item to be updated
-     * @param outcome to be updated
-     * @param schema required to build the Outcome
      * @param dependencyName name of the updated Dependency
      * @param members list of Item to be added
      * @param transactionKey key of the transaction, can be null
      */
-    public static void updateOutcomeWithAddMembersToCollection(
-        ItemProxy       item,
-        Outcome         outcome,
-        Schema          schema,
+    public void updateOutcomeWithAddMembersToCollection(
         String          dependencyName,
         List<ItemPath>  members,
         TransactionKey  transactionKey = null
@@ -90,7 +126,7 @@ class CrudItemHelper {
             dep.addMember(itemPath, new CastorHashMap(), '', transactionKey)
         }
 
-        def predefStepXpath = initOutcomePredefStepField(outcome, schema, AddMembersToCollection.class)
+        def predefStepXpath = initOutcomePredefStepField(AddMembersToCollection.class)
         outcome.appendXmlFragment(predefStepXpath, Gateway.getMarshaller().marshall(dep))
     }
 
@@ -98,18 +134,12 @@ class CrudItemHelper {
      * Updates the Outcome with the data required to execute AddMembersToCollection 
      * automatically on the item server
      * 
-     * @param item to be updated
-     * @param outcome to be updated
-     * @param schema required to build the Outcome
      * @param dependencyName name of the updated Dependency
      * @param memberPath the Item to be added
-     * @param memberProps the member properties associated with the Item
+     * @param memberProps the member properties associated with the Item, can be null
      * @param transactionKey key of the transaction, can be null
      */
-    public static void updateOutcomeWithAddMembersToCollection(
-        ItemProxy       item,
-        Outcome         outcome,
-        Schema          schema,
+    public void updateOutcomeWithAddMembersToCollection(
         String          dependencyName, 
         ItemPath        memberPath, 
         CastorHashMap   memberProps = null, 
@@ -121,27 +151,21 @@ class CrudItemHelper {
         def dep = new Dependency(dependencyName)
         dep.addMember(memberPath, memberProps ?: new CastorHashMap(), '', transactionKey)
 
-        def predefStepXpath = initOutcomePredefStepField(outcome, schema, AddMembersToCollection.class)
+        def predefStepXpath = initOutcomePredefStepField(AddMembersToCollection.class)
         outcome.appendXmlFragment(predefStepXpath, Gateway.getMarshaller().marshall(dep))
     }
 
     /**
-     * Updates the Outcome with the data required to execute AddMembersToCollection 
+     * Updates the Outcome with the data required to execute RemoveMembersFromCollection 
      * automatically on the item server
      * 
-     * @param item to be updated
-     * @param outcome to be updated
-     * @param schema required to build the Outcome
      * @param dependencyName name of the updated Dependency
      * @param memberSlotId if of the slot to be removed. Provide -1 to use memberPath instead
      * @param memberPath the Item to be removed. Can be null when memberSlotId is used
      * @param memberProps the member properties associated with the Item
      * @param transactionKey key of the transaction, can be null
      */
-    public static void updateOutcomeWithRemoveMembersFromCollection(
-        ItemProxy       item,
-        Outcome         outcome,
-        Schema          schema,
+    public void updateOutcomeWithRemoveMembersFromCollection(
         String          dependencyName, 
         int             memberSlotId, 
         ItemPath        memberPath, 
@@ -154,7 +178,7 @@ class CrudItemHelper {
         if (memberSlotId == -1) dep.addMember(currDep.getMember(memberPath))
         else                    dep.addMember(currDep.getMember(memberSlotId))
 
-        def predefStepXpath = initOutcomePredefStepField(outcome, schema, RemoveMembersFromCollection.class)
+        def predefStepXpath = initOutcomePredefStepField(RemoveMembersFromCollection.class)
         outcome.appendXmlFragment(predefStepXpath, Gateway.getMarshaller().marshall(dep))
     }
 }

@@ -52,9 +52,12 @@ public class Field extends OutcomeStructure {
     public Field(ElementDecl model) {
         super(model);
 
-        log.debug("name:{} optional:{} isAnyType:{}", model.getName(), isOptional(), isAnyType());
+        log.debug("ctor() - name:{} optional:{} isAnyType:{}", model.getName(), isOptional(), isAnyType());
 
-        if (isAnyType()) return;
+        if (isAnyType()) {
+            log.debug("ctor() - skipping Field(name:{}) with anyType", getName());
+            return;
+        }
 
         // field can have attributes
         myAttributes = new AttributeList(model);
@@ -64,7 +67,7 @@ public class Field extends OutcomeStructure {
 
         try {
             myFieldInstance = StringField.getField(model);
-            log.debug("name:" + model.getName() + " type: "+myFieldInstance.getClass().getSimpleName());
+            log.debug("ctor() - name:" + model.getName() + " type: "+myFieldInstance.getClass().getSimpleName());
         }
         catch (StructuralException e) {
             // no base type for field - only attributes
@@ -83,6 +86,11 @@ public class Field extends OutcomeStructure {
 
     @Override
     public void addInstance(Element newElement, Document parentDoc) throws OutcomeBuilderException {
+        if (isAnyType()) {
+            log.debug("addInstance() - skipping Field(name:{}) with anyType", getName());
+            return ;
+        }
+
         log.debug("addInstance() - field:"+newElement.getTagName());
 
         // Set attributes first
@@ -238,6 +246,11 @@ public class Field extends OutcomeStructure {
 
     @Override
     public void exportViewTemplate(Writer template) throws IOException {
+        if (isAnyType()) {
+            log.debug("exportViewTemplate() - skipping Field(name:{}) with anyType", getName());
+            return;
+        }
+
         String type = myFieldInstance.getClass().getSimpleName();
         template.write("<Field name='"+model.getName()+"' type='"+type+"'/>");
     }
@@ -249,8 +262,8 @@ public class Field extends OutcomeStructure {
 
     @Override
     public Object generateNgDynamicForms(Map<String, Object> inputs) {
-        if (isAnyType() || isAnyField) {
-            log.debug("generateNgDynamicForms() - skipping anyField or fileld with anyType name:{} ", getName());
+        if (isAnyType()) {
+            log.debug("generateNgDynamicForms() - skipping Field(name:{}) with anyType", getName());
             return null;
         }
 
