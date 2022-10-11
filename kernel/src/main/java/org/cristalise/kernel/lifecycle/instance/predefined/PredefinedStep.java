@@ -171,7 +171,7 @@ public abstract class PredefinedStep extends Activity {
     public Node getPredefStepOutcomeNode(Node predefStepNode) throws InvalidDataException {
         final List<Node> found = new ArrayList<>();
 
-        log.info("getPredefStepOutcomeNode() - node:{}", predefStepNode);
+        if (log.isDebugEnabled()) log.debug("getPredefStepOutcomeNode() - node:{}", Outcome.serialize(predefStepNode, false));
 
         Outcome.traverseChildElements(predefStepNode, (outcomeNode) -> {
             String schemaName = (String) getBuiltInProperty(SCHEMA_NAME);
@@ -184,7 +184,7 @@ public abstract class PredefinedStep extends Activity {
             return null;
         }
         else if (found.size() > 1) {
-            throw new InvalidDataException("Umbiguious input data found in outcome:"+predefStepNode);
+            throw new InvalidDataException("Umbiguious input data found in outcome:"+Outcome.serialize(predefStepNode, false));
         }
         else {
             return found.get(0);

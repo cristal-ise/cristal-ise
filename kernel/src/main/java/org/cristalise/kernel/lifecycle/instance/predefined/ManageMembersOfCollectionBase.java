@@ -20,15 +20,11 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.cristalise.kernel.collection.Collection.Type.Bidirectional;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_TO;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 
 import java.io.IOException;
-
-import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Collection.Cardinality;
@@ -221,21 +217,10 @@ public abstract class ManageMembersOfCollectionBase extends PredefinedStep {
             throws InvalidDataException, PersistencyException, ObjectNotFoundException, ObjectAlreadyExistsException, InvalidCollectionModification 
     {
         ItemProxy item = Gateway.getProxy(currentItemPath, transactionKey);
-        String dependencyName = currentActivity.getBuiltInProperty(DEPENDENCY_NAME, "").toString();
-
-        if (isBlank(dependencyName)) {
-            throw new InvalidDataException(
-                    "Missing ActivityProperty:" + DEPENDENCY_NAME + " item:" + currentItemPath + " activity:" + currentActivity.getName());
-        }
-
-        Dependency currentDependency = (Dependency) item.getCollection(dependencyName, null, transactionKey);
-        Type currentDepType = currentDependency.getType();
-
         Dependency inputDependency = addCurrentDependencyUpdate(currentItemPath, inputNode);
 
-        if (isBlank(inputDependency.getName()) || !dependencyName.equals(inputDependency.getName())) {
-            throw new InvalidDataException(dependencyName + " != " + inputDependency.getName());
-        }
+        Dependency currentDependency = (Dependency) item.getCollection(inputDependency.getName(), null, transactionKey);
+        Type currentDepType = currentDependency.getType();
 
         if (currentDepType != null && currentDepType == Bidirectional) {
             addUpdates_DependencyTo(currentItemPath, currentDependency, inputDependency, transactionKey);

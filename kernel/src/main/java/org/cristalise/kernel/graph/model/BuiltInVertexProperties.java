@@ -64,7 +64,8 @@ public enum BuiltInVertexProperties {
     DEPENDENCY_CARDINALITY("DependencyCardinality"),
 
     /**
-     * String property of Activity specifying the name of the Dependency update by the Activity. In DSL it is used like this:
+     * String property of Activity specifying the name(s) of the Dependency updated by the Activity. 
+     * May contain a comma separated list. In DSL it is used like this:
      *
      * <pre>
      * Activity('User_AddAddress', 0) {
@@ -72,6 +73,8 @@ public enum BuiltInVertexProperties {
      *   Property(DependencyName: 'Addresses')
      *   Schema('Address_Details', 0)
      * }</pre>
+     * 
+     * Can be null or undefined.
      */
     DEPENDENCY_NAME("DependencyName"),
 
@@ -191,8 +194,9 @@ public enum BuiltInVertexProperties {
     PAIRING_ID("PairingID"),
 
     /**
-     * String property. Declares the Activity to be associated with a PredefinedStep, therefore the Outcome
-     * shall contain the data required to execute automatically the predefined step.
+     * String property. Declares the Activity to be associated with a PredefinedStep(s), therefore the Outcome
+     * shall contain the data required to execute automatically the predefined step(s). 
+     * May contain a comma separated list.
      * 
      * In DSL it is used like this:
      *

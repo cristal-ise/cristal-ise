@@ -26,6 +26,8 @@ import static org.cristalise.kernel.lifecycle.instance.Activity.PREDEF_STEPS_ELE
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection
+import org.cristalise.kernel.lifecycle.instance.predefined.ChangeName
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep
 import org.cristalise.kernel.lifecycle.instance.predefined.RemoveMembersFromCollection
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.TransactionKey
@@ -34,6 +36,7 @@ import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.CastorHashMap
+import org.w3c.dom.NodeList
 
 import groovy.transform.CompileStatic
 
@@ -69,7 +72,7 @@ class PredefinedStepsOutcomeBuilder {
     }
 
     /**
-     * Convenience method to retrieve the Outcome. Outcome will not be validate.
+     * Convenience method to retrieve the Outcome. Outcome will not be validated.
      * 
      * @param validate whether the Outcome shall be validated or not
      * @return the Outcome 
@@ -88,20 +91,26 @@ class PredefinedStepsOutcomeBuilder {
     }
 
     /**
-     * Initialises the Outcome with the /PrdefeinedSteps/${PredefStepName} element 
+     * Initialises the Outcome with the /${OutcomeRoot}/PredefeinedSteps/${PredefStepName} element 
      * 
      * @param predefStepClazz the class of the predefined step
      * @return the XPath to the initialised element
      */
     public String initOutcomePredefStepField(Class predefStepClazz) {
-        String predefStepXpath = '/' + outcome.rootName + '/' + PREDEF_STEPS_ELEMENT + '/' + predefStepClazz.getSimpleName()
+        String predefStepsPath = '/' + outcome.rootName + '/' + PREDEF_STEPS_ELEMENT
 
-        if (! outcome.getNodeByXPath( '/' + outcome.rootName + '/' + PREDEF_STEPS_ELEMENT)) {
+        if (! outcome.getNodeByXPath(predefStepsPath)) {
             builder.addField(PREDEF_STEPS_ELEMENT)
         }
-        builder.addField(predefStepXpath)
 
-        return predefStepXpath
+        // only needed to count to number of nodes
+        NodeList nodes = outcome.getNodesByXPath( '//' + predefStepClazz.getSimpleName())
+        int index = nodes != null ? nodes.length + 1: 0
+
+        builder.addField(predefStepsPath + '/' + predefStepClazz.getSimpleName())
+
+        if (index == 0) return predefStepsPath + '/' + predefStepClazz.getSimpleName()
+        else            return predefStepsPath + '/' + predefStepClazz.getSimpleName() + '[' + index + ']'
     }
 
     /**
@@ -180,5 +189,18 @@ class PredefinedStepsOutcomeBuilder {
 
         def predefStepXpath = initOutcomePredefStepField(RemoveMembersFromCollection.class)
         outcome.appendXmlFragment(predefStepXpath, Gateway.getMarshaller().marshall(dep))
+    }
+
+    /**
+     * Updates the Outcome with the data required to execute ChangeName 
+     * automatically on the item server
+     * 
+     * @param currentName of the Item
+     * @param newName of the Item
+     * @param transactionKey key of the transaction, can be null
+     */
+    public void updateOutcomeWithChangeName(String currentName, String newName, TransactionKey  transactionKey = null) {
+        def predefStepXpath = initOutcomePredefStepField(ChangeName.class)
+        outcome.appendXmlFragment(predefStepXpath, PredefinedStep.bundleData(currentName, newName))
     }
 }

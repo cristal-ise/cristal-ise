@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory
 import groovy.transform.Field
 
 @Field final Logger log = LoggerFactory.getLogger('org.cristalise.dev.scripts.CrudEntity.ChangeName')
+@Field final PredefinedStepsOutcomeBuilder builder = new PredefinedStepsOutcomeBuilder(item, job.outcome, job.schema)
 
 def outcome = job.outcome
 def currentName = item.name

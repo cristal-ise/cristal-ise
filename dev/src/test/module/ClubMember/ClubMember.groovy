@@ -19,10 +19,6 @@ Schema('ClubMember', 0) {
 
         field(name: 'Email', type: 'string')
 
-        struct(name: 'ChangeName', useSequence: true, multiplicity: '0..1') {
-            dynamicForms (required: false, hidden: true)
-            anyField()
-        }
     }
 }
 
