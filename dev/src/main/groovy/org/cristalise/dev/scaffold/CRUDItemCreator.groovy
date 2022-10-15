@@ -48,8 +48,7 @@ import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
-// Eclipse does not compile with this @CompileStatic
-//@CompileStatic
+@CompileStatic
 @Slf4j
 class CRUDItemCreator extends StandardClient {
 

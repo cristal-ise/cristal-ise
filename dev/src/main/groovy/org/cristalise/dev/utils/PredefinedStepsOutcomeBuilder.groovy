@@ -72,7 +72,7 @@ class PredefinedStepsOutcomeBuilder {
     }
 
     /**
-     * Convenience method to retrieve the Outcome. Outcome will not be validated.
+     * Convenience method to retrieve the Outcome. Outcome migth not be validated.
      * 
      * @param validate whether the Outcome shall be validated or not
      * @return the Outcome 
