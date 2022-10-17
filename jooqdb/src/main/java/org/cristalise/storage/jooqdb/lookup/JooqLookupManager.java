@@ -290,7 +290,13 @@ public class JooqLookupManager implements LookupManager {
 
             if (uuids.size() == 0) throw new ObjectNotFoundException("Could not find agent:"+agentName);
 
-            return (AgentPath) items.fetch(context, uuids.get(0), properties);
+            for (UUID uuid: uuids) {
+              ItemPath ip = items.fetch(context, uuid, properties);
+
+              if (ip instanceof AgentPath) return (AgentPath)ip;
+            }
+
+            throw new ObjectNotFoundException("Could not find agent:"+agentName);
         }
         catch (PersistencyException e) {
             throw new ObjectNotFoundException("Could not retrieve agentName:"+agentName + " error:"+e.getMessage());
