@@ -71,7 +71,6 @@ import lombok.extern.slf4j.Slf4j;
 public class Bootstrap {
 
     static DomainPath thisServerPath;
-    static HashMap<String, AgentProxy> systemAgents = new HashMap<String, AgentProxy>();
     public static boolean shutdown = false;
     
     /**
@@ -238,7 +237,6 @@ public class Bootstrap {
 
         try {
             AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(lookup.getAgentPath(name, transactionKey), transactionKey);
-            systemAgents.put(name, agentProxy);
             log.info("checkAgent() - Agent '"+name+"' found.");
             return agentProxy;
         }
@@ -261,7 +259,6 @@ public class Bootstrap {
             Gateway.getStorage().put(agentPath, new Property(TYPE, "Agent", false), transactionKey);
             AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(agentPath, transactionKey);
             //TODO: properly init agent here with wf, props and colls -> use CreatItemFromDescription
-            systemAgents.put(name, agentProxy);
             return agentProxy;
         }
         catch (Exception ex) {
