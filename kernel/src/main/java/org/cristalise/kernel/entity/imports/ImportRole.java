@@ -45,6 +45,14 @@ public class ImportRole extends ModuleImport {
 
     public ImportRole() {}
 
+    public RolePath getRolePath() {
+      return new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
+    }
+
+    public boolean exists(TransactionKey transactionKey) {
+      return getRolePath().exists(transactionKey);
+    }
+
     @Override
     public Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey)
             throws ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, ObjectNotFoundException
