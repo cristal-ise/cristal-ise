@@ -608,8 +608,7 @@ public class Script implements DescriptionObject {
 
             Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
 
-            if (       ! bindings.containsKey(name) || bindings.get(name) == null
-                    || ( overwrite && value != null ) ) {
+            if (! bindings.containsKey(name) || bindings.get(name) == null || ( overwrite && value != null ) ) {
                 bindings.put(name, value);
 
                 log.debug("setInputParamValue() - " + name + ": " + value);
@@ -1090,5 +1089,10 @@ public class Script implements DescriptionObject {
         vars.put("script", mScript);
 
         return (String) TemplateRuntime.execute(compiledScriptTemplate, vars);
+    }
+
+    @Override
+    public String toString() {
+        return "Script("+getName()+" v"+getVersion()+")";
     }
 }

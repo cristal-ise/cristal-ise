@@ -147,7 +147,6 @@ public class AgentProxy extends ItemProxy {
         log.info("execute(job) - {}", job);
 
         if (job.hasScript()) {
-            log.debug("execute(job) - executing script");
             try {
                 // load script
                 ErrorInfo scriptErrors = callScript(item, job);
@@ -207,6 +206,8 @@ public class AgentProxy extends ItemProxy {
     @SuppressWarnings("rawtypes")
     private  ErrorInfo callScript(ItemProxy item, Job job) throws ScriptingEngineException, InvalidDataException, ObjectNotFoundException {
         Script script = job.getScript();
+
+        log.debug("callScript() - executing {}", script);
 
         CastorHashMap params = new CastorHashMap();
         params.put(Script.PARAMETER_ITEM,  item);
