@@ -402,7 +402,7 @@ public class ItemRoot extends ItemUtils {
             throw new WebAppExceptionBuilder().message("Must specify activity path").status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
         }
 
-        log.info("requestTransition({}://{}:{})", item, actPath, transition);
+        log.info("requestTransition() - {}://{}:{}", item, actPath, transition);
 
         try {
             String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
@@ -444,7 +444,7 @@ public class ItemRoot extends ItemUtils {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ItemProxy item = getProxy(uuid, cookie);
 
-        log.info("requestBinaryTransition({}://{}:{})", item, actPath, transition);
+        log.info("requestBinaryTransition() - {}://{}:{}", item, actPath, transition);
 
         if (actPath == null) {
             throw new WebAppExceptionBuilder().message("Must specify activity path")
