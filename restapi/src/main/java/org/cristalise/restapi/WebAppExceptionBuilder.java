@@ -77,7 +77,7 @@ public class WebAppExceptionBuilder {
         this.exception = ex;
         if (StringUtils.isBlank(this.message)) this.message = ex.getMessage();
 
-        log.debug("exception()", ex);
+        log.trace("exception()", ex);
 
         if (ex instanceof OutcomeBuilderException ||
             ex instanceof ObjectAlreadyExistsException ||
@@ -174,7 +174,7 @@ public class WebAppExceptionBuilder {
 
         if (StringUtils.isBlank(message)) message = "Application process failed";
 
-        log.debug("build() - msg:"+ message + " status:" + status, exception);
+        log.debug("build() - msg:{} status:{}", message, status, exception);
 
         Response.ResponseBuilder responseBuilder;
 
