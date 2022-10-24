@@ -59,7 +59,9 @@ class PredefinedStepsOutcomeBuilder {
      */
     public PredefinedStepsOutcomeBuilder(ItemProxy anItem, Outcome outcome, Schema schema) {
         item = anItem
-        builder = new OutcomeBuilder(schema, outcome)
+
+        if (outcome) builder = new OutcomeBuilder(schema, outcome)
+        else         builder = new OutcomeBuilder(schema)
     }
 
     /**
