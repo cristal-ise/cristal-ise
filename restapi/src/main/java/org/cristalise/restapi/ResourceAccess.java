@@ -106,7 +106,14 @@ public abstract class ResourceAccess extends ItemUtils {
             return toJSON(getResourceVersions(item, VIEWPOINT + "/" + resource.getSchemaName(), name, uri, cookie), cookie);
         }
         catch (ObjectNotFoundException e) {
-            throw new WebAppExceptionBuilder().message(resourceTypeName + " has no versions").status(Status.NOT_FOUND).newCookie(cookie).build();
+            throw new WebAppExceptionBuilder()
+                .message(resourceTypeName + " has no versions")
+                .exception(e)
+                .status(Status.NOT_FOUND)
+                .newCookie(cookie).build();
+        }
+        catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
@@ -129,7 +136,7 @@ public abstract class ResourceAccess extends ItemUtils {
 
             return childrenData;
         }
-        catch (ObjectNotFoundException e) {
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -175,6 +182,9 @@ public abstract class ResourceAccess extends ItemUtils {
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
             throw new WebAppExceptionBuilder(resource.name()+" "+name+" v"+version+" xml convert problem", e, Status.INTERNAL_SERVER_ERROR, cookie).build();
+        }
+        catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 }

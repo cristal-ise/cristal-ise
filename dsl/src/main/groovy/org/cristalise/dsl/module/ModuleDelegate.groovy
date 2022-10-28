@@ -96,7 +96,8 @@ class ModuleDelegate implements BindingConvention {
 
     private final boolean generateResourceXml = Gateway.properties.getBoolean('DSL.Module.generateResourceXml', true)
     private final boolean generateModuleXml   = Gateway.properties.getBoolean('DSL.Module.generateModuleXml', true)
-    private final boolean updateChangedItems  = Gateway.properties.getBoolean('Gateway.clusteredVertx', true)
+
+    private Boolean updateChangedItems  = null
 
     String uploadAgentName = null
     String uploadAgentPwd = null
@@ -159,6 +160,8 @@ class ModuleDelegate implements BindingConvention {
         newModule.ns = args.ns
         newModule.name = args.name
         newModule.info.version = args.version
+
+        if (args.updateChangedItems != null) updateChangedItems = args.updateChangedItems as Boolean
 
         if (args.bindings) bindings = (Binding) args.bindings
         else               bindings = new Binding()

@@ -151,5 +151,8 @@ public class ScriptAccess extends ResourceAccess {
         catch (DataAccessException | PersistencyException e) {
             throw new WebAppExceptionBuilder("Error connecting to database, please contact support", e, Response.Status.NOT_FOUND, cookie).build();
         }
+        catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
     }
 }

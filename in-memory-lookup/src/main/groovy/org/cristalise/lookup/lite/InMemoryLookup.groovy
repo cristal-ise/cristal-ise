@@ -297,32 +297,27 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
 
     @Override
     public PagedResult search(Path start, List<Property> props, int offset, int limit, TransactionKey transactionKey) {
-        // TODO Auto-generated method stub
-        return null
+        throw new NotImplementedException("search is not implemented");
     }
 
     @Override
     public PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit, TransactionKey transactionKey) {
-        // TODO Auto-generated method stub
-        return null
+        throw new NotImplementedException("search is not implemented");
     }
 
     @Override
     public PagedResult searchAliases(ItemPath itemPath, int offset, int limit, TransactionKey transactionKey) {
-        // TODO Auto-generated method stub
-        return null
+        throw new NotImplementedException("searchAliases is not implemented");
     }
 
     @Override
     public PagedResult getAgents(RolePath rolePath, int offset, int limit, TransactionKey transactionKey) throws ObjectNotFoundException {
-        // TODO Auto-generated method stub
-        return null
+        throw new NotImplementedException("getAgents is not implemented");
     }
 
     @Override
     public PagedResult getRoles(AgentPath agentPath, int offset, int limit, TransactionKey transactionKey) {
-        // TODO Auto-generated method stub
-        return null
+        throw new NotImplementedException("getRoles is not implemented");
     }
 
     @Override

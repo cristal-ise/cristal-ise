@@ -178,8 +178,13 @@ public class DataRecord extends OutcomeStructure {
         // populate
         for (String elementName : subStructureOrder) {
             OutcomeStructure childStructure = subStructure.get(elementName);
-
-            if (childStructure instanceof Dimension) ((Dimension) childStructure).setParentElement(myElement);
+            
+            if (childStructure instanceof Field) {
+                if (((Field)childStructure).isAnyField) continue;
+            }
+            else if (childStructure instanceof Dimension) {
+                ((Dimension) childStructure).setParentElement(myElement);
+            }
 
             for (int i = 0; i < childStructure.getModel().getMinOccurs(); i++) {
                 myElement.appendChild(childStructure.initNew(rootDocument));
@@ -235,7 +240,10 @@ public class DataRecord extends OutcomeStructure {
 
         JSONArray array = myAttributes.generateNgDynamicForms(inputs);
 
-        for (String elementName : subStructureOrder) array.put(subStructure.get(elementName).generateNgDynamicForms(inputs));
+        for (String elementName : subStructureOrder) {
+            Object formFregment = subStructure.get(elementName).generateNgDynamicForms(inputs);
+            if (formFregment != null) array.put(formFregment);
+        }
 
         if (!isRootElement && !dr.has("label")) {
             String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");

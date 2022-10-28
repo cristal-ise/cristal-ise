@@ -44,7 +44,7 @@ class Attribute {
     /**
      * accepted types from XSD specification without namespace (i.e. xs:)
      */
-    public static final List types = ['string', 'boolean', 'integer', 'decimal', 'date', 'time', 'dateTime']
+    public static final List<String> types = ['string', 'boolean', 'integer', 'decimal', 'date', 'time', 'dateTime', 'anyType']
 
     String name
     String type = 'xs:string'
@@ -68,7 +68,7 @@ class Attribute {
     Expression expression = null
 
     String multiplicityString
-    
+
     /**
      * Checks if the type is acceptable
      * 
@@ -77,7 +77,7 @@ class Attribute {
      */
     def setType(String t) {
         if (types.contains(t)) type = "xs:$t"
-        else                    throw new InvalidDataException("Field type '$t' is wrong, it must be one of these: $types")
+        else                   throw new InvalidDataException("Attribute type '$t' is wrong, it must be one of these: $types")
     }
 
     /**

@@ -17,6 +17,7 @@
             </xs:appinfo>
           </xs:annotation>
         </xs:element>
+        <xs:element name='PredefinedSteps' minOccurs='0' maxOccurs='1' type='xs:anyType' />
       </xs:all>
     </xs:complexType>
   </xs:element>

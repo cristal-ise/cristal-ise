@@ -20,6 +20,8 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import static org.cristalise.kernel.lifecycle.instance.Activity.PREDEF_STEPS_ELEMENT
+
 import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.property.BuiltInItemProperties
@@ -48,7 +50,7 @@ class SchemaDelegate {
     Map<String, List<String>> expressionScriptsInputFields = [:]
     
     private updateScriptReferences(Struct s) {
-        if (!s || !s.fields) return
+        if (!s || (!s.fields && !s.attributes)) return
 
         s.fields.each { name, f ->
             if (f.expression) this.generateExpressionScript(s, f)
@@ -63,6 +65,23 @@ class SchemaDelegate {
         }
     }
 
+    private void addPredefinedStepsField(Struct s) {
+        // empty schema is not extended further
+        if (!s || !s.fields) return
+
+        // Schema can only contain one xsd:any
+        if (s.anyField) return
+
+        def predefinedStepsF = new Field(
+            name: PREDEF_STEPS_ELEMENT, 
+            multiplicity: '0..1', 
+            type: 'anyType',
+            dynamicForms: new DynamicForms(required: false, hidden: true)
+        )
+
+        s.addField(predefinedStepsF)
+    }
+
     @CompileDynamic
     public void processClosure(Closure cl) {
         assert cl, "Schema only works with a valid Closure"
@@ -75,13 +94,17 @@ class SchemaDelegate {
         cl.delegate = objBuilder
 
         Struct s = cl()
+        addPredefinedStepsField(s)
         updateScriptReferences(s)
         xsdString = buildXSD(s)
     }
 
     public void processTabularData(TabularGroovyParser parser) {
         def tsb = new TabularSchemaBuilder()
+
         Struct s = tsb.build(parser)
+
+        addPredefinedStepsField(s)
         updateScriptReferences(s)
         xsdString = buildXSD(s)
     }
@@ -117,10 +140,11 @@ class SchemaDelegate {
                     if (s.dynamicForms) {
                         'xs:appinfo' {
                             dynamicForms {
-                                if (s.dynamicForms.width)          width(    s.dynamicForms.width)
-                                if (s.dynamicForms.label)          label(    s.dynamicForms.label)
-                                if (s.dynamicForms.container)      container(s.dynamicForms.container)
-                                if (s.dynamicForms.hidden != null) hidden(   s.dynamicForms.hidden)
+                                if (s.dynamicForms.width)            width(    s.dynamicForms.width)
+                                if (s.dynamicForms.label)            label(    s.dynamicForms.label)
+                                if (s.dynamicForms.container  )      container(s.dynamicForms.container)
+                                if (s.dynamicForms.hidden   != null) hidden(   s.dynamicForms.hidden)
+                                if (s.dynamicForms.required != null) required( s.dynamicForms.required)
                             }
                         }
                     }
@@ -150,9 +174,10 @@ class SchemaDelegate {
     
     private void buildStructElements(MarkupBuilder xsd, Struct s) {
         s.orderOfElements.each { String name ->
-            if (s.fields.containsKey(name))  this.buildField(xsd, s.fields[name])
-            if (s.structs.containsKey(name)) this.buildStruct(xsd, s.structs[name])
+            if      (s.fields.containsKey(name))  this.buildField(xsd, s.fields[name])
+            else if (s.structs.containsKey(name)) this.buildStruct(xsd, s.structs[name])
         }
+        // xsd:any must be the last in sequence
         if (s.anyField) this.buildAnyField(xsd, s.anyField)
     }
 

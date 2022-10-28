@@ -103,7 +103,7 @@ public class AddMembersToCollection extends ManageMembersOfCollectionBase {
             String     collectionName    = inputDependency.getName();
             Dependency currentDependency = (Dependency) item.getCollection(collectionName, null, transactionKey);
 
-            log.debug("runActivityLogic() - {} of item {}", currentDependency, item);
+            log.debug("runActivityLogic() - Changing {} of item:{}", currentDependency, item);
 
             checkCardinatilyConstraint(currentDependency, inputDependency, itemPath, transactionKey);
 

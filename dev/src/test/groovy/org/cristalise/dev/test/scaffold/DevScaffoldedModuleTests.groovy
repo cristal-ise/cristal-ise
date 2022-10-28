@@ -31,6 +31,7 @@ import org.cristalise.dev.dsl.DevItemDSL
 import org.cristalise.dev.scaffold.CRUDItemCreator
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.entity.proxy.ItemProxy
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
 import org.cristalise.kernel.test.utils.KernelXMLUtility
@@ -275,15 +276,17 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
             "/$folder/ClubMemberFactory")
 
         assert clubMember.getCollection('Cars').members.list.size() == 0
-        clubMember.getCollection('Motorcycles').members.list.size() == 0
-        car.getCollection('ClubMember').members.list.size() == 0
-        motorcycle.getCollection('ClubMember').members.list.size() == 0
+        assert clubMember.getCollection('Motorcycles').members.list.size() == 0
+        assert car.getCollection('ClubMember').members.list.size() == 0
+        assert motorcycle.getCollection('ClubMember').members.list.size() == 0
 
         //Add to Cars
         def addToCarsJob = clubMember.getJobByName('AddToCars', agent)
         assert addToCarsJob, "Cannot get Job $addToCarsJob of Item '$clubMember.name'"
 
-        addToCarsJob.getOutcome().setField("MemberName", "Car-$timeStamp",)
+        def ob = new OutcomeBuilder(addToCarsJob.schema)
+        ob.addField("MemberName", "Car-$timeStamp")
+        addToCarsJob.setOutcome(ob.outcome)
         agent.execute(addToCarsJob)
 
         def clubMemberCars = (Dependency)clubMember.getCollection('Cars')
@@ -291,7 +294,6 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
         assert clubMemberCars.members.list.size() == 1
         assert clubMemberCars.getMember(0).itemPath == car.path
-
         assert carClubMember.members.list.size() == 1
         assert carClubMember.getMember(0).itemPath == clubMember.path
 
@@ -299,7 +301,9 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         def addToMotorcyclesJob = clubMember.getJobByName('AddToMotorcycles', agent)
         assert addToMotorcyclesJob, "Cannot get Job $addToCarsJob of Item '$clubMember'"
 
-        addToMotorcyclesJob.getOutcome().setField("MemberName", "Motorcycle-$timeStamp",)
+        ob = new OutcomeBuilder(addToMotorcyclesJob.schema)
+        ob.addField("MemberName", "Motorcycle-$timeStamp")
+        addToMotorcyclesJob.setOutcome(ob.outcome)
         agent.execute(addToMotorcyclesJob)
 
         def clubMemberMotorcycles = (Dependency)clubMember.getCollection('Motorcycles')
@@ -307,7 +311,6 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
         assert clubMemberMotorcycles.members.list.size() == 1
         assert clubMemberMotorcycles.getMember(0).itemPath == motorcycle.path
-
         assert motorcycleClubMember.members.list.size() == 1
         assert motorcycleClubMember.getMember(0).itemPath == clubMember.path
 
@@ -315,7 +318,9 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         def removeFromCarsJob = clubMember.getJobByName('RemoveFromCars', agent)
         assert removeFromCarsJob, "Cannot get Job $removeFromCarsJob of Item '$clubMember.name'"
 
-        addToCarsJob.getOutcome().setField("MemberSlotId", "0")
+        ob = new OutcomeBuilder(removeFromCarsJob.schema)
+        ob.addField("MemberSlotId", "0")
+        removeFromCarsJob.setOutcome(ob.outcome)
         agent.execute(removeFromCarsJob)
 
         clubMemberCars = (Dependency)clubMember.getCollection('Cars')
@@ -323,5 +328,11 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
         assert clubMemberCars.members.list.size() == 0
         assert carClubMember.members.list.size() == 0
+
+        // FIXME: inmemory-lookup does not support getAliases used by ChangeName predef step
+//        def clubMemberUpdateJob = clubMember.getJobByName('Update', agent)
+//        clubMemberUpdateJob.outcome.setField('Name', "ClubMember2-$timeStamp")
+//        agent.execute(clubMemberUpdateJob)
+//        assert agent.getItem("/$folder/ClubMembers/ClubMember2-$timeStamp")
     }
 }

@@ -28,12 +28,13 @@ import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
@@ -167,20 +168,27 @@ public abstract class PredefinedStep extends Activity {
         return null;
     }
 
-    /**
-     * Check if the Outcome contains the data required to execute it. Uses its own simple name.
-     * 
-     * @param outcome 
-     * @return
-     */
-    public boolean outcomeHasValidData(Outcome outcome) {
-        try {
-            return outcome.getNodeByXPath("//" + this.getClass().getSimpleName()) != null;
+    public Node getPredefStepOutcomeNode(Node predefStepNode) throws InvalidDataException {
+        final List<Node> found = new ArrayList<>();
+
+        if (log.isDebugEnabled()) log.debug("getPredefStepOutcomeNode() - node:{}", Outcome.serialize(predefStepNode, false));
+
+        Outcome.traverseChildElements(predefStepNode, (outcomeNode) -> {
+            String schemaName = (String) getBuiltInProperty(SCHEMA_NAME);
+            if (outcomeNode.getNodeName().equals(schemaName)) {
+                found.add(outcomeNode);
+            }
+        });
+
+        if (found.size() == 0) {
+            return null;
         }
-        catch (XPathExpressionException e) {
-            log.error("outcomeHasValidData()", e);
+        else if (found.size() > 1) {
+            throw new InvalidDataException("Umbiguious input data found in outcome:"+Outcome.serialize(predefStepNode, false));
         }
-        return false;
+        else {
+            return found.get(0);
+        }
     }
 
     /**
@@ -271,7 +279,7 @@ public abstract class PredefinedStep extends Activity {
     @Deprecated
     protected void addAdminAgentRole() {
         if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
-            String extraRoles = Gateway.getProperties().getString("PredefinedStep."+ this.getClass().getSimpleName() +".roles");
+            String extraRoles = Gateway.getProperties().getString("PredefinedStep."+ getType() +".roles");
             getProperties().setBuiltInProperty(AGENT_ROLE, ADMIN_ROLE.getName() + (StringUtils.isNotBlank(extraRoles) ? ","+extraRoles : ""));
         }
     }
@@ -375,18 +383,17 @@ public abstract class PredefinedStep extends Activity {
      * @param inputOutcome
      * @param transactionKey
      */
-    public void computeUpdates(ItemPath currentItem, Activity currentActivity, Outcome inputOutcome, TransactionKey transactionKey)
+    public void computeUpdates(ItemPath currentItem, Activity currentActivity, Node outcomeNode, TransactionKey transactionKey)
             throws InvalidDataException, PersistencyException, ObjectNotFoundException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
-        //empty implementation
-        log.debug("computeUpdates() - UNIMPLEMENTED!");
+        getAutoUpdates().put(currentItem, Outcome.serialize(outcomeNode, false));
     };
 
     public void mergeProperties(CastorHashMap newProps) {
         for (KeyValuePair kvPair : newProps.getKeyValuePairs()) {
             BuiltInVertexProperties key = BuiltInVertexProperties.getValue((String)kvPair.getKey());
 
-          //only check built-in properties
+            // only check built-in properties
             if (key == null) continue;
 
             switch (key) {

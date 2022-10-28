@@ -36,7 +36,7 @@ class SchemaBuilderFieldSpecs extends Specification implements CristalTestSetup 
     def setup()   {}
     def cleanup() {}
 
-    def 'Field accepts a number of types: string, boolean, integer, decimal, date, time, dateTime'() {
+    def 'Field accepts a number of xsd types: string, boolean, integer, decimal, date, time, dateTime, anyType'() {
         expect: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Field.types}"
         SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData') {
@@ -48,13 +48,24 @@ class SchemaBuilderFieldSpecs extends Specification implements CristalTestSetup 
                           <xs:element name='TestData'>
                             <xs:complexType>
                               <xs:all minOccurs='0'>
-                                <xs:element name='stringField'   type='xs:string'   minOccurs='1' maxOccurs='1' />
-                                <xs:element name='booleanField'  type='xs:boolean'  minOccurs='1' maxOccurs='1' />
-                                <xs:element name='integerField'  type='xs:integer'  minOccurs='1' maxOccurs='1' />
-                                <xs:element name='decimalField'  type='xs:decimal'  minOccurs='1' maxOccurs='1' />
-                                <xs:element name='dateField'     type='xs:date'     minOccurs='1' maxOccurs='1' />
-                                <xs:element name='timeField'     type='xs:time'     minOccurs='1' maxOccurs='1' />
-                                <xs:element name='dateTimeField' type='xs:dateTime' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='stringField'     type='xs:string'   minOccurs='1' maxOccurs='1' />
+                                <xs:element name='booleanField'    type='xs:boolean'  minOccurs='1' maxOccurs='1' />
+                                <xs:element name='integerField'    type='xs:integer'  minOccurs='1' maxOccurs='1' />
+                                <xs:element name='decimalField'    type='xs:decimal'  minOccurs='1' maxOccurs='1' />
+                                <xs:element name='dateField'       type='xs:date'     minOccurs='1' maxOccurs='1' />
+                                <xs:element name='timeField'       type='xs:time'     minOccurs='1' maxOccurs='1' />
+                                <xs:element name='dateTimeField'   type='xs:dateTime' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='anyTypeField'    type='xs:anyType'  minOccurs='1' maxOccurs='1' />
+                                <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
+                                </xs:element>
                               </xs:all>
                             </xs:complexType>
                           </xs:element>
@@ -96,6 +107,16 @@ class SchemaBuilderFieldSpecs extends Specification implements CristalTestSetup 
                                         <xs:element name='zeroToMany'  type='xs:string' minOccurs='0' maxOccurs='unbounded' />
                                         <xs:element name='oneToFive'   type='xs:string' minOccurs='1' maxOccurs='5' />
                                         <xs:element name='reset'       type='xs:string' />
+                                        <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                          <xs:annotation>
+                                            <xs:appinfo>
+                                              <dynamicForms>
+                                                <hidden>true</hidden>
+                                                <required>false</required>
+                                              </dynamicForms>
+                                            </xs:appinfo>
+                                          </xs:annotation>
+                                        </xs:element>
                                     </xs:sequence>
                                 </xs:complexType>
                             </xs:element>
@@ -147,6 +168,16 @@ class SchemaBuilderFieldSpecs extends Specification implements CristalTestSetup 
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
+                                <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
+                                </xs:element>
                               </xs:all>
                             </xs:complexType>
                           </xs:element>
@@ -196,6 +227,16 @@ class SchemaBuilderFieldSpecs extends Specification implements CristalTestSetup 
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
+                                <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
+                                </xs:element>
                               </xs:all>
                             </xs:complexType>
                           </xs:element>
@@ -210,13 +251,23 @@ class SchemaBuilderFieldSpecs extends Specification implements CristalTestSetup 
                 field(name: 'Gender', type: 'string', default: 'female')
             }
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-                            <xs:element name='TestData'>
-                                <xs:complexType>
-                                    <xs:all minOccurs='0'>
-                                        <xs:element minOccurs="1" maxOccurs="1" name="Gender" type='xs:string' default="female"/>
-                                    </xs:all>
-                                </xs:complexType>
-                            </xs:element>
+                          <xs:element name='TestData'>
+                            <xs:complexType>
+                              <xs:all minOccurs='0'>
+                               <xs:element minOccurs="1" maxOccurs="1" name="Gender" type='xs:string' default="female"/>
+                               <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                 <xs:annotation>
+                                   <xs:appinfo>
+                                     <dynamicForms>
+                                       <hidden>true</hidden>
+                                       <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
+                                </xs:element>
+                              </xs:all>
+                            </xs:complexType>
+                          </xs:element>
                         </xs:schema>""")
     }
 
@@ -231,14 +282,24 @@ class SchemaBuilderFieldSpecs extends Specification implements CristalTestSetup 
                             <xs:element name='TestData'>
                                 <xs:complexType>
                                     <xs:sequence>
-                                        <xs:element minOccurs="1" maxOccurs="1" name="Gender">
-                                            <xs:simpleType>
-                                                <xs:restriction base="xs:string">
-                                                   <xs:enumeration value="male" />
-                                                   <xs:enumeration value="female" />
-                                                </xs:restriction>
-                                            </xs:simpleType>
-                                        </xs:element>
+                                      <xs:element minOccurs="1" maxOccurs="1" name="Gender">
+                                        <xs:simpleType>
+                                          <xs:restriction base="xs:string">
+                                            <xs:enumeration value="male" />
+                                            <xs:enumeration value="female" />
+                                          </xs:restriction>
+                                        </xs:simpleType>
+                                      </xs:element>
+                                      <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                        <xs:annotation>
+                                          <xs:appinfo>
+                                            <dynamicForms>
+                                              <hidden>true</hidden>
+                                              <required>false</required>
+                                            </dynamicForms>
+                                          </xs:appinfo>
+                                        </xs:annotation>
+                                      </xs:element>
                                     </xs:sequence>
                                 </xs:complexType>
                             </xs:element>
@@ -262,6 +323,16 @@ class SchemaBuilderFieldSpecs extends Specification implements CristalTestSetup 
                                       <xs:pattern value="male|female"/>
                                     </xs:restriction>
                                   </xs:simpleType>
+                                </xs:element>
+                                <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
                                 </xs:element>
                               </xs:all>
                             </xs:complexType>
@@ -288,6 +359,16 @@ class SchemaBuilderFieldSpecs extends Specification implements CristalTestSetup 
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
+                                <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
+                                </xs:element>
                               </xs:all>
                             </xs:complexType>
                           </xs:element>
@@ -308,6 +389,16 @@ class SchemaBuilderFieldSpecs extends Specification implements CristalTestSetup 
                                 <xs:element name='Field' type='xs:string' minOccurs='1' maxOccurs='1'>
                                   <xs:annotation>
                                     <xs:documentation>Field has Documentation</xs:documentation>
+                                  </xs:annotation>
+                                </xs:element>
+                                <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
                                   </xs:annotation>
                                 </xs:element>
                               </xs:all>
@@ -338,24 +429,34 @@ class SchemaBuilderFieldSpecs extends Specification implements CristalTestSetup 
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                             <xs:element name='TestData'>
                                 <xs:complexType>
-                                    <xs:sequence>
-                                        <xs:element name='Weight' minOccurs='1' maxOccurs='1'>
-                                            <xs:complexType>
-                                                <xs:simpleContent>
-                                                    <xs:extension base='xs:decimal'>
-                                                        <xs:attribute name='unit' default='kg' use='optional'>
-                                                            <xs:simpleType>
-                                                                <xs:restriction base="xs:string">
-                                                                   <xs:enumeration value="g" />
-                                                                   <xs:enumeration value="kg" />
-                                                                </xs:restriction>
-                                                            </xs:simpleType>
-                                                        </xs:attribute>
-                                                    </xs:extension>
-                                                </xs:simpleContent>
-                                            </xs:complexType>
-                                        </xs:element>
-                                    </xs:sequence>
+                                  <xs:sequence>
+                                    <xs:element name='Weight' minOccurs='1' maxOccurs='1'>
+                                      <xs:complexType>
+                                        <xs:simpleContent>
+                                          <xs:extension base='xs:decimal'>
+                                            <xs:attribute name='unit' default='kg' use='optional'>
+                                              <xs:simpleType>
+                                                <xs:restriction base="xs:string">
+                                                  <xs:enumeration value="g" />
+                                                  <xs:enumeration value="kg" />
+                                                </xs:restriction>
+                                              </xs:simpleType>
+                                            </xs:attribute>
+                                          </xs:extension>
+                                        </xs:simpleContent>
+                                      </xs:complexType>
+                                    </xs:element>
+                                    <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                      <xs:annotation>
+                                        <xs:appinfo>
+                                          <dynamicForms>
+                                            <hidden>true</hidden>
+                                            <required>false</required>
+                                          </dynamicForms>
+                                        </xs:appinfo>
+                                      </xs:annotation>
+                                    </xs:element>
+                                  </xs:sequence>
                                 </xs:complexType>
                             </xs:element>
                         </xs:schema>""")
@@ -405,6 +506,16 @@ class SchemaBuilderFieldSpecs extends Specification implements CristalTestSetup 
                            </xs:extension>
                          </xs:simpleContent>
                        </xs:complexType>
+                     </xs:element>
+                     <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                       <xs:annotation>
+                         <xs:appinfo>
+                           <dynamicForms>
+                             <hidden>true</hidden>
+                             <required>false</required>
+                           </dynamicForms>
+                         </xs:appinfo>
+                       </xs:annotation>
                      </xs:element>
                    </xs:all>
                    <xs:attribute name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>

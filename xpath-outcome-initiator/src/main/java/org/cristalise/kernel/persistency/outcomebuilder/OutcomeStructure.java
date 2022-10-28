@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.Annotation;
+import org.exolab.castor.xml.schema.AnyType;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ContentModelGroup;
 import org.exolab.castor.xml.schema.Documentation;
@@ -77,6 +78,13 @@ public abstract class OutcomeStructure {
 
     public OutcomeStructure() {}
 
+    public OutcomeStructure(Wildcard model) {
+        log.debug("Creating Wildcard structure as " + this.getClass().getSimpleName());
+
+        String doc = extractHelp(model);
+        if (StringUtils.isNotBlank(doc)) help = doc;
+    }
+
     public OutcomeStructure(ElementDecl model) {
         this.model = model;
         subStructure = new HashMap<String, OutcomeStructure>();
@@ -112,7 +120,27 @@ public abstract class OutcomeStructure {
             throws OutcomeBuilderException;
 
     /**
-     * Create the named child element from the xsd model and adds it to the document
+     * Finds the Field in the model of the actual element and returns it if it was an anyField.
+     * There should be only one AnyField.
+     * 
+     * @return the AnyField of the actuul element, or null
+     */
+    private OutcomeStructure getAnyField() {
+        if (subStructure != null) {
+            for (OutcomeStructure childModel: subStructure.values()) {
+                if (childModel instanceof Field && ((Field)childModel).isAnyField) {
+                    return childModel;
+                }
+            }
+        }
+
+        return null;
+    }
+    /**
+     * Creates the named child element from the xsd model and adds it to the document. 
+     * If the name was not found in the model of the actual element, checks 
+     * if the actual element is an xs:anyType or contains an xs:any (anyField). 
+     * If one of the above condition is true, it creates the requested element as a Field.
      * 
      * @param rootDocument the root of the dom
      * @param name the name of the elements to be added
@@ -121,13 +149,27 @@ public abstract class OutcomeStructure {
      */
     public Element createChildElement(Document rootDocument, String name) throws OutcomeBuilderException {
         OutcomeStructure childModel = getChildModelElement(name);
+        Element newElement = null;
 
-        if (childModel == null) throw new StructuralException("'"+model.getName()+"' does not have child '"+name+"'");
+        if (childModel == null) {
+            if (isAnyType()) {
+                newElement = rootDocument.createElement(name);
+            }
+            else {
+                childModel = getAnyField();
 
-        Element newElement = childModel.initNew(rootDocument);
+                if (childModel == null) {
+                    throw new StructuralException("'"+model.getName()+"' does not have child '"+name+"' declaration");
+                }
+
+                newElement = ((Field)childModel).initNewAny(rootDocument, name);
+            }
+        }
+        else {
+            newElement = childModel.initNew(rootDocument);
+        }
 
         addChildElement(name, newElement);
-
         return newElement;
     }
 
@@ -167,10 +209,11 @@ public abstract class OutcomeStructure {
     }
 
     /**
-     * Contains the rules for deciding which OutcomeStructure will represent a chosen Element Declaration. In this order
+     * Creates OutcomeStructure (element) to represent the chosen Element declaration:
      * <ol>
      * <li>if maxOccurs > 1 then Dimension
      * <li>SimpleTypes are Fields
+     * <li>AnyTypes are Fields
      * <li>No element children is a Field
      * <li>Everything else is a DataRecord
      * </ol>
@@ -189,21 +232,32 @@ public abstract class OutcomeStructure {
             throw new StructuralException("Element " + model.getName() + " is elementary yet has no type.");
 
         // simple types will be fields
-        if (elementType instanceof SimpleType) return new Field(model);
-
-        // otherwise is a complex type
-        try {
-            ComplexType elementComplexType = (ComplexType) elementType;
-
-            // when no element children - field
-            if (elementComplexType.getParticleCount() == 0) return new Field(model);
-
-            // everything else is a data record
-            return new DataRecord(model);
+        if (elementType instanceof SimpleType) {
+            return new Field(model);
         }
-        catch (ClassCastException e) {
-            throw new StructuralException("Unknown XMLType for element " + model.getName());
+        else if (elementType instanceof AnyType) {
+            return new Field(model);
         }
+        else {
+            // otherwise is a complex type
+            try {
+                ComplexType elementComplexType = (ComplexType) elementType;
+
+                // when no element children - field
+                if (elementComplexType.getParticleCount() == 0) return new Field(model);
+
+                // everything else is a data record
+                return new DataRecord(model);
+            }
+            catch (ClassCastException e) {
+                throw new StructuralException("Unknown XMLType for element " + model.getName(), e);
+            }
+        }
+    }
+
+    public OutcomeStructure createStructure(Wildcard model) throws OutcomeBuilderException {
+        if (model.getMaxOccurs() == 0) return null;
+        return new Field(model);
     }
 
     /**
@@ -241,8 +295,8 @@ public abstract class OutcomeStructure {
                 addStructure(createStructure(thisElement));
             }
             else if (thisParticle instanceof Wildcard) {
-                //do nothing
                 log.debug("enumerateElements() - group has Wildcard representing xs:any");
+                addStructure(createStructure((Wildcard)thisParticle));
             }
             else {
                 throw new StructuralException("Cannot process Particle '" + thisParticle.getClass() + "' : Not implemented");
@@ -407,6 +461,10 @@ public abstract class OutcomeStructure {
 
     public boolean isOptional() {
         return model.getMinOccurs() == 0;
+    }
+
+    public boolean isAnyType() {
+        return model.getType() instanceof AnyType;
     }
 
     public OutcomeStructure find(String[] names) {

@@ -8,6 +8,10 @@ branches:
     - /^release\/.*$/
     - /^support\/.*$/
     - /^hotfix\/.*$/
+
+install:
+- mvn install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip -B -V
+
 script:
   - |
     if [[ $TRAVIS_PULL_REQUEST == false ]] && ([[ $TRAVIS_BRANCH == develop ]] || [[ $TRAVIS_BRANCH == master ]] || [[ $TRAVIS_BRANCH == support/* ]] || [[ $TRAVIS_BRANCH == hotfix/* ]]); then

@@ -32,6 +32,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.script.Bindings;
 import javax.script.Compilable;
@@ -607,8 +608,7 @@ public class Script implements DescriptionObject {
 
             Bindings bindings = context.getBindings(ScriptContext.ENGINE_SCOPE);
 
-            if (       ! bindings.containsKey(name) || bindings.get(name) == null
-                    || ( overwrite && value != null ) ) {
+            if (! bindings.containsKey(name) || bindings.get(name) == null || ( overwrite && value != null ) ) {
                 bindings.put(name, value);
 
                 log.debug("setInputParamValue() - " + name + ": " + value);
@@ -698,6 +698,8 @@ public class Script implements DescriptionObject {
             return retVal;
         }
         catch (Exception e) {
+            if (e instanceof ScriptingEngineException) throw (ScriptingEngineException)e;
+
             log.error("evaluate() - Script:" + getName(), e);
             throw new ScriptingEngineException(e);
         }
@@ -752,7 +754,7 @@ public class Script implements DescriptionObject {
 
             //log.debug("execute("+getName()+") - script returned '" + returnValue + "'");
         }
-        catch (ScriptException ex) {
+        catch (Exception ex) {
             final String msg = "Error executing script " + getName() + ": " + ex.getCause().getMessage();
             log.error(msg, ex.getCause());
 
@@ -790,17 +792,18 @@ public class Script implements DescriptionObject {
             Object output = importScript.execute();
 
             if (output != null && output instanceof Map) {
-                ((Map<String, Object>)output).forEach((outputKey, outputValue) -> {
-                    if (mInputParams.containsKey(outputKey)) {
+                for (Entry<String, Object> outputEntry: ((Map<String, Object>)output).entrySet()) {
+                    if (mInputParams.containsKey(outputEntry.getKey())) {
                         try {
-                            log.debug("executeIncludedScripts() - setting inputs for parameter:"+outputKey);
-                            setInputParamValue(outputKey, outputValue, true);
+                            log.debug("executeIncludedScripts() - setting inputs for parameter:"+outputEntry.getKey());
+                            setInputParamValue(outputEntry.getKey(), outputEntry.getValue(), true);
                         }
-                        catch (ParameterException e) {
-                            log.error("", e);
+                        catch (ParameterException ex) {
+                            log.error("executeIncludedScripts() - cannot set inputs for parameter:{}", outputEntry.getKey(), ex);
+                            throw new ScriptingEngineException(ex);
                         }
                     }
-                });
+                }
             }
         }
     }
@@ -817,7 +820,7 @@ public class Script implements DescriptionObject {
 
             Object emptyObject = null;
             try {
-                emptyObject = outputParam.getType().newInstance();
+                emptyObject = outputParam.getType().getDeclaredConstructor().newInstance();
             }
             catch (Exception e) {
                 //This case was originally not logged
@@ -1086,5 +1089,10 @@ public class Script implements DescriptionObject {
         vars.put("script", mScript);
 
         return (String) TemplateRuntime.execute(compiledScriptTemplate, vars);
+    }
+
+    @Override
+    public String toString() {
+        return "Script("+getName()+" v"+getVersion()+")";
     }
 }
