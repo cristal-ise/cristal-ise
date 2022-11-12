@@ -21,8 +21,11 @@
 package org.cristalise.kernel.process;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.HashMap;
 
+import java.util.List;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -32,9 +35,11 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.entity.proxy.MemberSubscription;
 import org.cristalise.kernel.entity.proxy.ProxyObserver;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
+import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.scripting.ScriptErrorException;
@@ -52,7 +57,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class UserCodeProcess extends StandardClient implements ProxyObserver<Job>, Runnable {
-
     private final int START;
     private final int COMPLETE;
     private final int ERROR;
@@ -62,6 +66,10 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
      * eg: UserCode.StateMachine.startTransition
      */
     public static final String DEFAULT_ROLE = "UserCode";
+    /**
+     * Defines the default password (value:{@value}).
+     */
+    public static final String DEFAULT_PASSWORD = "uc";
     /**
      * Defines the name of the CRISTAL Property (value:{@value}) to override the default mapping for Start transition.
      * It is always prefixed like this: eg: UserCode.StateMachine.startTransition
@@ -114,6 +122,54 @@ public class UserCodeProcess extends StandardClient implements ProxyObserver<Job
         START    = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_START_TRANSITION,    "Start");
         ERROR    = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_ERROR_TRANSITION,    "Suspend");
         COMPLETE = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_COMPLETE_TRANSITION, "Complete");
+    }
+
+    /**
+     *
+     * @return
+     */
+    public static String getRoleName() {
+      return Gateway.getProperties().getString("UserCode.roleOverride", DEFAULT_ROLE);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public static List<String> getRolePermissions() {
+      String permissionString = Gateway.getProperties().getString(getRoleName() + ".permissions", "*");
+      return Arrays.asList(permissionString.split(","));
+    }
+
+    /**
+     *
+     * @return
+     */
+    public static ImportRole getImportRole() {
+      RolePath rp = new RolePath(new RolePath(), getRoleName(), true, getRolePermissions());
+      return ImportRole.getImportRole(rp);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public static String getAgentName() {
+      try {
+        return Gateway.getProperties().getString(getRoleName()+ ".agent", InetAddress.getLocalHost().getHostName());
+      }
+      catch (UnknownHostException e) {
+        log.error("getRole(roleName={}) ", getRoleName(), e);
+        return null;
+      }
+    }
+
+    /**
+     *
+     * @return
+     */
+    public static String getAgentPassword() {
+      return Gateway.getProperties().getString(getRoleName() + ".password", DEFAULT_PASSWORD);
     }
 
     /**

@@ -75,6 +75,10 @@ public class ImportAgent extends ModuleImport {
         if (StringUtils.isNotBlank(uuid)) itemPath = new AgentPath(new ItemPath(uuid), name);
     }
 
+    public boolean exists(TransactionKey transactionKey) {
+      return getAgentPath(transactionKey).exists(transactionKey);
+    }
+
     @Override
     public Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
@@ -136,6 +140,14 @@ public class ImportAgent extends ModuleImport {
         return newAgent;
     }
 
+    public AgentPath getAgentPath() {
+      return getAgentPath(null);
+    }
+
+    public AgentPath getAgentPath(TransactionKey transactionKey) {
+      return (AgentPath)getItemPath(transactionKey);
+    }
+
     @Override
     public ItemPath getItemPath() {
         return getItemPath(null);
@@ -160,5 +172,13 @@ public class ImportAgent extends ModuleImport {
 
     public void addRoles(List<RolePath> newRoles) {
         for (RolePath rp: newRoles) roles.add(ImportRole.getImportRole(rp));
+    }
+
+    public void addRole(ImportRole ir) {
+      roles.add(ir);
+    }
+
+    public void addRole(RolePath rp) {
+      roles.add(ImportRole.getImportRole(rp));
     }
 }

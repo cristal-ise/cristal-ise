@@ -36,6 +36,8 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.entity.imports.ImportAgent;
+import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
@@ -69,7 +71,6 @@ import lombok.extern.slf4j.Slf4j;
 public class Bootstrap {
 
     static DomainPath thisServerPath;
-    static HashMap<String, AgentProxy> systemAgents = new HashMap<String, AgentProxy>();
     public static boolean shutdown = false;
     
     /**
@@ -127,7 +128,7 @@ public class Bootstrap {
                     }
 
                     if (!shutdown) {
-                        Gateway.getModuleManager().setUser(systemAgents.get(SYSTEM_AGENT.getName()));
+                        Gateway.getModuleManager().setUser(Gateway.getProxyManager().getAgentProxy((AgentPath)SYSTEM_AGENT.getPath()));
                         Gateway.getModuleManager().registerModules();
                     }
 
@@ -236,7 +237,6 @@ public class Bootstrap {
 
         try {
             AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(lookup.getAgentPath(name, transactionKey), transactionKey);
-            systemAgents.put(name, agentProxy);
             log.info("checkAgent() - Agent '"+name+"' found.");
             return agentProxy;
         }
@@ -259,7 +259,6 @@ public class Bootstrap {
             Gateway.getStorage().put(agentPath, new Property(TYPE, "Agent", false), transactionKey);
             AgentProxy agentProxy = Gateway.getProxyManager().getAgentProxy(agentPath, transactionKey);
             //TODO: properly init agent here with wf, props and colls -> use CreatItemFromDescription
-            systemAgents.put(name, agentProxy);
             return agentProxy;
         }
         catch (Exception ex) {
@@ -269,38 +268,64 @@ public class Bootstrap {
     }
 
     /**
+     * Checks for the existence of a agents and creates it if needed
+     *
+     * @param name the of the agent
+     * @param pass of the agent
+     * @param rolePath of the agent
+     * @param uuid of the agent
+     * @return the Proxy representing the Agent
+     * @throws Exception any exception found
+     */
+    private static AgentPath checkOrCreateAgent(String name, String pass, ImportRole rolePath, UUID uuid, TransactionKey transactionKey) throws Exception {
+      ImportAgent iAgent = new ImportAgent(name, pass);
+      iAgent.addRole(rolePath);
+
+      if (iAgent.exists(transactionKey)) {
+        log.info("checkOrCreateAgent() - Agent '"+name+"' was found.");
+      }
+      else {
+        log.info("checkOrCreateAgent() - Agent '"+name+"' NOT found. Creating.");
+
+        AgentPath agentPath = new AgentPath(new ItemPath(uuid), name);
+        iAgent.setItemPath(agentPath);
+        iAgent.create(agentPath, false, transactionKey);
+      }
+
+      return iAgent.getAgentPath(transactionKey);
+    }
+
+    /**
      * 
      * @throws Exception
      */
     public static void checkAdminAgents(TransactionKey transactionKey) throws Exception {
-        RolePath rootRole = new RolePath();
-        if (!rootRole.exists(transactionKey)) Gateway.getLookupManager().createRole(rootRole, transactionKey);
+      RolePath rootRole = new RolePath();
+      if (!rootRole.exists(transactionKey)) Gateway.getLookupManager().createRole(rootRole, transactionKey);
 
-        // check for admin role
-        RolePath adminRole = new RolePath(rootRole, ADMIN_ROLE.getName(), false);
-        if (!adminRole.exists(transactionKey)) Gateway.getLookupManager().createRole(adminRole, transactionKey);
-        Gateway.getLookupManager().setPermission(adminRole, "*", transactionKey);
+      // check for 'Admin' role
+      RolePath adminRole = new RolePath(rootRole, ADMIN_ROLE.getName(), false, Arrays.asList("*"));
+      ImportRole importAdminRole = ImportRole.getImportRole(adminRole);
 
-        // check for import Agent
-        AgentProxy system = checkAgent(SYSTEM_AGENT.getName(), null, adminRole, new UUID(0, 1).toString(), transactionKey);
-        ScriptConsole.setUser(system);
+      if (adminRole.exists(transactionKey)) importAdminRole.update(null, transactionKey); // this will reset any changes done to the Admin role
+      else                                  importAdminRole.create(null, false, transactionKey);
 
-        String ucRole = Gateway.getProperties().getString("UserCode.roleOverride", UserCodeProcess.DEFAULT_ROLE);
-        String ucPermissions = Gateway.getProperties().getString(ucRole + ".permissions", "");
+      // check for 'system' Agent
+      checkOrCreateAgent(SYSTEM_AGENT.getName(), null, importAdminRole, new UUID(0, 1), transactionKey);
 
-        // check for local usercode user & role
-        RolePath usercodeRole = new RolePath(rootRole, ucRole, true);
-        if (!usercodeRole.exists(transactionKey)) Gateway.getLookupManager().createRole(usercodeRole, transactionKey);
-        Gateway.getLookupManager().setPermissions(usercodeRole, Arrays.asList(ucPermissions.split(",")), transactionKey);
-        checkAgent(
-                Gateway.getProperties().getString(ucRole + ".agent",     InetAddress.getLocalHost().getHostName()),
-                Gateway.getProperties().getString(ucRole + ".password", "uc"),
-                usercodeRole,
-                UUID.randomUUID().toString(),
-                transactionKey);
+      // check for local usercode user & its role
+      ImportRole importUCRole = UserCodeProcess.getImportRole();
+
+      if (!importUCRole.exists(transactionKey)) importUCRole.create(null, false, transactionKey);
+
+      String ucName = UserCodeProcess.getAgentName();
+      String ucPwd = UserCodeProcess.getAgentPassword();
+
+      checkOrCreateAgent(ucName, ucPwd, importUCRole, UUID.randomUUID(), transactionKey);
     }
 
-    private static ItemPath createServerItem(TransactionKey transactionKey) throws Exception {
+
+  private static ItemPath createServerItem(TransactionKey transactionKey) throws Exception {
         LookupManager lookupManager = Gateway.getLookupManager();
         String serverName = Gateway.getProperties().getString("ItemServer.name", InetAddress.getLocalHost().getHostName());
         thisServerPath = new DomainPath("/servers/"+serverName);
@@ -341,7 +366,7 @@ public class Bootstrap {
     private static void initServerItemWf(TransactionKey transactionKey) throws Exception {
         CompositeActivityDef serverWfCa = (CompositeActivityDef)LocalObjectLoader.getCompActDef("ServerItemWorkflow", 0, transactionKey);
         Workflow wf = new Workflow((CompositeActivity)serverWfCa.instantiate(transactionKey), new ServerPredefinedStepContainer());
-        wf.initialise(thisServerPath.getItemPath(), systemAgents.get(SYSTEM_AGENT.getName()).getPath(), transactionKey);
+        wf.initialise(thisServerPath.getItemPath(), (AgentPath)SYSTEM_AGENT.getPath(transactionKey), transactionKey);
         Gateway.getStorage().put(thisServerPath.getItemPath(), wf, transactionKey);
     }
 }
