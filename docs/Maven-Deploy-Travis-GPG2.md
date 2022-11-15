@@ -1,7 +1,17 @@
-## Guide to deploy to Maven Central (sonatype) using Travis
+## Guide to manage deploymen to Maven Central (sonatype) using Travis
 _This guide uses GPG2 encryption.  Please see [https://www.gnupg.org/documentation/index.html](https://www.gnupg.org/documentation/index.html)._
 
-### Steps to follow
+### Run Travis deploy build on local machine
+
+1. update `execTravisDeployLocally.sh` in the root directory
+   - Update <yourkeyid> with your GPG2 Key id. Make sure that the key is valid and updloaded to keyserver
+   - Update "<yourpassphrase>" with the passphrase used to create te GPG2 key (see bellow)
+   - Update <youruser> and <yourpwd> with your user and password created for sonatype.org jira access (see bellow)
+1. execute `execTravisDeployLocally.sh` in the root directory
+1. NEVER commit these changes to github
+
+### Complete Install procedure to setup a Travis build to upload artifacts to Maven
+
 1. Create a JIRA Account at sonatype.org and create a new OOSRH ticket
 
     These steps are explained in this guide: [http://central.sonatype.org/pages/ossrh-guide.html](http://central.sonatype.org/pages/ossrh-guide.html).
@@ -52,7 +62,7 @@ _This guide uses GPG2 encryption.  Please see [https://www.gnupg.org/documentati
     Modify the maven settings file (**`.maven.xml`**) that will be distributed together with the project.  This file will
     also be used by Travis CI.
 
-    ```
+    ```xml
     <settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/SETTINGS/1.0.0"
               xsi:schemalocation="http://maven.apache.org/SETTINGS/1.0.0
                           http://maven.apache.org/xsd/settings-1.0.0.xsd">
@@ -90,13 +100,12 @@ _This guide uses GPG2 encryption.  Please see [https://www.gnupg.org/documentati
     **SONATYPE_USERNAME**, **SONATYPE_PASSWORD**
 
     1. change directory to cristalise git repository
-    1. `travis login`
-    1. `gpg -a --export-secret-keys B525228546FD535F | base64 > secret-keys`
-    1. ``export GPG_SECRET_KEYS=`cat secret-keys` ``
-    1. `travis env unset GPG_SECRET_KEYS`
-    1. `travis env copy GPG_SECRET_KEYS`
+    1. `travis login --pro --github-token <yourgithubclassictoken>`
+    1. ``export GPG_SECRET_KEYS=`gpg -a --export-secret-keys <yourgpgsecretkeyid> | base64` ``
+    1. `travis env --pro unset GPG_SECRET_KEYS`
+    1. `travis env --pro copy GPG_SECRET_KEYS`
     1. `travis env set GPG_EXECUTABLE gpg`
-    1. ``travis env set GPG_OWNERTRUST `gpg --export-ownertrust | base64` ``
+    1. ``travis env set GPG_OWNERTRUST "`gpg --export-ownertrust | base64`" ``
     1. `travis env set GPG_PASSPHRASE "your passphrase"` - double qoute is neede if passphrese contains space
     1. `travis env set SONATYPE_USERNAME <yourusername>`
     1. `travis env set SONATYPE_PASSWORD <youruserpwd>`
