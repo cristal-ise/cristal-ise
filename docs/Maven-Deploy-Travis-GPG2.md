@@ -4,13 +4,13 @@ _This guide uses GPG2 encryption.  Please see [https://www.gnupg.org/documentati
 ### Run Travis deploy build on local machine
 
 1. update `execTravisDeployLocally.sh` in the root directory
-   - Update <yourkeyid> with your GPG2 Key id. Make sure that the key is valid and updloaded to keyserver
-   - Update "<yourpassphrase>" with the passphrase used to create te GPG2 key (see bellow)
-   - Update <youruser> and <yourpwd> with your user and password created for sonatype.org jira access (see bellow)
+    - Update `<yourkeyid>` with your GPG2 Key id. Make sure that the key is valid and updloaded to keyserver
+    - Update `<yourpassphrase>` with the passphrase used to create te GPG2 key (see bellow)
+    - Update `<youruser>` and `<yourpwd>` with your user and password created for sonatype.org jira access (see bellow)
 1. execute `execTravisDeployLocally.sh` in the root directory
 1. NEVER commit these changes to github
 
-### Complete Install procedure to setup a Travis build to upload artifacts to Maven
+### Complete install procedure to setup a Travis build to upload artifacts to Maven
 
 1. Create a JIRA Account at sonatype.org and create a new OOSRH ticket
 
