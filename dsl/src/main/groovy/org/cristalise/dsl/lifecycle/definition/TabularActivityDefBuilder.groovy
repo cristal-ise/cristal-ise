@@ -53,7 +53,8 @@ class TabularActivityDefBuilder {
 
     CompositeActivityDef build(TabularGroovyParser parser) {
         parser.eachRow() { Map<String, Map<String, Object>> record, int i ->
-            switch (record['layout']['class']) {
+            def recordClass = record['layout']['class']
+            switch (recordClass) {
                 case 'Elementary': 
                     convertToElementary(record)
                     break
@@ -67,11 +68,10 @@ class TabularActivityDefBuilder {
                     break
 
                 case 'AndSplit': 
-                    startAndSplit(record)
-                    break
-
                 case 'OrSplit': 
-                    startOrSplit(record)
+                case 'XOrSplit': 
+                case 'XorSplit': 
+                    startSplit(record)
                     break
 
                 case 'Block': 
@@ -106,20 +106,28 @@ class TabularActivityDefBuilder {
         currentBlockD.lastSlotDef = loopD.joinDefFirst
     }
 
-    private void startAndSplit(Map<String, Map<String, Object>> record) {
-        log.info('startAndSplit() - {}', record)
-        def currentBlockD = blockLifo.last()
-        def andD = currentBlockD.AndSplit(record['property'])
-        initialiseDelegate(andD)
-        currentBlockD.lastSlotDef = andD.splitDef
-    }
+    private void startSplit(Map<String, Map<String, Object>> record) {
+        String recordClass = record['layout']['class']
+        log.info('startSplit({}) - {}', recordClass, record)
 
-    private void startOrSplit(Map<String, Map<String, Object>> record) {
-        log.info('startOrSplit() - {}', record)
         def currentBlockD = blockLifo.last()
-        def orD = currentBlockD.OrSplit(record['property'])
-        initialiseDelegate(orD)
-        currentBlockD.lastSlotDef = orD.splitDef
+        SplitDefDelegate splitD
+
+        switch (recordClass) {
+            case 'AndSplit':
+                splitD = currentBlockD.AndSplit(record['property'])
+                break
+
+            case 'OrSplit':
+                splitD = currentBlockD.OrSplit(record['property'])
+                break
+
+            default:
+                throw new InvalidDataException('Uncovered class value:' + record['layout']['class'])
+        }
+
+        initialiseDelegate(splitD)
+        currentBlockD.lastSlotDef = splitD.splitDef
     }
 
     private void startBlock(Map<String, Map<String, Object>> record) {

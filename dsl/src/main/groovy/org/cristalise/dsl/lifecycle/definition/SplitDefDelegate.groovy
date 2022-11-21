@@ -54,11 +54,13 @@ abstract class SplitDefDelegate extends BlockDefDelegate {
     
     @Override
     public void initialiseDelegate() {
+        log.debug('initialiseDelegate() - {}', splitDef)
         addAsNext(splitDef)
     }
 
     @Override
     public void finaliseDelegate() {
+        log.debug('finaliseDelegate() - {}', splitDef)
         lastSlotDef = joinDef
 
         props.each { k, v ->
@@ -68,7 +70,7 @@ abstract class SplitDefDelegate extends BlockDefDelegate {
 
     @Override
     public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
-        log.debug('finaliseBlock() - linking lastSlotDef:{} to join:{}', newLastSlotDef, joinDef)
+        log.debug('finaliseBlock() - {} linking lastSlotDef:{} to join:{}', splitDef, newLastSlotDef, joinDef)
         def lastNextDef = compActDef.addNextDef(newLastSlotDef, joinDef)
 
         if (alias) {

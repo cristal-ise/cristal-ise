@@ -152,7 +152,7 @@ class TabularAndSplitDefBuilderSpecs extends Specification implements CristalTes
         def andSplitDef = caDef.getChildren().find { it instanceof AndSplitDef }
 
         then:
-        caDef.verify()
+//        caDef.verify()
         checker.checkSequence(AndSplitDef, JoinDef, 'LeftInLoop', LoopDef, JoinDef, JoinDef)
         checker.checkSequence(AndSplitDef, 'Right', JoinDef)
     }
