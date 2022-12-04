@@ -55,7 +55,7 @@ class DevXMLUtility {
         def writer = new StringWriter()
         def xml = new MarkupBuilder(writer)
 
-        recordToXML(xml, record)
+        doRecordToXML(xml, record)
 
         return writer.toString()
     }
@@ -67,18 +67,18 @@ class DevXMLUtility {
      * @param xml the initialised MarkupBuilder to be used to build the XML
      * @param record the Map to be converted
      */
-    public static void recordToXML(MarkupBuilder xml, Map record) {
+    private static void doRecordToXML(MarkupBuilder xml, Map record) {
         record.each { key, value ->
             switch (value) {
                 case Map:
-                    xml."$key" { recordToXML(xml, value) }
+                    xml."$key" { doRecordToXML(xml, value) }
                     break;
 
                 case List:
                     value.each { listValue ->
                         xml."$key" {
                             switch (listValue) {
-                                case Map: recordToXML(xml, listValue); break;
+                                case Map: doRecordToXML(xml, listValue); break;
                                 default:  if (listValue) mkp.yield(listValue); break;
                             }
                         }
