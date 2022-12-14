@@ -1,0 +1,7 @@
+<cristalscript>
+  <param name="counter" type="java.lang.String"/>
+  <output type="java.lang.Integer"/>
+  <script language="javascript" name="CounterScript">
+    <![CDATA[ new java.lang.Integer(counter % 2); ]]>
+  </script>
+</cristalscript>

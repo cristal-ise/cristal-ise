@@ -1,0 +1,20 @@
+<Item initialPath="/" name="ScriptFactory" ns="ttt" workflow="ScriptFactoryWorkflow" workflowVer="0">
+  <Property mutable="true" name="Type">Factory</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/SCProp.xml</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow'">
+    <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageSchema">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="MasterOutcome">
+    <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageSchema">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+</Item>
