@@ -1,6 +1,0 @@
-<Agent initialPath="/agents" name="Test" password="Test">
-  <Role name="Admin"/>
-  <Role name="Abort"/>
-  <Property mutable="true" name="Name">Test</Property>
-  <Property mutable="true" name="Type">Agent</Property>
-</Agent>

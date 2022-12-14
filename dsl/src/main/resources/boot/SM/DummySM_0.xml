@@ -1,3 +1,0 @@
-<StateMachine initialState="0" name="DummySM">
-  <State id="0" name="Idle" proceeds="false"/>
-</StateMachine>
