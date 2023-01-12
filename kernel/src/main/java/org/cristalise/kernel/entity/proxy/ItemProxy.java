@@ -121,10 +121,18 @@ public class ItemProxy {
 
     /**
      * Return the ItemPath object of the Item this proxy is linked with
-     * @return the ItemPath of the Item this proxy is linked with
+     * @return the ItemPath of the Item
      */
     public ItemPath getPath() {
         return mItemPath;
+    }
+
+    /**
+     * Returns the UUID string of the Item this proxy is linked with
+     * @return UUID string of the Item
+     */
+    public String getUuid() {
+        return mItemPath.getName();
     }
 
     /**

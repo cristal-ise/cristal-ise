@@ -237,6 +237,7 @@ public class DataRecord extends OutcomeStructure {
         dr.put("type",  "GROUP");
         dr.put("id",    model.getName());
         dr.put("name",  model.getName());
+        //dr.put("required", !isOptional());
 
         JSONArray array = myAttributes.generateNgDynamicForms(inputs);
 

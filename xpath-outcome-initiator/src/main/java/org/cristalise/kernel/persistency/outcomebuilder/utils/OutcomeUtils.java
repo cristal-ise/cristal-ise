@@ -44,6 +44,10 @@ import lombok.extern.slf4j.Slf4j;
  * Utility class for generated Scripts, Script development and testing. JSONObject, Outcome and Map are the
  * 3 major formats the are used in the framework to handle outcome, and this class provides consistent type conversion
  * for field values.
+ * <br>
+ * <br>
+ * <b>Valid value</b> is not null or in case of String type it is not blank. This is based the convention that
+ * the XML based Outcome handles values of type String only.
  */
 @Slf4j
 public class OutcomeUtils {
@@ -60,7 +64,7 @@ public class OutcomeUtils {
      */
     public static boolean hasField(Object input, String key) {
         if (input instanceof JSONObject) {
-            return ((JSONObject)input).has(key);
+            return ((JSONObject) input).has(key);
         }
         else if (input instanceof Outcome) {
             return ((Outcome) input).hasField(key);
@@ -74,24 +78,35 @@ public class OutcomeUtils {
     }
 
     /**
-     * Checks if the input object has the field and a valid value (i.e. not null)
+     * Checks if the input object has the field and a valid value.
      * 
      * @param input  either JSONObject, Outcome or Map
      * @param key the field to check
-     * @return true if the input has the field with a not null value
+     * @return true if the input has the field with a valid value
      */
     public static boolean hasValue(Object input, String key) {
+        if (!hasField(input, key)) return false;
+
         if (input instanceof JSONObject) {
-            JSONObject json = (JSONObject) input;
-            return json.has(key) && !json.isNull(key);
+           JSONObject json = (JSONObject) input;
+           Object value = json.opt(key);
+
+           if (json.isNull(key)) return false;
+
+           return value instanceof String ? StringUtils.isNotBlank(value.toString()) : true;
         }
         else if (input instanceof Outcome) {
-            String value = ((Outcome) input).getField(key);
+            Outcome outcome = (Outcome) input;
+            String value = outcome.getField(key);
             return StringUtils.isNotBlank(value);
         }
         else if (input instanceof Map) {
-            String value = (String) ((Map<?, ?>) input).get(key);
-            return StringUtils.isNotBlank(value);
+            Map<?, ?> map = (Map<?, ?>) input;
+            Object value = map.get(key);
+
+            if (value == null) return false;
+
+            return value instanceof String ? StringUtils.isNotBlank(value.toString()) : true;
         }
         else {
             throw new IllegalArgumentException("Does not handle input with type '" + input.getClass().getName() + "'");
@@ -290,12 +305,12 @@ public class OutcomeUtils {
         else if (input instanceof Outcome) {
             String value = ((Outcome) input).getField(key);
 
-            if (StringUtils.isNotBlank(value)) return new Boolean(value);
+            if (StringUtils.isNotBlank(value)) return Boolean.valueOf(value);
         }
         else if (input instanceof Map) {
             String value = (String) ((Map<?, ?>) input).get(key);
 
-            if (StringUtils.isNotBlank(value)) return new Boolean(value);
+            if (StringUtils.isNotBlank(value)) return Boolean.valueOf(value);
         }
         else {
             throw new IllegalArgumentException("Does not handle input with type '" + input.getClass().getName() + "'");
