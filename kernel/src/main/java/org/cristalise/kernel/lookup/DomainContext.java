@@ -15,7 +15,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Getter @Setter @Slf4j
-public class DomainContexts implements DescriptionObject {
+public class DomainContext implements DescriptionObject {
     String   namespace;
     String   name;
     Integer  version;
@@ -23,7 +23,7 @@ public class DomainContexts implements DescriptionObject {
 
     DomainPath domainPath;
 
-    public DomainContexts(String path) {
+    public DomainContext(String path) {
         domainPath = new DomainPath(path);
         String[] capitalized = (String[]) Arrays.stream(domainPath.getPath()).map(s -> StringUtils.capitalize(s)).toArray();
         name = String.join("", capitalized) + "Context";
