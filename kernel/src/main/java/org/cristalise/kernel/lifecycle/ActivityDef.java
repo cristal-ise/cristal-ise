@@ -354,27 +354,6 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
         this.actStateMachine = actStateMachine;
     }
 
-    public Dependency makeDescCollection(BuiltInCollections collection, TransactionKey transactionKey, DescriptionObject... descs) throws InvalidDataException {
-        //TODO: restrict membership based on kernel property desc
-        Dependency descDep = new Dependency(collection.getName());
-        if (version != null && version > -1) {
-            descDep.setVersion(version);
-        }
-
-        for (DescriptionObject thisDesc : descs) {
-            if (thisDesc == null) continue;
-            try {
-                DependencyMember descMem = descDep.addMember(thisDesc.getItemPath(), transactionKey);
-                descMem.setBuiltInProperty(VERSION, thisDesc.getVersion());
-            }
-            catch (Exception e) {
-                log.error("Problem creating description collection for " + thisDesc + " in " + getName(), e);
-                throw new InvalidDataException(e.getMessage());
-            }
-        }
-        return descDep;
-    }
-
     @Override
     public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         CollectionArrayList retArr = new CollectionArrayList();

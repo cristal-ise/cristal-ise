@@ -20,11 +20,14 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
-
+import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.CollectionArrayList;
+import org.cristalise.kernel.collection.Dependency;
+import org.cristalise.kernel.collection.DependencyMember;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -47,5 +50,26 @@ public interface DescriptionObject {
     public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException;
 
     public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException;
+
+    default public Dependency makeDescCollection(BuiltInCollections collection, TransactionKey transactionKey, DescriptionObject... descs) throws InvalidDataException {
+        //TODO: restrict membership based on kernel property desc
+        Dependency descDep = new Dependency(collection.getName());
+        if (getVersion() != null && this.getVersion() > -1) {
+            descDep.setVersion(this.getVersion());
+        }
+
+        for (DescriptionObject thisDesc : descs) {
+            if (thisDesc == null) continue;
+            try {
+                DependencyMember descMem = descDep.addMember(thisDesc.getItemPath(), transactionKey);
+                descMem.setBuiltInProperty(VERSION, thisDesc.getVersion());
+            }
+            catch (Exception e) {
+                throw new InvalidDataException(e);
+            }
+        }
+        return descDep;
+    }
+
 
 }
