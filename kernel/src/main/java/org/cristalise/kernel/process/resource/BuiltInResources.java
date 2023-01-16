@@ -27,13 +27,13 @@ import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
+import org.cristalise.kernel.lookup.DomainContext;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.module.Module;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.DescriptionObject;
-
 import lombok.Getter;
 
 /**
@@ -41,19 +41,20 @@ import lombok.Getter;
  */
 @Getter
 public enum BuiltInResources {
-    //                     typeCode,   schemaName,              typeRoot,             workflowDef
-    ACTIVITY_DESC_RESOURCE("AC",       "ActivityDef",           "/desc/ActivityDesc", null), //'abstract' resource - does not have an Item
-    PROPERTY_DESC_RESOURCE("property", "PropertyDescription",   "/desc/PropertyDesc", "ManagePropertyDesc"),
-    MODULE_RESOURCE(       "module",   "Module",                "/desc/Module",       "ManageModule"),
-    SCHEMA_RESOURCE(       "OD",       "Schema",                "/desc/Schema",       "ManageSchema"),
-    SCRIPT_RESOURCE(       "SC",       "Script",                "/desc/Script",       "ManageScript"),
-    QUERY_RESOURCE(        "query",    "Query",                 "/desc/Query",        "ManageQuery"),
-    STATE_MACHINE_RESOURCE("SM",       "StateMachine",          "/desc/StateMachine", "ManageStateMachine"),
-    COMP_ACT_DESC_RESOURCE("CA",       "CompositeActivityDef",  "/desc/ActivityDesc", "ManageCompositeActDef"),
-    ELEM_ACT_DESC_RESOURCE("EA",       "ElementaryActivityDef", "/desc/ActivityDesc", "ManageElementaryActDef"),
-    ITEM_DESC_RESOURCE(    "item",     "Item",                  "/desc/ItemDesc",     "ManageItemDesc"),
-    AGENT_DESC_RESOURCE(   "agent",    "Agent",                 "/desc/AgentDesc",    "ManageAgentDesc"),
-    ROLE_DESC_RESOURCE(    "role" ,    "Role",                  "/desc/RoleDesc",     "ManageRoleDesc");
+    //                     typeCode,    schemaName,              typeRoot,              workflowDef
+    ACTIVITY_DESC_RESOURCE( "AC",       "ActivityDef",           "/desc/ActivityDesc",  null), //'abstract' resource - does not have an Item
+    PROPERTY_DESC_RESOURCE( "property", "PropertyDescription",   "/desc/PropertyDesc",  "ManagePropertyDesc"),
+    MODULE_RESOURCE(        "module",   "Module",                "/desc/Module",        "ManageModule"),
+    SCHEMA_RESOURCE(        "OD",       "Schema",                "/desc/Schema",        "ManageSchema"),
+    SCRIPT_RESOURCE(        "SC",       "Script",                "/desc/Script",        "ManageScript"),
+    QUERY_RESOURCE(         "query",    "Query",                 "/desc/Query",         "ManageQuery"),
+    STATE_MACHINE_RESOURCE( "SM",       "StateMachine",          "/desc/StateMachine",  "ManageStateMachine"),
+    COMP_ACT_DESC_RESOURCE( "CA",       "CompositeActivityDef",  "/desc/ActivityDesc",  "ManageCompositeActDef"),
+    ELEM_ACT_DESC_RESOURCE( "EA",       "ElementaryActivityDef", "/desc/ActivityDesc",  "ManageElementaryActDef"),
+    ITEM_DESC_RESOURCE(     "item",     "Item",                  "/desc/ItemDesc",      "ManageItemDesc"),
+    AGENT_DESC_RESOURCE(    "agent",    "Agent",                 "/desc/AgentDesc",     "ManageAgentDesc"),
+    ROLE_DESC_RESOURCE(     "role" ,    "Role",                  "/desc/RoleDesc",      "ManageRoleDesc"),
+    DOMAIN_CONTEXT_RESOURCE("context" , "DomainContext",         "/desc/DomainContext", "ManageDomainContext");
 
     private String  typeCode;
     private String  schemaName;
@@ -97,6 +98,7 @@ public enum BuiltInResources {
             case "ImportItem":              return ITEM_DESC_RESOURCE;
             case "ImportAgent":             return AGENT_DESC_RESOURCE;
             case "ImportRole":              return ROLE_DESC_RESOURCE;
+            case "DomainContext":           return DOMAIN_CONTEXT_RESOURCE;
             default:
                 return null;
         }
@@ -118,6 +120,7 @@ public enum BuiltInResources {
             case ITEM_DESC_RESOURCE:     descObj = new ImportItem(); break;
             case AGENT_DESC_RESOURCE:    descObj = new ImportAgent(); break;
             case ROLE_DESC_RESOURCE:     descObj = new ImportRole(); break;
+            case DOMAIN_CONTEXT_RESOURCE:descObj = new DomainContext(); break;
 
             default:
                 return null;

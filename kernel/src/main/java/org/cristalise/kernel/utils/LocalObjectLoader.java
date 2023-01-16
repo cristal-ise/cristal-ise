@@ -30,9 +30,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_N
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
-
 import java.util.UUID;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -43,28 +41,29 @@ import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
+import org.cristalise.kernel.lookup.DomainContext;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class LocalObjectLoader {
-    private static ActDefCache              actCache      = new ActDefCache(null);
-    private static ActDefCache              compActCache  = new ActDefCache(true);
-    private static ActDefCache              elemActCache  = new ActDefCache(false);
-    private static StateMachineCache        smCache       = new StateMachineCache();
-    private static SchemaCache              schCache      = new SchemaCache();
-    private static ScriptCache              scrCache      = new ScriptCache();
-    private static QueryCache               queryCache    = new QueryCache();
-    private static PropertyDescriptionCache propDescCache = new PropertyDescriptionCache();
-    private static AgentDescCache           agentDescCache = new AgentDescCache();
-    private static ItemDescCache            itemDescCache = new ItemDescCache();
-    private static RoleDescCache            roleDescCache = new RoleDescCache();
+    private static ActDefCache              actCache            = new ActDefCache(null);
+    private static ActDefCache              compActCache        = new ActDefCache(true);
+    private static ActDefCache              elemActCache        = new ActDefCache(false);
+    private static StateMachineCache        smCache             = new StateMachineCache();
+    private static SchemaCache              schCache            = new SchemaCache();
+    private static ScriptCache              scrCache            = new ScriptCache();
+    private static QueryCache               queryCache          = new QueryCache();
+    private static PropertyDescriptionCache propDescCache       = new PropertyDescriptionCache();
+    private static AgentDescCache           agentDescCache      = new AgentDescCache();
+    private static ItemDescCache            itemDescCache       = new ItemDescCache();
+    private static RoleDescCache            roleDescCache       = new RoleDescCache();
+    private static DomainContextCache       domainContextCache  = new DomainContextCache();
 
     /**
      * Retrieves a named version of a script from the database
@@ -320,6 +319,16 @@ public class LocalObjectLoader {
     static public ImportRole getRoleDesc(String name, int version, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         log.trace("getRoleDesc(({} v{}) - transactionKey:{}", name, version, transactionKey);
         return roleDescCache.get(name, version, transactionKey);
+    }
+
+    static public DomainContext getDomainContext(String name, int version) throws ObjectNotFoundException, InvalidDataException {
+        return getDomainContext(name, version, null);
+    }
+
+    static public DomainContext getDomainContext(String name, int version, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
+        log.trace("getDomainContext(({} v{}) - transactionKey:{}", name, version, transactionKey);
+        
+        return domainContextCache.get(name, version, transactionKey);
     }
 
     /**

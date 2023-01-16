@@ -134,11 +134,23 @@ public interface Lookup {
      */
     public boolean exists(Path path, TransactionKey transactionKey);
 
-    public default PagedResult getContextTree(DomainPath path) {
-        return getContextTree(path, null);
+    /**
+     * Read the full context tree from the given Domainath
+     * 
+     * @param start
+     * @return the 
+     */
+    public default PagedResult getContextTree(DomainPath start) {
+        return getContextTree(start, null);
     };
 
-    public PagedResult getContextTree(DomainPath path, TransactionKey transactionKey);
+    /**
+     * 
+     * @param start
+     * @param transactionKey
+     * @return
+     */
+    public PagedResult getContextTree(DomainPath start, TransactionKey transactionKey);
 
     /**
      * List the next-level-deep children of a Path

@@ -23,45 +23,43 @@
  */
 package org.cristalise.kernel.utils;
 
-import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE;
-
+import static org.cristalise.kernel.process.resource.BuiltInResources.DOMAIN_CONTEXT_RESOURCE;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.lookup.DomainContext;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.property.PropertyDescriptionList;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class PropertyDescriptionCache extends DescriptionObjectCache<PropertyDescriptionList> {
+public class DomainContextCache extends DescriptionObjectCache<DomainContext> {
 
     @Override
     protected String getTypeCode() {
-        return PROPERTY_DESC_RESOURCE.getTypeCode();
+        return DOMAIN_CONTEXT_RESOURCE.getTypeCode();
     }
 
     @Override
     protected String getSchemaName() {
-        return PROPERTY_DESC_RESOURCE.getSchemaName();
+        return DOMAIN_CONTEXT_RESOURCE.getSchemaName();
     }
 
     @Override
     protected String getTypeRoot() {
-        return PROPERTY_DESC_RESOURCE.getTypeRoot();
+        return DOMAIN_CONTEXT_RESOURCE.getTypeRoot();
     }
 
     @Override
-    protected PropertyDescriptionList buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected DomainContext buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
-            PropertyDescriptionList pdl = (PropertyDescriptionList) Gateway.getMarshaller().unmarshall(data);
+            DomainContext pdl = (DomainContext) Gateway.getMarshaller().unmarshall(data);
             pdl.setName(name);
             pdl.setVersion(version);
             pdl.setItemPath(path);
             return pdl;
         }
         catch (Exception ex) {
-            log.error("Could not parse PropertyDescriptionList '" + name + "' v" + version, ex);
-            throw new InvalidDataException("Could not parse PropertyDescriptionList '" + name + "' v" + version + ": " + ex.getMessage());
+            log.error("Could not parse DomainContext '" + name + "' v" + version, ex);
+            throw new InvalidDataException("Could not parse DomainContext '" + name + "' v" + version + ": " + ex.getMessage());
         }
     }
 }
