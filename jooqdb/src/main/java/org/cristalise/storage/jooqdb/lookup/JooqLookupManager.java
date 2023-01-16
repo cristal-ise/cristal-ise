@@ -450,7 +450,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public PagedResult getChildren(Path path, int offset, int limit, TransactionKey transactionKey) {
+    public PagedResult getChildren(Path path, int offset, int limit, boolean contextOnly, TransactionKey transactionKey) {
         if (path instanceof ItemPath) return new PagedResult();
 
         int maxRows = 0;
@@ -475,7 +475,7 @@ public class JooqLookupManager implements LookupManager {
         List<Path> pathes = null;
 
         if      (path instanceof RolePath)   pathes = roles  .findByRegex(context, pattern, offset, limit);
-        else if (path instanceof DomainPath) pathes = domains.findByRegex(context, pattern, offset, limit, false);
+        else if (path instanceof DomainPath) pathes = domains.findByRegex(context, pattern, offset, limit, contextOnly);
 
         JooqDataSourceHandler.logConnectionCount("JooqLookupManager.getChildren()", context);
 

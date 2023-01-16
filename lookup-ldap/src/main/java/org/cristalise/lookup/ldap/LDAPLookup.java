@@ -854,4 +854,11 @@ public class LDAPLookup implements LookupManager {
     public PagedResult getContextTree(DomainPath path, TransactionKey transactionKey) {
         throw new NotImplementedException("Retrieving ContextTree support is not implemented");
     }
+
+    @Override
+    public PagedResult getChildren(Path path, int offset, int limit, boolean contextOnly, TransactionKey transactionKey) {
+        if (!contextOnly) getChildren(path, offset, limit, transactionKey);
+
+        throw new NotImplementedException("Retrieving only children of DomainContext support is not implemented");
+    }
 }

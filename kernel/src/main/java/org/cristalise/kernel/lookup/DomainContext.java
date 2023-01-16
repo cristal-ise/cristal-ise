@@ -82,7 +82,7 @@ public class DomainContext implements DescriptionObject {
     }
 
     public List<DomainContext> getSubContexts(TransactionKey transactionKey) {
-        List<Path> children = Gateway.getLookup().getChildren(domainPath, 0, 10000, transactionKey).rows;
+        List<Path> children = Gateway.getLookup().getChildren(domainPath, 0, 0, true, transactionKey).rows;
         List<DomainContext> result = new ArrayList<>();
 
         for (Path child : children) {
