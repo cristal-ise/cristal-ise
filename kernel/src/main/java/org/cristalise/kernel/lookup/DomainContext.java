@@ -1,8 +1,6 @@
 package org.cristalise.kernel.lookup;
 
 import static org.apache.commons.lang3.StringUtils.capitalize;
-import static org.cristalise.kernel.collection.BuiltInCollections.PARENT_CONTEXT;
-import static org.cristalise.kernel.collection.BuiltInCollections.SUB_CONTEXTS;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -68,8 +66,8 @@ public class DomainContext implements DescriptionObject {
     public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         CollectionArrayList retArr = new CollectionArrayList();
 
-        retArr.put(makeDescCollection(PARENT_CONTEXT, transactionKey, getParentContext()));
-        retArr.put(makeDescCollection(SUB_CONTEXTS, transactionKey, getSubContexts(transactionKey).toArray(new DomainContext[subCcontexts.size()])));
+//        retArr.put(makeDescCollection(BuiltInCollections.PARENT_CONTEXT, transactionKey, getParentContext()));
+//        retArr.put(makeDescCollection(BuiltInCollections.SUB_CONTEXTS, transactionKey, getSubContexts(transactionKey).toArray(new DomainContext[subCcontexts.size()])));
 
         return retArr;
     }

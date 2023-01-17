@@ -66,8 +66,13 @@ public class DomainContextTest {
 
     @Test
     public void localObjectLoader() throws Exception {
-        DomainContext desc               = LocalObjectLoader.getDomainContext("DescContext", 0);
-        DomainContext descPropDesc       = LocalObjectLoader.getDomainContext("DescPropertyDescContext", 0);
+        DomainContext desc  = LocalObjectLoader.getDomainContext("DescContext", 0);
+        assertEquals("DescContext", desc.getName());
+
+        DomainContext descPropDesc = LocalObjectLoader.getDomainContext("DescPropertyDescContext", 0);
+        assertEquals("DescPropertyDescContext", descPropDesc.getName());
+
         DomainContext descPropDescKernel = LocalObjectLoader.getDomainContext("DescPropertyDescKernelContext", 0);
+        assertEquals("DescPropertyDescKernelContext", descPropDescKernel.getName());
     }
 }
