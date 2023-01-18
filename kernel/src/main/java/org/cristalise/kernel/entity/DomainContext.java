@@ -1,4 +1,4 @@
-package org.cristalise.kernel.lookup;
+package org.cristalise.kernel.entity;
 
 import static org.apache.commons.lang3.StringUtils.capitalize;
 import java.io.File;
@@ -11,6 +11,9 @@ import java.util.stream.Collectors;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.lookup.DomainPath;
+import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.DescriptionObject;

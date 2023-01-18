@@ -21,13 +21,13 @@
 
 package org.cristalise.kernel.process.resource;
 
+import org.cristalise.kernel.entity.DomainContext;
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportItem;
 import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.lifecycle.ActivityDef;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
-import org.cristalise.kernel.lookup.DomainContext;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.module.Module;
 import org.cristalise.kernel.property.PropertyDescriptionList;

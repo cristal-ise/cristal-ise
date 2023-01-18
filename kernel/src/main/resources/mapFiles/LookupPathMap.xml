@@ -69,7 +69,7 @@
         </field>
     </class>
 
-    <class name="org.cristalise.kernel.lookup.DomainContext">
+    <class name="org.cristalise.kernel.entity.DomainContext">
         <map-to xml="DomainContext" />
         <field name="name" type="string" direct="false" get-method="getName" set-method="setName">
             <bind-xml name="name" node="attribute" />

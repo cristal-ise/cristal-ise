@@ -25,7 +25,7 @@ package org.cristalise.kernel.utils;
 
 import static org.cristalise.kernel.process.resource.BuiltInResources.DOMAIN_CONTEXT_RESOURCE;
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.lookup.DomainContext;
+import org.cristalise.kernel.entity.DomainContext;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import lombok.extern.slf4j.Slf4j;
