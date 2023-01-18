@@ -51,11 +51,12 @@ public class MainTest {
     @Test
     public void testBootItems() throws Exception {
         HashMap<String, OutcomeValidator> validators = new HashMap<String, OutcomeValidator>();
-        validators.put("CA", new OutcomeValidator(getSchema("CompositeActivityDef",  0, "boot/OD/CompositeActivityDef.xsd")));
-        validators.put("EA", new OutcomeValidator(getSchema("ElementaryActivityDef", 0, "boot/OD/ElementaryActivityDef.xsd")));
-        validators.put("SC", new OutcomeValidator(getSchema("Script",                0, "boot/OD/Script.xsd")));
-        validators.put("SM", new OutcomeValidator(getSchema("StateMachine",          0, "boot/OD/StateMachine.xsd")));
-        validators.put("OD", new SchemaValidator());
+        validators.put("CA",      new OutcomeValidator(getSchema("CompositeActivityDef",  0, "boot/OD/CompositeActivityDef.xsd")));
+        validators.put("EA",      new OutcomeValidator(getSchema("ElementaryActivityDef", 0, "boot/OD/ElementaryActivityDef.xsd")));
+        validators.put("SC",      new OutcomeValidator(getSchema("Script",                0, "boot/OD/Script.xsd")));
+        validators.put("SM",      new OutcomeValidator(getSchema("StateMachine",          0, "boot/OD/StateMachine.xsd")));
+        validators.put("context", new OutcomeValidator(getSchema("DomainContext",         0, "boot/OD/DomainContext.xsd")));
+        validators.put("OD",      new SchemaValidator());
 
         String bootItems = FileStringUtility.url2String(Gateway.getResource().getKernelResourceURL("boot/allbootitems.txt"));
         StringTokenizer str = new StringTokenizer(bootItems, "\n\r");
@@ -74,7 +75,8 @@ public class MainTest {
 
             assert errors.length() == 0 : "Kernel resource " + itemType + " "+ resName + " has errors :" + errors;
 
-            if (itemType.equals("CA") || itemType.equals("EA") || itemType.equals("SM")) {
+            //Outcome and Script cannot be marshaled
+            if (!itemType.equals("OD") && !itemType.equals("SC")) {
                 log.info("Remarshalling " + itemType + " "+ resName);
                 long then = System.currentTimeMillis();
                 Object unmarshalled = Gateway.getMarshaller().unmarshall(data);
