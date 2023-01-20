@@ -20,7 +20,7 @@
  */
 import org.cristalise.kernel.collection.BuiltInCollections
 
-Item(name: 'ScriptFactory', version: 0, folder: '/desc/dev', workflow: 'ScriptFactoryWf', workflowVer: 0) {
+Item(name: 'ScriptFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $scriptFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'Script')
     Outcome($script_PropertyDescriptionList)
@@ -34,7 +34,7 @@ Item(name: 'ScriptFactory', version: 0, folder: '/desc/dev', workflow: 'ScriptFa
     DependencyDescription(BuiltInCollections.INCLUDE) {}
 }
 
-Item(name: 'QueryFactory', version: 0, folder: '/desc/dev', workflow: 'QueryFactoryWf', workflowVer: 0) {
+Item(name: 'QueryFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $queryFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'Query')
     Outcome($query_PropertyDescriptionList)
@@ -47,7 +47,7 @@ Item(name: 'QueryFactory', version: 0, folder: '/desc/dev', workflow: 'QueryFact
     }
 }
 
-Item(name: 'SchemaFactory', version: 0, folder: '/desc/dev', workflow: 'SchemaFactoryWf', workflowVer: 0) {
+Item(name: 'SchemaFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $schemaFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'Schema')
     Outcome($schema_PropertyDescriptionList)
@@ -60,7 +60,7 @@ Item(name: 'SchemaFactory', version: 0, folder: '/desc/dev', workflow: 'SchemaFa
     }
 }
 
-Item(name: 'StateMachineFactory', version: 0, folder: '/desc/dev', workflow: 'StateMachineFactoryWf', workflowVer: 0) {
+Item(name: 'StateMachineFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $stateMachineFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'StateMachine')
     Outcome($stateMachine_PropertyDescriptionList)
@@ -72,7 +72,7 @@ Item(name: 'StateMachineFactory', version: 0, folder: '/desc/dev', workflow: 'St
     }
 }
 
-Item(name: 'ElementaryActivityDefFactory', version: 0, folder: '/desc/dev', workflow: 'ElementaryActivityFactory', workflowVer: 0) {
+Item(name: 'ElementaryActivityDefFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $elementaryActivityFactory_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'ElementaryActivityDef')
     Outcome($elementaryActivityDesc_PropertyDescriptionList)
@@ -96,12 +96,12 @@ Item(name: 'ElementaryActivityDefFactory', version: 0, folder: '/desc/dev', work
     }
 }
 
-Item(name: 'ActivityDefType', version: 0, folder: '/desc/dev', workflow: 'NoWorkflow', workflowVer: 0) {
+Item(name: 'ActivityDefType', version: 0, folder: $descDevContext_DomainContext, workflow: 'NoWorkflow', workflowVer: 0) {
     InmutableProperty('Type': 'Type')
     Outcome($activityDesc_PropertyDescriptionList)
 }
 
-Item(name: 'CompositeActivityDefFactory', version: 0, folder: '/desc/dev', workflow: 'CompositeActivityFactory', workflowVer: 0) {
+Item(name: 'CompositeActivityDefFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $compositeActivityFactory_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'CompositeActivityDef')
     Outcome($compositeActivityDesc_PropertyDescriptionList)
@@ -128,7 +128,7 @@ Item(name: 'CompositeActivityDefFactory', version: 0, folder: '/desc/dev', workf
     }
 }
 
-Item(name: 'DescriptionFactory', version: 0, folder: '/desc/dev', workflow: 'ItemDescriptionFactoryWf', workflowVer: 0) {
+Item(name: 'DescriptionFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $itemDescriptionFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     Outcome($itemDescription_PropertyDescriptionList)
 
@@ -142,7 +142,7 @@ Item(name: 'DescriptionFactory', version: 0, folder: '/desc/dev', workflow: 'Ite
     }
 }
 
-Item(name: 'ModuleFactory', version: 0, folder: '/desc/dev', workflow: 'ModuleFactory', workflowVer: 0) {
+Item(name: 'ModuleFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $moduleFactory_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     Outcome($module_PropertyDescriptionList)
 
@@ -154,7 +154,7 @@ Item(name: 'ModuleFactory', version: 0, folder: '/desc/dev', workflow: 'ModuleFa
     DependencyDescription(BuiltInCollections.CONTENTS) {}
 }
 
-Item(name: 'AgentFactory', version: 0, folder: '/desc/dev', workflow: 'AgentFactoryWf', workflowVer: 0) {
+Item(name: 'AgentFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $agentFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     Outcome($agent_PropertyDescriptionList)
 
@@ -165,7 +165,7 @@ Item(name: 'AgentFactory', version: 0, folder: '/desc/dev', workflow: 'AgentFact
     }
 }
 
-Item(name: 'PropertyDescriptionFactory', version: 0, folder: '/desc/dev', workflow: 'PropertyDescriptionFactoryWf', workflowVer: 0) {
+Item(name: 'PropertyDescriptionFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $propertyDescriptionFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'PropertyDescription')
     Outcome($propertyDescription_PropertyDescriptionList)
@@ -177,7 +177,7 @@ Item(name: 'PropertyDescriptionFactory', version: 0, folder: '/desc/dev', workfl
     }
 }
 
-Item(name: 'AgentDescFactory', version: 0, folder: '/desc/dev', workflow: 'AgentDescFactoryWf', workflowVer: 0) {
+Item(name: 'AgentDescFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $agentDescFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'AgentDesc')
     Outcome($agentDesc_PropertyDescriptionList)
@@ -189,7 +189,7 @@ Item(name: 'AgentDescFactory', version: 0, folder: '/desc/dev', workflow: 'Agent
     }
 }
 
-Item(name: 'ItemDescFactory', version: 0, folder: '/desc/dev', workflow: 'ItemDescFactoryWf', workflowVer: 0) {
+Item(name: 'ItemDescFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $itemDescFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'ItemDesc')
     Outcome($itemDesc_PropertyDescriptionList)
@@ -201,7 +201,7 @@ Item(name: 'ItemDescFactory', version: 0, folder: '/desc/dev', workflow: 'ItemDe
     }
 }
 
-Item(name: 'RoleDescFactory', version: 0, folder: '/desc/dev', workflow: 'RoleDescFactoryWf', workflowVer: 0) {
+Item(name: 'RoleDescFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $roleDescFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'RoleDesc')
     Outcome($roleDesc_PropertyDescriptionList)

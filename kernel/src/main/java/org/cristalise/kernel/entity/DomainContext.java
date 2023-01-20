@@ -122,18 +122,18 @@ public class DomainContext implements DescriptionObject {
     }
 
     /**
-     * Gets the domain path represented bz the the DomainContext item. String return type is required 
-     * for castor xml marshalling
+     * Gets the domain path represented by the the DomainContext item. String return type is required 
+     * for castor xml marshaling
      * 
      * @return string format of the domain path
      */
     public String getDomainPath() {
-        return domainPath.getStringPath();
+        return domainPath.getStringPath(false);
     }
 
     @Override
     public String toString() {
-        return getName();
+        return getName()+"(path:"+getDomainPath()+")";
     }
 
     @Override
