@@ -20,9 +20,8 @@
  */
 package org.cristalise.dsl.entity
 
-import groovy.transform.CompileStatic
-
 import org.cristalise.kernel.entity.imports.ImportRole
+import groovy.transform.CompileStatic
 
 
 /**
@@ -32,13 +31,15 @@ import org.cristalise.kernel.entity.imports.ImportRole
 class RoleDelegate {
     String namespace
 
-    ArrayList<ImportRole> roles = new ArrayList<ImportRole>()
+    List<ImportRole> roles = new ArrayList<>()
     
     public RoleDelegate(String ns) {
         namespace = ns
     }
 
     public void processClosure(Closure cl) {
+        assert cl
+
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
@@ -47,7 +48,7 @@ class RoleDelegate {
     public void Role(Map<String, Object> attrs, Closure cl = null) {
         assert attrs && attrs.name
 
-        if(!attrs.jobList) attrs.jobList = false
+        if (!attrs.jobList) attrs.jobList = false
 
         def role = new ImportRole()
         role.namespace = namespace
@@ -60,12 +61,12 @@ class RoleDelegate {
     }
     
     public void Permission(String p) {
-        roles[roles.size-1].permissions.add(p)
+        roles[roles.size()-1].permissions.add(p)
     }
 
     public void Permission(Map<String, String>  args) {
         assert args.domain && args.actions && args.targets, 'domain:actions:targets triplet must be set' 
 
-        roles[roles.size-1].permissions.add("${args.domain}:${args.actions}:${args.targets}".toString())
+        roles[roles.size()-1].permissions.add("${args.domain}:${args.actions}:${args.targets}".toString())
     }
 }

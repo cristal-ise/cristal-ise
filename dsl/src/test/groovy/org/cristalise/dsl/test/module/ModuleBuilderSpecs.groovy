@@ -21,9 +21,11 @@
 package org.cristalise.dsl.test.module
 
 import org.cristalise.dsl.module.ModuleBuilder
+import org.cristalise.kernel.entity.DomainContext
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportRole
+import org.cristalise.kernel.process.module.ModuleDomainContext
 import org.cristalise.kernel.test.utils.CristalTestSetup
 import org.cristalise.kernel.utils.LocalObjectLoader
 
@@ -33,8 +35,8 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
 
     def setupSpec() {
         def props = new Properties()
-        props.put('DSL.GenerateModuleXml', false)
-        props.put('DSL.GenerateResourceXml', false)
+        props.put('DSL.Module.generateModuleXml', false)
+        props.put('DSL.Module.generateResourceXml', false)
         props.put('DSL.Module.generateAllResourceItems', true)
 
         inMemoryServer(props, true) //skips bootstrap
@@ -221,5 +223,31 @@ class ModuleBuilderSpecs extends Specification implements CristalTestSetup {
         module.getImports().list.size() == 1
         module.getImports().list[0].name == 'DummySM'
         module.getImports().list[0].namespace == 'ttt'
+    }
+
+    def 'Module can create new DomainContext'() {
+        when:
+        def module = ModuleBuilder.build('ttt', 'integtest', 0) {
+            Contexts {
+                DomainContext("/integtest", 0)
+                DomainContext("/integtest/Doctor", 2)
+            }
+        }
+
+        then:
+        module != null
+        module.getImports().list.size() == 2
+
+        module.getImports().list[0] instanceof ModuleDomainContext
+        def mdc = (ModuleDomainContext) module.getImports().list[0]
+        mdc.name == 'IntegtestContext'
+        mdc.namespace == 'ttt'
+        mdc.version == 0
+
+        module.getImports().list[1] instanceof ModuleDomainContext
+        def mdc1 = (ModuleDomainContext) module.getImports().list[1]
+        mdc1.name == 'IntegtestDoctorContext'
+        mdc1.namespace == 'ttt'
+        mdc1.version == 2
     }
 }

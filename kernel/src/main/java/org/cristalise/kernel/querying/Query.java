@@ -41,6 +41,7 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeValidator;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.scripting.ParameterException;
 import org.cristalise.kernel.scripting.ScriptParsingException;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -270,5 +271,15 @@ public class Query implements DescriptionObject {
                     + "/>\n");
             
         }
+    }
+
+    @Override
+    public String getXml() throws InvalidDataException {
+        return new Outcome(getQueryXML()).getData(true);
+    }
+
+    @Override
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.QUERY_RESOURCE;
     }
 }

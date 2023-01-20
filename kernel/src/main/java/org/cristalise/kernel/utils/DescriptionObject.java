@@ -21,6 +21,7 @@
 package org.cristalise.kernel.utils;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
+import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -32,6 +33,9 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 
 public interface DescriptionObject {
 
@@ -46,10 +50,46 @@ public interface DescriptionObject {
     public void setItemPath(ItemPath path);
 
     public String getItemID();
+    public BuiltInResources getResourceType();
+
+    default public String getXml() throws InvalidDataException {
+        try {
+            return new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
+        }
+        catch (Exception e) {
+            throw new InvalidDataException("Couldn't marshall " + getResourceType().getSchemaName() + " name:" + getName());
+        }
+    }
 
     public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException;
 
-    public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException;
+    default public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
+        BuiltInResources type = getResourceType();
+        String versionPostfix = getVersion() == null ? "" : "_" + getVersion();
+        String extention = type == SCHEMA_RESOURCE ? ".xsd" : ".xml";
+
+        String fileName = getName() + versionPostfix + extention;
+        File newFile = new File(new File(dir, type.getTypeCode()), fileName);
+        FileStringUtility.string2File(newFile, getXml());
+
+        if (imports == null) return;
+
+        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
+            imports.write("<Resource "
+                    + "name='" + getName() + "' "
+                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
+                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
+                    + "type='" + type.getTypeCode() + "'>boot/" + type.getTypeCode() + "/" + fileName
+                    + "</Resource>\n");
+        }
+        else {
+            imports.write("<" + type.getSchemaName() + "Resource "
+                    + "name='" + getName() + "' "
+                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
+                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
+                    + "/>\n");
+        }
+    }
 
     default public Dependency makeDescCollection(BuiltInCollections collection, TransactionKey transactionKey, DescriptionObject... descs) throws InvalidDataException {
         //TODO: restrict membership based on kernel property desc
@@ -71,5 +111,6 @@ public interface DescriptionObject {
         return descDep;
     }
 
+    
 
 }

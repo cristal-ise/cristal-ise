@@ -1,9 +1,6 @@
 package org.cristalise.kernel.entity;
 
 import static org.apache.commons.lang3.StringUtils.capitalize;
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,6 +13,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.DescriptionObject;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -48,9 +46,23 @@ public class DomainContext implements DescriptionObject {
         this(new DomainPath(path));
     }
 
+    public DomainContext(String path, Integer v) throws InvalidDataException {
+        this(new DomainPath(path), null, v);
+    }
+
     public DomainContext(DomainPath path) throws InvalidDataException {
+        this(path, null, null);
+    }
+
+    public DomainContext(String path, String ns, Integer v) throws InvalidDataException {
+        this(new DomainPath(path), ns, v);
+    }
+
+    public DomainContext(DomainPath path, String ns, Integer v) throws InvalidDataException {
         if (path.getTarget() != null) throw new InvalidDataException("DomainContext '" + path + "' has target");
 
+        namespace = ns;
+        version = v;
         domainPath = path;
 
         String[] origPath = domainPath.getPath();
@@ -120,13 +132,12 @@ public class DomainContext implements DescriptionObject {
     }
 
     @Override
-    public void export(Writer imports, File dir, boolean shallow)
-            throws InvalidDataException, ObjectNotFoundException, IOException {
-        // TODO Auto-generated method stub
-    }
-    
-    @Override
     public String toString() {
         return getName();
+    }
+
+    @Override
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.DOMAIN_CONTEXT_RESOURCE;
     }
 }

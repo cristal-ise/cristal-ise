@@ -22,13 +22,8 @@ package org.cristalise.kernel.entity.imports;
 
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.CannotManageException;
@@ -46,16 +41,13 @@ import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.utils.DescriptionObject;
-import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -65,10 +57,10 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
 
     protected Integer version; //optional
 
-    private String                initialPath; //optional
-    private String                password;
-    private ArrayList<Property>   properties = new ArrayList<Property>();
-    private ArrayList<ImportRole> roles      = new ArrayList<ImportRole>();
+    private String           initialPath; //optional
+    private String           password;
+    private List<Property>   properties = new ArrayList<Property>();
+    private List<ImportRole> roles      = new ArrayList<ImportRole>();
 
     public ImportAgent() {}
 
@@ -253,38 +245,8 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
     }
 
     @Override
-    public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
-        String xml;
-        String typeCode = BuiltInResources.AGENT_DESC_RESOURCE.getTypeCode();
-        String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
-
-        try {
-            xml = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
-        }
-        catch (Exception e) {
-            log.error("Couldn't marshall name:" + getName(), e);
-            throw new InvalidDataException("Couldn't marshall name:" + getName());
-        }
-
-        FileStringUtility.string2File(new File(new File(dir, typeCode), fileName), xml);
-
-        if (imports == null) return;
-
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
-            imports.write("<Resource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
-                    + "type='" + typeCode + "'>boot/" + typeCode + "/" + fileName
-                    + "</Resource>\n");
-        }
-        else {
-            imports.write("<AgentResource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
-                    + "/>\n");
-        }
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.AGENT_DESC_RESOURCE;
     }
 
     @Override

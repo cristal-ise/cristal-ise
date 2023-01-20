@@ -376,38 +376,8 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
     }
 
     @Override
-    public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
-        String xml;
-        String typeCode = BuiltInResources.ITEM_DESC_RESOURCE.getTypeCode();
-        String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
-
-        try {
-            xml = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
-        }
-        catch (Exception e) {
-            log.error("Couldn't marshall name:" + getName(), e);
-            throw new InvalidDataException("Couldn't marshall name:" + getName());
-        }
-
-        FileStringUtility.string2File(new File(new File(dir, typeCode), fileName), xml);
-
-        if (imports == null) return;
-
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
-            imports.write("<Resource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
-                    + "type='" + typeCode + "'>boot/" + typeCode + "/" + fileName
-                    + "</Resource>\n");
-        }
-        else {
-            imports.write("<ItemResource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
-                    + "/>\n");
-        }
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.ITEM_DESC_RESOURCE;
     }
 
     @Override
