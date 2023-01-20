@@ -12,6 +12,18 @@
   <Config name="OverrideScriptLang.ECMAScript">rhino</Config>
   <Config name="OverrideScriptLang.ecmascript">rhino</Config>
   <Imports>
+    <DomainContextResource name="DescDevContext" version="0"/>
+    <DomainContextResource name="DescActivityDescDevContext" version="0"/>
+    <DomainContextResource name="DescPropertyDescDevContext" version="0"/>
+    <DomainContextResource name="DescModuleDevContext" version="0"/>
+    <DomainContextResource name="DescSchemaDevContext" version="0"/>
+    <DomainContextResource name="DescScriptDevContext" version="0"/>
+    <DomainContextResource name="DescQueryDevContext" version="0"/>
+    <DomainContextResource name="DescStateMachineDevContext" version="0"/>
+    <DomainContextResource name="DescItemDescDevContext" version="0"/>
+    <DomainContextResource name="DescAgentDescDevContext" version="0"/>
+    <DomainContextResource name="DescRoleDescDevContext" version="0"/>
+    <DomainContextResource name="DescDomainContextDevContext" version="0"/>
     <PropertyDescriptionResource name="ActivityDesc" version="0"/>
     <PropertyDescriptionResource name="Agent" version="0"/>
     <PropertyDescriptionResource name="CompositeActivityDesc" version="0"/>
