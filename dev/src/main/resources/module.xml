@@ -159,5 +159,6 @@
     <ItemResource name="AgentDescFactory" version="0"/>
     <ItemResource name="ItemDescFactory" version="0"/>
     <ItemResource name="RoleDescFactory" version="0"/>
+    <ItemResource name="DomainContextFactory" version="0"/>
   </Imports>
 </CristalModule>

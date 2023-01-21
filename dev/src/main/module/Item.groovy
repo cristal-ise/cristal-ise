@@ -18,6 +18,8 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+import static org.cristalise.kernel.collection.BuiltInCollections.*
+
 import org.cristalise.kernel.collection.BuiltInCollections
 
 Item(name: 'ScriptFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $scriptFactoryWf_CompositeActivityDef) {
@@ -26,12 +28,12 @@ Item(name: 'ScriptFactory', version: 0, folder: $descDevContext_DomainContext, w
     Outcome($script_PropertyDescriptionList)
     Outcome(schema: 'Script', version: '0', viewname: 'last', path: 'boot/SC/New_0.xml')
 
-    Dependency(BuiltInCollections.WORKFLOW) {
+    Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageScript') {
             Property('Version': 0)
         }
     }
-    DependencyDescription(BuiltInCollections.INCLUDE) {}
+    DependencyDescription(INCLUDE) {}
 }
 
 Item(name: 'QueryFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $queryFactoryWf_CompositeActivityDef) {
@@ -40,7 +42,7 @@ Item(name: 'QueryFactory', version: 0, folder: $descDevContext_DomainContext, wo
     Outcome($query_PropertyDescriptionList)
     Outcome(schema: 'Query', version: '0', viewname: 'last', path: 'boot/query/New_0.xml')
 
-    Dependency(BuiltInCollections.WORKFLOW) {
+    Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageQuery') {
             Property('Version': 0)
         }
@@ -53,7 +55,7 @@ Item(name: 'SchemaFactory', version: 0, folder: $descDevContext_DomainContext, w
     Outcome($schema_PropertyDescriptionList)
     Outcome(schema: 'Schema', version: '0', viewname: 'last', path: 'boot/OD/New_0.xsd')
 
-    Dependency(BuiltInCollections.WORKFLOW) {
+    Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageSchema') {
             Property('Version': 0)
         }
@@ -65,7 +67,7 @@ Item(name: 'StateMachineFactory', version: 0, folder: $descDevContext_DomainCont
     InmutableProperty('LocalObjectType': 'StateMachine')
     Outcome($stateMachine_PropertyDescriptionList)
 
-    Dependency(BuiltInCollections.WORKFLOW) {
+    Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageStateMachine') {
             Property('Version': 0)
         }
@@ -77,21 +79,21 @@ Item(name: 'ElementaryActivityDefFactory', version: 0, folder: $descDevContext_D
     InmutableProperty('LocalObjectType': 'ElementaryActivityDef')
     Outcome($elementaryActivityDesc_PropertyDescriptionList)
 
-    Dependency(BuiltInCollections.WORKFLOW) {
+    Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageElementaryActDef') {
             Property('Version': 0)
         }
     }
-    DependencyDescription(BuiltInCollections.SCHEMA) {
+    DependencyDescription(SCHEMA) {
         Member(itemPath: '/desc/dev/SchemaFactory')
     }
-    DependencyDescription(BuiltInCollections.SCRIPT) {
+    DependencyDescription(SCRIPT) {
         Member(itemPath: '/desc/dev/ScriptFactory')
     }
-    DependencyDescription(BuiltInCollections.QUERY) {
+    DependencyDescription(QUERY) {
         Member(itemPath: '/desc/dev/QueryFactory')
     }
-    DependencyDescription(BuiltInCollections.STATE_MACHINE) {
+    DependencyDescription(STATE_MACHINE) {
         Member(itemPath: '/desc/dev/StateMachineFactory')
     }
 }
@@ -106,24 +108,24 @@ Item(name: 'CompositeActivityDefFactory', version: 0, folder: $descDevContext_Do
     InmutableProperty('LocalObjectType': 'CompositeActivityDef')
     Outcome($compositeActivityDesc_PropertyDescriptionList)
 
-    Dependency(BuiltInCollections.WORKFLOW) {
+    Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageCompositeActDef') {
             Property('Version': 0)
         }
     }
-    DependencyDescription(BuiltInCollections.ACTIVITY) {
+    DependencyDescription(ACTIVITY) {
         Member(itemPath: '/desc/dev/ActivityDefType')
     }
-    DependencyDescription(BuiltInCollections.SCHEMA) {
+    DependencyDescription(SCHEMA) {
         Member(itemPath: '/desc/dev/SchemaFactory')
     }
-    DependencyDescription(BuiltInCollections.SCRIPT) {
+    DependencyDescription(SCRIPT) {
         Member(itemPath: '/desc/dev/ScriptFactory')
     }
-    DependencyDescription(BuiltInCollections.QUERY) {
+    DependencyDescription(QUERY) {
         Member(itemPath: '/desc/dev/QueryFactory')
     }
-    DependencyDescription(BuiltInCollections.STATE_MACHINE) {
+    DependencyDescription(STATE_MACHINE) {
         Member(itemPath: '/desc/dev/StateMachineFactory')
     }
 }
@@ -132,12 +134,12 @@ Item(name: 'DescriptionFactory', version: 0, folder: $descDevContext_DomainConte
     InmutableProperty('Type': 'Factory')
     Outcome($itemDescription_PropertyDescriptionList)
 
-    Dependency(BuiltInCollections.WORKFLOW) {
+    Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/dev/ItemDescriptionWf') {
             Property('Version': 0)
         }
     }
-    DependencyDescription(BuiltInCollections.WORKFLOW_PRIME) {
+    DependencyDescription(WORKFLOW_PRIME) {
         Member(itemPath: '/desc/dev/CompositeActivityDefFactory')
     }
 }
@@ -146,19 +148,19 @@ Item(name: 'ModuleFactory', version: 0, folder: $descDevContext_DomainContext, w
     InmutableProperty('Type': 'Factory')
     Outcome($module_PropertyDescriptionList)
 
-    Dependency(BuiltInCollections.WORKFLOW) {
+    Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageModule') {
             Property('Version': 0)
         }
     }
-    DependencyDescription(BuiltInCollections.CONTENTS) {}
+    DependencyDescription(CONTENTS) {}
 }
 
 Item(name: 'AgentFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $agentFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     Outcome($agent_PropertyDescriptionList)
 
-    Dependency(BuiltInCollections.WORKFLOW) {
+    Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageAgent') {
             Property('Version': 0)
         }
@@ -170,7 +172,7 @@ Item(name: 'PropertyDescriptionFactory', version: 0, folder: $descDevContext_Dom
     InmutableProperty('LocalObjectType': 'PropertyDescription')
     Outcome($propertyDescription_PropertyDescriptionList)
 
-    Dependency(BuiltInCollections.WORKFLOW) {
+    Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManagePropertyDesc') {
             Property('Version': 0)
         }
@@ -182,7 +184,7 @@ Item(name: 'AgentDescFactory', version: 0, folder: $descDevContext_DomainContext
     InmutableProperty('LocalObjectType': 'AgentDesc')
     Outcome($agentDesc_PropertyDescriptionList)
 
-    Dependency(BuiltInCollections.WORKFLOW) {
+    Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageAgentDesc') {
             Property('Version': 0)
         }
@@ -194,7 +196,7 @@ Item(name: 'ItemDescFactory', version: 0, folder: $descDevContext_DomainContext,
     InmutableProperty('LocalObjectType': 'ItemDesc')
     Outcome($itemDesc_PropertyDescriptionList)
 
-    Dependency(BuiltInCollections.WORKFLOW) {
+    Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageItemDesc') {
             Property('Version': 0)
         }
@@ -206,9 +208,36 @@ Item(name: 'RoleDescFactory', version: 0, folder: $descDevContext_DomainContext,
     InmutableProperty('LocalObjectType': 'RoleDesc')
     Outcome($roleDesc_PropertyDescriptionList)
 
-    Dependency(BuiltInCollections.WORKFLOW) {
+    Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageRoleDesc') {
             Property('Version': 0)
         }
     }
+}
+
+Item(name: 'DomainContextFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $crudFactory_Workflow_CompositeActivityDef) {
+    InmutableProperty('Type': 'Factory')
+    InmutableProperty('Root': '/desc/DomainContext')
+    InmutableProperty('SubFolder': 'dev')
+    InmutableProperty('UpdateSchema': 'DomainContext:0')
+
+    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/DomainContext_0.xml')
+
+    Dependency(WORKFLOW) {
+        Member(itemPath: '/desc/ActivityDesc/kernel/ManageDomainContext') {
+            Property('Version': 0)
+        }
+    }
+
+    Dependency(MASTER_SCHEMA) {
+        Member(itemPath: '/desc/Schema/kernel/DomainContext') {
+            Property('Version': 0)
+        }
+    }
+
+//    Dependency(AGGREGATE_SCRIPT) {
+//        Member(itemPath: $release_Aggregate_Script) {
+//            Property('Version': 0)
+//        }
+//    }
 }
