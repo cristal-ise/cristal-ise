@@ -48,19 +48,6 @@ class DevItemUtility {
 
     static AgentProxy agent = null
 
-    public String elemActDefFactoryName   = "/domain/desc/dev/ElementaryActivityDefFactory"
-    public String compActDefFactoryName   = "/domain/desc/dev/CompositeActivityDefFactory"
-    public String schemaFactoryName       = "/domain/desc/dev/SchemaFactory"
-    public String scriptFactoryName       = "/domain/desc/dev/ScriptFactory"
-    public String queryFactoryName        = "/domain/desc/dev/QueryFactory"
-    public String stateMachineFactoryName = "/domain/desc/dev/StateMachineFactory"
-    public String propertyDescFactoryName = "/domain/desc/dev/PropertyDescriptionFactory"
-    public String agentDescFactoryName    = "/domain/desc/dev/AgentDescFactory"
-    public String itemDescFactoryName     = "/domain/desc/dev/ItemDescFactory"
-    public String roletDescFactoryName    = "/domain/desc/dev/RoleDescFactory"
-    public String descItemFactoryName     = "/domain/desc/dev/DescriptionFactory"
-    public String moduleFactoryName       = "/domain/desc/dev/ModuleFactory"
-
     /**
      * 
      * @param item
@@ -173,20 +160,7 @@ class DevItemUtility {
      * @return
      */
     public String getFactoryPath(BuiltInResources type) {
-        switch(type) {
-            case ELEM_ACT_DESC_RESOURCE: return elemActDefFactoryName
-            case COMP_ACT_DESC_RESOURCE: return compActDefFactoryName
-            case SCHEMA_RESOURCE:        return schemaFactoryName
-            case SCRIPT_RESOURCE:        return scriptFactoryName
-            case QUERY_RESOURCE:         return queryFactoryName
-            case STATE_MACHINE_RESOURCE: return stateMachineFactoryName
-            case PROPERTY_DESC_RESOURCE: return propertyDescFactoryName
-            case AGENT_DESC_RESOURCE:    return agentDescFactoryName
-            case ITEM_DESC_RESOURCE:     return itemDescFactoryName
-            case ROLE_DESC_RESOURCE:     return roletDescFactoryName
-
-            default: return descItemFactoryName
-        }
+        type.typeRoot + '/' + type.schemaName + 'Factory'
     }
 
     /**

@@ -10,7 +10,7 @@
     <CollectionProperties/>
   </Dependency>
   <Dependency classProps="" isDescription="true" name="workflow'">
-    <DependencyMember itemPath="/desc/dev/CompositeActivityDefFactory">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/CompositeActivityDesc">
       <MemberProperties/>
     </DependencyMember>
     <CollectionProperties/>

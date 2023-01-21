@@ -64,7 +64,7 @@
         <OutEdgeId>31</OutEdgeId>
         <Properties>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false" />
-          <KeyValuePair Key="ViewName" String="Role" isAbstract="false" />
+          <KeyValuePair Key="ViewName" String="RoleDesc" isAbstract="false" />
           <KeyValuePair Key="Name" String="MoveLatestRoleDescVersionToLast" isAbstract="false" />
         </Properties>
         <activityDef>MoveLatestVersionToLast</activityDef>
@@ -79,7 +79,7 @@
         <OutEdgeId>25</OutEdgeId>
         <Properties>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false" />
-          <KeyValuePair Key="SchemaType" String="Role" isAbstract="false" />
+          <KeyValuePair Key="SchemaType" String="RoleDesc" isAbstract="false" />
           <KeyValuePair Key="Name" String="EditDefinition" isAbstract="false" />
         </Properties>
         <activityDef>EditDefinition</activityDef>
@@ -188,7 +188,7 @@
         <OutEdgeId>19</OutEdgeId>
         <Properties>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false" />
-          <KeyValuePair Key="ViewName" String="Role" isAbstract="false" />
+          <KeyValuePair Key="ViewName" String="RoleDesc" isAbstract="false" />
           <KeyValuePair Key="Name" String="AssignNewRoleDescVersionFromLast" isAbstract="false" />
         </Properties>
         <activityDef>AssignNewVersionFromLast</activityDef>

@@ -19,12 +19,14 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 import static org.cristalise.kernel.collection.BuiltInCollections.*
+import static org.cristalise.kernel.process.resource.BuiltInResources.*
 
 import org.cristalise.kernel.collection.BuiltInCollections
 
-Item(name: 'ScriptFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $scriptFactoryWf_CompositeActivityDef) {
+Item(name: 'ScriptFactory', version: 0, folder: SCRIPT_RESOURCE.typeRoot, workflow: $scriptFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'Script')
+
     Outcome($script_PropertyDescriptionList)
     Outcome(schema: 'Script', version: '0', viewname: 'last', path: 'boot/SC/New_0.xml')
 
@@ -36,9 +38,10 @@ Item(name: 'ScriptFactory', version: 0, folder: $descDevContext_DomainContext, w
     DependencyDescription(INCLUDE) {}
 }
 
-Item(name: 'QueryFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $queryFactoryWf_CompositeActivityDef) {
+Item(name: 'QueryFactory', version: 0, folder: QUERY_RESOURCE.typeRoot, workflow: $queryFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'Query')
+
     Outcome($query_PropertyDescriptionList)
     Outcome(schema: 'Query', version: '0', viewname: 'last', path: 'boot/query/New_0.xml')
 
@@ -49,9 +52,10 @@ Item(name: 'QueryFactory', version: 0, folder: $descDevContext_DomainContext, wo
     }
 }
 
-Item(name: 'SchemaFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $schemaFactoryWf_CompositeActivityDef) {
+Item(name: 'SchemaFactory', version: 0, folder: SCHEMA_RESOURCE.typeRoot, workflow: $schemaFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'Schema')
+
     Outcome($schema_PropertyDescriptionList)
     Outcome(schema: 'Schema', version: '0', viewname: 'last', path: 'boot/OD/New_0.xsd')
 
@@ -62,9 +66,10 @@ Item(name: 'SchemaFactory', version: 0, folder: $descDevContext_DomainContext, w
     }
 }
 
-Item(name: 'StateMachineFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $stateMachineFactoryWf_CompositeActivityDef) {
+Item(name: 'StateMachineFactory', version: 0, folder: STATE_MACHINE_RESOURCE.typeRoot, workflow: $stateMachineFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'StateMachine')
+
     Outcome($stateMachine_PropertyDescriptionList)
 
     Dependency(WORKFLOW) {
@@ -74,9 +79,10 @@ Item(name: 'StateMachineFactory', version: 0, folder: $descDevContext_DomainCont
     }
 }
 
-Item(name: 'ElementaryActivityDefFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $elementaryActivityFactory_CompositeActivityDef) {
+Item(name: 'ElementaryActivityDefFactory', version: 0, folder: ELEM_ACT_DESC_RESOURCE.typeRoot, workflow: $elementaryActivityFactory_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'ElementaryActivityDef')
+
     Outcome($elementaryActivityDesc_PropertyDescriptionList)
 
     Dependency(WORKFLOW) {
@@ -85,27 +91,28 @@ Item(name: 'ElementaryActivityDefFactory', version: 0, folder: $descDevContext_D
         }
     }
     DependencyDescription(SCHEMA) {
-        Member(itemPath: '/desc/dev/SchemaFactory')
+        Member($schema_PropertyDescriptionList)
     }
     DependencyDescription(SCRIPT) {
-        Member(itemPath: '/desc/dev/ScriptFactory')
+        Member($script_PropertyDescriptionList)
     }
     DependencyDescription(QUERY) {
-        Member(itemPath: '/desc/dev/QueryFactory')
+        Member($query_PropertyDescriptionList)
     }
     DependencyDescription(STATE_MACHINE) {
-        Member(itemPath: '/desc/dev/StateMachineFactory')
+        Member($stateMachine_PropertyDescriptionList)
     }
 }
 
-Item(name: 'ActivityDefType', version: 0, folder: $descDevContext_DomainContext, workflow: 'NoWorkflow', workflowVer: 0) {
+Item(name: 'ActivityDefType', version: 0, folder: ACTIVITY_DESC_RESOURCE.typeRoot, workflow: 'NoWorkflow', workflowVer: 0) {
     InmutableProperty('Type': 'Type')
     Outcome($activityDesc_PropertyDescriptionList)
 }
 
-Item(name: 'CompositeActivityDefFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $compositeActivityFactory_CompositeActivityDef) {
+Item(name: 'CompositeActivityDefFactory', version: 0, folder: COMP_ACT_DESC_RESOURCE.typeRoot, workflow: $compositeActivityFactory_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'CompositeActivityDef')
+
     Outcome($compositeActivityDesc_PropertyDescriptionList)
 
     Dependency(WORKFLOW) {
@@ -114,38 +121,40 @@ Item(name: 'CompositeActivityDefFactory', version: 0, folder: $descDevContext_Do
         }
     }
     DependencyDescription(ACTIVITY) {
-        Member(itemPath: '/desc/dev/ActivityDefType')
+        Member($activityDesc_PropertyDescriptionList)
     }
     DependencyDescription(SCHEMA) {
-        Member(itemPath: '/desc/dev/SchemaFactory')
+        Member($schema_PropertyDescriptionList)
     }
     DependencyDescription(SCRIPT) {
-        Member(itemPath: '/desc/dev/ScriptFactory')
+        Member($script_PropertyDescriptionList)
     }
     DependencyDescription(QUERY) {
-        Member(itemPath: '/desc/dev/QueryFactory')
+        Member($query_PropertyDescriptionList)
     }
     DependencyDescription(STATE_MACHINE) {
-        Member(itemPath: '/desc/dev/StateMachineFactory')
+        Member($stateMachine_PropertyDescriptionList)
     }
 }
 
 Item(name: 'DescriptionFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $itemDescriptionFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
+
     Outcome($itemDescription_PropertyDescriptionList)
 
     Dependency(WORKFLOW) {
-        Member(itemPath: '/desc/ActivityDesc/dev/ItemDescriptionWf') {
+        Member($itemDescriptionWf_CompositeActivityDef) {
             Property('Version': 0)
         }
     }
     DependencyDescription(WORKFLOW_PRIME) {
-        Member(itemPath: '/desc/dev/CompositeActivityDefFactory')
+        Member($compositeActivityDesc_PropertyDescriptionList)
     }
 }
 
-Item(name: 'ModuleFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $moduleFactory_CompositeActivityDef) {
+Item(name: 'ModuleFactory', version: 0, folder: MODULE_RESOURCE.typeRoot, workflow: $moduleFactory_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
+
     Outcome($module_PropertyDescriptionList)
 
     Dependency(WORKFLOW) {
@@ -158,6 +167,7 @@ Item(name: 'ModuleFactory', version: 0, folder: $descDevContext_DomainContext, w
 
 Item(name: 'AgentFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $agentFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
+
     Outcome($agent_PropertyDescriptionList)
 
     Dependency(WORKFLOW) {
@@ -167,9 +177,10 @@ Item(name: 'AgentFactory', version: 0, folder: $descDevContext_DomainContext, wo
     }
 }
 
-Item(name: 'PropertyDescriptionFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $propertyDescriptionFactoryWf_CompositeActivityDef) {
+Item(name: 'PropertyDescriptionFactory', version: 0, folder: PROPERTY_DESC_RESOURCE.typeRoot, workflow: $propertyDescriptionFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'PropertyDescription')
+
     Outcome($propertyDescription_PropertyDescriptionList)
 
     Dependency(WORKFLOW) {
@@ -179,9 +190,10 @@ Item(name: 'PropertyDescriptionFactory', version: 0, folder: $descDevContext_Dom
     }
 }
 
-Item(name: 'AgentDescFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $agentDescFactoryWf_CompositeActivityDef) {
+Item(name: 'AgentDescFactory', version: 0, folder: AGENT_DESC_RESOURCE.typeRoot, workflow: $agentDescFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'AgentDesc')
+
     Outcome($agentDesc_PropertyDescriptionList)
 
     Dependency(WORKFLOW) {
@@ -191,9 +203,10 @@ Item(name: 'AgentDescFactory', version: 0, folder: $descDevContext_DomainContext
     }
 }
 
-Item(name: 'ItemDescFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $itemDescFactoryWf_CompositeActivityDef) {
+Item(name: 'ItemDescFactory', version: 0, folder: ITEM_DESC_RESOURCE.typeRoot, workflow: $itemDescFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'ItemDesc')
+
     Outcome($itemDesc_PropertyDescriptionList)
 
     Dependency(WORKFLOW) {
@@ -203,9 +216,10 @@ Item(name: 'ItemDescFactory', version: 0, folder: $descDevContext_DomainContext,
     }
 }
 
-Item(name: 'RoleDescFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $roleDescFactoryWf_CompositeActivityDef) {
+Item(name: 'RoleDescFactory', version: 0, folder: ROLE_DESC_RESOURCE.typeRoot, workflow: $roleDescFactoryWf_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('LocalObjectType': 'RoleDesc')
+
     Outcome($roleDesc_PropertyDescriptionList)
 
     Dependency(WORKFLOW) {
@@ -215,7 +229,7 @@ Item(name: 'RoleDescFactory', version: 0, folder: $descDevContext_DomainContext,
     }
 }
 
-Item(name: 'DomainContextFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $crudFactory_Workflow_CompositeActivityDef) {
+Item(name: 'DomainContextFactory', version: 0, folder: DOMAIN_CONTEXT_RESOURCE.typeRoot, workflow: $crudFactory_Workflow_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': '/desc/DomainContext')
     InmutableProperty('SubFolder': 'dev')

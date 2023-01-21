@@ -1,4 +1,4 @@
-<Item initialPath="/desc/dev" name="RoleDescFactory" ns="dev" version="0" workflow="RoleDescFactoryWf" workflowVer="0">
+<Item initialPath="/desc/RoleDesc" name="RoleDescFactory" ns="dev" version="0" workflow="RoleDescFactoryWf" workflowVer="0">
   <Property mutable="false" name="Type">Factory</Property>
   <Property mutable="false" name="LocalObjectType">RoleDesc</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/RoleDesc_0.xml</Outcome>

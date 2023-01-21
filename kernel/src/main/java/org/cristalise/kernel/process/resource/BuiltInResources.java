@@ -51,9 +51,9 @@ public enum BuiltInResources {
     STATE_MACHINE_RESOURCE( "SM",       "StateMachine",          "/desc/StateMachine",  "ManageStateMachine"),
     COMP_ACT_DESC_RESOURCE( "CA",       "CompositeActivityDef",  "/desc/ActivityDesc",  "ManageCompositeActDef"),
     ELEM_ACT_DESC_RESOURCE( "EA",       "ElementaryActivityDef", "/desc/ActivityDesc",  "ManageElementaryActDef"),
-    ITEM_DESC_RESOURCE(     "item",     "Item",                  "/desc/ItemDesc",      "ManageItemDesc"),
-    AGENT_DESC_RESOURCE(    "agent",    "Agent",                 "/desc/AgentDesc",     "ManageAgentDesc"),
-    ROLE_DESC_RESOURCE(     "role" ,    "Role",                  "/desc/RoleDesc",      "ManageRoleDesc"),
+    ITEM_DESC_RESOURCE(     "item",     "ItemDesc",              "/desc/ItemDesc",      "ManageItemDesc"),
+    AGENT_DESC_RESOURCE(    "agent",    "AgentDesc",             "/desc/AgentDesc",     "ManageAgentDesc"),
+    ROLE_DESC_RESOURCE(     "role" ,    "RoleDesc",              "/desc/RoleDesc",      "ManageRoleDesc"),
     DOMAIN_CONTEXT_RESOURCE("context" , "DomainContext",         "/desc/DomainContext", "ManageDomainContext");
 
     private String  typeCode;

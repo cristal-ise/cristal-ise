@@ -29,6 +29,7 @@ import org.cristalise.kernel.entity.DomainContext
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.test.utils.CristalTestSetup
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.DescriptionObject
@@ -79,6 +80,11 @@ class BasicDevDescriptionTests extends DevItemUtility implements CristalTestSetu
     }
 
     public static final String testDataRoot = "src/test/data";
+
+    private String getFactoryPath(DescriptionObject descObj) {
+        def type = descObj.resourceType
+        type.typeRoot + '/' + type.schemaName + 'Factory'
+    }
 
     private void assertViewpoint(ItemProxy item, DescriptionObject descOrig, String view) {
         def schemaName = descOrig.resourceType.getSchemaName()
@@ -217,7 +223,7 @@ class BasicDevDescriptionTests extends DevItemUtility implements CristalTestSetu
         def item = creator.createItemWithUpdateAndCheck(
             Name: dc.name,
             outcome: getOutcome(dc),
-            '/desc/dev/DomainContextFactory'
+            getFactoryPath(dc)
         )
 
         assert ! item.checkViewpoint(dc.resourceType.schemaName, '0')

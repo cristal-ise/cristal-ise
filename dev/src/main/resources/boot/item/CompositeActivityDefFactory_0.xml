@@ -1,4 +1,4 @@
-<Item initialPath="/desc/dev" name="CompositeActivityDefFactory" ns="dev" version="0" workflow="CompositeActivityFactory" workflowVer="0">
+<Item initialPath="/desc/ActivityDesc" name="CompositeActivityDefFactory" ns="dev" version="0" workflow="CompositeActivityFactory" workflowVer="0">
   <Property mutable="false" name="Type">Factory</Property>
   <Property mutable="false" name="LocalObjectType">CompositeActivityDef</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/CompositeActivityDesc_0.xml</Outcome>
@@ -11,31 +11,31 @@
     <CollectionProperties/>
   </Dependency>
   <Dependency classProps="" isDescription="true" name="Activity">
-    <DependencyMember itemPath="/desc/dev/ActivityDefType">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/ActivityDesc">
       <MemberProperties/>
     </DependencyMember>
     <CollectionProperties/>
   </Dependency>
   <Dependency classProps="" isDescription="true" name="Schema">
-    <DependencyMember itemPath="/desc/dev/SchemaFactory">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/Schema">
       <MemberProperties/>
     </DependencyMember>
     <CollectionProperties/>
   </Dependency>
   <Dependency classProps="" isDescription="true" name="Script">
-    <DependencyMember itemPath="/desc/dev/ScriptFactory">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/Script">
       <MemberProperties/>
     </DependencyMember>
     <CollectionProperties/>
   </Dependency>
   <Dependency classProps="" isDescription="true" name="Query">
-    <DependencyMember itemPath="/desc/dev/QueryFactory">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/Query">
       <MemberProperties/>
     </DependencyMember>
     <CollectionProperties/>
   </Dependency>
   <Dependency classProps="" isDescription="true" name="StateMachine">
-    <DependencyMember itemPath="/desc/dev/StateMachineFactory">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/StateMachine">
       <MemberProperties/>
     </DependencyMember>
     <CollectionProperties/>

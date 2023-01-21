@@ -1,4 +1,4 @@
-<Item initialPath="/desc/dev" name="PropertyDescriptionFactory" ns="dev" version="0" workflow="PropertyDescriptionFactoryWf" workflowVer="0">
+<Item initialPath="/desc/PropertyDesc" name="PropertyDescriptionFactory" ns="dev" version="0" workflow="PropertyDescriptionFactoryWf" workflowVer="0">
   <Property mutable="false" name="Type">Factory</Property>
   <Property mutable="false" name="LocalObjectType">PropertyDescription</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/PropertyDescription_0.xml</Outcome>
