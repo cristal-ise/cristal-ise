@@ -110,7 +110,4 @@ public interface DescriptionObject {
         }
         return descDep;
     }
-
-    
-
 }

@@ -20,19 +20,24 @@
  */
 package org.cristalise.dev.test;
 
+import static org.assertj.core.api.Assertions.assertThat
+import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.ERASE
 import java.time.LocalDateTime
-
 import org.cristalise.dev.dsl.DevItemUtility
+import org.cristalise.dev.scaffold.CRUDItemCreator
+import org.cristalise.kernel.entity.DomainContext
 import org.cristalise.kernel.entity.proxy.ItemProxy
+import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
 import org.cristalise.kernel.test.utils.KernelXMLUtility
+import org.cristalise.kernel.utils.DescriptionObject
+import org.cristalise.kernel.utils.LocalObjectLoader
 import org.junit.AfterClass
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Test
-
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -74,6 +79,14 @@ class BasicDevDescriptionTests extends DevItemUtility implements CristalTestSetu
     }
 
     public static final String testDataRoot = "src/test/data";
+
+    private void assertViewpoint(ItemProxy item, DescriptionObject descOrig, String view) {
+        def schemaName = descOrig.resourceType.getSchemaName()
+        def descPrimeOutcome = item.getViewpoint(schemaName, view).outcome
+        def descPrime = (DomainContext)agent.unmarshall(descPrimeOutcome.getData())
+
+        assertThat(descOrig).isEqualToComparingFieldByField(descPrime);
+    }
 
     @Test
     public void createAndEditElemActDesc() {
@@ -187,6 +200,33 @@ class BasicDevDescriptionTests extends DevItemUtility implements CristalTestSetu
 
         assert item.getMasterSchema()
         //assert item.getAggregateScript()
+    }
+
+    private Outcome getOutcome(DescriptionObject descObj) {
+        def schemaName = descObj.resourceType.getSchemaName()
+        def schema = LocalObjectLoader.getSchema(schemaName, 0)
+        return new Outcome(agent.marshall(descObj), schema)
+    }
+
+    @Test
+    public void createAndEditDomainContext() {
+        def creator = new CRUDItemCreator(folder, ERASE, agent)
+
+        def dc = new DomainContext('/devtest/kovax')
+
+        def item = creator.createItemWithUpdateAndCheck(
+            Name: dc.name,
+            outcome: getOutcome(dc),
+            '/desc/dev/DomainContextFactory'
+        )
+
+        assert ! item.checkViewpoint(dc.resourceType.schemaName, '0')
+
+        assertViewpoint(item, dc, 'last')
+
+        agent.execute item.getJobByName('AssignNewDomainContextVersionFromLast', agent)
+
+        assertViewpoint(item, dc, '0')
     }
 
     @Test @Ignore('Test Unimplemented')
