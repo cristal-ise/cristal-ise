@@ -178,11 +178,17 @@ class CRUDItemCreator extends StandardClient {
         def itemUpdateJob = newItem.getJobByName('Update', agent)
         assert itemUpdateJob, "Cannot get Job for Activity 'Update' of Item '$itemRoot/$itemName'"
 
-        def updateOutcome = itemUpdateJob.getOutcome()
-        convertItemNamesToUuid(record, updateSchema)
+        Outcome outcome = null
 
-        itemUpdateJob.setOutcome(new Outcome(DevXMLUtility.recordToXML(updateSchema.getName(), record), updateSchema))
+        if (record.containsKey('outcome') && (record.outcome instanceof Outcome)) {
+            outcome = (Outcome)record.outcome
+        }
+        else {
+            convertItemNamesToUuid(record, updateSchema)
+            outcome = new Outcome(DevXMLUtility.recordToXML(updateSchema.getName(), record), updateSchema)
+        }
 
+        itemUpdateJob.setOutcome(outcome)
         agent.execute(itemUpdateJob)
 
         log.info('updateItemAndCheck() - updated:{}/{}', itemRoot, itemName)
