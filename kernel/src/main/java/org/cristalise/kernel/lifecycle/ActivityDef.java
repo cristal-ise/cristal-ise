@@ -255,6 +255,10 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
         return actQuery;
     }
 
+    public StateMachine getActStateMachine() throws InvalidDataException, ObjectNotFoundException {
+        return getStateMachine(null);
+    }
+
     public StateMachine getStateMachine() throws InvalidDataException, ObjectNotFoundException {
         return getStateMachine(null);
     }

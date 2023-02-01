@@ -274,8 +274,9 @@ public class Query implements DescriptionObject {
     }
 
     @Override
-    public String getXml() throws InvalidDataException {
-        return new Outcome(getQueryXML()).getData(true);
+    public String getXml(boolean prettyPrint) throws InvalidDataException {
+        if (prettyPrint) return new Outcome(getQueryXML()).getData(true);
+        else             return getQueryXML();
     }
 
     @Override

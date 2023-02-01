@@ -317,14 +317,23 @@ public class CastorXMLTest {
     @Test
     public void testPropertyDescriptionList() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
+        Schema schema = LocalObjectLoader.getSchema("PropertyDescription", 0);
 
         PropertyDescriptionList pdl = new PropertyDescriptionList();
         pdl.list.add(new PropertyDescription("Name", "", false, true, false));
         pdl.list.add(new PropertyDescription("Type", "Item", true, false, true));
 
+        new Outcome(marshaller.marshall(pdl), schema).validateAndCheck();
+
+        pdl.setName("totolist");
+
+        new Outcome(marshaller.marshall(pdl), schema).validateAndCheck();
+
         PropertyDescriptionList pdlPrime = (PropertyDescriptionList) marshaller.unmarshall(marshaller.marshall(pdl));
 
         assertReflectionEquals(pdl, pdlPrime, LENIENT_ORDER);
+
+        new Outcome(marshaller.marshall(pdlPrime), schema).validateAndCheck();
     }
 
     @Test

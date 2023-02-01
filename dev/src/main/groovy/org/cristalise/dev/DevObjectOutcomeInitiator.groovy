@@ -37,14 +37,14 @@ import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.DescriptionObject;
-
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 
 /**
  * Creates empty DescriptionObject and marshals them or loads the 'new' XML from Factory
  */
-@Slf4j
+@Slf4j @CompileStatic
 public class DevObjectOutcomeInitiator implements OutcomeInitiator {
 
     @Override
@@ -65,7 +65,7 @@ public class DevObjectOutcomeInitiator implements OutcomeInitiator {
             throw new InvalidDataException(e.getMessage());
         }
 
-        DescriptionObject emptyObj = res.getDescriptionObject(itemName);
+        DescriptionObject emptyObj = res.initDescriptionObject(itemName);
 
         // these DescObject cannot be marshalled by castor due to the use of CDATA
         if (res == SCHEMA_RESOURCE || res == SCRIPT_RESOURCE || res == QUERY_RESOURCE) {

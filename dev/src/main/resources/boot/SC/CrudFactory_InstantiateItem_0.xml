@@ -1,5 +1,6 @@
 <cristalscript>
-  <script language="groovy" name="CrudFactory_InstantiateItem"><![CDATA[ /**
+  <script language="groovy" name="CrudFactory_InstantiateItem">
+    <![CDATA[ /**
  * This file is part of the CRISTAL-iSE Development Module.
  * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
@@ -39,5 +40,6 @@ def params = getParams(item, agent, job, newItemName)
 def returnValue = agent.execute(item, predefStep, params)
 newItemName = PredefinedStep.getDataList(returnValue)[0] // may contain the valid generated name
 
-outcome.setField('Name', newItemName) ]]></script>
+outcome.setField('Name', newItemName) ]]>
+  </script>
 </cristalscript>

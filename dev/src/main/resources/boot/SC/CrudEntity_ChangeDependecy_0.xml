@@ -1,6 +1,7 @@
 <cristalscript>
   <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
-  <script language="groovy" name="CrudEntity_ChangeDependecy"><![CDATA[ /**
+  <script language="groovy" name="CrudEntity_ChangeDependecy">
+    <![CDATA[ /**
  * This file is part of the CRISTAL-iSE Development Module.
  * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
@@ -85,5 +86,6 @@ def ItemPath resolveMember(Job job, AgentProxy agent, String dependencyName) {
         memberItemPath = agent.getItem("$moduleNs/$dependencyName/$memberName").path
     }
 }
- ]]></script>
+ ]]>
+  </script>
 </cristalscript>

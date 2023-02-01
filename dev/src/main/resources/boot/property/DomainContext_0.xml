@@ -1,4 +1,4 @@
-<AllProperties>
+<AllProperties name="DomainContext">
   <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="true" Name="Name" Transitive="false"/>
   <PropertyDescription DefaultValue="DomainContext" IsClassIdentifier="true" IsMutable="false" Name="Type" Transitive="true"/>
   <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="false" Name="Module" Transitive="false"/>

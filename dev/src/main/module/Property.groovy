@@ -104,3 +104,9 @@ PropertyDescriptionList('RoleDesc', 0) {
     PropertyDesc(name: 'Type',   isMutable: false, isClassIdentifier: true,  defaultValue: 'RoleDesc')
     PropertyDesc(name: 'Module', isMutable: false, isClassIdentifier: false, defaultValue: '')
 }
+
+PropertyDescriptionList('DomainContext', 0) {
+    PropertyDesc(name: 'Name',   isMutable: true , isClassIdentifier: false, defaultValue: '')
+    PropertyDesc(name: 'Type',   isMutable: false, isClassIdentifier: true,  defaultValue: 'DomainContext')
+    PropertyDesc(name: 'Module', isMutable: false, isClassIdentifier: false, defaultValue: '')
+}

@@ -21,14 +21,13 @@
 import static org.cristalise.kernel.collection.BuiltInCollections.*
 import static org.cristalise.kernel.process.resource.BuiltInResources.*
 
-import org.cristalise.kernel.collection.BuiltInCollections
 
-Item(name: 'ScriptFactory', version: 0, folder: SCRIPT_RESOURCE.typeRoot, workflow: $scriptFactoryWf_CompositeActivityDef) {
+Item(name: 'ScriptFactory', version: 0, folder: SCRIPT_RESOURCE.typeRoot, workflow: $crudFactory_Workflow_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('LocalObjectType': 'Script')
+    InmutableProperty('Root': SCRIPT_RESOURCE.typeRoot)
+    InmutableProperty('UpdateSchema': SCRIPT_RESOURCE.schemaName + ':0')
 
     Outcome($script_PropertyDescriptionList)
-    Outcome(schema: 'Script', version: '0', viewname: 'last', path: 'boot/SC/New_0.xml')
 
     Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageScript') {
@@ -38,9 +37,10 @@ Item(name: 'ScriptFactory', version: 0, folder: SCRIPT_RESOURCE.typeRoot, workfl
     DependencyDescription(INCLUDE) {}
 }
 
-Item(name: 'QueryFactory', version: 0, folder: QUERY_RESOURCE.typeRoot, workflow: $queryFactoryWf_CompositeActivityDef) {
+Item(name: 'QueryFactory', version: 0, folder: QUERY_RESOURCE.typeRoot, workflow: $crudFactory_Workflow_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('LocalObjectType': 'Query')
+    InmutableProperty('Root': QUERY_RESOURCE.typeRoot)
+    InmutableProperty('UpdateSchema': QUERY_RESOURCE.schemaName + ':0')
 
     Outcome($query_PropertyDescriptionList)
     Outcome(schema: 'Query', version: '0', viewname: 'last', path: 'boot/query/New_0.xml')
@@ -52,23 +52,29 @@ Item(name: 'QueryFactory', version: 0, folder: QUERY_RESOURCE.typeRoot, workflow
     }
 }
 
-Item(name: 'SchemaFactory', version: 0, folder: SCHEMA_RESOURCE.typeRoot, workflow: $schemaFactoryWf_CompositeActivityDef) {
+Item(name: 'SchemaFactory', version: 0, folder: SCHEMA_RESOURCE.typeRoot, workflow: $crudFactory_Workflow_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('LocalObjectType': 'Schema')
+    InmutableProperty('Root': SCHEMA_RESOURCE.typeRoot)
+    InmutableProperty('UpdateSchema': SCHEMA_RESOURCE.schemaName + ':0')
 
     Outcome($schema_PropertyDescriptionList)
-    Outcome(schema: 'Schema', version: '0', viewname: 'last', path: 'boot/OD/New_0.xsd')
 
     Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageSchema') {
             Property('Version': 0)
         }
     }
+    Dependency(MASTER_SCHEMA) {
+        Member(itemPath: '/desc/Schema/kernel/Schema') {
+            Property('Version': 0)
+        }
+    }
 }
 
-Item(name: 'StateMachineFactory', version: 0, folder: STATE_MACHINE_RESOURCE.typeRoot, workflow: $stateMachineFactoryWf_CompositeActivityDef) {
+Item(name: 'StateMachineFactory', version: 0, folder: STATE_MACHINE_RESOURCE.typeRoot, workflow: $crudFactory_Workflow_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('LocalObjectType': 'StateMachine')
+    InmutableProperty('Root': STATE_MACHINE_RESOURCE.typeRoot)
+    InmutableProperty('UpdateSchema': STATE_MACHINE_RESOURCE.schemaName + ':0')
 
     Outcome($stateMachine_PropertyDescriptionList)
 
@@ -79,9 +85,10 @@ Item(name: 'StateMachineFactory', version: 0, folder: STATE_MACHINE_RESOURCE.typ
     }
 }
 
-Item(name: 'ElementaryActivityDefFactory', version: 0, folder: ELEM_ACT_DESC_RESOURCE.typeRoot, workflow: $elementaryActivityFactory_CompositeActivityDef) {
+Item(name: 'ElementaryActivityDefFactory', version: 0, folder: ELEM_ACT_DESC_RESOURCE.typeRoot, workflow: $crudFactory_Workflow_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('LocalObjectType': 'ElementaryActivityDef')
+    InmutableProperty('Root': ELEM_ACT_DESC_RESOURCE.typeRoot)
+    InmutableProperty('UpdateSchema': ELEM_ACT_DESC_RESOURCE.schemaName + ':0')
 
     Outcome($elementaryActivityDesc_PropertyDescriptionList)
 
@@ -90,6 +97,12 @@ Item(name: 'ElementaryActivityDefFactory', version: 0, folder: ELEM_ACT_DESC_RES
             Property('Version': 0)
         }
     }
+    Dependency(MASTER_SCHEMA) {
+        Member(itemPath: '/desc/Schema/kernel/ElementaryActivityDef') {
+            Property('Version': 0)
+        }
+    }
+
     DependencyDescription(SCHEMA) {
         Member($schema_PropertyDescriptionList)
     }
@@ -109,9 +122,10 @@ Item(name: 'ActivityDefType', version: 0, folder: ACTIVITY_DESC_RESOURCE.typeRoo
     Outcome($activityDesc_PropertyDescriptionList)
 }
 
-Item(name: 'CompositeActivityDefFactory', version: 0, folder: COMP_ACT_DESC_RESOURCE.typeRoot, workflow: $compositeActivityFactory_CompositeActivityDef) {
+Item(name: 'CompositeActivityDefFactory', version: 0, folder: COMP_ACT_DESC_RESOURCE.typeRoot, workflow: $crudFactory_Workflow_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('LocalObjectType': 'CompositeActivityDef')
+    InmutableProperty('Root': COMP_ACT_DESC_RESOURCE.typeRoot)
+    InmutableProperty('UpdateSchema': COMP_ACT_DESC_RESOURCE.schemaName + ':0')
 
     Outcome($compositeActivityDesc_PropertyDescriptionList)
 
@@ -120,6 +134,12 @@ Item(name: 'CompositeActivityDefFactory', version: 0, folder: COMP_ACT_DESC_RESO
             Property('Version': 0)
         }
     }
+    Dependency(MASTER_SCHEMA) {
+        Member(itemPath: '/desc/Schema/kernel/CompositeActivityDef') {
+            Property('Version': 0)
+        }
+    }
+
     DependencyDescription(ACTIVITY) {
         Member($activityDesc_PropertyDescriptionList)
     }
@@ -137,22 +157,7 @@ Item(name: 'CompositeActivityDefFactory', version: 0, folder: COMP_ACT_DESC_RESO
     }
 }
 
-Item(name: 'DescriptionFactory', version: 0, folder: $descDevContext_DomainContext, workflow: $itemDescriptionFactoryWf_CompositeActivityDef) {
-    InmutableProperty('Type': 'Factory')
-
-    Outcome($itemDescription_PropertyDescriptionList)
-
-    Dependency(WORKFLOW) {
-        Member($itemDescriptionWf_CompositeActivityDef) {
-            Property('Version': 0)
-        }
-    }
-    DependencyDescription(WORKFLOW_PRIME) {
-        Member($compositeActivityDesc_PropertyDescriptionList)
-    }
-}
-
-Item(name: 'ModuleFactory', version: 0, folder: MODULE_RESOURCE.typeRoot, workflow: $moduleFactory_CompositeActivityDef) {
+Item(name: 'ModuleFactory', version: 0, folder: MODULE_RESOURCE.typeRoot, workflow: $crudFactory_Workflow_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
 
     Outcome($module_PropertyDescriptionList)
@@ -177,9 +182,10 @@ Item(name: 'AgentFactory', version: 0, folder: $descDevContext_DomainContext, wo
     }
 }
 
-Item(name: 'PropertyDescriptionFactory', version: 0, folder: PROPERTY_DESC_RESOURCE.typeRoot, workflow: $propertyDescriptionFactoryWf_CompositeActivityDef) {
+Item(name: 'PropertyDescriptionFactory', version: 0, folder: PROPERTY_DESC_RESOURCE.typeRoot, workflow: $crudFactory_Workflow_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('LocalObjectType': 'PropertyDescription')
+    InmutableProperty('Root': PROPERTY_DESC_RESOURCE.typeRoot)
+    InmutableProperty('UpdateSchema': PROPERTY_DESC_RESOURCE.schemaName + ':0')
 
     Outcome($propertyDescription_PropertyDescriptionList)
 
@@ -190,9 +196,10 @@ Item(name: 'PropertyDescriptionFactory', version: 0, folder: PROPERTY_DESC_RESOU
     }
 }
 
-Item(name: 'AgentDescFactory', version: 0, folder: AGENT_DESC_RESOURCE.typeRoot, workflow: $agentDescFactoryWf_CompositeActivityDef) {
+Item(name: 'AgentDescFactory', version: 0, folder: AGENT_DESC_RESOURCE.typeRoot, workflow: $crudFactory_Workflow_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('LocalObjectType': 'AgentDesc')
+    InmutableProperty('Root': AGENT_DESC_RESOURCE.typeRoot)
+    InmutableProperty('UpdateSchema': AGENT_DESC_RESOURCE.schemaName + ':0')
 
     Outcome($agentDesc_PropertyDescriptionList)
 
@@ -203,9 +210,10 @@ Item(name: 'AgentDescFactory', version: 0, folder: AGENT_DESC_RESOURCE.typeRoot,
     }
 }
 
-Item(name: 'ItemDescFactory', version: 0, folder: ITEM_DESC_RESOURCE.typeRoot, workflow: $itemDescFactoryWf_CompositeActivityDef) {
+Item(name: 'ItemDescFactory', version: 0, folder: ITEM_DESC_RESOURCE.typeRoot, workflow: $crudFactory_Workflow_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('LocalObjectType': 'ItemDesc')
+    InmutableProperty('Root': ITEM_DESC_RESOURCE.typeRoot)
+    InmutableProperty('UpdateSchema': ITEM_DESC_RESOURCE.schemaName + ':0')
 
     Outcome($itemDesc_PropertyDescriptionList)
 
@@ -216,9 +224,10 @@ Item(name: 'ItemDescFactory', version: 0, folder: ITEM_DESC_RESOURCE.typeRoot, w
     }
 }
 
-Item(name: 'RoleDescFactory', version: 0, folder: ROLE_DESC_RESOURCE.typeRoot, workflow: $roleDescFactoryWf_CompositeActivityDef) {
+Item(name: 'RoleDescFactory', version: 0, folder: ROLE_DESC_RESOURCE.typeRoot, workflow: $crudFactory_Workflow_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('LocalObjectType': 'RoleDesc')
+    InmutableProperty('Root': ROLE_DESC_RESOURCE.typeRoot)
+    InmutableProperty('UpdateSchema': ROLE_DESC_RESOURCE.schemaName + ':0')
 
     Outcome($roleDesc_PropertyDescriptionList)
 
@@ -231,11 +240,10 @@ Item(name: 'RoleDescFactory', version: 0, folder: ROLE_DESC_RESOURCE.typeRoot, w
 
 Item(name: 'DomainContextFactory', version: 0, folder: DOMAIN_CONTEXT_RESOURCE.typeRoot, workflow: $crudFactory_Workflow_CompositeActivityDef) {
     InmutableProperty('Type': 'Factory')
-    InmutableProperty('Root': '/desc/DomainContext')
-    InmutableProperty('SubFolder': 'dev')
-    InmutableProperty('UpdateSchema': 'DomainContext:0')
+    InmutableProperty('Root': DOMAIN_CONTEXT_RESOURCE.typeRoot)
+    InmutableProperty('UpdateSchema': DOMAIN_CONTEXT_RESOURCE.schemaName + ':0')
 
-    Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/DomainContext_0.xml')
+    Outcome($domainContext_PropertyDescriptionList)
 
     Dependency(WORKFLOW) {
         Member(itemPath: '/desc/ActivityDesc/kernel/ManageDomainContext') {

@@ -106,7 +106,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     @Test
     public void 'Create Item using Constructor'() {
-        item = creator.createItemWithConstructorAndCheck(
+        item = creator.createItemWithConstructor(
             Name: "ItemUsingConstructor-$timeStamp",
             Description: 'ItemUsingConstructor description',
             "/$folder/TestItemUseConstructorFactory")
@@ -117,7 +117,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     @Test
     public void 'Create Item using Update'() {
-        item = creator.createItemWithUpdateAndCheck(
+        item = creator.createItemWithUpdate(
             Name: "ItemUsingUpdate-$timeStamp",
             Description: 'ItemUsingUpdate description',
             "/$folder/TestItemFactory")
@@ -150,7 +150,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     @Test
     public void 'Create Item using Update - generated from excel'() {
-        item = creator.createItemWithUpdateAndCheck(
+        item = creator.createItemWithUpdate(
             Name: "ItemExcelUsingUpdate-$timeStamp",
             Description: 'ItemUsingUpdate description - generated from excel',
             DateOfBirth: '1969-02-23',
@@ -187,7 +187,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void 'Create Item using Update and Generated Name'() {
         String fatoryPath = "/$folder/TestItemGeneratedNameFactory"
 
-        item = creator.createItemWithUpdateAndCheck(
+        item = creator.createItemWithUpdate(
             Description: 'ItemUsingUpdateGenretedName description',
             fatoryPath)
 
@@ -198,7 +198,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         ItemProxy factory = agent.getItem(fatoryPath)
         assert factory.getViewpoint('CrudFactory_NewInstanceDetails', 'last').getOutcome().getField('Name') == 'ID000001'
 
-        item = creator.createItemWithUpdateAndCheck(
+        item = creator.createItemWithUpdate(
             Description: 'ItemUsingUpdateGenretedName description',
             fatoryPath)
 
@@ -208,7 +208,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     @Test
     public void 'Create Agent using Constructor'() {
-        item = creator.createItemWithConstructorAndCheck(
+        item = creator.createItemWithConstructor(
             Name: "AgentUsingConstructor-$timeStamp",
             Description: 'AgentUsingConstructor description',
             "/$folder/TestAgentUseConstructorFactory")
@@ -219,7 +219,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     @Test
     public void 'Create Agent using Update'() {
-        item = creator.createItemWithUpdateAndCheck(
+        item = creator.createItemWithUpdate(
             Name: "AgentUsingUpdate-$timeStamp",
             Description: 'AgentUsingUpdate description',
             "/$folder/TestAgentFactory")
@@ -260,17 +260,17 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     @Test
     public void 'Create Car, Motorcycle and add them to ClubMember and remove Car'() {
-        def car = creator.createItemWithUpdateAndCheck(
+        def car = creator.createItemWithUpdate(
             Name: "Car-$timeStamp",
             RegistrationPlate: 'IG 94-11',
             "/$folder/CarFactory")
 
-        def motorcycle = creator.createItemWithUpdateAndCheck(
+        def motorcycle = creator.createItemWithUpdate(
             Name: "Motorcycle-$timeStamp",
             RegistrationPlate: 'JTG 345',
             "/$folder/MotorcycleFactory")
 
-        def clubMember = creator.createItemWithUpdateAndCheck(
+        def clubMember = creator.createItemWithUpdate(
             Name: "ClubMember-$timeStamp",
             Email: 'mate@people.hu',
             "/$folder/ClubMemberFactory")

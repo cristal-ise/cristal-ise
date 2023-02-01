@@ -29,13 +29,19 @@ import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.collection.DependencyMember;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
+import org.exolab.castor.mapping.MappingException;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.ValidationException;
 
 public interface DescriptionObject {
 
@@ -52,13 +58,20 @@ public interface DescriptionObject {
     public String getItemID();
     public BuiltInResources getResourceType();
 
-    default public String getXml() throws InvalidDataException {
+    default public String getXml(boolean prettyPrint) throws InvalidDataException {
         try {
-            return new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
+            String xml = Gateway.getMarshaller().marshall(this);
+
+            if (prettyPrint) return new Outcome(xml).getData(true);
+            else             return xml;
         }
         catch (Exception e) {
             throw new InvalidDataException("Couldn't marshall " + getResourceType().getSchemaName() + " name:" + getName());
         }
+    }
+
+    default public String getXml() throws InvalidDataException {
+        return getXml(true);
     }
 
     public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException;
@@ -109,5 +122,16 @@ public interface DescriptionObject {
             }
         }
         return descDep;
+    }
+
+    default public Outcome toOutcome() throws CriseVertxException, MarshalException, ValidationException, IOException, MappingException {
+        String schemaName = getResourceType().getSchemaName();
+        Schema schema = LocalObjectLoader.getSchema(schemaName, 0);
+        return new Outcome(getXml(false), schema);
+    }
+
+    default public boolean exists(TransactionKey transactionKey) {
+        String path = getResourceType().getTypeRoot() + "/" + getNamespace() + "/" + getName();
+        return new DomainPath(path).exists(transactionKey);
     }
 }

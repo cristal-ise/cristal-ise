@@ -1,7 +1,6 @@
 <Item initialPath="/desc/DomainContext" name="DomainContextFactory" ns="dev" version="0" workflow="CrudFactory_Workflow" workflowVer="0">
   <Property mutable="false" name="Type">Factory</Property>
   <Property mutable="false" name="Root">/desc/DomainContext</Property>
-  <Property mutable="false" name="SubFolder">dev</Property>
   <Property mutable="false" name="UpdateSchema">DomainContext:0</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/DomainContext_0.xml</Outcome>
   <Dependency classProps="" isDescription="false" name="workflow">

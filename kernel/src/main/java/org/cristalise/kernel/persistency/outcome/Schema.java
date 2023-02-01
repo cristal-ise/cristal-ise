@@ -192,7 +192,7 @@ public class Schema implements DescriptionObject, ErrorHandler {
     }
 
     @Override
-    public String getXml() throws InvalidDataException {
+    public String getXml(boolean prettyPrint) throws InvalidDataException {
         return schemaData;
     }
 

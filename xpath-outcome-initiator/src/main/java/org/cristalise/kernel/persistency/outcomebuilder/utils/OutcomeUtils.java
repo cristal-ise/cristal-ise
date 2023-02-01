@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.utils;
 
+import static org.apache.commons.lang3.StringUtils.equalsAny;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -31,11 +33,16 @@ import java.time.OffsetTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.beanutils.converters.BigDecimalConverter;
+import org.apache.commons.beanutils.converters.BigIntegerConverter;
+import org.apache.commons.beanutils.converters.BooleanConverter;
+import org.apache.commons.beanutils.converters.StringConverter;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcomebuilder.Field;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.process.Gateway;
 import org.json.JSONObject;
 import lombok.extern.slf4j.Slf4j;
@@ -43,11 +50,9 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Utility class for generated Scripts, Script development and testing. JSONObject, Outcome and Map are the
  * 3 major formats the are used in the framework to handle outcome, and this class provides consistent type conversion
- * for field values.
- * <br>
- * <br>
- * <b>Valid value</b> is not null or in case of String type it is not blank. This is based the convention that
- * the XML based Outcome handles values of type String only.
+ * for fields and their valid values.
+ * <br><br>
+ * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
  */
 @Slf4j
 public class OutcomeUtils {
@@ -56,11 +61,28 @@ public class OutcomeUtils {
     public static final String webuiTimeFormat     = Gateway.getProperties().getString("Webui.format.time",     "HH:mm:ss");
 
     /**
+     * Check if the String has a not blank valid value, i.e. it does not equal to 'string' nor 'null'.
+     * This is based the convention that the XML based Outcome handles values of type String only.
+     * <br><br>
+     * Note that <i>'Empty'</i> OutcomeInitiator creates one entry for optional fields. 
+     * If this is not required it is considered invalid.
+     * 
+     * @param value the String to be checked
+     * @return true if the String in not blank and it does not equal to 'string' nor 'null' otherwise returns false
+     * 
+     * @see org.apache.commons.lang3.StringUtils#isNotBlank
+     * @see org.apache.commons.lang3.StringUtils#equalsAny
+     */
+    public static boolean hasValidNotBlankValue(String value) {
+        return isNotBlank(value) && ! equalsAny(value, "string", "null");
+    }
+
+    /**
      * Checks if the input object has the field or not
      * 
      * @param input  either JSONObject, Outcome or Map
      * @param key the field to check
-     * @return true if the input has the field regardless its value
+     * @return true if the input has the field regardless its value otherwise false
      */
     public static boolean hasField(Object input, String key) {
         if (input instanceof JSONObject) {
@@ -78,39 +100,51 @@ public class OutcomeUtils {
     }
 
     /**
-     * Checks if the input object has the field and a valid value.
+     * Returns the value if the input object has the field and a valid value.
+     * <br>
+     * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
      * 
-     * @param input  either JSONObject, Outcome or Map
+     * @param input either JSONObject, Outcome or Map
      * @param key the field to check
-     * @return true if the input has the field with a valid value
+     * @return the value if the input has the field with a valid value otherwise returns null
      */
-    public static boolean hasValue(Object input, String key) {
-        if (!hasField(input, key)) return false;
+    public static Object getValueOrNull(Object input, String key) {
+        if (!hasField(input, key)) return null;
 
-        if (input instanceof JSONObject) {
-           JSONObject json = (JSONObject) input;
-           Object value = json.opt(key);
+        Object value = null;
 
-           if (json.isNull(key)) return false;
-
-           return value instanceof String ? StringUtils.isNotBlank(value.toString()) : true;
+        if (input instanceof Map) {
+            value = ((Map<?, ?>) input).get(key);
+        }
+        else if (input instanceof JSONObject) {
+            JSONObject json = (JSONObject) input;
+            if (! json.isNull(key)) value = json.get(key);
         }
         else if (input instanceof Outcome) {
-            Outcome outcome = (Outcome) input;
-            String value = outcome.getField(key);
-            return StringUtils.isNotBlank(value);
-        }
-        else if (input instanceof Map) {
-            Map<?, ?> map = (Map<?, ?>) input;
-            Object value = map.get(key);
-
-            if (value == null) return false;
-
-            return value instanceof String ? StringUtils.isNotBlank(value.toString()) : true;
+            value = ((Outcome) input).getField(key);
         }
         else {
             throw new IllegalArgumentException("Does not handle input with type '" + input.getClass().getName() + "'");
         }
+
+        if (value != null && value instanceof String && ! hasValidNotBlankValue((String)value)) {
+            value = null;
+        }
+
+        return value;
+    }
+
+    /**
+     * Checks if the input object has the field and a valid value.
+     * <br>
+     * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
+     * 
+     * @param input either JSONObject, Outcome or Map
+     * @param key the field to check
+     * @return true if the input has the field with a valid value otherwise returns false
+     */
+    public static boolean hasValue(Object input, String key) {
+        return getValueOrNull(input, key) != null;
     }
 
     /**
@@ -122,8 +156,12 @@ public class OutcomeUtils {
      * @return
      */
     public static Object getValueOrNull(Object input, String key, OutcomeBuilder builder) {
-        Field f = (Field)builder.findChildStructure(key);
-        Class<?> fieldClazz = f.getJavaType();
+        OutcomeStructure childStruct = builder.findChildStructure(key);
+        if (childStruct == null) return null;
+
+        if (!(childStruct instanceof Field)) throw new IllegalArgumentException("Key '"+key+"' is not class Field (" +input.getClass().getName()+")");
+
+        Class<?> fieldClazz = ((Field)childStruct).getJavaType();
 
         if (fieldClazz.equals(String.class)) {
             return getStringOrNull(input, key);
@@ -152,347 +190,301 @@ public class OutcomeUtils {
     }
 
     /**
-     * Converts the value of the given field to String or null.
+     * Returns the valid value of the given field as String or null. Based on apache beanutils StringConverter.
+     * <br>
+     * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
      *
      * @param input either a JSONObject or an Outcome
      * @param key the field to be converted
-     * @return value of the given field in String or null
+     * @return value of the given field as String or null
+     * 
+     * @see org.apache.commons.beanutils.converters.StringConverter
      */
     public static String getStringOrNull(Object input, String key) {
-        if (input instanceof JSONObject) {
-            JSONObject json = (JSONObject) input;
-            if (json.has(key) && !json.isNull(key)) {
-                Object value = json.get(key);
+        StringConverter converter = new StringConverter(null);
 
-                if (value instanceof String && "".equals(value)) return null;
+        Object value = getValueOrNull(input, key);
 
-                return json.getString(key);
-            }
-        }
-        else if (input instanceof Outcome) {
-            String value = ((Outcome) input).getField(key);
-
-            if (StringUtils.isNotBlank(value)) return value;
-        }
-        else if (input instanceof Map) {
-            String value = (String) ((Map<?, ?>) input).get(key);
-
-            if (StringUtils.isNotBlank(value)) return value;
-        }
-        else {
-            throw new IllegalArgumentException("Does not handle input with type '" + input.getClass().getName() + "'");
-        }
-        return null;
+        if (value != null) return converter.convert(String.class, value);
+        else               return null;
     }
 
     /**
-     * Converts the value of the given field to BigDecimal or null. No rounding is done.
+     * Returns the valid value of the given field as BigDecimal or null. No rounding is done.
+     * Based on apache beanutils BigDecimalConverter which converts Boolean.TRUE to 1 and Boolean.FALSE to 0.
+     * <br>
+     * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
      *
      * @param input either JSONObject, Outcome or Map
      * @param key the field to be converted
-     * @return value of the given field in BigDecimal or null
+     * @return value of the given field as BigDecimal or null
+     * 
+     * @see org.apache.commons.beanutils.converters.BigDecimalConverter
      */
     public static BigDecimal getBigDecimalOrNull(Object input, String key) {
         return getBigDecimalOrNull(input, key, -1, null);
     }
 
     /**
-     * Converts the value of the given field to BigDecimal or null. Half-up rounding is done using the
+     * Returns the valid value of the given field as BigDecimal or null. Half-up rounding is done using the
      * given scale.
+     * Based on apache beanutils BigDecimalConverter which converts Boolean.TRUE to 1 and Boolean.FALSE to 0.
+     * <br>
+     * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
      *
      * @param input either a JSONObject or an Outcome
      * @param key the field to be converted
      * @param scale to be used for half-up rounding
-     * @return value of the given field in BigDecimal or null
+     * @return value of the given field as BigDecimal or null
+     * 
+     * @see org.apache.commons.beanutils.converters.BigDecimalConverter
      */
     public static BigDecimal getBigDecimalOrNull(Object input, String key, int scale) {
         return getBigDecimalOrNull(input, key, scale, RoundingMode.HALF_UP);
     }
 
     /**
-     * Converts the value of the given field to BigDecimal or null. The given rounding is done using
+     * Returns the valid value of the given field as BigDecimal or null. The given rounding is done using
      * the given scale.
+     * Based on apache beanutils BigDecimalConverter which converts Boolean.TRUE to 1 and Boolean.FALSE to 0.
+     * <br>
+     * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
      *
      * @param input either a JSONObject or an Outcome
      * @param key the field to be converted
      * @param scale to be used for the given rounding
      * @param rounding to be used
-     * @return value of the given field in BigDecimal or null
+     * @return value of the given field as BigDecimal or null
+     * 
+     * @see org.apache.commons.beanutils.converters.BigDecimalConverter
      */
     public static BigDecimal getBigDecimalOrNull(Object input, String key, int scale, RoundingMode rounding) {
-        if (input instanceof JSONObject) {
-            BigDecimal value = ((JSONObject) input).optBigDecimal(key, null);
+        BigDecimalConverter converter = new BigDecimalConverter(null);
 
-            if (value != null) {
-                if (scale >= 0) return value.setScale(scale, rounding);
-                else            return value;
-            }
-        }
-        else if (input instanceof Outcome) {
-            String value = ((Outcome) input).getField(key);
+        Object value = getValueOrNull(input, key);
 
-            if (StringUtils.isNotBlank(value)) {
-                if (scale >= 0) return new BigDecimal(value).setScale(scale, rounding);
-                else            return new BigDecimal(value);
-            }
+        if (value != null) {
+            if (scale >= 0) return converter.convert(BigDecimal.class, value).setScale(scale, rounding);
+            else            return converter.convert(BigDecimal.class, value);
         }
-        else if (input instanceof Map) {
-            String value = (String) ((Map<?, ?>) input).get(key);
 
-            if (StringUtils.isNotBlank(value)) {
-                if (scale >= 0) return new BigDecimal(value).setScale(scale, rounding);
-                else            return new BigDecimal(value);
-            }
-        }
-        else {
-            throw new IllegalArgumentException("Does not handle input with type '" + input.getClass().getName() + "'");
-        }
         return null;
     }
 
     /**
-     * Converts the value of the given field to BigInteger or null.
+     * Returns the valid value of the given field as BigInteger or null. Based on apache beanutils BigIntegerConverter
+     * which converts Boolean.TRUE to 1 and Boolean.FALSE to 0
+     * <br>
+     * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
      *
      * @param input either a JSONObject or an Outcome
      * @param key the field to be converted
-     * @return value of the given field in BigInteger or null
+     * @return value of the given field as BigInteger or null
+     * 
+     * @see org.apache.commons.beanutils.converters.BigIntegerConverter
      */
     public static BigInteger getBigIntegerOrNull(Object input, String key) {
-        if (input instanceof JSONObject) {
-            JSONObject json = (JSONObject) input;
-            if (json.has(key) && !json.isNull(key)) {
-                Object value = json.get(key);
+        BigIntegerConverter converter = new BigIntegerConverter(null);
 
-                if (value instanceof String && "".equals(value)) return null;
+        Object value = getValueOrNull(input, key);
 
-                return json.getBigInteger(key);
-            }
+        if (value != null) {
+            return converter.convert(BigInteger.class, value);
         }
-        else if (input instanceof Outcome) {
-            String value = ((Outcome) input).getField(key);
 
-            if (StringUtils.isNotBlank(value)) return new BigInteger(value);
-        }
-        else if (input instanceof Map) {
-            String value = (String) ((Map<?, ?>) input).get(key);
-
-            if (StringUtils.isNotBlank(value)) return new BigInteger(value);
-        }
-        else {
-            throw new IllegalArgumentException("Does not handle input with type '" + input.getClass().getName() + "'");
-        }
         return null;
     }
 
     /**
-     * Converts the value of the given field to Boolean or null.
+     * Returns the valid value of the given field as Boolean or null.
+     * Based on apache beanutils BooleanConverter which convertes strings {"yes", "y", "true", "on", "1"} to true
+     * and converts strings {"no", "n", "false", "off", "0"} to false 
+     * <br>
+     * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
      *
      * @param input either a JSONObject or an Outcome
      * @param key the field to be converted
-     * @return value of the given field in Boolean or null
+     * @return value of the given field as Boolean or null
+     * 
+     * @see org.apache.commons.beanutils.converters.BooleanConverter
      */
     public static Boolean getBooleanOrNull(Object input, String key) {
-        if (input instanceof JSONObject) {
-            JSONObject json = (JSONObject) input;
-            if (json.has(key) && !json.isNull(key)) {
-                Object value = json.get(key);
+        BooleanConverter converter = new BooleanConverter(null);
 
-                if (value instanceof String && "".equals(value)) return null;
+        Object value = getValueOrNull(input, key);
 
-                return json.getBoolean(key);
-            }
-        }
-        else if (input instanceof Outcome) {
-            String value = ((Outcome) input).getField(key);
-
-            if (StringUtils.isNotBlank(value)) return Boolean.valueOf(value);
-        }
-        else if (input instanceof Map) {
-            String value = (String) ((Map<?, ?>) input).get(key);
-
-            if (StringUtils.isNotBlank(value)) return Boolean.valueOf(value);
-        }
-        else {
-            throw new IllegalArgumentException("Does not handle input with type '" + input.getClass().getName() + "'");
-        }
-        return null;
+        if (value != null) return converter.convert(Boolean.class, value);
+        else               return null;
     }
 
     /**
      * Converts the value of the given field to LocalDate or null. If the input is a JSONObject
      * it uses webui specific pattern, configurable with 'Webui.format.date' system property,
      * default is 'yyyy-MM-dd'. If the input is an Outcome or Map the ISO_LOCAL_DATE format is used.
+     * <br>
+     * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
      *
      * @param input either a JSONObject, an Outcome or a Map
      * @param key the field to be converted
      * @return value of the given field in LocalDate or null
      */
     public static LocalDate getLocalDateOrNull(Object input, String key) {
-        if (input instanceof JSONObject) {
-            JSONObject json = (JSONObject) input;
-            if (json.has(key) && !json.isNull(key)) {
-                Object value = json.get(key);
+        Object value = getValueOrNull(input, key);
 
-                if (value instanceof String) {
-                  String v = (String)value;
-                  DateTimeFormatter dtf = DateTimeFormatter.ofPattern(webuiDateFormat);
+        if (value != null) {
+            if (value instanceof LocalDate) {
+                return (LocalDate)value;
+            }
+            else if (value instanceof String) {
+                DateTimeFormatter dtf = null;
 
-                  if (StringUtils.isNotBlank(v)) return LocalDate.parse(v, dtf);
+                if (input instanceof JSONObject) dtf = DateTimeFormatter.ofPattern(webuiDateFormat);
+                else                             dtf = DateTimeFormatter.ISO_LOCAL_DATE;
+
+                try {
+                    return LocalDate.parse((String)value, dtf);
                 }
-                else {
-                    log.warn("getLocalDateOrNull(key:{}) - json value is not a String, dropping it", key);
+                catch (DateTimeParseException e) {
+                    log.debug("getLocalDateOrNull(key:{}) - DateTimeParseException:{}", key, e.getMessage());
                 }
             }
+            else {
+                log.debug("getLocalDateOrNull(key:{}) - value '{}' is not a String, dropping it", key, value);
+            }
         }
-        else if (input instanceof Outcome) {
-            String value = ((Outcome) input).getField(key);
 
-            if (StringUtils.isNotBlank(value)) return LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
-        }
-        else if (input instanceof Map) {
-            String value = (String) ((Map<?, ?>) input).get(key);
-
-            if (StringUtils.isNotBlank(value)) return LocalDate.parse(value, DateTimeFormatter.ISO_LOCAL_DATE);
-        }
-        else {
-            throw new IllegalArgumentException("Does not handle input with type '" + input.getClass().getName() + "'");
-        }
         return null;
     }
 
     /**
-     * Converts the value of the given field to LocalDateTime or null. If the input is a JSONObject
+     * Returns the valid value of the given field as LocalDateTime or null. If the input is a JSONObject
      * it uses webui specific pattern, configurable with 'Webui.format.datetime' system property,
      * default is 'yyyy-MM-dd'T'HH:mm:ss'. If the input is an Outcome or Map the ISO_LOCAL_DATETIME
      * format is used.
+     * <br>
+     * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
      *
      * @param input either a JSONObject, an Outcome or a Map
      * @param key the field to be converted
-     * @return value of the given field in LocalDateTime or null
+     * @return value of the given field as LocalDateTime or null
      */
     public static LocalDateTime getLocalDateTimeOrNull(Object input, String key) {
-        if (input instanceof JSONObject) {
-            JSONObject json = (JSONObject) input;
-            if (json.has(key) && !json.isNull(key)) {
-                Object value = json.get(key);
+        Object value = getValueOrNull(input, key);
 
-                if (value instanceof String) {
-                    String v = (String)value;
-                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern(webuiDateTimeFormat);
+        if (value != null) {
+            if (value instanceof LocalDateTime) {
+                return (LocalDateTime)value;
+            }
+            else if (value instanceof String) {
+                DateTimeFormatter dtf = null;
 
-                    if (StringUtils.isNotBlank(v)) return LocalDateTime.parse(v, dtf);
+                if (input instanceof JSONObject) dtf = DateTimeFormatter.ofPattern(webuiDateTimeFormat);
+                else                             dtf = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+                try {
+                    return LocalDateTime.parse((String)value, dtf);
                 }
-                else {
-                    log.warn("getLocalDateTimeOrNull(key:{}) - json value is not a String, dropping it", key);
+                catch (DateTimeParseException e) {
+                    log.debug("getLocalDateTimeOrNull(key:{}) - DateTimeParseException:{}", key, e.getMessage());
                 }
             }
+            else {
+                log.debug("getLocalDateTimeOrNull(key:{}) - value '{}' is not a String, dropping it", key, value);
+            }
         }
-        else if (input instanceof Outcome) {
-            String value = ((Outcome) input).getField(key);
 
-            if (StringUtils.isNotBlank(value)) return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        }
-        else if (input instanceof Map) {
-            String value = (String) ((Map<?, ?>) input).get(key);
-
-            if (StringUtils.isNotBlank(value)) return LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        }
-        else {
-            throw new IllegalArgumentException("Does not handle input with type '" + input.getClass().getName() + "'");
-        }
         return null;
     }
 
     /**
-     * Converts the value of the given field to OffsetDateTime or null. If the input is a JSONObject
+     * Returns the valid value of the given field as OffsetDateTime or null. If the input is a JSONObject
      * it uses webui specific pattern, configurable with 'Webui.format.datetime' system property,
      * default is 'yyyy-MM-dd'T'HH:mm:ss'. If the input is an Outcome or Map the ISO_OFFSET_DATE_TIME
      * format is used.
+     * <br>
+     * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
      *
      * @param input either a JSONObject, an Outcome or a Map
      * @param key the field to be converted
-     * @return value of the given field in OffsetDateTime or null
+     * @return value of the given field as OffsetDateTime or null
      */
     public static OffsetDateTime getOffsetDateTimeOrNull(Object input, String key) {
-        if (input instanceof JSONObject) {
-            JSONObject json = (JSONObject) input;
-            if (json.has(key) && !json.isNull(key)) {
-                Object value = json.get(key);
+        Object value = getValueOrNull(input, key);
 
-                if (value instanceof String) {
-                    String v = (String)value;
-                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern(webuiDateTimeFormat);
+        if (value != null) {
+            if (value instanceof OffsetDateTime) {
+                return (OffsetDateTime)value;
+            }
+            else if (value instanceof String) {
+                DateTimeFormatter dtf = null;
 
-                    if (StringUtils.isNotBlank(v)) {
-                        OffsetDateTime odt = OffsetDateTime.now (ZoneId.systemDefault ());
-                        ZoneOffset zoneOffset = odt.getOffset ();
-                        return LocalDateTime.parse(v, dtf).atOffset(zoneOffset);
+                try {
+                    if (input instanceof JSONObject) {
+                        dtf = DateTimeFormatter.ofPattern(webuiDateTimeFormat);
+                        OffsetDateTime odt = OffsetDateTime.now(ZoneId.systemDefault());
+                        ZoneOffset zoneOffset = odt.getOffset();
+    
+                            return LocalDateTime.parse((String)value, dtf).atOffset(zoneOffset);
+                    }
+                    else {
+                        dtf = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+                        return OffsetDateTime.parse((String)value, dtf);
                     }
                 }
-                else {
-                    log.warn("getOffsetDateTimeOrNull(key:{}) - json value is not a String, dropping it", key);
+                catch (DateTimeParseException e) {
+                    log.debug("getOffsetDateTimeOrNull(key:{}) - DateTimeParseException:{}", key, e.getMessage());
                 }
             }
+            else {
+                log.debug("getOffsetDateTimeOrNull(key:{}) - value '{}' is not a String, dropping it", key, value);
+            }
         }
-        else if (input instanceof Outcome) {
-            String value = ((Outcome) input).getField(key);
 
-            if (StringUtils.isNotBlank(value)) return OffsetDateTime.parse(value, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-        }
-        else if (input instanceof Map) {
-            String value = (String) ((Map<?, ?>) input).get(key);
-
-            if (StringUtils.isNotBlank(value)) return OffsetDateTime.parse(value, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-        }
-        else {
-            throw new IllegalArgumentException("Does not handle input with type '" + input.getClass().getName() + "'");
-        }
         return null;
     }
 
     /**
-     * Converts the value of the given field to OffsetTime or null. If the input is a JSONObject
+     * Returns the valid value of the given field as OffsetTime or null. If the input is a JSONObject
      * it uses webui specific pattern, configurable with 'Webui.format.time' system property,
      * default is 'HH:mm:ss'. If the input is an Outcome or Map the ISO_OFFSET_TIME format is used.
+     * <br>
+     * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
      *
      * @param input either a JSONObject, an Outcome or a Map
      * @param key the field to be converted
-     * @return value of the given field in OffsetTime or null
+     * @return value of the given field as OffsetTime or null
      */
     public static OffsetTime getOffsetTimeOrNull(Object input, String key) {
-        if (input instanceof JSONObject) {
-            JSONObject json = (JSONObject) input;
-            if (json.has(key) && !json.isNull(key)) {
-                Object value = json.get(key);
+        Object value = getValueOrNull(input, key);
 
-                if (value instanceof String) {
-                    String v = (String)value;
-                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern(webuiTimeFormat);
+        if (value != null) {
+            if (value instanceof OffsetTime) {
+                return (OffsetTime)value;
+            }
+            else if (value instanceof String) {
+                DateTimeFormatter dtf = null;
 
-                    if (StringUtils.isNotBlank(v)) {
+                try {
+                    if (input instanceof JSONObject) {
+                        dtf = DateTimeFormatter.ofPattern(webuiTimeFormat);
                         OffsetDateTime odt = OffsetDateTime.now (ZoneId.systemDefault ());
                         ZoneOffset zoneOffset = odt.getOffset ();
-                        return LocalTime.parse(v, dtf).atOffset(zoneOffset);
+                        return LocalTime.parse((String)value, dtf).atOffset(zoneOffset);
                     }
-               }
-                else {
-                    log.warn("getOffsetTimeOrNull(key:{}) - json value is not a String, dropping it", key);
+                    else {
+                        dtf = DateTimeFormatter.ISO_OFFSET_TIME;
+                        return OffsetTime.parse((String)value, dtf);
+                    }
+                }
+                catch (DateTimeParseException e) {
+                    log.debug("getOffsetTimeOrNull(key:{}) - DateTimeParseException:{}", key, e.getMessage());
                 }
             }
+            else {
+                log.debug("getOffsetTimeOrNull(key:{}) - value '{}' is not a String, dropping it", key, value);
+            }
         }
-        else if (input instanceof Outcome) {
-            String value = ((Outcome) input).getField(key);
 
-            if (StringUtils.isNotBlank(value)) return OffsetTime.parse(value, DateTimeFormatter.ISO_OFFSET_TIME);
-        }
-        else if (input instanceof Map) {
-            String value = (String) ((Map<?, ?>) input).get(key);
-
-            if (StringUtils.isNotBlank(value)) return OffsetTime.parse(value, DateTimeFormatter.ISO_OFFSET_TIME);
-        }
-        else {
-            throw new IllegalArgumentException("Does not handle input with type '" + input.getClass().getName() + "'");
-        }
         return null;
     }
 }

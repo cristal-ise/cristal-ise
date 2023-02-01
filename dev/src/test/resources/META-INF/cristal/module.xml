@@ -6,7 +6,6 @@
   </Info>
   <ResourceURL>org/cristalise/devtest/resources/</ResourceURL>
   <Imports>
-    <DomainContextResource name="DescDevContext" version="0"/>
     <AgentResource name="devtest" version="0"/>
     <PropertyDescriptionResource name="Car" version="0"/>
     <PropertyDescriptionResource name="ClubMember" version="0"/>

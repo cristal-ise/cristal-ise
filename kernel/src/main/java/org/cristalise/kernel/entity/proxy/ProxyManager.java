@@ -52,7 +52,7 @@ public class ProxyManager {
     public static ItemProxy getProxy(Path path, TransactionKey transactionKey) throws ObjectNotFoundException {
         ItemPath itemPath = null;
 
-        log.trace("getProxy(" + path.toString() + ")");
+        log.trace("getProxy({})", path);
 
         if (path instanceof ItemPath) {
             try {

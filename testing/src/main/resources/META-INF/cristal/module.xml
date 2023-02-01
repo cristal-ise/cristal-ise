@@ -50,7 +50,7 @@
             <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/AssetDescProp_0.xml</Outcome>
 
             <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="desc/ActivityDesc/integTest/AssetDescriptionWf">
+                <DependencyMember itemPath="/desc/ActivityDesc/integTest/AssetDescriptionWf">
                     <MemberProperties>
                         <KeyValuePair Key="Version" String="0" />
                     </MemberProperties>
@@ -59,7 +59,7 @@
             </Dependency>
 
             <Dependency name="workflow'" isDescription="true">
-                <DependencyMember itemPath="/desc/dev/CompositeActivityDefFactory" />
+                <DependencyMember itemPath="/desc/ActivityDesc/CompositeActivityDefFactory" />
                 <CollectionProperties />
             </Dependency>
 
@@ -126,19 +126,19 @@
                 <CollectionProperties />
             </Dependency>
             <Dependency name="Activity" isDescription="true">
-                <DependencyMember itemPath="desc/dev/ActivityDefType" />
+                <DependencyMember itemPath="/desc/ActivityDesc/ActivityDefType" />
             </Dependency>
             <Dependency name="Schema" isDescription="true">
-                <DependencyMember itemPath="desc/dev/SchemaFactory" />
+                <DependencyMember itemPath="/desc/Schema/SchemaFactory" />
             </Dependency>
             <Dependency name="Script" isDescription="true">
-                <DependencyMember itemPath="desc/dev/ScriptFactory" />
+                <DependencyMember itemPath="/desc/Script/ScriptFactory" />
             </Dependency>
             <Dependency name="StateMachine" isDescription="true">
-                <DependencyMember itemPath="desc/dev/StateMachineFactory" />
+                <DependencyMember itemPath="/desc/StateMachine/StateMachineFactory" />
             </Dependency>
             <Dependency name="XPathOutcomeInitTest_Details" isDescription="true">
-                <DependencyMember itemPath="desc/integTest/XPathOutcomeInitTest_DetailsFactory" />
+                <DependencyMember itemPath="/desc/integTest/XPathOutcomeInitTest_DetailsFactory" />
             </Dependency>
         </Item>
 

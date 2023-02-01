@@ -1038,8 +1038,9 @@ public class Script implements DescriptionObject {
     }
 
     @Override
-    public String getXml() throws InvalidDataException {
-        return new Outcome(getScriptData()).getData(true);
+    public String getXml(boolean prettyPrint) throws InvalidDataException {
+        if (prettyPrint) return new Outcome(getScriptData()).getData(true);
+        else             return getScriptData();
     }
 
     @Override

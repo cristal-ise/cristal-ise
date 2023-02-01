@@ -29,8 +29,8 @@ URI scriptUri
 setModuleDir scriptUri
 
 Module(ns: 'dev', name: 'CristaliseDev', version: 0) {
-    Info(description: 'CRISTAL-iSE Development Items to implement CRUD functionality.', version: '${version}') {
-    }
+    Info(description: 'CRISTAL-iSE Development Items to implement CRUD functionality.', version: '${version}') {}
+
     Config(name: 'OutcomeInit.Dev',               value: 'org.cristalise.dev.DevObjectOutcomeInitiator')
     Config(name: 'OverrideScriptLang.javascript', value: 'rhino')
     Config(name: 'OverrideScriptLang.JavaScript', value: 'rhino')
@@ -65,4 +65,5 @@ Module(ns: 'dev', name: 'CristaliseDev', version: 0) {
     include(moduleDir+'/Activity.groovy')
     include(moduleDir+'/Workflow.groovy')
     include(moduleDir+'/Item.groovy')
+    include(moduleDir+'/Description.groovy')
 }
