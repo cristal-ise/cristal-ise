@@ -13,11 +13,14 @@ import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.junit.Ignore;
-import org.junit.Test
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
 
 /**
  *
  */
+@TestInstance(Lifecycle.PER_CLASS)
 class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
 
     Schema warningSchema, timeoutSchema, triggerTestActSchema

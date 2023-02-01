@@ -8,15 +8,16 @@ import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.Test
-
-
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
 
 /**
  * 
  *
  */
 @CompileStatic
+@TestInstance(Lifecycle.PER_CLASS)
 class BasicDevLookupStructureIT extends KernelScenarioTestBase {
 
     @Test

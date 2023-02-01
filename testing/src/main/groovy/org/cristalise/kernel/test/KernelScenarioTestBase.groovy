@@ -1,12 +1,17 @@
 package org.cristalise.kernel.test;
 
+import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.ERASE
 import java.time.LocalDateTime
 import org.cristalise.dev.dsl.DevItemDSL
+import org.cristalise.dev.scaffold.DevItemCreator
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.junit.AfterClass
 import org.junit.Before
 import org.junit.BeforeClass
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.mvel2.templates.CompiledTemplate
 import org.mvel2.templates.TemplateCompiler
 import org.mvel2.templates.TemplateRuntime
@@ -56,23 +61,24 @@ class KernelScenarioTestBase extends DevItemDSL {
      * @param config
      * @param connect
      */
-    public static void init(String config, String connect) {
+    public void init(String config, String connect) {
         Gateway.init(AbstractMain.readPropertyFiles(config, connect, null));
         agent = Gateway.connect("user", "test")
+        creator = new DevItemCreator('integtest', ERASE, agent)
     }
 
-    @Before
+    @BeforeEach
     public void before() {
         timeStamp = getNowString()
     }
 
-    @BeforeClass
-    public static void beforeClass() {
+    @BeforeAll
+    public void beforeClass() {
         init('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
     }
 
-    @AfterClass
-    public static void afterClass() {
+    @AfterAll
+    public void afterClass() {
         Gateway.close()
     }
 }
