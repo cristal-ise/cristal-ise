@@ -152,12 +152,12 @@ public class DomainContext implements DescriptionObject {
     }
 
     @Override
-    public String toString() {
-        return getName()+"(path:"+getDomainPath()+")";
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.DOMAIN_CONTEXT_RESOURCE;
     }
 
     @Override
-    public BuiltInResources getResourceType() {
-        return BuiltInResources.DOMAIN_CONTEXT_RESOURCE;
+    public String toString() {
+        return "DomainContext("+getDomainPath()+")";
     }
 }
