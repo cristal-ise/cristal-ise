@@ -157,7 +157,7 @@
         </Agent>
         <AgentResource name="mainUser" version="0"/>
 
-        <!-- Patient Descriptions -->
+        <!-- Doctor/Patient Descriptions -->
 
         <PropertyDescriptionResource name="Doctor" version="0"/>
         <PropertyDescriptionResource name="Patient" version="0"/>
@@ -181,14 +181,8 @@
           <Activity name="Patient_Aggregate" version="0"/>
         </Workflow>
         <ItemResource name="PatientFactory" version="0"/>
-        <SchemaResource name="Doctor_Patient" version="0"/>
-        <ScriptResource name="Doctor_AddPatient" version="0"/>
-        <Activity name="Doctor_AddPatient" version="0">
-          <Schema name="Doctor_Patient" version="0"/>
-          <Script name="Doctor_AddPatient" version="0"/>
-        </Activity>
         <Workflow name="Doctor_Workflow" version="0">
-          <Activity name="Doctor_AddPatient" version="0"/>
+          <Activity name="CrudEntity_ChangeDependecy" version="0"/>
         </Workflow>
         <ItemResource name="DoctorFactory" version="0"/>
 

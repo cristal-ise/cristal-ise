@@ -1,8 +1,7 @@
-import static org.cristalise.kernel.collection.Collection.Cardinality.*
-import static org.cristalise.kernel.collection.Collection.Type.*
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
-import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 def detailsSchema = Schema("Patient_Details", 0) {
@@ -15,7 +14,7 @@ def detailsSchema = Schema("Patient_Details", 0) {
 }
 
 def setDetailsEA = Activity("Patient_SetDetails", 0) {
-    Property(OutcomeInit: "Empty")
+//    Property((OUTCOME_INIT): "Empty")
     Schema(detailsSchema)
 }
 
@@ -27,7 +26,6 @@ def urinalysisSchema =  Schema("Patient_UrinSample", 0) {
 }
 
 def urinalysisEA = Activity("Patient_SetUrinSample", 0) {
-    Property(OutcomeInit: "Empty")
     Schema(urinalysisSchema)
 }
 
@@ -49,7 +47,6 @@ def aggregateScript =  Script("Patient_Aggregate", 0) {
 }
 
 def aggregateEA = Activity("Patient_Aggregate", 0) {
-    Property(OutcomeInit: "Empty")
     Schema(aggregatedSchema)
     Script(aggregateScript)
 }
@@ -58,7 +55,7 @@ def patientWf = Workflow(name: "Patient_Workflow", version: 0, generate: true) {
     Layout {
         Act('SetDetails', setDetailsEA)
         Act('SetUrinSample', urinalysisEA)
-        Act('Aggregate', aggregateEA) { //by default the DSL creates infinitive Loop
+        Act('Aggregate', aggregateEA) {
             Property(AGENT_ROLE, 'UserCode')
         }
     }
@@ -67,7 +64,7 @@ def patientWf = Workflow(name: "Patient_Workflow", version: 0, generate: true) {
 Item(name: 'PatientFactory', version: 0, folder: '/integTest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': '/integTest/Patients')
-    InmutableProperty('UpdateSchema': 'Equipment_Details:0')
+    InmutableProperty('UpdateSchema': 'Patient_Details:0')
 
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/Patient_0.xml')
 

@@ -21,6 +21,7 @@
 package org.cristalise.kernel.lifecycle;
 
 import static org.cristalise.kernel.collection.BuiltInCollections.ACTIVITY;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ACTIVITY_DEF_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ABORTABLE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.REPEAT_WHEN;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
@@ -513,10 +514,11 @@ public class CompositeActivityDef extends ActivityDef {
                 }
             }
             catch(Exception e) {
-                Node actDefNameNode = (Node) outcome.evaluateXpath(nodeList.item(i), "Properties/KeyValuePair[@Key='ActivityDefName']", XPathConstants.NODE);
+                
+                Node actDefNameNode = (Node) outcome.evaluateXpath(nodeList.item(i), "Properties/KeyValuePair[@Key='"+ACTIVITY_DEF_NAME+"']", XPathConstants.NODE);
                 String actDefName = actDefNameNode == null ? null : actDefNameNode.getAttributes().getNamedItem("String").getNodeValue();
 
-                //Try to read 'Name' property if 'ActivityDefName' property was not available
+                //Try to read 'Name' property if actDefName is empty
                 if (StringUtils.isBlank(actDefName)) {
                     actDefName = ((Node) outcome.evaluateXpath(
                         nodeList.item(i), "Properties/KeyValuePair[@Key='Name']", XPathConstants.NODE)

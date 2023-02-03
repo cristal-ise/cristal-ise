@@ -1,7 +1,7 @@
 <Item initialPath="/integTest" name="PatientFactory" ns="integTest" version="0" workflow="CrudFactory_Workflow" workflowVer="0">
   <Property mutable="false" name="Type">Factory</Property>
   <Property mutable="false" name="Root">/integTest/Patients</Property>
-  <Property mutable="false" name="UpdateSchema">Equipment_Details:0</Property>
+  <Property mutable="false" name="UpdateSchema">Patient_Details:0</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/Patient_0.xml</Outcome>
   <Dependency classProps="" isDescription="true" name="Doctor">
     <DependencyMember itemPath="/desc/PropertyDesc/integTest/Doctor">

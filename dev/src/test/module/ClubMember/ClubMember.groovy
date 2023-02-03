@@ -69,7 +69,7 @@ Workflow(name: 'ClubMember_ManageCars', version: 0) {
                 ElemActDef('AddToCars', 'CrudEntity_ChangeDependecy', 0) {
                     Property((PREDEFINED_STEP): 'AddMembersToCollection')
                     Property((DEPENDENCY_NAME): 'Cars')
-                    Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
+                    Property((ACTIVITY_DEF_NAME): 'CrudEntity_ChangeDependecy')
                     Property(ModuleNameSpace: 'devtest')
                 }
             }
@@ -77,8 +77,8 @@ Workflow(name: 'ClubMember_ManageCars', version: 0) {
                 ElemActDef('RemoveFromCars', 'CrudEntity_ChangeDependecy', 0) {
                     Property((PREDEFINED_STEP): 'RemoveMembersFromCollection')
                     Property((DEPENDENCY_NAME): 'Cars')
+                    Property((ACTIVITY_DEF_NAME): 'CrudEntity_ChangeDependecy')
                     Property(ModuleNameSpace: 'devtest')
-                    Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
                 }
             }
         }
@@ -93,7 +93,7 @@ Workflow(name: 'ClubMember_ManageMotorcycles', version: 0) {
                 ElemActDef('AddToMotorcycles', 'CrudEntity_ChangeDependecy', 0) {
                     Property((PREDEFINED_STEP): 'AddMembersToCollection')
                     Property((DEPENDENCY_NAME): 'Motorcycles')
-                    Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
+                    Property((ACTIVITY_DEF_NAME): 'CrudEntity_ChangeDependecy')
                     Property(ModuleNameSpace: 'devtest')
                 }
             }
@@ -101,8 +101,8 @@ Workflow(name: 'ClubMember_ManageMotorcycles', version: 0) {
                 ElemActDef('RemoveFromMotorcycles', 'CrudEntity_ChangeDependecy', 0) {
                     Property((PREDEFINED_STEP): 'RemoveMembersFromCollection')
                     Property((DEPENDENCY_NAME): 'Motorcycles')
+                    Property((ACTIVITY_DEF_NAME): 'CrudEntity_ChangeDependecy')
                     Property(ModuleNameSpace: 'devtest')
-                    Property(ActivityDefName: 'CrudEntity_ChangeDependecy')
                 }
             }
         }

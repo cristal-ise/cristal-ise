@@ -1,9 +1,11 @@
 package org.cristalise.kernel.test;
 
+import static java.util.concurrent.TimeUnit.*
 import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.ERASE
 
 import java.time.LocalDateTime
 
+import org.awaitility.Awaitility
 import org.cristalise.dev.dsl.DevItemDSL
 import org.cristalise.dev.dsl.DevXMLUtility
 import org.cristalise.dev.scaffold.DevItemCreator
@@ -80,6 +82,10 @@ class KernelScenarioTestBase extends DevItemDSL {
 
     @BeforeAll
     public void beforeClass() {
+        Awaitility.setDefaultTimeout(10, SECONDS)
+        Awaitility.setDefaultPollInterval(500, MILLISECONDS)
+        Awaitility.setDefaultPollDelay(200, MILLISECONDS)
+
         init('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
     }
 

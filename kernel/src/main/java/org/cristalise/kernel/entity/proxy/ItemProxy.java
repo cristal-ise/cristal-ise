@@ -1563,6 +1563,10 @@ public class ItemProxy {
         return Gateway.getMarshaller().unmarshall(obj);
     }
 
+    public void clearCache() {
+        Gateway.getStorage().clearCache(mItemPath);
+    }
+
     @Override
     public String toString() {
         if (log.isTraceEnabled()) {
