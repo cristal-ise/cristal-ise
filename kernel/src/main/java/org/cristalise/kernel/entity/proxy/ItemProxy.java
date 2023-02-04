@@ -304,7 +304,7 @@ public class ItemProxy {
 //                }
 //                catch (AccessRightsException e) {
 //                    // AccessRightsException is thrown if Job requires specific Role that agent does not have
-//                    log.info("getJobsForAgent()", e);
+//                    log.debug("checkJobForAgent()", e);
 //                }
             }
         }
@@ -327,20 +327,13 @@ public class ItemProxy {
      */
     private List<Job> getJobsForAgent(AgentPath agentPath) throws CriseVertxException {
         List<Job> jobBag = new ArrayList<Job>();
-        SecurityManager secMan = Gateway.getSecurityManager();
 
         // Make sure that the latest Jobs and Workflow is used for this calculation
         Gateway.getStorage().clearCache(getPath(), ClusterType.JOB);
         Gateway.getStorage().clearCache(getPath(), ClusterType.LIFECYCLE);
 
-        if (secMan.isShiroEnabled()) {
-            for (Job j: getJobs().values()) {
-                if (checkJobForAgent(j, agentPath)) jobBag.add(j);
-            }
-        }
-        else {
-            log.warn("checkJobForAgent() - ENABLE Shiro to work with permissions.");
-            jobBag = (List<Job>) getJobs().values();
+        for (Job j: getJobs().values()) {
+            if (checkJobForAgent(j, agentPath)) jobBag.add(j);
         }
 
         log.debug("getJobsForAgent() - {} returning #{} jobs for agent:{}", this, jobBag.size(), agentPath.getAgentName());
