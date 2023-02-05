@@ -22,8 +22,10 @@ package org.cristalise.kernel.entity.imports;
 
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.CannotManageException;
@@ -46,8 +48,10 @@ import org.cristalise.kernel.process.module.ModuleImport;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
+import org.cristalise.kernel.security.BuiltInAuthc;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -226,12 +230,20 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         for (RolePath rp: newRoles) roles.add(ImportRole.getImportRole(rp));
     }
 
+    public void addRole(BuiltInAuthc role) {
+        addRole(role.getName());
+    }
+
+    public void addRole(String roleName) {
+        addRole(new ImportRole(roleName));
+    }
+
     public void addRole(ImportRole ir) {
         roles.add(ir);
     }
 
     public void addRole(RolePath rp) {
-        roles.add(ImportRole.getImportRole(rp));
+        addRole(ImportRole.getImportRole(rp));
     }
 
     @Override

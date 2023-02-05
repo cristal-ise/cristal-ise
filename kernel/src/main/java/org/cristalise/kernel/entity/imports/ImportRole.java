@@ -50,6 +50,10 @@ public class ImportRole extends ModuleImport implements DescriptionObject {
 
     public ImportRole() {}
 
+    public ImportRole(String n) {
+        name = n;
+    }
+
     public RolePath getRolePath() {
         return new RolePath(name.split("/"), (jobList == null) ? false : jobList, permissions);
     }
