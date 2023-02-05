@@ -421,8 +421,8 @@ public class CastorXMLTest {
 
         ImportItem item = new ImportItem("name", "initialPath", new ItemPath(), "wf");
         ImportDependency id = new ImportDependency("Cars");
-        id.props.put("Integer", new Integer(10), false);
-        id.props.put("Boolean", new Boolean(false), false);
+        id.props.put("Integer", Integer.valueOf(10), false);
+        id.props.put("Boolean", Boolean.FALSE, false);
         id.props.put(DEPENDENCY_TYPE.toString(), Bidirectional.toString(), false);
         item.getDependencyList().add(id);
 

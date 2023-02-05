@@ -20,6 +20,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.security.BuiltInAuthc
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.json.JSONArray
@@ -90,7 +91,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         log.debug('loginPost() - response:{}', loginResp.body().asString())
 
         cauthCookie = loginResp.getDetailedCookie('cauth');
-        userUuid = loginResp.body().jsonPath().getString('Login.uuid.value')
+        userUuid = loginResp.body().jsonPath().getString('Login.uuid')
 
         assert userUuid && ItemPath.isUUID(userUuid)
     }
@@ -308,9 +309,10 @@ class RestapiTestBase extends KernelScenarioTestBase {
 
     String createNewItem(String name, ContentType type) {
         def newItem = new ImportItem(name, '/restapiTests', null, 'NoWorkflow')
-        def param = Gateway.marshaller.marshall(newItem)
+        newItem.getProperties().add(new Property('Type', 'Dummy', false))
         def serverItemUUID = resolveDomainPath('/servers/localhost')
 
+        def param = Gateway.marshaller.marshall(newItem)
         if (type == JSON) param = XML.toJSONObject(param).toString()
 
         executePredefStep(serverItemUUID, ImportImportItem.class, type, param)
@@ -346,6 +348,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
 
     void createNewRole(String name, ContentType type) {
         def newRole = new ImportRole(name)
+        newRole.jobList = false
         def param = Gateway.marshaller.marshall(newRole)
         def serverItemUUID = resolveDomainPath('/servers/localhost')
 

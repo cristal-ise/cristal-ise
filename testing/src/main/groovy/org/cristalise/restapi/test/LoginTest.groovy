@@ -1,9 +1,8 @@
 package org.cristalise.restapi.test
 
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import groovy.transform.CompileStatic
-
 
 @CompileStatic
 class LoginTest extends RestapiTestBase {

@@ -3,15 +3,12 @@ package org.cristalise.restapi.test
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-import org.cristalise.dev.dsl.DevXMLUtility
-import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.process.Gateway
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import io.restassured.http.ContentType
 
 
 /**
@@ -47,7 +44,7 @@ class ConcurrentTest extends RestapiTestBase {
             executeDoneJob(p, 'SetDetails')
             executeDoneJob(p, 'SetUrinSample')
 
-            uuids << p.getPath().getUUID().toString()
+            uuids << p.uuid
         }
 
         return uuids

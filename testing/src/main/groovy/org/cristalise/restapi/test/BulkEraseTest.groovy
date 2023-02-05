@@ -7,7 +7,7 @@ import org.cristalise.kernel.persistency.outcome.Viewpoint
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.property.Property
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import groovy.transform.CompileStatic
 import io.restassured.http.ContentType
 

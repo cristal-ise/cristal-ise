@@ -14,7 +14,7 @@ def detailsSchema = Schema("Patient_Details", 0) {
 }
 
 def setDetailsEA = Activity("Patient_SetDetails", 0) {
-//    Property((OUTCOME_INIT): "Empty")
+    Property((OUTCOME_INIT): "Empty")
     Schema(detailsSchema)
 }
 
@@ -26,6 +26,7 @@ def urinalysisSchema =  Schema("Patient_UrinSample", 0) {
 }
 
 def urinalysisEA = Activity("Patient_SetUrinSample", 0) {
+    Property((OUTCOME_INIT): "Empty")
     Schema(urinalysisSchema)
 }
 

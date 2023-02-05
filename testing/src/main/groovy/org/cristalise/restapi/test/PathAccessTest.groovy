@@ -3,7 +3,7 @@ package org.cristalise.restapi.test
 import static io.restassured.RestAssured.*
 import static net.javacrumbs.jsonunit.JsonAssert.assertJsonEquals
 
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import groovy.transform.CompileStatic
 import io.restassured.http.ContentType
