@@ -168,6 +168,12 @@ class DevItemDSL {
         return roleDescList
     }
 
+    public Schema Schema(String name, String folder, String xsd) {
+        def schema = new Schema(name, 0, xsd)
+        createOrUpdate(folder, schema)
+        return schema
+    }
+        
     public Schema Schema(String name, String folder, @DelegatesTo(SchemaDelegate) Closure cl) {
         def schema = SchemaBuilder.build(name, 0, cl).schema
         createOrUpdate(folder, schema)
@@ -180,6 +186,12 @@ class DevItemDSL {
         return query
     }
 
+    public Script Script(String name, String folder, String xml) {
+        def script = new Script(name, 0, null, xml)
+        createOrUpdate(folder, script)
+        return script
+    }
+
     public Script Script(String name, String folder, @DelegatesTo(ScriptDelegate) Closure cl) {
         Script script = ScriptBuilder.build("", name, 0, cl).script
         createOrUpdate(folder, script)
@@ -190,6 +202,13 @@ class DevItemDSL {
         def eaDef = ElemActDefBuilder.build(name: (Object)actName, version: 0, cl)
         createOrUpdate(folder, eaDef)
         return eaDef
+    }
+
+    public CompositeActivityDef CompositeActivityDef(String actName, String folder, String xml) {
+        def caDef = (CompositeActivityDef)Gateway.getMarshaller().unmarshall(xml)
+        caDef.version = 0
+        createOrUpdate(folder, caDef)
+        return caDef
     }
 
     public CompositeActivityDef CompositeActivityDef(String actName, String folder, @DelegatesTo(CompActDefDelegate) Closure cl) {

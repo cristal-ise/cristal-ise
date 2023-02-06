@@ -63,13 +63,7 @@ class TutorialsDevIT extends KernelScenarioTestBase {
     @Test
     public void 'Basic Tutorial with one Activy'() {
         def factory = setupPatient([:])
-        executeDoneJob(
-            factory, 
-            "CreateNewInstance", 
-            recordToXML('NewDevObjectDef', [ObjectName: "$itemType-$timeStamp", SubFolder: folder])
-        )
-
-        def patient = agent.getItem("$folder/$itemType-$timeStamp")
+        def patient = createItemFromDescription(factory, "$itemType-$timeStamp", folder)
 
         executeDoneJob(patient, elemActName)
     }
@@ -116,13 +110,7 @@ class TutorialsDevIT extends KernelScenarioTestBase {
     @Test
     public void 'Extended Tutorial with default Master Schema and Aggregate Script'() {
         def factory = setupExtedned()
-        executeDoneJob(
-            factory,
-            "CreateNewInstance",
-            recordToXML('NewDevObjectDef', [ObjectName: "$itemType-$timeStamp", SubFolder: folder])
-        )
-
-        def patient = agent.getItem("$folder/$itemType-$timeStamp")
+        def patient = createItemFromDescription(factory, "$itemType-$timeStamp", folder)
 
         assert patient.getMasterSchema()
         assert patient.getAggregateScript()

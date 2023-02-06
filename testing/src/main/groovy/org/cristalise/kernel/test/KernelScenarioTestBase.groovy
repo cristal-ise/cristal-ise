@@ -102,11 +102,11 @@ class KernelScenarioTestBase extends DevItemDSL {
      * @param folder
      * @return
      */
-    public void createNewItemByFactory(String factoryPath, String factoryActName, String name, String folder) {
+    public ItemProxy createNewItemByFactory(String factoryPath, String factoryActName, String name, String folder) {
         ItemProxy factory = agent.getItem(factoryPath)
-        assert factory && factory.getName() == factoryPath.substring(factoryPath.lastIndexOf('/')+1)
+        assert factory
 
-        createNewItemByFactory(factory, factoryActName, name, folder)
+        return createNewItemByFactory(factory, factoryActName, name, folder)
     }
 
     /**
@@ -117,8 +117,23 @@ class KernelScenarioTestBase extends DevItemDSL {
      * @param folder
      * @return
      */
-    public void createNewItemByFactory(ItemProxy factory, String factoryActName, String name, String folder) {
-        executeDoneJob(factory, factoryActName, DevXMLUtility.recordToXML('NewDevObjectDef', [ObjectName: name, SubFolder: folder]))
+    public ItemProxy createNewItemByFactory(ItemProxy factory, String factoryActName, String name, String folder) {
+        def doneJob = executeDoneJob(factory, factoryActName, DevXMLUtility.recordToXML('NewDevObjectDef', [ObjectName: name, SubFolder: folder]))
+
+        def newItemPath = doneJob.getOutcome().getField("SubFolder") + "/" + doneJob.getOutcome().getField("ObjectName")
+        return agent.getItem(newItemPath)
+
+    }
+
+    /**
+     * 
+     * @param descItem
+     * @param name
+     * @param folder
+     * @return
+     */
+    public ItemProxy createItemFromDescription(ItemProxy descItem, String name, String folder) {
+        return createNewItemByFactory(descItem, "CreateNewInstance", name, folder)
     }
 
 
