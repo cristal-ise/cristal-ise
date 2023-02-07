@@ -15,7 +15,6 @@ import groovy.transform.CompileStatic
  *
  */
 @CompileStatic
-@TestInstance(Lifecycle.PER_CLASS)
 class ViewpointCreateIT extends KernelScenarioTestBase {
     String schemaName  = "ViewpointTest"
     String elemActName = "SetViewpoint"
