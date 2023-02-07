@@ -33,6 +33,8 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.entity.proxy.ProxyManager;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
@@ -203,6 +205,14 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
 
     public AgentPath getAgentPath() {
         return getAgentPath(null);
+    }
+
+    public AgentProxy getProxy() {
+        try {
+            return ProxyManager.getAgentProxy(getAgentPath());
+        } catch (ObjectNotFoundException e) {
+            return null;
+        }
     }
 
     public AgentPath getAgentPath(TransactionKey transactionKey) {

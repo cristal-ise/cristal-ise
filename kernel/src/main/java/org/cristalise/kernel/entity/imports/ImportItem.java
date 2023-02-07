@@ -38,6 +38,8 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.entity.proxy.ProxyManager;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
@@ -143,7 +145,15 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
     public ItemPath getItemPath() {
         return getItemPath(null);
     }
-    
+
+    public ItemProxy getProxy() {
+        try {
+            return ProxyManager.getProxy(getItemPath());
+        } catch (ObjectNotFoundException e) {
+            return null;
+        }
+    }
+
     /**
      * Get the workflow version. Default workflow version is 0 if not given
      * @return workflow version (default 0)
@@ -336,8 +346,8 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
                     compActDef = LocalObjectLoader.getCompActDef("NoWorkflow", getWfVersion(), transactionKey);
                 }
             }
+            return (CompositeActivity) compActDef.instantiate(transactionKey);
         }
-        return (CompositeActivity) compActDef.instantiate(transactionKey);
     }
 
     /**

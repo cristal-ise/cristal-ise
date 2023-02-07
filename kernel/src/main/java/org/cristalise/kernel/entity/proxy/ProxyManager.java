@@ -52,7 +52,7 @@ public class ProxyManager {
     public static ItemProxy getProxy(Path path, TransactionKey transactionKey) throws ObjectNotFoundException {
         ItemPath itemPath = null;
 
-        log.trace("getProxy({})", path);
+        log.trace("getProxy() - path:{}", path);
 
         if (path instanceof ItemPath) {
             try {
@@ -66,7 +66,7 @@ public class ProxyManager {
         else if (path instanceof DomainPath) {
             //issue #165: reset target to enforce to read target from Lookup
             ((DomainPath) path).setTargetUUID(null);
-            itemPath = path.getItemPath();
+            itemPath = path.getItemPath(transactionKey);
         }
 
         if (itemPath == null) throw new ObjectNotFoundException("Cannot use RolePath");

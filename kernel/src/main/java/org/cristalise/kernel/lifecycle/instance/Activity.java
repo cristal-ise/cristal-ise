@@ -58,14 +58,12 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
@@ -652,9 +650,7 @@ public class Activity extends WfVertex {
         if (mType == null) return null;
         if (mTypeName == null) {
             try {
-                ItemPath actType = new ItemPath(mType);
-                Property nameProp = (Property) Gateway.getStorage().get(actType, ClusterType.PROPERTY + "/" + NAME, null);
-                mTypeName = nameProp.getValue();
+                mTypeName = new ItemPath(mType).getItemName();
             }
             catch (Exception e) {
                 mTypeName = mType;

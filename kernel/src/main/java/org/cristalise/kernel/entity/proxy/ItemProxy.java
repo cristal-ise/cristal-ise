@@ -354,7 +354,7 @@ public class ItemProxy {
      * Get the list of active Jobs of the Item for the given Activity that can be executed by the Agent.
      * 
      * @param agent requesting the job
-     * @param stepPath of the Activity
+     * @param stepPath the path of the Activity instance
      * @return list of active Jobs of the Item for the given Activity that can be executed by the Agent
      * @throws CriseVertxException
      */
