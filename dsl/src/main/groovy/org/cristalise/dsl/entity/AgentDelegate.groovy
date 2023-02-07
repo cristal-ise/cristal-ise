@@ -68,8 +68,7 @@ class AgentDelegate extends PropertyDelegate {
         if (itemProps) newAgent.properties = itemProps.list
     }
 
-
-    def Roles(Closure cl) {
+    def Roles(@DelegatesTo(RoleDelegate) Closure cl) {
         newAgent.roles = RoleBuilder.build(cl)
     }
 }

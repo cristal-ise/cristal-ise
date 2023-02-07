@@ -178,8 +178,8 @@ public class BlockDelegate {
 
         log.debug "addVertex() - type: '$t'; id: '$v.ID'; name: '$name;' path: '$v.path'"
 
-        if(!firstVertex) firstVertex = v
-        if(lastVertex) lastVertex.addNext(v)
+        if (!firstVertex) firstVertex = v
+        if (lastVertex) lastVertex.addNext(v)
         lastVertex = v
 
         return v
@@ -247,7 +247,7 @@ public class BlockDelegate {
      * 
      * @param cl the closure to be executed to build the Block
      */
-    public void B(Closure cl) {
+    public void B(@DelegatesTo(BlockDelegate) Closure cl) {
         Block(cl)
     }
 
@@ -256,7 +256,7 @@ public class BlockDelegate {
      * 
      * @param cl the closure to be executed to build the Block
      */
-    public void Block(Closure cl) {
+    public void Block(@DelegatesTo(BlockDelegate) Closure cl) {
         def b = new BlockDelegate(parentCABlock, vertexCache)
         b.processClosure(cl)
         linkWithChild(b)
@@ -268,7 +268,7 @@ public class BlockDelegate {
      * @param name the name of the Composite Activity, can be omitted
      * @param cl the closure to be executed to build the Composite Activity
      */
-    public void CompAct(String n = "", Closure cl) {
+    public void CompAct(String n = "", @DelegatesTo(CompActDelegate) Closure cl) {
         def b = new CompActDelegate(n, vertexCache)
         b.processClosure(this,cl)
     }
@@ -278,7 +278,7 @@ public class BlockDelegate {
      * @param props
      * @param cl
      */
-    public void Split(Map props, Types t, Closure cl) {
+    public void Split(Map props, Types t, @DelegatesTo(SplitDelegate) Closure cl) {
         def b = new SplitDelegate(props, t, parentCABlock, vertexCache)
         b.processClosure(cl)
         linkWithChild(b)
@@ -291,7 +291,7 @@ public class BlockDelegate {
      * @param type the type (And,Or,XOr, Loop) of the Split
      * @param cl the closure to be executed to build the Split
      */
-    public void Split(String n = "", Types t, Closure cl) {
+    public void Split(String n = "", Types t, @DelegatesTo(SplitDelegate) Closure cl) {
         Split(name: n, t, cl)
     }
 
@@ -301,7 +301,7 @@ public class BlockDelegate {
      * @param name
      * @param cl the closure to be executed to build the Elementary Activity. Can be omitted.
      */
-    public void ElemAct(String n = "", Closure cl = null) {
+    public void ElemAct(String n = "", @DelegatesTo(ElemActDelegate) Closure cl = null) {
         new ElemActDelegate(n).processClosure(this, cl)
     }
 
@@ -312,7 +312,7 @@ public class BlockDelegate {
      * @param name
      * @param cl the closure to be executed to build the Elementary Activity. Can be omitted.
      */
-    public void EA(String n = "", Closure cl = null) {
+    public void EA(String n = "", @DelegatesTo(ElemActDelegate) Closure cl = null) {
         ElemAct(n, cl)
     }
 
@@ -322,7 +322,7 @@ public class BlockDelegate {
      * @param name
      * @param cl
      */
-    public void CA(String n = "", Closure cl) {
+    public void CA(String n = "", @DelegatesTo(CompActDelegate) Closure cl) {
         CompAct(n, cl)
     }
 
@@ -331,7 +331,7 @@ public class BlockDelegate {
      * @param props
      * @param cl
      */
-    public void AndSplit(Map props, Closure cl) {
+    public void AndSplit(Map props, @DelegatesTo(SplitDelegate) Closure cl) {
         Split(props, Types.AndSplit, cl)
     }
 
@@ -341,7 +341,7 @@ public class BlockDelegate {
      * @param name
      * @param cl
      */
-    public void AndSplit(String n = "", Closure cl) {
+    public void AndSplit(String n = "", @DelegatesTo(SplitDelegate) Closure cl) {
         Split(n, Types.AndSplit, cl)
     }
 
@@ -350,7 +350,7 @@ public class BlockDelegate {
      * @param props
      * @param cl
      */
-    public void OrSplit(Map props, Closure cl) {
+    public void OrSplit(Map props, @DelegatesTo(SplitDelegate) Closure cl) {
         Split(props, Types.OrSplit, cl)
     }
 
@@ -359,7 +359,7 @@ public class BlockDelegate {
      * @param name
      * @param cl
      */
-    public void OrSplit(String n = "", Closure cl) {
+    public void OrSplit(String n = "", @DelegatesTo(SplitDelegate) Closure cl) {
         Split(name: n, Types.OrSplit, cl)
     }
 
@@ -368,7 +368,7 @@ public class BlockDelegate {
      * @param name
      * @param cl
      */
-    public void XOrSplit(Map props, Closure cl) {
+    public void XOrSplit(Map props, @DelegatesTo(SplitDelegate) Closure cl) {
         Split(props, Types.XOrSplit, cl)
     }
 
@@ -377,7 +377,7 @@ public class BlockDelegate {
      * @param name
      * @param cl
      */
-    public void XOrSplit(String n = "", Closure cl) {
+    public void XOrSplit(String n = "", @DelegatesTo(SplitDelegate) Closure cl) {
         Split(n, Types.XOrSplit, cl)
     }
 
@@ -386,7 +386,7 @@ public class BlockDelegate {
      * @param name
      * @param cl
      */
-    public void Loop(Map props, Closure cl) {
+    public void Loop(Map props, @DelegatesTo(LoopDelegate) Closure cl) {
         def b = new LoopDelegate(props, parentCABlock, vertexCache)
         b.processClosure(cl)
         linkWithChild(b)
@@ -397,7 +397,7 @@ public class BlockDelegate {
      * @param name
      * @param cl
      */
-    public void Loop(String n = "", Closure cl) {
+    public void Loop(String n = "", @DelegatesTo(LoopDelegate) Closure cl) {
         Loop(name: n, cl)
     }
 }

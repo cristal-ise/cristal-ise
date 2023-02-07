@@ -101,21 +101,24 @@ class DevItemDSL {
         return job
     }
 
-    public List<ImportRole> Roles(@DelegatesTo(RoleDelegate) Closure cl) {
-        def newRoles = RoleBuilder.build(cl)
-        def resultRoles = new ArrayList<ImportRole>()
+//    public List<ImportRole> Roles(@DelegatesTo(RoleDelegate) Closure cl) {
+//        def newRoles = RoleBuilder.build(cl)
+//        def resultRoles = new ArrayList<ImportRole>()
+//
+//        newRoles.each { role ->
+//            def result = agent.execute(agent.getItem('/servers/localhost'), ImportImportRole.class, agent.marshall(role))
+//            resultRoles.add((ImportRole) Gateway.getMarshaller().unmarshall(result))
+//        }
+//
+//        return resultRoles
+//    }
 
-        newRoles.each { role ->
-            def result = agent.execute(agent.getItem('/servers/localhost'), ImportImportRole.class, agent.marshall(role))
-            resultRoles.add((ImportRole) Gateway.getMarshaller().unmarshall(result))
-        }
-
-        return resultRoles
-    }
-
-    // name parameter is not used, method is only kept for backward compatibility
-    public List<ImportRole> Role(String name, @DelegatesTo(RoleDelegate) Closure cl) {
-        return Roles(cl)
+    public ImportRole Role(String name, @DelegatesTo(RoleDelegate) Closure cl) {
+        def roleD = new RoleDelegate(null)
+        roleD.Role(name: name, cl)
+        assert roleD.roles.size() == 1
+        def result = agent.execute(agent.getItem('/servers/localhost'), ImportImportRole.class, agent.marshall(roleD.roles[0]))
+        return (ImportRole) Gateway.getMarshaller().unmarshall(result)
     }
 
     public ImportAgent Agent(String name, @DelegatesTo(AgentDelegate) Closure cl) {

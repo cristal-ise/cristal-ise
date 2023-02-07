@@ -57,7 +57,11 @@ class RoleDelegate {
 
         roles.add(role)
 
-        if (cl) cl()
+        if (cl) {
+            cl.delegate = this
+            cl.resolveStrategy = Closure.DELEGATE_FIRST
+            cl()
+        }
     }
     
     public void Permission(String p) {

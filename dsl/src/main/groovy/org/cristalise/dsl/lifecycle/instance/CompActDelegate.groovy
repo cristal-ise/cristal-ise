@@ -74,8 +74,10 @@ public class CompActDelegate extends BlockDelegate {
     public WfVertex addVertex(Types t, String name) {
         WfVertex v = createVertex(t, name)
 
-        if(!firstVertex) firstVertex = v
-        if(lastVertex) lastVertex.addNext(v)
+        log.debug "addVertex() - type: '$t'; id: '$v.ID'; name: '$name;' path: '$v.path'"
+
+        if (!firstVertex) firstVertex = v
+        if (lastVertex) lastVertex.addNext(v)
         lastVertex = v
 
         return v
@@ -94,22 +96,22 @@ public class CompActDelegate extends BlockDelegate {
         setVertexProperties(currentCA)
     }
 
-    public void Block(Closure cl) {
+    public void Block(@DelegatesTo(BlockDelegate) Closure cl) {
         def b = new BlockDelegate(this, vertexCache)
         b.processClosure(cl)
         linkWithChild(b)
     }
 
-    public void Split(Map props, Types t, Closure cl) {
-        def b = new SplitDelegate(props, t, this, vertexCache)
-        b.processClosure(cl)
-        linkWithChild(b)
+    public void Split(Map props, Types t, @DelegatesTo(SplitDelegate) Closure cl) {
+        def s = new SplitDelegate(props, t, this, vertexCache)
+        s.processClosure(cl)
+        linkWithChild(s)
     }
 
-    public void Loop(Map props, Closure cl) {
-        def b = new LoopDelegate(props, this, vertexCache)
-        b.processClosure(cl)
-        linkWithChild(b)
+    public void Loop(Map props, @DelegatesTo(LoopDelegate) Closure cl) {
+        def l = new LoopDelegate(props, this, vertexCache)
+        l.processClosure(cl)
+        linkWithChild(l)
     }
 
     /*************************************************************
