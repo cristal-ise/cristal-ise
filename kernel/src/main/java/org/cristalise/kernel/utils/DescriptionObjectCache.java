@@ -25,12 +25,10 @@ package org.cristalise.kernel.utils;
 
 import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.EXACT_NAME_MATCH;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.UUID;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -48,11 +46,12 @@ import org.cristalise.kernel.process.module.ModuleResource;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class DescriptionObjectCache<D extends DescriptionObject> {
+    
+    private boolean lookupUseProperties = Gateway.getProperties().getBoolean("LocalObjectLoader.lookupUseProperties", false);
 
     SoftCache<String, CacheEntry<D>> cache = new SoftCache<String, CacheEntry<D>>();
     Property[]                       classIdProps;
@@ -172,7 +171,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         else {
             Iterator<Path> searchResult = null;
 
-            if (Gateway.getProperties().getBoolean("LocalObjectLoader.lookupUseProperties", false) || StringUtils.isBlank(getTypeRoot())) {
+            if (lookupUseProperties || StringUtils.isBlank(getTypeRoot())) {
                 // search for it in the whole tree using properties
                 Property[] searchProps = new Property[classIdProps.length + 1];
                 searchProps[0] = new Property(NAME, id);
@@ -181,7 +180,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
                 searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), transactionKey, searchProps);
             }
             else {
-                // or search for it in the subtree using name
+                // or search for it in the subtree using name - this is faster
                 searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), id, EXACT_NAME_MATCH, transactionKey);
             }
 
@@ -260,7 +259,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
     /**
      * 
-     * @param id Name or UUID or DomainPath of the resource Item
+     * @param id could be either the Name or UUID or DomainPath of the resource Item
      * @param version the Version of the resource Item
      * @param transactionKey
      * @return

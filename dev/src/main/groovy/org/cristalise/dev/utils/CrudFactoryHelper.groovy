@@ -24,10 +24,8 @@ package org.cristalise.dev.utils
 import static org.cristalise.kernel.collection.BuiltInCollections.*
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 import static org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription.FACTORY_GENERATED_NAME
+import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.hasValidNotBlankValue
 import static org.cristalise.kernel.property.BuiltInItemProperties.*;
-
-import org.apache.commons.lang3.StringUtils
-import org.cristalise.kernel.collection.BuiltInCollections
 import org.cristalise.kernel.collection.DependencyMember
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.entity.Job
@@ -35,18 +33,19 @@ import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.CreateAgentFromDescription
 import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription
-import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.persistency.TransactionKey
 import org.cristalise.kernel.persistency.outcome.Outcome
+import org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils
 import org.cristalise.kernel.property.PropertyArrayList
 import org.cristalise.kernel.utils.LocalObjectLoader
 import org.w3c.dom.Node
-
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 @CompileStatic @Slf4j
 class CrudFactoryHelper {
+    private CrudFactoryHelper() {}
+
     /**
      * 
      * @param factoryItem to create new Agents/Items
@@ -116,7 +115,7 @@ class CrudFactoryHelper {
             //Name was provided by the user/agent
             itemName = outcome.getField('Name')
 
-            if (StringUtils.isBlank(itemName) || itemName == 'string' || itemName == 'null') {
+            if (! hasValidNotBlankValue(itemName)) {
                 throw new InvalidDataException("CrudFactory:$factoryItem - Name must be provided")
             }
         }
@@ -124,6 +123,10 @@ class CrudFactoryHelper {
         log.debug('getItemName() - factory:{} newItemName:{}', factoryItem, itemName);
 
         return itemName
+    }
+
+    public static String getDomainRoot(ItemProxy factoryItem) {
+        return getDomainRoot(factoryItem, null)
     }
 
     /**
@@ -136,6 +139,22 @@ class CrudFactoryHelper {
         return getDomainRoot(factoryItem, job, factoryItem.getTransactionKey())
     }
 
+    private static String getRootFolder(ItemProxy factoryItem, Job job, TransactionKey transKey) {
+        String     root = job ? OutcomeUtils.getStringOrNull(job.outcome,  'Root') : null
+        if (!root) root = job ? OutcomeUtils.getStringOrNull(job.actProps, 'Root') : null
+        if (!root) root = factoryItem.getProperty('Root', null, transKey)
+
+        return root
+    }
+
+    private static String getSubFolder(ItemProxy factoryItem, Job job, TransactionKey transKey) {
+        String          subFolder = job ? OutcomeUtils.getStringOrNull(job.outcome,  'SubFolder') : null
+        if (!subFolder) subFolder = job ? OutcomeUtils.getStringOrNull(job.actProps, 'SubFolder') : null
+        if (!subFolder) subFolder = factoryItem.getProperty('SubFolder', null, transKey)
+
+        return subFolder
+    }
+
     /**
      * 
      * @param factoryItem
@@ -144,13 +163,13 @@ class CrudFactoryHelper {
      * @return
      */
     public static String getDomainRoot(ItemProxy factoryItem, Job job, TransactionKey transKey) {
-        String root = factoryItem.getProperty('Root', transKey)
-        if (!root) root = job.getActPropString('Root')
+        String rootFolder = getRootFolder(factoryItem, job, transKey)
 
-        if (!root) throw new InvalidDataException("CrudFactory:$factoryItem - Define property:'Root' for either Activity or for Item")
+        if (!rootFolder) throw new InvalidDataException("CrudFactory:$factoryItem - Define property:'Root' for either Outcome, Activity or Item")
 
-        String subFolder = job.outcome.getField('SubFolder')
-        String domainRoot = (subFolder && subFolder != 'string') ? "${root}/${subFolder}" : root
+        String subFolder = getSubFolder(factoryItem, job, transKey)
+
+        String domainRoot = hasValidNotBlankValue(subFolder) ? "${rootFolder}/${subFolder}" : rootFolder
 
         log.debug('getDomainRoot() - factory:{} domainRoot:{}', factoryItem, domainRoot);
 
@@ -168,14 +187,15 @@ class CrudFactoryHelper {
     }
 
     /**
-     * If the factory Item creates Agents or not
+     * If the factory Item creates Agents or not, It is defined by 'CreateAgent' Item property.
+     * Returns false if the property was not defined.
      * 
      * @param factoryItem to create new Items
      * @param transKey
      * @return true if the factory Item creates Agents, or returns false if creates Items
      */
     public static boolean isCreateAgent(ItemProxy factoryItem, TransactionKey transKey) {
-        return new Boolean(factoryItem.getProperty('CreateAgent', 'false', transKey))
+        return Boolean.parseBoolean(factoryItem.getProperty('CreateAgent', 'false', transKey))
     }
 
     /**
@@ -200,19 +220,6 @@ class CrudFactoryHelper {
     }
 
     /**
-     * 
-     * @param factoryItem
-     * @param agent
-     * @param job
-     * @param newItemName
-     * @return
-     */
-    public static String[] getParams(ItemProxy factoryItem, AgentProxy agent, Job job, String newItemName) {
-        return getParams(factoryItem, agent, job, newItemName, factoryItem.getTransactionKey())
-    }
-
-    /**
-    /**
      * Reads the optional PropertyList XMl fragment from the Outcome usually created by a CRUD Factory
      * 
      * The 'Empty' OutcomeInitiator creates invalid empty PropertyList, which has one Property element 
@@ -229,7 +236,9 @@ class CrudFactoryHelper {
             Node validNode = null;
 
             if (nodes.getLength() == 1) {
-                if (outcome.getFieldByXPath('//PropertyList/Property/@name')) {
+                def propName = outcome.getFieldByXPath('//PropertyList/Property/@name')
+
+                if (hasValidNotBlankValue(propName)) {
                     validNode = outcome.getNodeByXPath('//PropertyList')
                 }
                 else {
@@ -242,13 +251,25 @@ class CrudFactoryHelper {
 
             if (validNode) {
                 def outcomeString = outcome.serialize(validNode, false)
-                log.debug('getInitialProperties() - factory:{} outcomeString: {}', factoryItem, outcomeString)
+                log.trace('getInitialProperties() - factory:{} outcomeString: {}', factoryItem, outcomeString)
 
                 return outcomeString
             }
         }
 
         return null
+    }
+
+    /**
+     *
+     * @param factoryItem
+     * @param agent
+     * @param job
+     * @param newItemName
+     * @return
+     */
+    public static String[] getParams(ItemProxy factoryItem, AgentProxy agent, Job job, String newItemName) {
+        return getParams(factoryItem, agent, job, newItemName, factoryItem.getTransactionKey())
     }
 
     /**
@@ -264,7 +285,7 @@ class CrudFactoryHelper {
         String[] params = null
         String domainRoot = getDomainRoot(factoryItem, job, transKey)
         String initialProps = getInitialProperties(factoryItem, job.outcome)
-        String initaliseOutcomeXML = getInitaliseOutcomeXML(factoryItem, job.getOutcome(), newItemName, transKey)
+        String initaliseOutcomeXML = getInitaliseOutcomeXML(factoryItem, job.outcome, newItemName, transKey)
 
         if (isCreateAgent(factoryItem)) {
             if      (initaliseOutcomeXML) params = new String[7]

@@ -317,14 +317,23 @@ public class CastorXMLTest {
     @Test
     public void testPropertyDescriptionList() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
+        Schema schema = LocalObjectLoader.getSchema("PropertyDescription", 0);
 
         PropertyDescriptionList pdl = new PropertyDescriptionList();
         pdl.list.add(new PropertyDescription("Name", "", false, true, false));
         pdl.list.add(new PropertyDescription("Type", "Item", true, false, true));
 
+        new Outcome(marshaller.marshall(pdl), schema).validateAndCheck();
+
+        pdl.setName("totolist");
+
+        new Outcome(marshaller.marshall(pdl), schema).validateAndCheck();
+
         PropertyDescriptionList pdlPrime = (PropertyDescriptionList) marshaller.unmarshall(marshaller.marshall(pdl));
 
         assertReflectionEquals(pdl, pdlPrime, LENIENT_ORDER);
+
+        new Outcome(marshaller.marshall(pdlPrime), schema).validateAndCheck();
     }
 
     @Test
@@ -412,8 +421,8 @@ public class CastorXMLTest {
 
         ImportItem item = new ImportItem("name", "initialPath", new ItemPath(), "wf");
         ImportDependency id = new ImportDependency("Cars");
-        id.props.put("Integer", new Integer(10), false);
-        id.props.put("Boolean", new Boolean(false), false);
+        id.props.put("Integer", Integer.valueOf(10), false);
+        id.props.put("Boolean", Boolean.FALSE, false);
         id.props.put(DEPENDENCY_TYPE.toString(), Bidirectional.toString(), false);
         item.getDependencyList().add(id);
 

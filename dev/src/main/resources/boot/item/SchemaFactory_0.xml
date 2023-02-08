@@ -1,10 +1,18 @@
-<Item initialPath="/desc/dev" name="SchemaFactory" ns="dev" version="0" workflow="SchemaFactoryWf" workflowVer="0">
+<Item initialPath="/desc/Schema" name="SchemaFactory" ns="dev" version="0" workflow="CrudFactory_Workflow" workflowVer="0">
   <Property mutable="false" name="Type">Factory</Property>
-  <Property mutable="false" name="LocalObjectType">Schema</Property>
+  <Property mutable="false" name="Root">/desc/Schema</Property>
+  <Property mutable="false" name="UpdateSchema">Schema:0</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/Schema_0.xml</Outcome>
-  <Outcome schema="Schema" version="0" viewname="last">boot/OD/New_0.xsd</Outcome>
   <Dependency classProps="" isDescription="false" name="workflow">
     <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageSchema">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="false" name="MasterSchema">
+    <DependencyMember itemPath="/desc/Schema/kernel/Schema">
       <MemberProperties>
         <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
       </MemberProperties>

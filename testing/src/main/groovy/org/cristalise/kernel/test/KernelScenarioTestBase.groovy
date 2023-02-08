@@ -1,23 +1,36 @@
 package org.cristalise.kernel.test;
 
+import static java.util.concurrent.TimeUnit.*
+import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.ERASE
+
 import java.time.LocalDateTime
+
+import org.awaitility.Awaitility
 import org.cristalise.dev.dsl.DevItemDSL
+import org.cristalise.dev.dsl.DevXMLUtility
+import org.cristalise.dev.scaffold.DevItemCreator
+import org.cristalise.kernel.entity.Job
+import org.cristalise.kernel.entity.proxy.ItemProxy
+import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
-import org.junit.AfterClass
-import org.junit.Before
-import org.junit.BeforeClass
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
 import org.mvel2.templates.CompiledTemplate
 import org.mvel2.templates.TemplateCompiler
 import org.mvel2.templates.TemplateRuntime
+
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-
 
 /**
  * 
  */
 @CompileStatic @Slf4j
+@TestInstance(Lifecycle.PER_CLASS)
 class KernelScenarioTestBase extends DevItemDSL {
 
     String timeStamp = null
@@ -56,23 +69,100 @@ class KernelScenarioTestBase extends DevItemDSL {
      * @param config
      * @param connect
      */
-    public static void init(String config, String connect) {
+    public void init(String config, String connect) {
         Gateway.init(AbstractMain.readPropertyFiles(config, connect, null));
         agent = Gateway.connect("user", "test")
+        creator = new DevItemCreator('integtest', ERASE, agent)
     }
 
-    @Before
+    @BeforeEach
     public void before() {
         timeStamp = getNowString()
     }
 
-    @BeforeClass
-    public static void beforeClass() {
+    @BeforeAll
+    public void beforeClass() {
+        Awaitility.setDefaultTimeout(10, SECONDS)
+        Awaitility.setDefaultPollInterval(500, MILLISECONDS)
+        Awaitility.setDefaultPollDelay(200, MILLISECONDS)
+
         init('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
     }
 
-    @AfterClass
-    public static void afterClass() {
+    @AfterAll
+    public void afterClass() {
         Gateway.close()
+    }
+    
+    /**
+     *
+     * @param factoryPath
+     * @param factoryActName
+     * @param name
+     * @param folder
+     * @return
+     */
+    public ItemProxy createNewItemByFactory(String factoryPath, String factoryActName, String name, String folder) {
+        ItemProxy factory = agent.getItem(factoryPath)
+        assert factory
+
+        return createNewItemByFactory(factory, factoryActName, name, folder)
+    }
+
+    /**
+     *
+     * @param factory
+     * @param factoryActName
+     * @param name
+     * @param folder
+     * @return
+     */
+    public ItemProxy createNewItemByFactory(ItemProxy factory, String factoryActName, String name, String folder) {
+        def doneJob = executeDoneJob(factory, factoryActName, DevXMLUtility.recordToXML('NewDevObjectDef', [ObjectName: name, SubFolder: folder]))
+
+        def newItemPath = doneJob.getOutcome().getField("SubFolder") + "/" + doneJob.getOutcome().getField("ObjectName")
+        return agent.getItem(newItemPath)
+
+    }
+
+    /**
+     * 
+     * @param descItem
+     * @param name
+     * @param folder
+     * @return
+     */
+    public ItemProxy createItemFromDescription(ItemProxy descItem, String name, String folder) {
+        return createNewItemByFactory(descItem, "CreateNewInstance", name, folder)
+    }
+
+
+    /**
+     * 
+     * @param item
+     * @param agent
+     * @param expectedJobs
+     */
+    public void checkJobs(ItemProxy item, AgentPath agent, List<Map<String, Object>> expectedJobs) {
+        List<Job> jobs = item.getJobs(agent)
+
+        assert jobs.size() == expectedJobs.size()
+
+        expectedJobs.each { Map expectedJob ->
+            assert expectedJob && expectedJob.stepName &&  expectedJob.transitionName
+
+            assert jobs.find { Job j ->
+                j.stepName == expectedJob.stepName && j.transition.name == expectedJob.transitionName
+            }, "Cannot find Job: '${expectedJob.stepName}' , '${expectedJob.agentRole}' , '${expectedJob.transitionName}'"
+        }
+    }
+
+    /**
+     * 
+     * @param item
+     * @param expectedJobs
+     */
+    public void checkJobs(ItemProxy item, List<Map<String, Object>> expectedJobs) {
+        checkJobs(item, agent.getPath(), expectedJobs)
     }
 }

@@ -1,4 +1,4 @@
-<Item initialPath="/desc/dev" name="ModuleFactory" ns="dev" version="0" workflow="ModuleFactory" workflowVer="0">
+<Item initialPath="/desc/Module" name="ModuleFactory" ns="dev" version="0" workflow="CrudFactory_Workflow" workflowVer="0">
   <Property mutable="false" name="Type">Factory</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/Module_0.xml</Outcome>
   <Dependency classProps="" isDescription="false" name="workflow">

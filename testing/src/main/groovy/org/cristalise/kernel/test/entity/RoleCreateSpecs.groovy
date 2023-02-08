@@ -56,11 +56,11 @@ class RoleCreateSpecs extends Specification implements CristalTestSetup {
 
         then:
         roles[0].exists()
-        roles[0].string == "/role/Clerk"
+        roles[0].stringPath == "/role/Clerk"
         roles[0].hasJobList() == false
 
         roles[1].exists()
-        roles[1].string == "/role/Clerk/SubClerk"
+        roles[1].stringPath == "/role/Clerk/SubClerk"
         roles[1].hasJobList() == true
 
         Gateway.lookup.getRolePath("Clerk").hasJobList() == false

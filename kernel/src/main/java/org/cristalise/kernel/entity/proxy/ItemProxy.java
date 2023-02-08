@@ -304,7 +304,7 @@ public class ItemProxy {
 //                }
 //                catch (AccessRightsException e) {
 //                    // AccessRightsException is thrown if Job requires specific Role that agent does not have
-//                    log.info("getJobsForAgent()", e);
+//                    log.debug("checkJobForAgent()", e);
 //                }
             }
         }
@@ -327,20 +327,13 @@ public class ItemProxy {
      */
     private List<Job> getJobsForAgent(AgentPath agentPath) throws CriseVertxException {
         List<Job> jobBag = new ArrayList<Job>();
-        SecurityManager secMan = Gateway.getSecurityManager();
 
         // Make sure that the latest Jobs and Workflow is used for this calculation
         Gateway.getStorage().clearCache(getPath(), ClusterType.JOB);
         Gateway.getStorage().clearCache(getPath(), ClusterType.LIFECYCLE);
 
-        if (secMan.isShiroEnabled()) {
-            for (Job j: getJobs().values()) {
-                if (checkJobForAgent(j, agentPath)) jobBag.add(j);
-            }
-        }
-        else {
-            log.warn("checkJobForAgent() - ENABLE Shiro to work with permissions.");
-            jobBag = (List<Job>) getJobs().values();
+        for (Job j: getJobs().values()) {
+            if (checkJobForAgent(j, agentPath)) jobBag.add(j);
         }
 
         log.debug("getJobsForAgent() - {} returning #{} jobs for agent:{}", this, jobBag.size(), agentPath.getAgentName());
@@ -361,7 +354,7 @@ public class ItemProxy {
      * Get the list of active Jobs of the Item for the given Activity that can be executed by the Agent.
      * 
      * @param agent requesting the job
-     * @param stepPath of the Activity
+     * @param stepPath the path of the Activity instance
      * @return list of active Jobs of the Item for the given Activity that can be executed by the Agent
      * @throws CriseVertxException
      */
@@ -1561,6 +1554,10 @@ public class ItemProxy {
 
     public Object unmarshall(String obj) throws Exception {
         return Gateway.getMarshaller().unmarshall(obj);
+    }
+
+    public void clearCache() {
+        Gateway.getStorage().clearCache(mItemPath);
     }
 
     @Override

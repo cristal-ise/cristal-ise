@@ -1,4 +1,4 @@
-<AllProperties>
+<AllProperties name="TestItem">
   <PropertyDescription IsClassIdentifier="false" IsMutable="true" Name="Name" Transitive="false"/>
   <PropertyDescription DefaultValue="TestItem" IsClassIdentifier="true" IsMutable="false" Name="Type" Transitive="true"/>
   <PropertyDescription DefaultValue="ACTIVE" IsClassIdentifier="false" IsMutable="true" Name="State" Transitive="false"/>

@@ -18,28 +18,12 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-Script('CollDescCreator', 0) {
-    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    input('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
-    input('job', 'org.cristalise.kernel.entity.Job')
-    output('errors', 'org.cristalise.kernel.scripting.ErrorInfo')
-    script('groovy', "src/main/module/script/CollDescCreator.groovy")
-}
-
 Script('InstantiateAgent', 0) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
     input('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
     input('job', 'org.cristalise.kernel.entity.Job')
     output('errors', 'org.cristalise.kernel.scripting.ErrorInfo')
     script('javascript', "src/main/module/script/InstantiateAgent.js")
-}
-
-Script('InstantiateItem', 0) {
-    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    input('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
-    input('job', 'org.cristalise.kernel.entity.Job')
-    output('errors', 'org.cristalise.kernel.scripting.ErrorInfo')
-    script('javascript', "src/main/module/script/InstantiateItem.js")
 }
 
 Script('LocalObjectDefCreator', 0) {
@@ -57,12 +41,3 @@ Script('New', 0) {
     output('errors', 'org.cristalise.kernel.scripting.ErrorInfo')
     script('javascript', "src/main/module/script/New.js")
 }
-
-Script('SetWorkflow', 0) {
-    input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
-    input('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
-    input('job', 'org.cristalise.kernel.entity.Job')
-    output('errors', 'org.cristalise.kernel.scripting.ErrorInfo')
-    script('groovy', "src/main/module/script/SetWorkflow.groovy")
-}
-    

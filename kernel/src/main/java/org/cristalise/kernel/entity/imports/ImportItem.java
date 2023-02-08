@@ -20,13 +20,11 @@
  */
 package org.cristalise.kernel.entity.imports;
 
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 import static org.cristalise.kernel.property.BuiltInItemProperties.CREATOR;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +38,8 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.entity.proxy.ProxyManager;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
@@ -51,7 +51,6 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
@@ -62,7 +61,6 @@ import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.utils.DescriptionObject;
-import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
 import lombok.Getter;
@@ -147,7 +145,15 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
     public ItemPath getItemPath() {
         return getItemPath(null);
     }
-    
+
+    public ItemProxy getProxy() {
+        try {
+            return ProxyManager.getProxy(getItemPath());
+        } catch (ObjectNotFoundException e) {
+            return null;
+        }
+    }
+
     /**
      * Get the workflow version. Default workflow version is 0 if not given
      * @return workflow version (default 0)
@@ -157,7 +163,8 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
     }
 
     /**
-     * Tries to find ItemPath if already exists. If not create new one.
+     * Returns ItemPath if it was already set. If it was not set yet, it checks 
+     * DomianPath.target as well.
      */
     @Override
     public ItemPath getItemPath(TransactionKey transactionKey) {
@@ -170,7 +177,6 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
                 catch (ObjectNotFoundException ex) {}
             }
         }
-        if (itemPath == null) itemPath = new ItemPath();
 
         return itemPath;
     }
@@ -187,21 +193,29 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
     }
 
     /**
+     * Returns or creates the itemPath 
+     * 
+     * @param transactionKey
+     * @throws ObjectNotFoundException
+     * @throws CannotManageException
+     * @throws ObjectAlreadyExistsException
+     * @throws ObjectCannotBeUpdated
      */
-    private ItemPath getOrCreateItemPath(TransactionKey transactionKey)
+    private void setOrCreateItemPath(TransactionKey transactionKey)
             throws ObjectNotFoundException, CannotManageException, ObjectAlreadyExistsException, ObjectCannotBeUpdated
     {
-        ItemPath ip = getItemPath(transactionKey);
+        getItemPath(transactionKey);
 
-        if (ip.exists(transactionKey)) {
-            log.info("getTraceableEntitiy() - Verifying module item {} at {}", ip, domainPath);
+        if (itemPath != null && itemPath.exists(transactionKey)) {
+            log.info("getOrCreateItemPath() - Verifying module item {} at {}", itemPath, domainPath);
             isNewItem = false;
         }
         else {
-            log.info("getTraceableEntitiy() - Creating module item {} at {}", ip, domainPath);
-            Gateway.getLookupManager().add(ip, transactionKey);
+            if (itemPath == null) itemPath = new ItemPath();
+
+            log.info("getOrCreateItemPath() - Creating module item {} at {}", itemPath, domainPath);
+            Gateway.getLookupManager().add(itemPath, transactionKey);
         }
-        return ip;
     }
 
     /**
@@ -212,14 +226,14 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException,
             CannotManageException, ObjectAlreadyExistsException, InvalidCollectionModification, PersistencyException
     {
-        getDomainPath();
+        setOrCreateItemPath(transactionKey);
 
         log.info("create() - path:{}", domainPath);
 
         if (domainPath.exists(transactionKey)) {
-            ItemPath domItem = domainPath.getItemPath(transactionKey);
-            if (!getItemPath(transactionKey).equals(domItem)) {
-                throw new CannotManageException("Item "+domainPath+" was found with the wrong itemPath ("+domainPath.getItemPath(transactionKey)+" vs "+getItemPath(transactionKey)+")");
+            ItemPath domIp = domainPath.getItemPath(transactionKey);
+            if (! domIp.equals(itemPath)) {
+                throw new CannotManageException("Item "+domainPath+" was found with the wrong itemPath ("+domIp+" vs "+itemPath+")");
             }
         }
         else
@@ -229,7 +243,7 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
         try {
             CreateItemFromDescription.storeItem(
                     agentPath, 
-                    getOrCreateItemPath(transactionKey),
+                    itemPath,
                     createItemProperties(),
                     createCollections(transactionKey),
                     createCompositeActivity(transactionKey),
@@ -238,14 +252,14 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
                     transactionKey);
         }
         catch (Exception ex) {
-            log.error("Error initialising new item " + ns + "/" + name, ex);
+            log.error("Error initialising new item:{}", domainPath, ex);
 
             if (isNewItem) Gateway.getLookupManager().delete(itemPath, transactionKey);
 
-            throw new CannotManageException("Problem initialising new item. See server log:" + ex.getMessage());
+            throw new CannotManageException("Problem initialising new item:"+domainPath+". See server log:" + ex.getMessage());
         }
 
-        History hist = new History(getItemPath(transactionKey), transactionKey);
+        History hist = new History(itemPath, transactionKey);
 
         // import outcomes
         for (ImportOutcome thisOutcome : outcomes) {
@@ -260,7 +274,7 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
 
             Viewpoint impView;
             try {
-                impView = (Viewpoint) Gateway.getStorage().get(getItemPath(transactionKey), ClusterType.VIEWPOINT + "/" + thisOutcome.schema + "/" + thisOutcome.viewname, transactionKey);
+                impView = (Viewpoint) Gateway.getStorage().get(itemPath, VIEWPOINT + "/" + thisOutcome.schema + "/" + thisOutcome.viewname, transactionKey);
 
                 if (newOutcome.isIdentical(impView.getOutcome())) {
                     log.debug("create() - View "+thisOutcome.schema+"/"+thisOutcome.viewname+" in "+ns+"/"+name+" identical, no update required");
@@ -277,7 +291,7 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
             }
             catch (ObjectNotFoundException ex) {
                 log.info("create() - View "+thisOutcome.schema+"/"+thisOutcome.viewname+" not found in "+ns+"/"+name+". Creating.");
-                impView = new Viewpoint(getItemPath(transactionKey), schema, thisOutcome.viewname, -1);
+                impView = new Viewpoint(itemPath, schema, thisOutcome.viewname, -1);
             }
 
             // write new view/outcome/event
@@ -287,13 +301,12 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
             newOutcome.setID(newEvent.getID());
             impView.setEventId(newEvent.getID());
 
-            Gateway.getStorage().put(getItemPath(transactionKey), newOutcome, transactionKey);
-            Gateway.getStorage().put(getItemPath(transactionKey), impView, transactionKey);
+            Gateway.getStorage().put(itemPath, newOutcome, transactionKey);
+            Gateway.getStorage().put(itemPath, impView, transactionKey);
         }
 
-        // register domain path (before collections in case of recursive collections)
         if (!isDOMPathExists) {
-            domainPath.setItemPath(getItemPath(transactionKey));
+            domainPath.setItemPath(itemPath);
             Gateway.getLookupManager().add(domainPath, transactionKey);
         }
 
@@ -333,8 +346,8 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
                     compActDef = LocalObjectLoader.getCompActDef("NoWorkflow", getWfVersion(), transactionKey);
                 }
             }
+            return (CompositeActivity) compActDef.instantiate(transactionKey);
         }
-        return (CompositeActivity) compActDef.instantiate(transactionKey);
     }
 
     /**
@@ -376,38 +389,8 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
     }
 
     @Override
-    public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
-        String xml;
-        String typeCode = BuiltInResources.ITEM_DESC_RESOURCE.getTypeCode();
-        String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
-
-        try {
-            xml = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
-        }
-        catch (Exception e) {
-            log.error("Couldn't marshall name:" + getName(), e);
-            throw new InvalidDataException("Couldn't marshall name:" + getName());
-        }
-
-        FileStringUtility.string2File(new File(new File(dir, typeCode), fileName), xml);
-
-        if (imports == null) return;
-
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
-            imports.write("<Resource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
-                    + "type='" + typeCode + "'>boot/" + typeCode + "/" + fileName
-                    + "</Resource>\n");
-        }
-        else {
-            imports.write("<ItemResource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
-                    + "/>\n");
-        }
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.ITEM_DESC_RESOURCE;
     }
 
     @Override

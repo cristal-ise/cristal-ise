@@ -28,13 +28,11 @@ import static org.cristalise.kernel.collection.BuiltInCollections.STATE_MACHINE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.NAMESPACE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.process.resource.BuiltInResources.ELEM_ACT_DESC_RESOURCE;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Vector;
-
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
@@ -49,15 +47,14 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -258,6 +255,10 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
         return actQuery;
     }
 
+    public StateMachine getActStateMachine() throws InvalidDataException, ObjectNotFoundException {
+        return getStateMachine(null);
+    }
+
     public StateMachine getStateMachine() throws InvalidDataException, ObjectNotFoundException {
         return getStateMachine(null);
     }
@@ -354,27 +355,6 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
         this.actStateMachine = actStateMachine;
     }
 
-    public Dependency makeDescCollection(BuiltInCollections collection, TransactionKey transactionKey, DescriptionObject... descs) throws InvalidDataException {
-        //TODO: restrict membership based on kernel property desc
-        Dependency descDep = new Dependency(collection.getName());
-        if (version != null && version > -1) {
-            descDep.setVersion(version);
-        }
-
-        for (DescriptionObject thisDesc : descs) {
-            if (thisDesc == null) continue;
-            try {
-                DependencyMember descMem = descDep.addMember(thisDesc.getItemPath(), transactionKey);
-                descMem.setBuiltInProperty(VERSION, thisDesc.getVersion());
-            }
-            catch (Exception e) {
-                log.error("Problem creating description collection for " + thisDesc + " in " + getName(), e);
-                throw new InvalidDataException(e.getMessage());
-            }
-        }
-        return descDep;
-    }
-
     @Override
     public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         CollectionArrayList retArr = new CollectionArrayList();
@@ -389,24 +369,21 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
 
     @Override
     public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
-        String actXML;
-        String tc = ELEM_ACT_DESC_RESOURCE.getTypeCode();
+        String tc = getResourceType().getTypeCode();
 
         if (!shallow) exportCollections(imports, dir);
 
-        try {
-            actXML = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
-        }
-        catch (Exception e) {
-            log.error("Couldn't marshall activity def " + getActName(), e);
-            throw new InvalidDataException("Couldn't marshall activity def " + getActName());
-        }
-
+        String actXML = getXml();
         FileStringUtility.string2File(new File(new File(dir, tc), getActName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml"), actXML);
 
         if (imports != null) {
             imports.write("<Activity " + getExportAttributes(tc) + ">" + getExportCollections() + "</Activity>\n");
         }
+    }
+
+    @Override
+    public BuiltInResources getResourceType() {
+        return ELEM_ACT_DESC_RESOURCE;
     }
 
     protected void exportCollections(Writer imports, File dir) throws InvalidDataException, ObjectNotFoundException, IOException {

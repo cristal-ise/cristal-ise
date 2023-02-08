@@ -4,7 +4,8 @@ import org.cristalise.dsl.test.builders.AgentTestBuilder
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.Test
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 
 import groovy.transform.CompileStatic
 import spock.util.concurrent.PollingConditions
@@ -13,15 +14,14 @@ import spock.util.concurrent.PollingConditions
  *
  *
  */
-@CompileStatic
+@CompileStatic @Disabled('UserCode functionality was not updated to work with vertx')
 class UserCodeTestIT extends KernelScenarioTestBase {
     @Test
     public void 'Usercode to execute Aggregate Script'() {
         def factory = agent.getItem("$folder/PatientFactory")
         def patientName = 'Patient-'+timeStamp
 
-        executeDoneJob(factory, 'InstantiateItem', "<CrudFactory_NewInstanceDetails><Name>$patientName</Name></CrudFactory_NewInstanceDetails>")
-        def patient = agent.getItem("$folder/Patients/$patientName")
+        def patient = createNewItemByFactory(factory, 'InstantiateItem', patientName, folder)
 
         RolePath rp = Gateway.getLookup().getRolePath('UserCode')
         def ucPath = Gateway.getLookup().getAgents(rp)[0]

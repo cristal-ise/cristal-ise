@@ -20,13 +20,11 @@
  */
 package org.cristalise.dsl.test.builders
 
-import groovy.transform.CompileStatic
-
-import javax.xml.validation.Schema
-
 import org.cristalise.dsl.scripting.ScriptBuilder
-import org.cristalise.kernel.scripting.Script
+import org.cristalise.dsl.scripting.ScriptDelegate
 import org.cristalise.kernel.test.utils.KernelXMLUtility
+
+import groovy.transform.CompileStatic
 
 
 /**
@@ -44,7 +42,7 @@ class ScriptTestBuilder extends ScriptBuilder {
         scriptXML = sb.scriptXML
     }
 
-    public static ScriptTestBuilder build(String module, String name, int version, Closure cl) {
+    public static ScriptTestBuilder build(String module, String name, int version, @DelegatesTo(ScriptDelegate) Closure cl) {
         def sb = ScriptBuilder.build(module, name, version, cl) 
 
         return new ScriptTestBuilder(sb)

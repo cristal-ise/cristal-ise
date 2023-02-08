@@ -18,8 +18,8 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+import org.cristalise.dev.utils.PredefinedStepsOutcomeBuilder
 import org.cristalise.kernel.common.InvalidDataException
-import org.cristalise.kernel.lifecycle.instance.predefined.ChangeName
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
 import org.slf4j.Logger
@@ -39,8 +39,8 @@ if (!newName) {
 }
 else if (newName != currentName) {
     if (! outcome.getNodeByXPath('//ChangeName')) {
-        OutcomeBuilder builder = new OutcomeBuilder(job.schema, job.outcome)
-        builder.addField('ChangeName', '')
+        OutcomeBuilder oBuilder = new OutcomeBuilder(job.schema, job.outcome)
+        oBuilder.addField('ChangeName', '')
     }
 
     job.outcome.appendXmlFragment('//ChangeName', PredefinedStep.bundleData(currentName, newName))

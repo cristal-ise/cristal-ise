@@ -21,19 +21,14 @@
 package org.cristalise.kernel.scripting;
 
 import static org.cristalise.kernel.collection.BuiltInCollections.INCLUDE;
-import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
-
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -45,7 +40,6 @@ import javax.script.ScriptException;
 import javax.script.SimpleScriptContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
@@ -61,6 +55,7 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
@@ -74,7 +69,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -1043,32 +1037,15 @@ public class Script implements DescriptionObject {
         return retArr;
     }
 
-    /**
-     * @throws InvalidDataException 
-     * 
-     */
     @Override
-    public void export(Writer imports, File dir, boolean shallow) throws IOException, InvalidDataException {
-        String tc = SCRIPT_RESOURCE.getTypeCode();
+    public String getXml(boolean prettyPrint) throws InvalidDataException {
+        if (prettyPrint) return new Outcome(getScriptData()).getData(true);
+        else             return getScriptData();
+    }
 
-        String xml = new Outcome(getScriptData()).getData(true);
-        FileStringUtility.string2File(new File(new File(dir, tc), getName()+(getVersion()==null?"":"_"+getVersion())+".xml"), xml);
-
-        if (imports == null) return;
-
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
-            imports.write("<Resource name='"+getName()+"' "
-                    +(getItemPath()==null?"":"id='"+getItemID()+"' ")
-                    +(getVersion()==null?"":"version='"+getVersion()+"' ")
-                    +"type='"+tc+"'>boot/"+tc+"/"+getName()
-                    +(getVersion()==null?"":"_"+getVersion())+".xml</Resource>\n");
-        }
-        else {
-            imports.write("<ScriptResource name='"+getName()+"' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
-                    + "/>\n");
-        }
+    @Override
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.SCRIPT_RESOURCE;
     }
 
     static public void main(String[] args) {

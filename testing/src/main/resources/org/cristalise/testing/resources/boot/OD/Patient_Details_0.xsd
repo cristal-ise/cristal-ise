@@ -28,6 +28,16 @@
             </xs:simpleContent>
           </xs:complexType>
         </xs:element>
+        <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <hidden>true</hidden>
+                <required>false</required>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
       </xs:all>
       <xs:attribute name='InsuranceNumber' type='xs:string' default='123456789ABC' />
     </xs:complexType>

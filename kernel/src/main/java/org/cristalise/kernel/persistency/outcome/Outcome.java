@@ -136,7 +136,7 @@ public class Outcome implements C2KLocalObject {
 
     /**
      * Use this constructor for XML manipulation only. This Outcome cannot be validate
-     * not it can be stored in ClusterStore.
+     * nor it can be stored in ClusterStore.
      *
      * @param xml the XML string to be manipulated
      * @throws InvalidDataException there was an error parsing the XML

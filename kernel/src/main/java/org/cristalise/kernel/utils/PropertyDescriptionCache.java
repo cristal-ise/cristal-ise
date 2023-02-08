@@ -60,8 +60,8 @@ public class PropertyDescriptionCache extends DescriptionObjectCache<PropertyDes
             return pdl;
         }
         catch (Exception ex) {
-            log.error("Could not parse Schema '" + name + "' v" + version, ex);
-            throw new InvalidDataException("Could not parse Schema '" + name + "' v" + version + ": " + ex.getMessage());
+            log.error("Could not parse PropertyDescriptionList '" + name + "' v" + version, ex);
+            throw new InvalidDataException("Could not parse PropertyDescriptionList '" + name + "' v" + version + ": " + ex.getMessage());
         }
     }
 }

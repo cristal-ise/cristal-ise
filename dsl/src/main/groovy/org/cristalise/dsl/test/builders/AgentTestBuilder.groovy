@@ -21,6 +21,7 @@
 package org.cristalise.dsl.test.builders
 
 import org.cristalise.dsl.entity.AgentBuilder
+import org.cristalise.dsl.entity.AgentDelegate
 import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.proxy.AgentProxy
@@ -30,6 +31,7 @@ import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.C2KLocalObjectMap
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.Gateway
+
 import groovy.transform.CompileStatic
 
 
@@ -70,7 +72,7 @@ class AgentTestBuilder extends AgentBuilder {
         jobList = null//newAgentProxy.getJobList()
     }
 
-    public static AgentTestBuilder create(Map<String, Object> attrs, Closure cl) {
+    public static AgentTestBuilder create(Map<String, Object> attrs, @DelegatesTo(AgentDelegate) Closure cl) {
         def atb = new AgentTestBuilder(AgentBuilder.build(attrs, cl))
 
         atb.newAgentPath = atb.create(atb.builderAgent, atb.newAgent)
@@ -79,7 +81,7 @@ class AgentTestBuilder extends AgentBuilder {
         return atb
     }
 
-    public static AgentTestBuilder build(Map<String, Object> attrs, Closure cl) {
+    public static AgentTestBuilder build(Map<String, Object> attrs, @DelegatesTo(AgentDelegate) Closure cl) {
         return new AgentTestBuilder(AgentBuilder.build(attrs, cl))
     }
 

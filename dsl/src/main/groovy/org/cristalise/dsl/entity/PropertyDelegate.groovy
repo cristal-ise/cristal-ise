@@ -21,6 +21,7 @@
 package org.cristalise.dsl.entity
 
 import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.entity.DomainContext
 import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.property.PropertyArrayList
 
@@ -44,16 +45,24 @@ class PropertyDelegate {
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
     }
+    
+    private void setProperty(String key, Object value, boolean mutable) {
+        def propType = mutable ? 'Property' : 'InmutableProperty'
 
-    public void InmutableProperty(Map<String, String> attrs) {
+        if (value instanceof DomainContext) value = ((DomainContext)value).getDomainPath()
+
+        log.debug('{} - {}:{}', propType, key, value)
+
+        itemProps.put(new Property(key, value as String, mutable))
+    }
+
+    public void InmutableProperty(Map<String, Object> attrs) {
         assert attrs, "InmutableProperty must have the name and value pair set"
 
         attrs.each { k, v ->
-            if(!v) throw new InvalidDataException("Inmutable EntityProperty '$k' must have valid value")
+            if (!v) throw new InvalidDataException("Inmutable EntityProperty '$k' must have valid value")
 
-            log.debug "InmutableProperty - name / value: $k / $v"
-
-            itemProps.put(new Property(k, v as String, false))
+            setProperty(k, v, false)
         }
     }
 
@@ -61,13 +70,11 @@ class PropertyDelegate {
         Property((name): "")
     }
 
-    public void Property(Map<String, String> attrs) {
+    public void Property(Map<String, Object> attrs) {
         assert attrs, "Mutable EntityProperty must have the name and value pair set"
 
         attrs.each { k, v ->
-            log.debug "Property - name / value: $k / $v"
-
-            itemProps.put(new Property(k, v as String, true))
+            setProperty(k, v, true)
         }
     }
 }

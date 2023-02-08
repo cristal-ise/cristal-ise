@@ -2,31 +2,41 @@ package org.cristalise.restapi.test
 
 import static io.restassured.RestAssured.*
 import static io.restassured.http.ContentType.JSON
+import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE
 import static org.cristalise.restapi.RestHandler.PASSWORD
 import static org.cristalise.restapi.RestHandler.USERNAME
 import static org.hamcrest.Matchers.*
+
 import java.nio.charset.StandardCharsets
 import java.time.LocalDateTime
+
+import org.cristalise.kernel.entity.imports.ImportAgent
+import org.cristalise.kernel.entity.imports.ImportItem
+import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportAgent
 import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportItem
 import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportRole
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep
-import org.cristalise.kernel.persistency.outcome.Viewpoint
+import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.AbstractMain
+import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.property.Property
+import org.cristalise.kernel.security.BuiltInAuthc
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.XML;
-import org.junit.Before
-import org.junit.BeforeClass
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+
 import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import io.restassured.http.ContentType
 import io.restassured.http.Cookie
 import io.restassured.response.Response
 
-@CompileStatic
+@CompileStatic @Slf4j
 class RestapiTestBase extends KernelScenarioTestBase {
 
     static String apiUri
@@ -36,13 +46,13 @@ class RestapiTestBase extends KernelScenarioTestBase {
 
     static final int STATUS_OK = 200
 
-    @BeforeClass
-    public static void init() {
+    @BeforeAll
+    public void init() {
         Properties props = AbstractMain.readPropertyFiles("src/main/bin/client.conf", "src/main/bin/integTest.clc", null)
         apiUri = props.get('REST.URI')
     }
 
-    @Before
+    @BeforeEach
     public void before() {
         timeStamp = getNowString()
     }
@@ -78,10 +88,12 @@ class RestapiTestBase extends KernelScenarioTestBase {
                 .statusCode(STATUS_OK)
                 .extract().response()
 
-        cauthCookie = loginResp.getDetailedCookie('cauth');
-        userUuid = loginResp.body().jsonPath().getString('Login.uuid.value')
+        log.debug('loginPost() - response:{}', loginResp.body().asString())
 
-        assert userUuid
+        cauthCookie = loginResp.getDetailedCookie('cauth');
+        userUuid = loginResp.body().jsonPath().getString('Login.uuid')
+
+        assert userUuid && ItemPath.isUUID(userUuid)
     }
 
     def login(String user, String pwd) {
@@ -96,10 +108,12 @@ class RestapiTestBase extends KernelScenarioTestBase {
                 .statusCode(STATUS_OK)
                 .extract().response()
 
-        cauthCookie = loginResp.getDetailedCookie('cauth');
-        userUuid = loginResp.body().jsonPath().getString('Login.uuid.value')
+        log.debug('login() - response:{}', loginResp.body().asString())
 
-        assert userUuid
+        cauthCookie = loginResp.getDetailedCookie('cauth');
+        userUuid = loginResp.body().jsonPath().getString('Login.uuid')
+
+        assert userUuid && ItemPath.isUUID(userUuid)
     }
 
     def logout(String reason) {
@@ -294,23 +308,28 @@ class RestapiTestBase extends KernelScenarioTestBase {
     }
 
     String createNewItem(String name, ContentType type) {
-        def param = KernelXMLUtility.getItemXML(name: name, type: 'Dummy', workflow: 'NoWorkflow', initialPath: '/restapiTests')
+        def newItem = new ImportItem(name, '/restapiTests', null, 'NoWorkflow')
+        newItem.getProperties().add(new Property('Type', 'Dummy', false))
         def serverItemUUID = resolveDomainPath('/servers/localhost')
 
+        def param = Gateway.marshaller.marshall(newItem)
         if (type == JSON) param = XML.toJSONObject(param).toString()
 
         executePredefStep(serverItemUUID, ImportImportItem.class, type, param)
+
         def uuid = resolveDomainPath("/restapiTests/$name")
-        assert uuid
+        assert uuid && ItemPath.isUUID(uuid)
+
         return uuid
     }
 
     String createNewAgent(String name, String pwd, ContentType type) {
-        def param = KernelXMLUtility.getAgentXML(name: name, password: pwd, Role: 'Admin')
+        def newAgent = new ImportAgent(name, pwd)
+        newAgent.addRole(ADMIN_ROLE)
+        def param = Gateway.marshaller.marshall(newAgent)
         def serverItemUUID = resolveDomainPath('/servers/localhost')
 
         if (type == JSON) param = XML.toJSONObject(param).toString()
-
         executePredefStep(serverItemUUID, ImportImportAgent.class, type, param)
 
         def agents = resolveRole('Admin')
@@ -322,13 +341,15 @@ class RestapiTestBase extends KernelScenarioTestBase {
             if (json.getString('name') == name) uuid = json.getString('uuid')
         }
 
-        assert uuid
+        assert uuid && ItemPath.isUUID(uuid)
 
         return uuid
     }
 
     void createNewRole(String name, ContentType type) {
-        def param = KernelXMLUtility.getRoleXML(name: name)
+        def newRole = new ImportRole(name)
+        newRole.jobList = false
+        def param = Gateway.marshaller.marshall(newRole)
         def serverItemUUID = resolveDomainPath('/servers/localhost')
 
         if (type == JSON) param = XML.toJSONObject(param).toString()

@@ -161,7 +161,7 @@ public class JooqJobHandler extends JooqHandler {
         .column(UUID,               UUID_TYPE     .nullable(false))
         .column(STEP_NAME,          NAME_TYPE     .nullable(false))
         .column(STEP_PATH,          STRING_TYPE   .nullable(false))
-        .column(STEP_TYPE,          NAME_TYPE     .nullable(false))
+        .column(STEP_TYPE,          NAME_TYPE     .nullable(true)) //steps in adhoc workflow do not have type (i.e. ActivityDefinition)
         .column(TRANSITION,         STRING_TYPE   .nullable(false))
         .column(ROLE_OVERRIDE,      NAME_TYPE     .nullable(true))
         .column(ACT_PROPERTIES,     xmlType       .nullable(false))

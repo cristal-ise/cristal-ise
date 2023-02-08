@@ -29,6 +29,7 @@ import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.Lookup
 import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.lookup.RolePath
+import org.cristalise.kernel.lookup.Lookup.PagedResult
 import org.cristalise.kernel.persistency.ClusterStorage
 import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.persistency.TransactionKey
@@ -177,13 +178,20 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     @Override
     public PagedResult getChildren(Path path, int offset, int limit, TransactionKey transactionKey) {
         //cache.values().findAll { ((Path)it).stringPath =~ /^$path.stringPath\/\w+$/ }
-        return null
+        throw new NotImplementedException("Retrieving children of PagedResult is not implemented");
     }
 
     @Override
     public Iterator<Path> getChildren(Path path, TransactionKey transactionKey) {
         log.debug("getChildren() - Path: $path")
         return cache.values().findAll { ((Path)it).stringPath =~ /^$path.stringPath\/\w+$/ }.iterator()
+    }
+
+    @Override
+    public PagedResult getChildren(Path path, int offset, int limit, boolean contextOnly, TransactionKey transactionKey) {
+        if (!contextOnly) getChildren(path, offset, limit, transactionKey);
+
+        throw new NotImplementedException("Retrieving only children of DomainContext is not implemented");
     }
 
     @Override

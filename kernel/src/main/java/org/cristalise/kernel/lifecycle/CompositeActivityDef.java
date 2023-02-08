@@ -21,11 +21,10 @@
 package org.cristalise.kernel.lifecycle;
 
 import static org.cristalise.kernel.collection.BuiltInCollections.ACTIVITY;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ACTIVITY_DEF_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ABORTABLE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.REPEAT_WHEN;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
-import static org.cristalise.kernel.process.resource.BuiltInResources.COMP_ACT_DESC_RESOURCE;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -35,10 +34,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
@@ -58,12 +55,12 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -463,7 +460,7 @@ public class CompositeActivityDef extends ActivityDef {
             }
         }
 
-        String tc = COMP_ACT_DESC_RESOURCE.getTypeCode();
+        String tc = getResourceType().getTypeCode();
 
         try {
             // export marshalled compAct
@@ -486,6 +483,11 @@ public class CompositeActivityDef extends ActivityDef {
             }
             imports.write("</Workflow>\n");
         }
+    }
+
+    @Override
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.COMP_ACT_DESC_RESOURCE;
     }
 
     private String replaceActivitySlotDefUUIDWithName(String compactXML)
@@ -512,10 +514,11 @@ public class CompositeActivityDef extends ActivityDef {
                 }
             }
             catch(Exception e) {
-                Node actDefNameNode = (Node) outcome.evaluateXpath(nodeList.item(i), "Properties/KeyValuePair[@Key='ActivityDefName']", XPathConstants.NODE);
+                
+                Node actDefNameNode = (Node) outcome.evaluateXpath(nodeList.item(i), "Properties/KeyValuePair[@Key='"+ACTIVITY_DEF_NAME+"']", XPathConstants.NODE);
                 String actDefName = actDefNameNode == null ? null : actDefNameNode.getAttributes().getNamedItem("String").getNodeValue();
 
-                //Try to read 'Name' property if 'ActivityDefName' property was not available
+                //Try to read 'Name' property if actDefName is empty
                 if (StringUtils.isBlank(actDefName)) {
                     actDefName = ((Node) outcome.evaluateXpath(
                         nodeList.item(i), "Properties/KeyValuePair[@Key='Name']", XPathConstants.NODE)

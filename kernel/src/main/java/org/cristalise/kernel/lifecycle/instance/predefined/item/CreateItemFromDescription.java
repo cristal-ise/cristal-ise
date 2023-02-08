@@ -81,6 +81,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CreateItemFromDescription extends PredefinedStep {
 
+    /**
+     * Use this constant to enforce the factory to generate the name
+     */
     public static final String FACTORY_GENERATED_NAME = "FACTORY_GENERATED";
 
     public CreateItemFromDescription() {
@@ -158,7 +161,7 @@ public class CreateItemFromDescription extends PredefinedStep {
         if (FACTORY_GENERATED_NAME.equals(newName)) {
             try {
                 String  prefix  = getPropertyValue(descItemPath, ID_PREFIX, "", transactionKey);
-                Integer padSize = new Integer(getPropertyValue(descItemPath, LEFT_PAD_SIZE, (String)null, transactionKey));
+                Integer padSize = Integer.valueOf(getPropertyValue(descItemPath, LEFT_PAD_SIZE, (String)null, transactionKey));
 
                 log.debug("getItemName() - generating name prefix:{}, padSize:{}", prefix, padSize);
 
@@ -166,7 +169,7 @@ public class CreateItemFromDescription extends PredefinedStep {
                     throw new InvalidDataException("Item:"+descItemPath.getItemName()+" property '"+ID_PREFIX+"' and '"+LEFT_PAD_SIZE+"' must contain value");
                 }
 
-                Integer lastCount = new Integer(getPropertyValue(descItemPath, LAST_COUNT, "0", transactionKey));
+                Integer lastCount = Integer.valueOf(getPropertyValue(descItemPath, LAST_COUNT, "0", transactionKey));
                 lastCount++;
 
                 writeProperty(descItemPath, LAST_COUNT, lastCount.toString(), transactionKey);
