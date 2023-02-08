@@ -6,18 +6,16 @@ import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportAgent
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportRole
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.SetAgentPassword
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.SetAgentRoles
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.Sign
-import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
-import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
-
-
 
 /**
  * 
@@ -42,7 +40,7 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
         importRole.name = role
         importRole.jobList = false
 
-        agent.execute(serverItem, CreateNewRole.class, Gateway.getMarshaller().marshall(importRole));
+        agent.execute(serverItem, ImportImportRole, Gateway.getMarshaller().marshall(importRole));
 
         return Gateway.getLookup().getRolePath(role)
     }
@@ -56,7 +54,7 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
         importAgent.password = "dummepwd"
         importAgent.roles.add(importRole)
 
-        agent.execute(serverItem, CreateNewAgent.class, Gateway.getMarshaller().marshall(importAgent));
+        agent.execute(serverItem, ImportImportAgent, Gateway.getMarshaller().marshall(importAgent));
 
         return Gateway.getAgentProxy( Gateway.getLookup().getAgentPath(name) )
     }

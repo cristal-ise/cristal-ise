@@ -20,11 +20,12 @@
  */
 package org.cristalise.dsl.test.builders
 
-import groovy.transform.CompileStatic
-
 import org.cristalise.dsl.querying.QueryBuilder
+import org.cristalise.dsl.querying.QueryDelegate
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.test.utils.KernelXMLUtility
+
+import groovy.transform.CompileStatic
 
 
 /**
@@ -40,7 +41,7 @@ class QueryTestBuilder extends QueryBuilder {
         query   = q
     }
 
-    public static QueryTestBuilder build(String module, String name, int version, Closure cl) {
+    public static QueryTestBuilder build(String module, String name, int version, @DelegatesTo(QueryDelegate) Closure cl) {
         def query = QueryBuilder.build(module, name, version, cl)
         return new QueryTestBuilder(module, query)
     }

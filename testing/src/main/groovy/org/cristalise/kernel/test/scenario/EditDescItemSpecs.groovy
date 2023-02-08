@@ -54,7 +54,7 @@ class EditDescItemSpecs extends Specification implements CristalTestSetup {
         pollingWait.eventually { testItemGeneratedNameFactoryHistory.getLastId() == lastEventId + 1 }
         testItemGeneratedNameFactoryHistory.getEvent(lastEventId + 1).stepName == 'UpdateItem'
     }
-    
+
     def 'Role can be updated using UpdateRole activity of RoleDesc resource Item'() {
         given:
         def userRole = agent.getItem('/domain/desc/RoleDesc/integTest/User')

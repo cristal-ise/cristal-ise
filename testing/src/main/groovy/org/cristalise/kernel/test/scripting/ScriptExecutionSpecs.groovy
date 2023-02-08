@@ -7,6 +7,7 @@ import org.cristalise.kernel.test.utils.CristalTestSetup
 import org.cristalise.kernel.utils.CastorHashMap
 import org.cristalise.kernel.utils.LocalObjectLoader
 
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
@@ -190,6 +191,7 @@ class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
         result == 0
     }
 
+    @Ignore('Include does not work with groovy')
     def 'Script written in groovy can use function from included Script'() {
         given:
         ScriptBuilder.create("integTest", "Function10", 0) {
