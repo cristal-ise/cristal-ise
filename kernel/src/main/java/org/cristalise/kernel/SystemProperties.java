@@ -30,6 +30,7 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.utils.DescriptionObject;
+import org.cristalise.kernel.utils.SystemPropertyOperations;
 
 import io.vertx.serviceproxy.ServiceException;
 import lombok.Getter;
@@ -86,7 +87,7 @@ import lombok.Getter;
  * @see #TcpBridge_port
  * @see #XMLStorage_root
  */
-public enum SystemProperties {
+public enum SystemProperties implements SystemPropertyOperations {
 
     /**
      * Enables OutcomeValidation during database transaction (aka server-side validation). Default
@@ -280,6 +281,7 @@ public enum SystemProperties {
      */
     XMLStorage_root("XMLStorage.root");
 
+    @Getter
     private final Object defaultValue;
     @Getter
     private final String systemPropertyName;
@@ -291,55 +293,6 @@ public enum SystemProperties {
     private SystemProperties(String name, Object value) {
         systemPropertyName = name;
         defaultValue = value;
-    }
-
-    public Object get() {
-        if (this.defaultValue == null) {
-            return Gateway.getProperties().get(this.systemPropertyName);
-        }
-        else {
-            Object actValue = Gateway.getProperties().get(this.systemPropertyName);
-
-            if (actValue == null) return this.defaultValue;
-            else                  return Gateway.getProperties().get(this.systemPropertyName);
-        }
-    }
-
-    public boolean getBoolean() {
-        if (this.defaultValue == null) {
-            return Gateway.getProperties().getBoolean(this.systemPropertyName);
-        }
-        else {
-            return Gateway.getProperties().getBoolean(this.systemPropertyName, (boolean) this.defaultValue);
-        }
-    }
-
-    public Integer getInteger() {
-        if (this.defaultValue == null) {
-            return Gateway.getProperties().getInteger(this.systemPropertyName);
-        }
-        else {
-            return Gateway.getProperties().getInteger(this.systemPropertyName, (Integer) this.defaultValue);
-        }
-    }
-
-    public String getString() {
-        return getString(null);
-    }
-
-    public String getString(String defaultOverwrite) {
-        Object actualDefaultValue = defaultOverwrite == null ? this.defaultValue : defaultOverwrite;
-
-        if (actualDefaultValue == null) {
-            return Gateway.getProperties().getString(this.systemPropertyName);
-        }
-        else {
-            return Gateway.getProperties().getString(this.systemPropertyName, (String) actualDefaultValue);
-        }
-    }
-
-    public Object set(Object value) {
-        return Gateway.getProperties().put(this.systemPropertyName, value);
     }
 
     @Override
