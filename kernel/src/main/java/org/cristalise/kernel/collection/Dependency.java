@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.collection;
 
+import static org.cristalise.kernel.SystemProperties.*;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ACTIVITY_DEF_URN;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_ALLOW_DUPLICATE_ITEMS;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_CARDINALITY;
@@ -299,7 +300,7 @@ public class Dependency extends Collection<DependencyMember> {
     private boolean checkUniqueness() {
         Boolean checkUniqueness = (Boolean) getBuiltInProperty(DEPENDENCY_ALLOW_DUPLICATE_ITEMS);
         if (checkUniqueness == null) {
-            checkUniqueness = Gateway.getProperties().getBoolean("Dependency.checkMemberUniqueness", true);
+            checkUniqueness = Dependency_checkMemberUniqueness.getBoolean();
         }
         return checkUniqueness;
     }
@@ -375,14 +376,14 @@ public class Dependency extends Collection<DependencyMember> {
                     break;
                 //***************************************************************************************************
                 case STATE_MACHINE:
-                    if (Gateway.getProperties().getBoolean("Dependency.addStateMachineURN", false) ) {
+                    if (Dependency_addStateMachineURN.getBoolean() ) {
                         LocalObjectLoader.getStateMachine(memberUUID, memberVer, transactionKey);
                         props.put(new Property(STATE_MACHINE_URN, memberUUID+":"+memberVer));
                     }
                     break;
                 //***************************************************************************************************
                 case WORKFLOW:
-                    if (Gateway.getProperties().getBoolean("Dependency.addWorkflowURN", false) ) {
+                    if (Dependency_addWorkflowURN.getBoolean() ) {
                         LocalObjectLoader.getCompActDef(memberUUID, memberVer, transactionKey);
                         props.put(new Property(WORKFLOW_URN, memberUUID+":"+memberVer));
                     }

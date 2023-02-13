@@ -20,7 +20,6 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
@@ -36,7 +35,6 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -55,7 +53,6 @@ import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefin
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
@@ -96,8 +93,6 @@ public abstract class PredefinedStep extends Activity {
         setBuiltInProperty(STATE_MACHINE_NAME, StateMachine.getDefaultStateMachine("Predefined"));
         setBuiltInProperty(SCHEMA_NAME, "PredefinedStepOutcome");
         setBuiltInProperty(SCHEMA_VERSION, "0");
-
-        addAdminAgentRole();
     }
 
     @Override
@@ -271,17 +266,6 @@ public abstract class PredefinedStep extends Activity {
             log.error("", ex);
         }
         return null;
-    }
-
-    /**
-     * @deprecated use {@link RolePath#setPermissions(java.util.List)} instead
-     */
-    @Deprecated
-    protected void addAdminAgentRole() {
-        if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
-            String extraRoles = Gateway.getProperties().getString("PredefinedStep."+ getType() +".roles");
-            getProperties().setBuiltInProperty(AGENT_ROLE, ADMIN_ROLE.getName() + (StringUtils.isNotBlank(extraRoles) ? ","+extraRoles : ""));
-        }
     }
 
     /********************************

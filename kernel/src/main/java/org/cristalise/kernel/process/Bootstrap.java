@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.process;
 
+import static org.cristalise.kernel.SystemProperties.ItemServer_name;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.cristalise.kernel.property.BuiltInItemProperties.KERNEL_VERSION;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
@@ -276,7 +277,7 @@ public class Bootstrap {
 
     private static ItemPath createServerItem(TransactionKey transactionKey) throws Exception {
         LookupManager lookupManager = Gateway.getLookupManager();
-        String serverName = Gateway.getProperties().getString("ItemServer.name", InetAddress.getLocalHost().getHostName());
+        String serverName = ItemServer_name.getString(InetAddress.getLocalHost().getHostName());
         thisServerPath = new DomainPath("/servers/"+serverName);
         ItemPath serverItem;
         try {

@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle;
 
+import static org.cristalise.kernel.SystemProperties.Resource_useOldImportFormat;
 import static org.cristalise.kernel.collection.BuiltInCollections.ACTIVITY;
 import static org.cristalise.kernel.collection.BuiltInCollections.QUERY;
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA;
@@ -28,11 +29,13 @@ import static org.cristalise.kernel.collection.BuiltInCollections.STATE_MACHINE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.NAMESPACE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.process.resource.BuiltInResources.ELEM_ACT_DESC_RESOURCE;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Vector;
+
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
@@ -55,6 +58,7 @@ import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -394,7 +398,7 @@ public class ActivityDef extends WfVertexDef implements C2KLocalObject, Descript
     }
 
     protected String getExportAttributes(String type) throws InvalidDataException, ObjectNotFoundException, IOException {
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
+        if (Resource_useOldImportFormat.getBoolean()) {
             return "name=\"" + getActName() + "\" "
                     + (getItemPath() == null ? "" : "id=\""      + getItemID()  + "\" ")
                     + (getVersion() == null  ? "" : "version=\"" + getVersion() + "\" ")

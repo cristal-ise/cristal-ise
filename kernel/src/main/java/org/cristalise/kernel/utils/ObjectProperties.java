@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.SystemProperties.SystemProperties_keywordsToRedact;
 import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
 
 import java.io.IOException;
@@ -38,7 +39,6 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
-import org.cristalise.kernel.process.Gateway;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
@@ -132,6 +132,26 @@ public class ObjectProperties extends Properties {
         return defaultValue;
     }
 
+    public Integer getInteger(String aPropertyName) {
+        return getInteger(aPropertyName, null);
+    }
+
+    public Integer getInteger(String aPropertyName, Integer defaultValue) {
+        Object wValue = getObject(aPropertyName, defaultValue);
+        if (wValue instanceof Integer) {
+            return (Integer) wValue;
+        }
+        else if (wValue instanceof String) {
+            try {
+                return Integer.valueOf((String) wValue);
+            }
+            catch (NumberFormatException ex) {}
+        }
+        log.error("getInteger(): unable to retrieve an Integer value for [" + aPropertyName + "]. Returning default value [" + defaultValue
+                + "]. object found=" + wValue);
+        return defaultValue;
+    }
+
     /**
      * ogattaz proposal
      * 
@@ -151,23 +171,11 @@ public class ObjectProperties extends Properties {
      *            the name of the property
      * @param defaultValue
      *            the default value
-     * @return the int value of the property. Returns the default vakue if the property doesn't exist or if the value is not a String or an
+     * @return the int value of the property. Returns the default value if the property doesn't exist or if the value is not a String or an
      *         Integer instance
      */
     public int getInt(String aPropertyName, int defaultValue) {
-        Object wValue = getObject(aPropertyName, Integer.valueOf(defaultValue));
-        if (wValue instanceof Integer) {
-            return ((Integer) wValue).intValue();
-        }
-        if (wValue instanceof String) {
-            try {
-                return Integer.parseInt((String) wValue);
-            }
-            catch (NumberFormatException ex) {}
-        }
-        log.error("getInt(): unable to retrieve a int value for [" + aPropertyName + "]. Returning default value [" + defaultValue
-                + "]. object found=" + wValue);
-        return defaultValue;
+        return getInteger(aPropertyName, Integer.valueOf(defaultValue));
     }
 
     /**
@@ -181,13 +189,15 @@ public class ObjectProperties extends Properties {
         put(aPropertyName, aPropertyValue);
     }
 
-    public void dumpProps(int logLevel) {
+    public void dumpProps() {
         for (Enumeration<?> e = propertyNames(); e.hasMoreElements();) {
             String name = (String) e.nextElement();
             Object value = getObject(name);
 
+            if (propertiesToRedact(name)) value = REDACTED;
+
             if (value == null) log.info("{}: 'null'", name);
-            else               log.info("{}: ({}):'{}'", name, getObject(name).getClass().getSimpleName(), getObject(name).toString());
+            else               log.info("{}: ({}):'{}'", name, value.getClass().getSimpleName(), value.toString());
         }
     }
 
@@ -243,7 +253,7 @@ public class ObjectProperties extends Properties {
      * @return if the value of the Property shall be redacted or not
      */
     private boolean propertiesToRedact(String key) {
-        String keywordsToRedact = Gateway.getProperties().getString("SystemProperties.keywordsToRedact", "password,pwd");
+        String keywordsToRedact = SystemProperties_keywordsToRedact.getString();
 
         return StringUtils.containsAny(key.toLowerCase(), keywordsToRedact.split(","));
     }

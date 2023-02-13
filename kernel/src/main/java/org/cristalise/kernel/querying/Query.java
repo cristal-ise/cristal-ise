@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.querying;
 
+import static org.cristalise.kernel.SystemProperties.Resource_useOldImportFormat;
 import static org.cristalise.kernel.process.resource.BuiltInResources.QUERY_RESOURCE;
 
 import java.io.File;
@@ -257,7 +258,7 @@ public class Query implements DescriptionObject {
 
         if (imports == null) return;
 
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
+        if (Resource_useOldImportFormat.getBoolean()) {
             imports.write("<Resource name='"+getName()+"' "
                     + (getItemPath()==null?"":"id='"+getItemID()+"' ")
                     + (getVersion()==null?"":"version='"+getVersion()+"' ")

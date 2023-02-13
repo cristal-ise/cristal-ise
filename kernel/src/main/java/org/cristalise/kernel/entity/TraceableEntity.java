@@ -21,8 +21,11 @@
 package org.cristalise.kernel.entity;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.cristalise.kernel.SystemProperties.StateMachine_enableErrorHandling;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
@@ -48,6 +51,7 @@ import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.ErrorInfo;
 import org.cristalise.kernel.security.SecurityManager;
+
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -137,7 +141,7 @@ public class TraceableEntity implements Item {
                         log.debug("requestAction() - Could not abort original transaction {}", transactionKey , e);
                     }
 
-                    if (Gateway.getProperties().getBoolean("StateMachine.enableErrorHandling", false)) {
+                    if (StateMachine_enableErrorHandling.getBoolean()) {
                         handleError(stepPath, item, agent, originalEx);
                     }
 

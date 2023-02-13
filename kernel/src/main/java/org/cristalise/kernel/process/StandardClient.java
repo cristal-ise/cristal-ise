@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.process;
 
+import static org.cristalise.kernel.SystemProperties.TcpBridge_host;
+
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
@@ -40,7 +42,8 @@ abstract public class StandardClient extends AbstractMain {
      * 
      */
      public static void createClientVerticles() {
-         if (StringUtils.isNotBlank(TcpBridgeClientVerticle.HOST)) {
+         String host = TcpBridge_host.getString();
+         if (StringUtils.isNotBlank(host)) {
              Gateway.getVertx().deployVerticle(new TcpBridgeClientVerticle());
          }
 

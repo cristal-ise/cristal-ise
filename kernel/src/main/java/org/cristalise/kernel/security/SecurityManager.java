@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.security;
 
+import static org.cristalise.kernel.SystemProperties.Authenticator;
+import static org.cristalise.kernel.SystemProperties.Shiro_iniFile;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SECURITY_ACTION;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SECURITY_DOMAIN;
@@ -66,7 +68,7 @@ public class SecurityManager {
      * @throws InvalidDataException
      */
     public SecurityManager() throws InvalidDataException {
-        if ("Shiro".equals(Gateway.getProperties().getString("Authenticator", ""))) {
+        if ("Shiro".equals(Authenticator.getString())) {
             setupShiro();
         }
         else {
@@ -159,7 +161,7 @@ public class SecurityManager {
      * TODO: replace the use of IniSecurityManagerFactory with shiro Environment initialization
      */
     public void setupShiro() {
-        String shiroIni = Gateway.getProperties().getString("Shiro.iniFile");
+        String shiroIni = Shiro_iniFile.getString();
 
         if (StringUtils.isBlank(shiroIni)) shiroIni = "classpath:shiro.ini";
         else                               shiroIni = "file:" + shiroIni;

@@ -21,6 +21,8 @@
 package org.cristalise.kernel.process;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.cristalise.kernel.SystemProperties.ItemServer_Telnet_host;
+import static org.cristalise.kernel.SystemProperties.ItemServer_Telnet_port;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -182,7 +184,7 @@ public class Gateway extends ProxyManager
 
         // dump properties
         log.info("Gateway.init() - DONE");
-        dumpC2KProps(7);
+        dumpC2KProps();
     }
 
     private static void clearCacheHandler(CommandProcess process) {
@@ -257,9 +259,6 @@ public class Gateway extends ProxyManager
      * 
      */
     static private void createTelnetShellService(String host, int port) {
-        // addClearCacheCommand("proxy-clearCache");
-        addClearCacheCommand("storage-clearCache");
-
         ShellServiceOptions options = new ShellServiceOptions()
             .setTelnetOptions(new TelnetTermOptions().setHost(host).setPort(port));
 
@@ -283,8 +282,11 @@ public class Gateway extends ProxyManager
 
             createServerVerticles();
 
-            String host = Gateway.getProperties().getString("ItemServer.Telnet.host", "localhost");
-            int    port = Gateway.getProperties().getInt(   "ItemServer.Telnet.port", 0);
+            // addClearCacheCommand("proxy-clearCache");
+            addClearCacheCommand("storage-clearCache");
+
+            String host = ItemServer_Telnet_host.getString();
+            int    port = ItemServer_Telnet_port.getInteger();
 
             if (port != 0) createTelnetShellService(host, port);
 
@@ -550,8 +552,8 @@ public class Gateway extends ProxyManager
         return mC2KProps.propertyNames();
     }
 
-    static public void dumpC2KProps(int logLevel) {
-        mC2KProps.dumpProps(logLevel);
+    static public void dumpC2KProps() {
+        mC2KProps.dumpProps();
     }
 
     static public ObjectProperties getProperties() {

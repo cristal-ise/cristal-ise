@@ -20,7 +20,9 @@
  */
 package org.cristalise.kernel.persistency.outcome;
 
+import static org.cristalise.kernel.SystemProperties.Outcome_Validation_useDOM;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -49,6 +51,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -57,7 +60,6 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.AbstractMain;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -71,6 +73,7 @@ import org.xmlunit.diff.DefaultNodeMatcher;
 import org.xmlunit.diff.Diff;
 import org.xmlunit.diff.Difference;
 import org.xmlunit.diff.ElementSelectors;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -331,7 +334,7 @@ public class Outcome implements C2KLocalObject {
 
         OutcomeValidator validator = OutcomeValidator.getValidator(mSchema);
 
-        if (Gateway.getProperties().getBoolean("Validation.useDOM", true))
+        if (Outcome_Validation_useDOM.getBoolean())
             return validator.validate(mDOM);
         else
             return validator.validate(getData());

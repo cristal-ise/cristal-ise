@@ -20,16 +20,19 @@
  */
 package org.cristalise.kernel.entity;
 
+import static org.cristalise.kernel.SystemProperties.OutcomeInit_jobUseViewpoint;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.OUTCOME_INIT;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.PropertyUtility.getPropertyValue;
+
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -57,6 +60,7 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -362,7 +366,7 @@ public class Job implements C2KLocalObject {
 
                 if (ocInit == null) {
                     if (!Gateway.getProperties().containsKey(ocConfigPropName)) {
-                        throw new InvalidDataException("Property OutcomeInstantiator "+ocConfigPropName+" isn't defined. Check module.xml");
+                        throw new InvalidDataException("Property OutcomeInitiator "+ocConfigPropName+" isn't defined. Check module.xml");
                     }
 
                     try {
@@ -370,8 +374,8 @@ public class Job implements C2KLocalObject {
                         ocInitCache.put(ocConfigPropName, ocInit);
                     }
                     catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-                        log.error("OutcomeInstantiator {} couldn't be instantiated", ocConfigPropName, e);
-                        throw new InvalidDataException("OutcomeInstantiator "+ocConfigPropName+" couldn't be instantiated:"+e.getMessage());
+                        log.trace("getOutcomeInitiator() - cannot instantiate {} ", ocConfigPropName, e);
+                        throw new InvalidDataException("OutcomeInitiator "+ocConfigPropName+" couldn't be instantiated:", e);
                     }
                 }
             }
@@ -410,7 +414,7 @@ public class Job implements C2KLocalObject {
      */
     public Outcome getOutcome() throws InvalidDataException, ObjectNotFoundException {
         if (outcome == null && hasOutcome()) {
-            boolean useViewpoint = Gateway.getProperties().getBoolean("OutcomeInit.jobUseViewpoint", false);
+            boolean useViewpoint = OutcomeInit_jobUseViewpoint.getBoolean();
             ItemProxy item = Gateway.getProxy(itemPath);
 
             // check viewpoint first if exists

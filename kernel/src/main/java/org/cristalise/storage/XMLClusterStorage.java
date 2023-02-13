@@ -20,6 +20,8 @@
  */
 package org.cristalise.storage;
 
+import static org.cristalise.kernel.SystemProperties.XMLStorage_root;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.stream.Stream;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -82,7 +85,7 @@ public class XMLClusterStorage extends ClusterStorage {
     @Override
     public void open(Authenticator auth) throws PersistencyException {
         if (StringUtils.isBlank(rootDir)) {
-            String rootProp = Gateway.getProperties().getString("XMLStorage.root");
+            String rootProp = XMLStorage_root.getString();
 
             if (rootProp == null)
                 throw new PersistencyException("Root path not given in config file.");

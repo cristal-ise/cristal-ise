@@ -23,12 +23,15 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.SystemProperties.LocalObjectLoader_lookupUseProperties;
 import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.EXACT_NAME_MATCH;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 import java.util.UUID;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -46,12 +49,11 @@ import org.cristalise.kernel.process.module.ModuleResource;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public abstract class DescriptionObjectCache<D extends DescriptionObject> {
-    
-    private boolean lookupUseProperties = Gateway.getProperties().getBoolean("LocalObjectLoader.lookupUseProperties", false);
 
     SoftCache<String, CacheEntry<D>> cache = new SoftCache<String, CacheEntry<D>>();
     Property[]                       classIdProps;
@@ -170,6 +172,8 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         } // finally search Domain tree
         else {
             Iterator<Path> searchResult = null;
+
+            boolean lookupUseProperties = LocalObjectLoader_lookupUseProperties.getBoolean();
 
             if (lookupUseProperties || StringUtils.isBlank(getTypeRoot())) {
                 // search for it in the whole tree using properties

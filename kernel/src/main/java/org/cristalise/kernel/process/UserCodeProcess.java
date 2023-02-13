@@ -20,8 +20,6 @@
  */
 package org.cristalise.kernel.process;
 
-import static org.cristalise.kernel.process.Gateway.getProperties;
-
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -52,7 +50,7 @@ public class UserCodeProcess extends StandardClient {
      * @return
      */
     public static String getRoleName() {
-        return getProperties().getString("UserCode.roleOverride", DEFAULT_ROLE);
+        return Gateway.getProperties().getString("UserCode.roleOverride", DEFAULT_ROLE);
     }
 
     /**
@@ -79,7 +77,7 @@ public class UserCodeProcess extends StandardClient {
      */
     public static String getAgentName() {
         try {
-            return getProperties().getString(getRoleName()+ ".agent", InetAddress.getLocalHost().getHostName());
+            return Gateway.getProperties().getString(getRoleName()+ ".agent", InetAddress.getLocalHost().getHostName());
         }
         catch (UnknownHostException e) {
             log.error("getRole(roelName={}) ", getRoleName(), e);
@@ -92,7 +90,7 @@ public class UserCodeProcess extends StandardClient {
      * @return
      */
     public static String getAgentPassword() {
-        return getProperties().getString(getRoleName() + ".password", DEFAULT_PASSWORD);
+        return Gateway.getProperties().getString(getRoleName() + ".password", DEFAULT_PASSWORD);
     }
 
     /**

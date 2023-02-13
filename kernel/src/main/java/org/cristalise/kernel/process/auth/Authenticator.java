@@ -34,7 +34,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
  * connection is lost.
  * 
  * @since 3.0
- * 
+ * @deprecated use instead Shiro's authentication realms to intagrate with different authentication mechanisms (e.g. LDAP).
  */
 public interface Authenticator {
 
