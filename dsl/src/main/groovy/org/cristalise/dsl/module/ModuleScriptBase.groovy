@@ -20,7 +20,8 @@
  */
 package org.cristalise.dsl.module
 
-import java.nio.file.Path
+import static org.cristalise.dsl.SystemProperties.ModuleScript_lineSeparator
+
 import java.nio.file.Paths
 
 import org.cristalise.kernel.common.InvalidDataException
@@ -28,7 +29,6 @@ import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 
 import groovy.transform.CompileStatic
-import groovy.transform.SourceURI
 import groovy.util.logging.Slf4j
 
 @CompileStatic @Slf4j
@@ -53,8 +53,8 @@ abstract class ModuleScriptBase extends DelegatingScript {
     }
 
     public boolean init() {
-        //This solution is used because getString('...') trims the value which will trim new line characters as well
-        String lineSepType = Gateway.getProperties().getString('ModuleScript.lineSeparator', 'linux');
+        //This solution is used because ObjectProperties.getString('...') trims the value which will trim new line characters as well.
+        String lineSepType = ModuleScript_lineSeparator.getString();
         System.setProperty('line.separator', lineSepType == 'linux' ? '\n' : '\r\n' )
 
         if (configDir && (connect || config)) throw new InvalidDataException('Specify only configDir or connect/config')
