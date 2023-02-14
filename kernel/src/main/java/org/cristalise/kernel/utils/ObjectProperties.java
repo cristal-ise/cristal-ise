@@ -68,8 +68,6 @@ public class ObjectProperties extends Properties {
     }
 
     /**
-     * ogattaz proposal
-     * 
      * @param propName
      *            the name of the property
      * @return the object value of the property. Returns null if the property doesn't exist or if the properties of the gateway is null
@@ -79,8 +77,6 @@ public class ObjectProperties extends Properties {
     }
 
     /**
-     * ogattaz proposal
-     * 
      * @param propName
      *            the name of the property
      * @param defaultValue
@@ -97,8 +93,6 @@ public class ObjectProperties extends Properties {
     }
 
     /**
-     * ogattaz proposal
-     * 
      * @param aPropertyName
      *            the name of the paroperty
      * @return the boolean value of the property. Returns false if the property doesn't exist or if the value is not a String or a Boolean
@@ -109,8 +103,6 @@ public class ObjectProperties extends Properties {
     }
 
     /**
-     * ogattaz proposal
-     * 
      * @param aPropertyName
      *            the name of the parameter stored in the clc file
      * @param defaultValue
@@ -153,8 +145,6 @@ public class ObjectProperties extends Properties {
     }
 
     /**
-     * ogattaz proposal
-     * 
      * @param aPropertyName
      *            the name of the property
      * @return the int value of the property. Returns -1 if the property doesn't exist or if the value is not a String or an Integer
@@ -165,8 +155,6 @@ public class ObjectProperties extends Properties {
     }
 
     /**
-     * ogattaz proposal
-     * 
      * @param aPropertyName
      *            the name of the property
      * @param defaultValue
@@ -270,7 +258,7 @@ public class ObjectProperties extends Properties {
     public Outcome convertToOutcome(String processName) throws IOException, InvalidDataException, ObjectNotFoundException {
         List<Map<String, Object>> props = new ArrayList<Map<String, Object>>();
 
-        String templ = FileStringUtility.url2String(this.getClass().getResource("resources/templates/SystemProperties_xsd.tmpl"));
+        String templ = FileStringUtility.url2String(this.getClass().getResource("resources/templates/SystemProperties_xml.tmpl"));
         CompiledTemplate expr = TemplateCompiler.compileTemplate(templ);
 
         for (Entry<Object, Object> entry: entrySet()) {

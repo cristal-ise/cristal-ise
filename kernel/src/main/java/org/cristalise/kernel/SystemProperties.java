@@ -25,9 +25,9 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.predefined.BulkErase;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.BulkImport;
+import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.SystemPropertyOperations;
@@ -56,6 +56,7 @@ import lombok.Getter;
  * @see #Dependency_addWorkflowURN
  * @see #Dependency_checkMemberUniqueness
  * @see #Export_replaceActivitySlotDefUUIDWithName
+ * @see #Gateway_clusteredVertx
  * @see #ItemServer_name
  * @see #ItemServer_Telnet_host
  * @see #ItemServer_Telnet_port
@@ -69,6 +70,7 @@ import lombok.Getter;
  * @see #Lifecycle_Sign_signedFlagField
  * @see #LocalChangeVerticle_publishLocalMessage
  * @see #LocalObjectLoader_lookupUseProperties
+ * @see #Lookup
  * @see #Module_ImportAgent_enableRoleCreation
  * @see #Module_reset
  * @see #Module_Versioning_strict
@@ -120,6 +122,10 @@ public enum SystemProperties implements SystemPropertyOperations {
      * value is 'false'
      */
     BulkImport_useDirectories("BulkImport.useDirectories", false),
+    /**
+     * Initialise the clustered version of vertx. Default value is 'true'.
+     */
+    Gateway_clusteredVertx("Gateway.clusteredVertx", true),
     /**
      * Defines the class to be used as a {@link ClusterStorage} implementation. No default value.
      */
@@ -206,6 +212,10 @@ public enum SystemProperties implements SystemPropertyOperations {
      * instead of subtree based search which is faster. Default value is 'false'.
      */
     LocalObjectLoader_lookupUseProperties("LocalObjectLoader.lookupUseProperties", false),
+    /**
+     * Define the java class that implements the {@link Lookup} interface. No default value.
+     */
+    Lookup("Lookup"),
     /**
      * Create Role even if it is not fully specified in the ImportAgent. Default value is false.
      */

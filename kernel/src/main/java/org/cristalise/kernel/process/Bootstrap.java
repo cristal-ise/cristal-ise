@@ -301,7 +301,8 @@ public class Bootstrap {
     }
 
     private static void storeSystemProperties(ItemPath serverItem, TransactionKey transactionKey) throws Exception {
-        Outcome newOutcome = Gateway.getProperties().convertToOutcome("ItemServer");
+        Outcome newOutcome = Gateway.getProperties().convertToOutcome("Bootstrap");
+        newOutcome.validateAndCheck();
         PredefinedStep.storeOutcomeEventAndViews(serverItem, newOutcome, transactionKey);
     }
 

@@ -20,11 +20,13 @@
  */
 package org.cristalise.kernel.utils;
 
+import java.util.Properties;
+
 import org.cristalise.kernel.process.Gateway;
 
 /**
- * Java enum type does not support inheritance. This class enables to reuse the same code 
- * to handle SystemProperties in a uniform way enabling modules to define their SystemProperties independently.
+ * Java enum type does not support inheritance. This interface provides implementations to handle 
+ * SystemProperties in a uniform way enabling modules to define their SystemProperties independently.
  */
 public interface SystemPropertyOperations {
 
@@ -127,10 +129,51 @@ public interface SystemPropertyOperations {
     }
 
     /**
+     * 
+     * @return
+     * @throws ReflectiveOperationException
+     */
+    default Object getInstance() throws ReflectiveOperationException {
+        Object prop = get();
+
+        String classToInstantiate = null;
+
+        if (prop == null || prop.equals("")) {
+            throw new InstantiationException("Property '" + this + "' was not defined. Cannot instantiate.");
+        }
+        else if (prop instanceof String) {
+            classToInstantiate = ((String) prop).trim();
+        }
+        else {
+            // this will very likely fail
+            classToInstantiate = prop.toString();
+        }
+
+        return Class.forName(classToInstantiate).getDeclaredConstructor().newInstance();
+    }
+
+    /**
+     * Set the value in Properties maintained by the Gateway using the SystemProperty name.
+     * 
+     * @apiNote Use this only for testing
+     * 
      * @param value of the SystemProperty
      * @return the previous value associated with SystemProperty, or null if there was no mapping for SystemProperty.
      */
     default Object set(Object value) {
         return Gateway.getProperties().put(getSystemPropertyName(), value);
+    }
+
+    /**
+     * Set the value in the given Properties object using the SystemProperty name
+     * 
+     * @apiNote Use this only for testing
+     * 
+     * @param props the properties object to be updated
+     * @param value of the SystemProperty
+     * @return the previous value associated with SystemProperty, or null if there was no mapping for SystemProperty.
+     */
+    default Object set(Properties props, Object value) {
+        return props.put(getSystemPropertyName(), value);
     }
 }

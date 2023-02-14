@@ -21,8 +21,11 @@
 package org.cristalise.kernel.process;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.cristalise.kernel.SystemProperties.Authenticator;
+import static org.cristalise.kernel.SystemProperties.Gateway_clusteredVertx;
 import static org.cristalise.kernel.SystemProperties.ItemServer_Telnet_host;
 import static org.cristalise.kernel.SystemProperties.ItemServer_Telnet_port;
+import static org.cristalise.kernel.SystemProperties.Lookup;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
@@ -37,6 +40,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.SystemProperties;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -183,7 +187,7 @@ public class Gateway extends ProxyManager
         if (props != null) mC2KProps.putAll(props);
 
         // dump properties
-        log.info("Gateway.init() - DONE");
+        log.info("init() - DONE");
         dumpC2KProps();
     }
 
@@ -289,17 +293,14 @@ public class Gateway extends ProxyManager
             int    port = ItemServer_Telnet_port.getInteger();
 
             if (port != 0) createTelnetShellService(host, port);
-
-            // start entity proxy server
-            String serverName = mC2KProps.getProperty("ItemServer.name");
  
-            log.info("Server '"+serverName+"' STARTED.");
+            log.info("startServer() - DONE.");
 
             if (mLookupManager != null) mLookupManager.postStartServer();
             mStorage.postStartServer();
         }
         catch (Exception ex) {
-            log.error("Exception starting server components. Shutting down.", ex);
+            log.error("startServer() - Exception starting server components. Shutting down.", ex);
             AbstractMain.shutdown(1);
         }
     }
@@ -370,15 +371,15 @@ public class Gateway extends ProxyManager
         if (mLookup != null) mLookup.close();
 
         // To use tcpip-bride, the client has to create non-clustered vertx
-        createVertx(new VertxOptions(), mC2KProps.getBoolean("Gateway.clusteredVertx", true));
+        createVertx(new VertxOptions(), Gateway_clusteredVertx.getBoolean());
 
         try {
-            mLookup = (Lookup)mC2KProps.getInstance("Lookup");
+            mLookup = (Lookup) Lookup.getInstance();
             mLookup.open(auth);
         }
-        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
+        catch (ReflectiveOperationException ex) {
             log.error("", ex);
-            throw new InvalidDataException("Cannot connect server process. Please check config.");
+            throw new InvalidDataException("Cannot connect server process. Please check config.", ex);
         }
 
         mStorage = new ClusterStorageManager(auth);
@@ -399,7 +400,7 @@ public class Gateway extends ProxyManager
 
         setup(mSecurityManager.getAuth());
 
-        log.info("connect(system) DONE.");
+        log.info("connect(system) - DONE.");
 
         mStorage.postConnect();
 
@@ -449,7 +450,7 @@ public class Gateway extends ProxyManager
         mModules.setUser(agent);
         mModules.runScripts("startup");
 
-        log.info("connect(agent) DONE.");
+        log.info("connect(agent) - DONE.");
 
         mStorage.postConnect();
 
@@ -466,11 +467,11 @@ public class Gateway extends ProxyManager
     @Deprecated
     static public Authenticator getAuthenticator() throws InvalidDataException {
         try {
-            return (Authenticator)mC2KProps.getInstance("Authenticator");
+            return (Authenticator) Authenticator.getInstance();
         }
-        catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
-            log.error("Authenticator "+mC2KProps.getString("Authenticator")+" could not be instantiated", ex);
-            throw new InvalidDataException("Authenticator "+mC2KProps.getString("Authenticator")+" could not be instantiated");
+        catch (ReflectiveOperationException ex) {
+            log.error("Authenticator:"+Authenticator.getString()+" could not be instantiated", ex);
+            throw new InvalidDataException("Authenticator "+Authenticator.getString()+" could not be instantiated", ex);
         } 
     }
 
@@ -644,7 +645,7 @@ public class Gateway extends ProxyManager
      */
     public static void sendProxyEvent(Set<ProxyMessage> messages) {
         if (getVertx() == null) {
-            log.warn("sendProxyEvent() -  vertx was not initialised, messages were not sent:{}", messages);
+            log.warn("sendProxyEvent() - vertx was not initialised, messages were not sent:{}", messages);
             return;
         }
         JsonArray msgArray = new JsonArray();
