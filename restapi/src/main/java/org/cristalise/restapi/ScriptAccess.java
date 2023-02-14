@@ -21,6 +21,7 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
+import static org.cristalise.restapi.SystemProperties.REST_DefaultBatchSize;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
@@ -42,7 +43,6 @@ import javax.ws.rs.core.UriInfo;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
@@ -64,7 +64,7 @@ public class ScriptAccess extends ResourceAccess {
     {
         AuthData authData = checkAuthCookie(authCookie);
 
-        if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.DefaultBatchSize", 75);
+        if (batchSize == null) batchSize = REST_DefaultBatchSize.getInteger();
         NewCookie cookie = checkAndCreateNewCookie(authData);
 
         return listAllResources(SCRIPT_RESOURCE, uri, start, batchSize, cookie).build();

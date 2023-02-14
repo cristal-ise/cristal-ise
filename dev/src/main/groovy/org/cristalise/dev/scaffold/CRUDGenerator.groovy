@@ -20,9 +20,12 @@
  */
 package org.cristalise.dev.scaffold
 
+import static org.cristalise.dsl.SystemProperties.DSL_Module_BindingConvention_variablePrefix
+
 import org.apache.commons.lang3.StringUtils
 import org.cristalise.dev.dsl.item.CRUDItem
 import org.cristalise.dev.dsl.module.CRUDModuleDelegate
+import org.cristalise.dsl.SystemProperties
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.utils.FileStringUtility
@@ -119,7 +122,7 @@ class CRUDGenerator {
         assert inputs
 
         //String prefix = BindingConvention.variablePrefix -- DOES NOT WORK!??!?
-        String prefix = Gateway.getProperties().getString('DSL.Module.BindingConvention.variablePrefix', '$')
+        String prefix = DSL_Module_BindingConvention_variablePrefix.getString()
 
         inputs.rootDir = rootDir
         inputs.prefix = prefix
