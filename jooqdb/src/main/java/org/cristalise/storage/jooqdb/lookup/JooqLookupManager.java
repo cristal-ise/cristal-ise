@@ -24,7 +24,7 @@ import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
 import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
 import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.WILDCARD_MATCH;
 import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.retrieveContext;
-import static org.cristalise.storage.jooqdb.SystemProperties.JooqLookupManager_getChildrenPattern_specialCharsToReplace;
+import static org.cristalise.storage.jooqdb.SystemProperties.JooqLookupManager_domainTreeSearches_specialCharsToEscape;
 import static org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler.ITEM_PROPERTY_TABLE;
 import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.DOMAIN_PATH_TABLE;
 import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.TARGET;
@@ -413,7 +413,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     private String escapeSpecialChars(String s) {
-        String specialCharsToReplace = JooqLookupManager_getChildrenPattern_specialCharsToReplace.getString();
+        String specialCharsToReplace = JooqLookupManager_domainTreeSearches_specialCharsToEscape.getString();
         return s.replaceAll("(" + specialCharsToReplace + ")", "\\\\$1");
     }
 

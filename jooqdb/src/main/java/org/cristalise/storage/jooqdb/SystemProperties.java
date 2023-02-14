@@ -26,32 +26,65 @@ import org.jooq.SQLDialect;
 
 import lombok.Getter;
 
+/**
+ * Defines all SystemProperties that are supported in jooqdb module to configure the behavior of the
+ * application. Due to the limitation of javadoc, the actual usable string cannot be shown easily,
+ * therefore replace underscores with dots to get the actual System Property:
+ * 
+ * <pre>
+ *   JOOQ_autoCommit => JOOQ.autoCommit
+ * </pre>
+ *
+ * @see #JOOQ_autoCommit
+ * @see #JOOQ_DataSourceProperty
+ * @see #JOOQ_dialect
+ * @see #JOOQ_disableDomainCreateTables
+ * @see #JOOQ_domainHandlers
+ * @see #JOOQ_idleTimeout
+ * @see #JOOQ_maximumPoolSize
+ * @see #JOOQ_maxLifetime
+ * @see #JOOQ_minimumIdle
+ * @see #JOOQ_NameType_length
+ * @see #JOOQ_password
+ * @see #JOOQ_PasswordType_length
+ * @see #JOOQ_readOnlyDataSource
+ * @see #JOOQ_StringType_length
+ * @see #JOOQ_TextType_length
+ * @see #JOOQ_URI
+ * @see #JOOQ_user
+ * @see #JooqAuth_Argon2_iterations
+ * @see #JooqAuth_Argon2_memory
+ * @see #JooqAuth_Argon2_parallelism
+ * @see #JooqAuth_Argon2_type
+ * @see #JooqLookupManager_getChildrenPattern_specialCharsToEscape
+ */
 public enum SystemProperties implements SystemPropertyOperations {
 
-    /**
-     * Value to configure Hikari ConnectionPool JdbcUrl
-     */
-    JOOQ_URI("JOOQ.URI"),
-    /**
-     * Value to configure Hikari ConnectionPool userName
-     */
-    JOOQ_user("JOOQ.user"),
-    /**
-     * Value to configure Hikari ConnectionPool password
-     */
-    JOOQ_password("JOOQ.password"),
-    /**
-     * Value to configure JOOQ database dialect. Default is 'POSTGRES'
-     */
-    JOOQ_dialect("JOOQ.dialect", SQLDialect.POSTGRES.name()),
     /**
      * Value to configure Hikari ConnectionPool to autoCommit. Default is 'false'
      */
     JOOQ_autoCommit("JOOQ.autoCommit", false),
     /**
-     * Value to configure Hikari ConnectionPool to readOnly. Default is 'false'
+     * Defines the prefix key to retrieve String entries to add as additional DataSourceProperties
      */
-    JOOQ_readOnlyDataSource("JOOQ.readOnlyDataSource", false),
+    JOOQ_DataSourceProperty("JOOQ.DataSourceProperty."),
+    /**
+     * Value to configure JOOQ database dialect. Default is 'POSTGRES'
+     */
+    JOOQ_dialect("JOOQ.dialect", SQLDialect.POSTGRES.name()),
+    /**
+     * Disable the invocation of {@link JooqDomainHandler#createTables(DSLContext)}. Default is 'false'
+     */
+    JOOQ_disableDomainCreateTables("JOOQ.disableDomainCreateTables", false),
+    /**
+     * Comma separated list of fully qualified class names implementing the {@link JooqDomainHandler} interface.
+     * Default value is blank string.
+     */
+    JOOQ_domainHandlers("JOOQ.domainHandlers", ""),
+    /**
+     * Value to configure Hikari ConnectionPool idleTimeout. Default value is 30000 ms.
+     */
+    JOOQ_idleTimeout("JOOQ.idleTimeout", 30000),
     /**
      * Value to configure Hikari ConnectionPool maximumPoolSize. Default value is 50.
      */
@@ -64,23 +97,6 @@ public enum SystemProperties implements SystemPropertyOperations {
      * Value to configure Hikari ConnectionPool minimumIdle. Default value is 10.
      */
     JOOQ_minimumIdle("JOOQ.minimumIdle", 10),
-    /**
-     * Value to configure Hikari ConnectionPool idleTimeout. Default value is 30000 ms.
-     */
-    JOOQ_idleTimeout("JOOQ.idleTimeout", 30000),
-    /**
-     * Defines the prefix key to retrieve String entries to add as additional DataSourceProperties
-     */
-    JOOQ_DataSourceProperty("JOOQ.DataSourceProperty."),
-    /**
-     * Comma separated list of fully qualified class names implementing the {@link JooqDomainHandler} interface.
-     * Default value is blank string.
-     */
-    JOOQ_domainHandlers("JOOQ.domainHandlers", ""),
-    /**
-     * Disable the invocation of {@link JooqDomainHandler#createTables(DSLContext)}. Default is 'false'
-     */
-    JOOQ_disableDomainCreateTables("JOOQ.disableDomainCreateTables", false),
     /**
      * Defines the VARCHAR size of NAME_TYPE type declaration {@link JooqDomainHandler#createTables(DSLContext)}. 
      * Default is '64'
@@ -106,6 +122,10 @@ public enum SystemProperties implements SystemPropertyOperations {
      */
     JOOQ_NameType_length("JOOQ.NameType.length", 64),
     /**
+     * Value to configure Hikari ConnectionPool password
+     */
+    JOOQ_password("JOOQ.password"),
+    /**
      * Defines the key (value:{@value}) to retrieve the integer value for VARCHAR size of PASSWORD_TYPE type declaration
      * {@link JooqDomainHandler#createTables(DSLContext)}. Default is '800'
      * 
@@ -115,6 +135,10 @@ public enum SystemProperties implements SystemPropertyOperations {
      * </pre>
      */
     JOOQ_PasswordType_length("JOOQ.PasswordType.length", 800),
+    /**
+     * Value to configure Hikari ConnectionPool to readOnly. Default is 'false'
+     */
+    JOOQ_readOnlyDataSource("JOOQ.readOnlyDataSource", false),
     /**
      * Defines the key (value:{@value}) to retrieve the integer value for VARCHAR size of STRING_TYPE type declaration
      * {@link JooqDomainHandler#createTables(DSLContext)}. Default is '800'
@@ -140,13 +164,35 @@ public enum SystemProperties implements SystemPropertyOperations {
      * </pre>
      */
     JOOQ_TextType_length("JOOQ.TextType.length", 800),
-    JooqAuth_Argon2_type("JooqAuth.Argon2.type", "ARGON2id"),
+    /**
+     * Value to configure Hikari CP jdbcUrl
+     */
+    JOOQ_URI("JOOQ.URI"),
+    /**
+     * Value to configure Hikari CP userName
+     */
+    JOOQ_user("JOOQ.user"),
+    /**
+     * Argon2 number of iteration when creating password hash. Default value is 2.
+     */
     JooqAuth_Argon2_iterations("JooqAuth.Argon2.iterations", 2),
-    JooqAuth_Argon2_memory("JooqAuth.Argon2.memory", 65536),
+    /**
+     * Argon2 memory usage of 2^N kB when creating password hash. Default value is 16.
+     */
+    JooqAuth_Argon2_memory("JooqAuth.Argon2.memory", 16),
+    /**
+     * Argon2 parallelism of N threads when creating password hash. Default value is 1.
+     */
     JooqAuth_Argon2_parallelism("JooqAuth.Argon2.parallelism", 1),
-
-    JooqLookupManager_getChildrenPattern_specialCharsToReplace("JooqLookupManager.getChildrenPattern.specialCharsToReplace", "[^a-zA-Z0-9 ]")
-    ;
+    /**
+     * Argon2 type to be used. Default value is 'ARGON2id'.
+     */
+    JooqAuth_Argon2_type("JooqAuth.Argon2.type", "ARGON2id"),
+    /**
+     * Escape these special characters for searches in DomainTree when using POSTGRES. 
+     * Default value is regex '[^a-zA-Z0-9 ]'.
+     */
+    JooqLookupManager_domainTreeSearches_specialCharsToEscape("JooqLookupManager.domainTreeSearches.specialCharsToEscape", "[^a-zA-Z0-9 ]");
 
     @Getter
     private final Object defaultValue;
