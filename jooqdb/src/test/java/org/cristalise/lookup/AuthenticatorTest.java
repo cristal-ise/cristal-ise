@@ -24,10 +24,11 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.ObjectProperties;
-import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
+import org.cristalise.storage.jooqdb.SystemProperties;
 import org.cristalise.storage.jooqdb.auth.Argon2PasswordService;
 import org.cristalise.storage.jooqdb.auth.JooqAuthenticator;
 import org.cristalise.storage.jooqdb.lookup.JooqLookupManager;
+import org.jooq.SQLDialect;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -36,20 +37,20 @@ import org.junit.Test;
 public class AuthenticatorTest {
     
     JooqLookupManager lookup;
-    JooqAuthenticator auth;
+//    JooqAuthenticator auth;
 
     @Before
     public void setUp() throws Exception {
         ObjectProperties c2kProps = new ObjectProperties();
 
-        c2kProps.put(JooqDataSourceHandler.JOOQ_URI,      "jdbc:h2:mem:");
-        c2kProps.put(JooqDataSourceHandler.JOOQ_USER,     "sa");
-        c2kProps.put(JooqDataSourceHandler.JOOQ_PASSWORD, "sa");
-        c2kProps.put(JooqDataSourceHandler.JOOQ_DIALECT,  "H2");
-
         Gateway.init(c2kProps);
 
-        auth = new JooqAuthenticator();
+        SystemProperties.JOOQ_URI.set("jdbc:h2:mem:");
+        SystemProperties.JOOQ_user.set("sa");
+        SystemProperties.JOOQ_password.set("sa");
+        SystemProperties.JOOQ_dialect.set(SQLDialect.H2.toString());
+
+//        auth = new JooqAuthenticator();
         lookup  = new JooqLookupManager();
 
         lookup.open(null);
@@ -57,7 +58,7 @@ public class AuthenticatorTest {
 
     @After
     public void tearDown() {
-        auth.disconnect();
+//        auth.disconnect();
         lookup.close();
     }
 

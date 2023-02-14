@@ -133,11 +133,8 @@ public class JooqHistoryHandler extends JooqHandler {
                 .set(TARGET_STATE_ID,       event.getTargetState())
                 .set(TRANSITION_ID,         event.getTransition())
                 .set(VIEW_NAME,             event.getViewName())
-                .set(TIMESTAMP,             DateUtility.toSqlTimestamp(event.getTimeStamp()));
-
-        if (Gateway.getProperties().getBoolean("JOOQ.Event.enableHasAttachment", true)) {
-            insert.set(HAS_ATTACHMENT, event.getHasAttachment());
-        }
+                .set(TIMESTAMP,             DateUtility.toSqlTimestamp(event.getTimeStamp()))
+                .set(HAS_ATTACHMENT,        event.getHasAttachment());
 
         return insert.execute();
     }
@@ -151,11 +148,6 @@ public class JooqHistoryHandler extends JooqHandler {
 
             GTimeStamp ts = DateUtility.fromSqlTimestamp( result.get(TIMESTAMP));
             //GTimeStamp ts = DateUtility.fromOffsetDateTime( result.get(TIMESTAMP", OffsetDateTime.class)));
-
-            Boolean hasAttachment = false;
-            if (Gateway.getProperties().getBoolean("JOOQ.Event.enableHasAttachment", true)) {
-                hasAttachment = result.get(HAS_ATTACHMENT.getName(), Boolean.class);
-            }
 
             try {
                 return new Event(
@@ -174,7 +166,7 @@ public class JooqHistoryHandler extends JooqHandler {
                         result.get(SCHEMA_NAME),
                         result.get(SCHEMA_VERSION),
                         result.get(VIEW_NAME),
-                        hasAttachment,
+                        result.get(HAS_ATTACHMENT.getName(), Boolean.class),
                         ts);
             }
             catch (Exception ex) {

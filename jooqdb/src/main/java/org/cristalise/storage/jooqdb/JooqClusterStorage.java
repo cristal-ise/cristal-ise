@@ -21,9 +21,9 @@
 package org.cristalise.storage.jooqdb;
 
 import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.retrieveContext;
-import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DISABLE_DOMAIN_CREATE;
-import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DOMAIN_HANDLERS;
 import static org.cristalise.storage.jooqdb.JooqHandler.getPrimaryKeys;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_disableDomainCreateTables;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_domainHandlers;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -43,7 +43,6 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Parameter;
 import org.cristalise.kernel.querying.Query;
@@ -116,7 +115,7 @@ public class JooqClusterStorage extends ClusterStorage {
      */
     private void initialiseDomainHandlers(DSLContext context) throws PersistencyException {
         try {
-            String handlers = Gateway.getProperties().getString(JOOQ_DOMAIN_HANDLERS, "");
+            String handlers = JOOQ_domainHandlers.getString();
 
             for(String handlerClass: StringUtils.split(handlers, ",")) {
                 if (!handlerClass.contains(".")) handlerClass = "org.cristalise.storage."+handlerClass;
@@ -131,7 +130,7 @@ public class JooqClusterStorage extends ClusterStorage {
             throw new PersistencyException("JooqClusterStorage could not instantiate domain handler:"+ex.getMessage());
         }
 
-        if (! Gateway.getProperties().getBoolean(JOOQ_DISABLE_DOMAIN_CREATE, false)) {
+        if (! JOOQ_disableDomainCreateTables.getBoolean()) {
             context.transaction(nested -> {
                 for (JooqDomainHandler handler: domainHandlers) handler.createTables(DSL.using(nested));
             });
