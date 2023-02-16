@@ -297,12 +297,12 @@ public class OutcomeUtils {
 
     /**
      * Returns the valid value of the given field as Boolean or null.
-     * Based on apache beanutils BooleanConverter which convertes strings {"yes", "y", "true", "on", "1"} to true
+     * Based on apache beanutils BooleanConverter which converts strings {"yes", "y", "true", "on", "1"} to true
      * and converts strings {"no", "n", "false", "off", "0"} to false 
      * <br>
      * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
      *
-     * @param input either a JSONObject or an Outcome
+     * @param input either a JSONObject, an Outcome or a Map
      * @param key the field to be converted
      * @return value of the given field as Boolean or null
      * 

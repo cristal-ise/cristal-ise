@@ -24,6 +24,7 @@ import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -102,7 +103,7 @@ public class TriggerProcess extends StandardClient {
             });
         });
 
-        Set<String> jobIds = null;//agent.getJobList().keySet();
+        Set<String> jobIds = new HashSet<>();//agent.getJobList().keySet();
         log.debug("initialise() - Retrieving #{} of Jobs.", jobIds.size());
         for (String id: jobIds) add(agent.getJob(id));
     }

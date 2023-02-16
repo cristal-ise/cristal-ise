@@ -119,7 +119,7 @@ trait BindingConvention {
      */
     public String addToBingings(Binding bindings, String name, Object obj) {
         def variableName = variablePrefix + name
-        bindings[variableName] = value
+        bindings[variableName] = obj
         return variableName
     }
 
