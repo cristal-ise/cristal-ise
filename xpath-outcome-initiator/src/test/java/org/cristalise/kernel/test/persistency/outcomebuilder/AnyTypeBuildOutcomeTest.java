@@ -33,7 +33,7 @@ public class AnyTypeBuildOutcomeTest extends XMLUtils {
 
     @Before
     public void setUp() throws Exception {
-        //Gateway.getProperties().setProperty("Validation.useDOM", false);
+        //SystemProperties.Outcome_Validation_useDOM.set(false);
     }
 
     @Test 
