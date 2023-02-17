@@ -21,6 +21,7 @@
 package org.cristalise.kernel.test.persistency.outcomebuilder;
 
 import static net.javacrumbs.jsonunit.JsonAssert.assertJsonEquals;
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_autoComplete_default;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -204,7 +205,7 @@ public class NgDynamicFormsTest extends XMLUtils {
 
     @Test
     public void ngForm_AutoComplete() throws Exception {
-        Gateway.getProperties().remove("Webui.autoComplete.default");
+        Gateway.getProperties().remove(Webui_autoComplete_default.toString());
 
         OutcomeBuilder builder = new OutcomeBuilder("PatientDetails", new Schema("AutoComplete", 0, getXSD(dir, "AutoComplete")), false);
 

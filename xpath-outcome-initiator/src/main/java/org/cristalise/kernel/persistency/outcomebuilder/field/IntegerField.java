@@ -20,11 +20,12 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_inputField_integer_defaultValue;
+
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.cristalise.kernel.process.Gateway;
 import org.json.JSONObject;
 
 public class IntegerField extends NumberField {
@@ -39,7 +40,7 @@ public class IntegerField extends NumberField {
 
     @Override
     public String getDefaultValue() {
-        return Gateway.getProperties().getString("Webui.inputField.integer.defaultValue", "0");
+        return Webui_inputField_integer_defaultValue.getString();
     }
 
     @Override
