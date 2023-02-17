@@ -47,6 +47,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -427,6 +428,10 @@ public class ItemRoot extends ItemUtils {
             log.error("requestTransition() - could not execute {}://{}:{}'", uuid, actPath, transition);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
+        catch (Throwable t) {
+            log.error("requestTransition() - could not execute {}://{}:{}'", uuid, actPath, transition);
+            throw new WebAppExceptionBuilder().exception(new CriseVertxException(t)).newCookie(cookie).build();
+        }
     }
 
     @POST
@@ -500,6 +505,10 @@ public class ItemRoot extends ItemUtils {
         catch (Exception e) {
             log.error("requestBinaryTransition() - could not execute {}://{}:{}'", uuid, actPath, transition);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+        catch (Throwable t) {
+            log.error("requestTransition() - could not execute {}://{}:{}'", uuid, actPath, transition);
+            throw new WebAppExceptionBuilder().exception(new CriseVertxException(t)).newCookie(cookie).build();
         }
     }
 
