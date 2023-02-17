@@ -110,7 +110,7 @@ public class ClusterStorageManager {
      * @param auth the Authenticator to be used to initialise all the handlers
      */
     public ClusterStorageManager(Authenticator auth) throws PersistencyException {
-        Object clusterStorageProp = SystemProperties.ClusterStorage.get();
+        Object clusterStorageProp = SystemProperties.ClusterStorage.getObject();
 
         if (clusterStorageProp == null || "".equals(clusterStorageProp)) {
             throw new PersistencyException("No persistency, no ClusterStorage defined!");

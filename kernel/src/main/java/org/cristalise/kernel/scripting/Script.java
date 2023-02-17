@@ -20,7 +20,9 @@
  */
 package org.cristalise.kernel.scripting;
 
+import static org.cristalise.kernel.SystemProperties.Script_EngineOverride_$lang;
 import static org.cristalise.kernel.collection.BuiltInCollections.INCLUDE;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
@@ -40,6 +43,7 @@ import javax.script.ScriptException;
 import javax.script.SimpleScriptContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
@@ -69,6 +73,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -325,11 +330,9 @@ public class Script implements DescriptionObject {
      * @param requestedLang the language
      */
     public void setScriptEngine(String requestedLang) throws ScriptingEngineException {
-        String lang = Gateway.getProperties().getString("OverrideScriptLang."+requestedLang, requestedLang);
+        ScriptEngineManager sem = new ScriptEngineManager(getClass().getClassLoader());
 
-        ScriptEngineManager sem = (ScriptEngineManager)Gateway.getProperties().getObject("Script.EngineManager");
-
-        if (sem == null) sem = new ScriptEngineManager(getClass().getClassLoader());
+        String lang = Script_EngineOverride_$lang.getString(requestedLang, requestedLang);
         engine = sem.getEngineByName(lang);
 
         if (engine == null) throw new ScriptingEngineException("No script engine for '"+lang+"' found.");

@@ -47,6 +47,9 @@ import org.cristalise.kernel.utils.FileStringUtility;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Implementation of ClusterStorage providing the XML file based persistence.
+ */
 @Slf4j
 public class XMLClusterStorage extends ClusterStorage {
     String  rootDir        = null;

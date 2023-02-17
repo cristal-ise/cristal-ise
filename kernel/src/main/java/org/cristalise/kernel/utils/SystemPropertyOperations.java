@@ -22,7 +22,13 @@ package org.cristalise.kernel.utils;
 
 import java.util.Properties;
 
+import org.apache.commons.beanutils.converters.BooleanConverter;
+import org.apache.commons.beanutils.converters.IntegerConverter;
+import org.apache.commons.beanutils.converters.StringConverter;
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.process.Gateway;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Java enum type does not support inheritance. This interface provides implementations to handle 
@@ -30,148 +36,338 @@ import org.cristalise.kernel.process.Gateway;
  */
 public interface SystemPropertyOperations {
 
+    final Logger log = LoggerFactory.getLogger(SystemPropertyOperations.class);
+
     /**
      * @return the String name of the SystemProperty, e.g. 'ItemServer.Telnet.host'
      */
     String getSystemPropertyName();
 
     /**
-     * @return the default value of the SystemPoperty, can be null.
+     * @return the default value of the actual SystemPoperty, can be null.
      */
     Object getDefaultValue();
+
+    /**
+     * Retrieve the actual name of the SystemProperty. It is used for those SystemProperty names, 
+     * which are based on {@link String#format(String, Object...)}
+     * 
+     * @param nameArgs array of Strings to be used in {@link String#format(String, Object...)} 
+     * to retrieve the actual name of the SystemProperty
+     * @return actual name of the SystemProperty
+     * 
+     * @implNote Internal method
+     */
+    default String getActualName(Object... nameArgs) {
+        return nameArgs == null ? getSystemPropertyName() : String.format(getSystemPropertyName(), nameArgs);
+    }
 
     /**
      * @return the value of the SystemProperty as Object. If no value is provided return the configured 
      * default value if available otherwise return null.
      */
-    default Object get() {
-        if (getDefaultValue() == null) {
-            return Gateway.getProperties().get(getSystemPropertyName());
-        }
-        else {
-            Object actValue = Gateway.getProperties().get(getSystemPropertyName());
-
-            if (actValue == null) return getDefaultValue();
-            else                  return Gateway.getProperties().get(getSystemPropertyName());
-        }
+    default Object getObject() {
+        return getObject(null, (Object[])null);
     }
 
     /**
-     * @return the value of the SystemProperty as Boolean. If no value is provided return the configured 
-     * default value if available otherwise return null.
+     * @param defaultOverwrite Use this value as default. Overwrites the default value defined in the enum. Can be null.
+     * @return the value of the SystemProperty as Object. If no value is provided return the provided default value 
+     * or configured default value if available otherwise return null
      */
-    default Boolean getBoolean() {
-        return getBoolean(null);
+    default Object getObject(Object defaultOverwrite) {
+        return getObject(defaultOverwrite, (Object[])null);
     }
 
     /**
-     * @param defaultOverwrite Use this value as default. Overwrites the the default value defined in the enum
-     * @return the value of the SystemProperty as Boolean. If no value is provided return the provided default value 
-     * or configured default value if available otherwise return null.
+     * Retrieve the value of the SystemProperty as Object for cases when the name of the SystemProperty
+     * is the combination of a predefined String and input string(s) required to configure the actual functionality.
+     * <br>
+     * To support this the SystemProperty name is based on {@link String#format(String, Object...)} 
+     * i.e. it contains string like 'OutcomeInit.%s'. 
+     * 
+     * @param nameArgs array of Strings to be used in {@link String#format(String, Object...)}.
+     * to retrieve the actual name of the SystemProperty. Can be null.
+     * @return the value of the SystemProperty as Object. If no value is provided return configured default value 
+     * if available otherwise return null
      */
-    default Boolean getBoolean(Boolean defaultOverwrite) {
+    default Object getObject(Object... nameArgs) {
+        return getObject(null, nameArgs);
+    }
+
+    /**
+     * Retrieve the value of the SystemProperty as Object covering all the cases. It can retrieve the value 
+     * associated with the SystemProperty name or it can retrieve the value when the name of the SystemProperty
+     * is the combination of a predefined String and input string(s) required to configure the actual functionality.
+     * <br>
+     * To support this the SystemProperty name is based on {@link String#format(String, Object...)} 
+     * i.e. it contains string like 'OutcomeInit.%s'. 
+     * 
+     * @param defaultOverwrite Use this value as default. Overwrites the default value defined in the enum. Can be null.
+     * @param nameArgs array of Strings to be used in {@link String#format(String, Object...)} 
+     * to retrieve the actual name of the SystemProperty. Can be null.
+     * @return the value of the SystemProperty as Object. If no value is provided return configured default value 
+     * if available otherwise return null
+     */
+    default Object getObject(Object defaultOverwrite, Object...nameArgs) {
+        String actualName = getActualName(nameArgs);
         Object actualDefaultValue = defaultOverwrite == null ? getDefaultValue() : defaultOverwrite;
 
+        Object actualValue = Gateway.getProperties().get(actualName);
+
+        log.trace("getObject() - {} => {} (default:{})", actualName, actualValue, actualDefaultValue);
+
         if (actualDefaultValue == null) {
-            return Gateway.getProperties().getBoolean(getSystemPropertyName());
+            return actualValue;
         }
         else {
-            return Gateway.getProperties().getBoolean(getSystemPropertyName(), (Boolean) actualDefaultValue);
+            if (actualValue == null) return actualDefaultValue;
+            else                     return actualValue;
         }
+    }
+
+    /**
+     * @return the value of the SystemProperty as String (trimmed). If no value is provided return the configured 
+     * default value if available otherwise return null.
+     * 
+     * @implNote Based on {@link StringConverter}
+     */
+    default String getString() {
+        return getString(null, (Object[])null);
+    }
+
+    /**
+     * @param defaultOverwrite Use this value as default. Overwrites the default value defined in the enum. Can be null.
+     * @return the value of the SystemProperty as String (trimmed). If no value is provided return the provided default value 
+     * or configured default value if available otherwise return null.
+     * 
+     * @implNote Based on {@link StringConverter}
+     */
+    default String getString(String defaultOverwrite) {
+        return getString(defaultOverwrite, (Object[])null);
+    }
+
+    /**
+     * Retrieve the value of the SystemProperty as String (trimmed) for cases when the name of the SystemProperty
+     * is the combination of a predefined String and input string(s) required to configure the actual functionality.
+     * <br>
+     * To support this the SystemProperty name is based on {@link String#format(String, Object...)} 
+     * i.e. it contains string like 'OutcomeInit.%s'. 
+     * 
+     * @param nameArgs array of Strings to be used in {@link String#format(String, Object...)}.
+     * to retrieve the actual name of the SystemProperty. Can be null.
+     * @return the value of the SystemProperty as String (trimmed). If no value is provided return configured default value 
+     * if available otherwise return null
+     * 
+     * @implNote Based on {@link StringConverter}
+     */
+    default String getString(Object... nameArgs) {
+        return getString(null, nameArgs);
+    }
+
+    /**
+     * Retrieve the value of the SystemProperty as String (trimmed) covering all the cases. It can retrieve the value 
+     * associated with the SystemProperty name or it can retrieve the value when the name of the SystemProperty
+     * is the combination of a predefined String and input string(s) required to configure the actual functionality.
+     * <br>
+     * To support this the SystemProperty name is based on {@link String#format(String, Object...)} 
+     * i.e. it contains string like 'OutcomeInit.%s'. 
+     * 
+     * @param defaultOverwrite Use this value as default. Overwrites the default value defined in the enum. Can be null.
+     * @param nameArgs array of Strings to be used in {@link String#format(String, Object...)} 
+     *     to retrieve the actual name of the SystemProperty. Can be null.
+     * @return the value of the SystemProperty as String (trimmed). If no value is provided return configured default value 
+     *     if available otherwise return null.
+     * 
+     * @implNote Based on {@link StringConverter}
+     */
+    default String getString(String defaultOverwrite, Object... nameArgs) {
+        Object actualValue = getObject(defaultOverwrite, nameArgs);
+
+        if (log.isDebugEnabled()) log.debug("getString() - {} => {}", getActualName(nameArgs), actualValue);
+
+        if (actualValue != null) return new StringConverter(null).convert(String.class, actualValue).trim();
+        else                     return null;
     }
 
     /**
      * @return the value of the SystemProperty as Integer. If no value is provided return the configured 
      * default value if available otherwise return null.
+     * 
+     * @implNote Based on {@link IntegerConverter}
      */
     default Integer getInteger() {
-        return getInteger(null);
+        return getInteger(null, (Object[])null);
     }
 
     /**
-     * @param defaultOverwrite Use this value as default. Overwrites the the default value defined in the enum
+     * @param defaultOverwrite Use this value as default. Overwrites the default value defined in the enum
      * @return the value of the SystemProperty as Integer. If no value is provided return the provided default value 
      * or configured default value if available otherwise return null.
+     * 
+     * @implNote Based on {@link IntegerConverter}
      */
     default Integer getInteger(Integer defaultOverwrite) {
-        Object actualDefaultValue = defaultOverwrite == null ? getDefaultValue() : defaultOverwrite;
-
-        if (actualDefaultValue == null) {
-            return Gateway.getProperties().getInteger(getSystemPropertyName());
-        }
-        else {
-            return Gateway.getProperties().getInteger(getSystemPropertyName(), (Integer)actualDefaultValue);
-        }
+        return getInteger(defaultOverwrite, (Object[])null);
     }
 
     /**
-     * @return the value of the SystemProperty as String. If no value is provided return the configured 
+     * Retrieve the value of the SystemProperty as Integer for cases when the name of the SystemProperty
+     * is the combination of a predefined String and input string(s) required to configure the actual functionality.
+     * <br>
+     * To support this the SystemProperty name is based on {@link String#format(String, Object...)} 
+     * i.e. it contains string like 'OutcomeInit.%s'. 
+     * 
+     * @param nameArgs array of Strings to be used in {@link String#format(String, Object...)}.
+     * to retrieve the actual name of the SystemProperty. Can be null.
+     * @return the value of the SystemProperty as Integer. If no value is provided return configured default value 
+     * if available otherwise return null
+     * 
+     * @implNote Based on {@link IntegerConverter}
+     */
+    default Integer getInteger(Object... args) {
+        return getInteger(null, args);
+    }
+
+    /**
+     * Retrieve the value of the SystemProperty as Integer covering all the cases. It can retrieve the value 
+     * associated with the SystemProperty name or it can retrieve the value when the name of the SystemProperty
+     * is the combination of a predefined String and input string(s) required to configure the actual functionality.
+     * <br>
+     * To support this the SystemProperty name is based on {@link String#format(String, Object...)} 
+     * i.e. it contains string like 'OutcomeInit.%s'. 
+     * 
+     * @param defaultOverwrite Use this value as default. Overwrites the default value defined in the enum. Can be null.
+     * @param nameArgs array of Strings to be used in {@link String#format(String, Object...)} 
+     * to retrieve the actual name of the SystemProperty. Can be null.
+     * @return the value of the SystemProperty as Integer. If no value is provided return configured default value 
+     * if available otherwise return null
+     * 
+     * @implNote Based on {@link IntegerConverter}
+     */
+    default Integer getInteger(Integer defaultOverwrite, Object... args) {
+        Object actualValue = getObject(defaultOverwrite, args);
+
+        if (log.isDebugEnabled()) log.debug("getInteger() - {} => {}", getActualName(args), actualValue);
+
+        if (actualValue != null) return new IntegerConverter(null).convert(Integer.class, actualValue);
+        else                     return null;
+    }
+
+    /**
+     * @return the value of the SystemProperty as Boolean. If no value is provided return the configured 
      * default value if available otherwise return null.
+     * 
+     * @implNote Based on {@link BooleanConverter}
      */
-    default String getString() {
-        return getString(null);
+    default Boolean getBoolean() {
+        return getBoolean(null, (Object[])null);
     }
 
     /**
-     * @param defaultOverwrite Use this value as default. Overwrites the the default value defined in the enum
-     * @return the value of the SystemProperty as String. If no value is provided return the provided default value 
+     * @param defaultOverwrite Use this value as default. Overwrites the default value defined in the enum
+     * @return the value of the SystemProperty as Boolean. If no value is provided return the provided default value 
      * or configured default value if available otherwise return null.
+     * 
+     * @implNote Based on {@link BooleanConverter}
      */
-    default String getString(String defaultOverwrite) {
-        Object actualDefaultValue = defaultOverwrite == null ? getDefaultValue() : defaultOverwrite;
-
-        if (actualDefaultValue == null) {
-            return Gateway.getProperties().getString(getSystemPropertyName());
-        }
-        else {
-            return Gateway.getProperties().getString(getSystemPropertyName(), (String)actualDefaultValue);
-        }
+    default Boolean getBoolean(Boolean defaultOverwrite) {
+        return getBoolean(defaultOverwrite, (Object[])null);
     }
 
     /**
+     * Retrieve the value of the SystemProperty as Boolean for cases when the name of the SystemProperty
+     * is the combination of a predefined String and input string(s) required to configure the actual functionality.
+     * <br>
+     * To support this the SystemProperty name is based on {@link String#format(String, Object...)} 
+     * i.e. it contains string like 'OutcomeInit.%s'. 
+     * 
+     * @param nameArgs array of Strings to be used in {@link String#format(String, Object...)}.
+     * to retrieve the actual name of the SystemProperty. Can be null.
+     * @return the value of the SystemProperty as Boolean. If no value is provided return configured default value 
+     * if available otherwise return null
+     * 
+     * @implNote Based on {@link BooleanConverter}
+     */
+    default Boolean getBoolean(Object... args) {
+        return getBoolean(null, args);
+    }
+
+    /**
+     * Retrieve the value of the SystemProperty as Boolean covering all the cases. It can retrieve the value 
+     * associated with the SystemProperty name or it can retrieve the value when the name of the SystemProperty
+     * is the combination of a predefined String and input string(s) required to configure the actual functionality.
+     * <br>
+     * To support this the SystemProperty name is based on {@link String#format(String, Object...)} 
+     * i.e. it contains string like 'OutcomeInit.%s'. 
+     * 
+     * @param defaultOverwrite Use this value as default. Overwrites the default value defined in the enum. Can be null.
+     * @param nameArgs array of Strings to be used in {@link String#format(String, Object...)} 
+     * to retrieve the actual name of the SystemProperty. Can be null.
+     * @return the value of the SystemProperty as Boolean. If no value is provided return configured default value 
+     * if available otherwise return null
+     * 
+     * @implNote Based on {@link BooleanConverter}
+     */
+    default Boolean getBoolean(Boolean defaultOverwrite, Object... args) {
+        Object actualValue = getObject(defaultOverwrite, args);
+
+        if (log.isDebugEnabled()) log.debug("getBoolean() - {} => {}", getActualName(args), actualValue);
+
+        if (actualValue != null) return new BooleanConverter(null).convert(Boolean.class, actualValue);
+        else                     return null;
+    }
+
+    /**
+     * Retrieve the value of the SystemProperty as String and try to instantiate the resulting String 
+     * using {@link Class#forName(String)}. It covers cases when the name of the SystemProperty
+     * is the combination of a predefined String and input string(s) required to configure the actual functionality.
+     * <br>
+     * To support this the SystemProperty name is based on {@link String#format(String, Object...)} 
+     * i.e. it contains string like 'OutcomeInit.%s'. 
+     * 
+     * @param nameArgs array of Strings to be used in {@link String#format(String, Object...)}.
+     * to retrieve the actual name of the SystemProperty. Can be null.
+     * @return the value of the SystemProperty as in instance of the Class. 
+     * @throws ReflectiveOperationException No value was available for the SystemProperty.
+     * 
+     * @implNote Based on {@link StringConverter}
      * 
      * @return
-     * @throws ReflectiveOperationException
      */
-    default Object getInstance() throws ReflectiveOperationException {
-        Object prop = get();
+    default Object getInstance(Object... nameArgs) throws ReflectiveOperationException {
+        String actualValue = getString(nameArgs);
 
-        String classToInstantiate = null;
+        if (log.isDebugEnabled()) log.debug("getInstance() - {} => {}", getActualName(nameArgs), actualValue);
 
-        if (prop == null || prop.equals("")) {
-            throw new InstantiationException("Property '" + this + "' was not defined. Cannot instantiate.");
-        }
-        else if (prop instanceof String) {
-            classToInstantiate = ((String) prop).trim();
+        if (StringUtils.isBlank(actualValue)) {
+            throw new InstantiationException("SystemProperty '" + getActualName(nameArgs) + "' was not defined.");
         }
         else {
-            // this will very likely fail
-            classToInstantiate = prop.toString();
+            return Class.forName(actualValue).getDeclaredConstructor().newInstance();
         }
-
-        return Class.forName(classToInstantiate).getDeclaredConstructor().newInstance();
     }
 
     /**
-     * Set the value in Properties maintained by the Gateway using the SystemProperty name.
-     * 
-     * @apiNote Use this only for testing
+     * Set the value of the SystemProperty maintained.
      * 
      * @param value of the SystemProperty
      * @return the previous value associated with SystemProperty, or null if there was no mapping for SystemProperty.
+     * 
+     * @apiNote Use this only for testing
      */
     default Object set(Object value) {
         return Gateway.getProperties().put(getSystemPropertyName(), value);
     }
 
     /**
-     * Set the value in the given Properties object using the SystemProperty name
-     * 
-     * @apiNote Use this only for testing
+     * Set the value in the given Properties object using the SystemProperty name.
      * 
      * @param props the properties object to be updated
      * @param value of the SystemProperty
      * @return the previous value associated with SystemProperty, or null if there was no mapping for SystemProperty.
+     * 
+     * @apiNote Use this only for testing
      */
     default Object set(Properties props, Object value) {
         return props.put(getSystemPropertyName(), value);

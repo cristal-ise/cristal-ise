@@ -21,6 +21,10 @@
 package org.cristalise.dev.test.scaffold
 
 import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.ERASE
+import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN
+import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN
+import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN
+import static org.cristalise.kernel.property.BuiltInItemProperties.WORKFLOW_URN
 
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -275,10 +279,13 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
             Email: 'mate@people.hu',
             "/$folder/ClubMemberFactory")
 
-        assert clubMember.getCollection('Cars').members.list.size() == 0
+        assert clubMember.getProperty(MASTER_SCHEMA_URN)
+        assert clubMember.getProperty(AGGREGATE_SCRIPT_URN)
+
+        assert clubMember.getCollection('Cars')       .members.list.size() == 0
         assert clubMember.getCollection('Motorcycles').members.list.size() == 0
-        assert car.getCollection('ClubMember').members.list.size() == 0
-        assert motorcycle.getCollection('ClubMember').members.list.size() == 0
+        assert car       .getCollection('ClubMember') .members.list.size() == 0
+        assert motorcycle.getCollection('ClubMember') .members.list.size() == 0
 
         //Add to Cars
         def addToCarsJob = clubMember.getJobByName('AddToCars', agent)

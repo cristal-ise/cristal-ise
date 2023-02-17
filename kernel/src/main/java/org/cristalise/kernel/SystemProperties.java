@@ -20,17 +20,23 @@
  */
 package org.cristalise.kernel;
 
+import org.apache.shiro.authz.permission.WildcardPermission;
+import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.predefined.BulkErase;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.BulkImport;
+import org.cristalise.kernel.lifecycle.routingHelpers.DataHelper;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.OutcomeInitiator;
+import org.cristalise.kernel.process.Bootstrap;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.SystemPropertyOperations;
+import org.cristalise.storage.XMLClusterStorage;
 
 import io.vertx.serviceproxy.ServiceException;
 import lombok.Getter;
@@ -50,8 +56,13 @@ import lombok.Getter;
  * @see #BulkImport_fileExtension
  * @see #BulkImport_rootDirectory
  * @see #BulkImport_useDirectories
+ * @see #$UserCodeRole_StateMachine_bootfile
+ * @see #$UserCodeRole_StateMachine_name
+ * @see #$UserCodeRole_StateMachine_namespace
+ * @see #$UserCodeRole_StateMachine_version
  * @see #ClusterStorage
  * @see #ClusterStorage_cacheSpec
+ * @see #DataHelper
  * @see #Dependency_addStateMachineURN
  * @see #Dependency_addWorkflowURN
  * @see #Dependency_checkMemberUniqueness
@@ -73,12 +84,16 @@ import lombok.Getter;
  * @see #Lookup
  * @see #Module_ImportAgent_enableRoleCreation
  * @see #Module_reset
+ * @see #Module_$Namespace_reset
  * @see #Module_Versioning_strict
  * @see #Outcome_Validation_useDOM
+ * @see #OutcomeInit_$name
  * @see #OutcomeInit_jobUseViewpoint
  * @see #Resource_moduleUseFileNameWithVersion
  * @see #Resource_useOldImportFormat
+ * @see #ResourceImportHandler_$typeCode
  * @see #RoutingScript_enforceStringReturnValue
+ * @see #Script_EngineOverride_$lang
  * @see #Shiro_iniFile
  * @see #StateMachine_Composite_default
  * @see #StateMachine_Elementary_default
@@ -87,10 +102,20 @@ import lombok.Getter;
  * @see #SystemProperties_keywordsToRedact
  * @see #TcpBridge_host
  * @see #TcpBridge_port
+ * @see #$UserCodeRole_agent
+ * @see #$UserCodeRole_password
+ * @see #$UserCodeRole_permissions
+ * @see #UserCode_roleOverride
+ * @see #$UserCodeRole_StateMachine_completeTransition
+ * @see #$UserCodeRole_StateMachine_errorTransition
+ * @see #$UserCodeRole_StateMachine_startTransition
+ * @see #$UserCodeRole_StateMachine_bootfile
+ * @see #$UserCodeRole_StateMachine_name
+ * @see #$UserCodeRole_StateMachine_namespace
+ * @see #$UserCodeRole_StateMachine_version
  * @see #XMLStorage_root
  */
 public enum SystemProperties implements SystemPropertyOperations {
-
     /**
      * Enables OutcomeValidation during database transaction (aka server-side validation). Default
      * value is 'false', because Outcomes are validated in client code (e.g. during restapi call).
@@ -99,8 +124,9 @@ public enum SystemProperties implements SystemPropertyOperations {
      */
     Activity_validateOutcome("Activity.validateOutcome", false),
     /**
-     * Specify the Authenticator implementation to be used. The default value is 'Shiro', which will use the Shiro
-     * integration with authentication realms, or it could be a java class implementing the {@link Authenticator} interface.
+     * DEPRECATED - Shiro provides better mechanism. Specifies the Authenticator implementation to be used. 
+     * The default value is 'Shiro', which will use the Shiro integration with authentication realms, 
+     * or it could be a java class implementing the deprecated {@link Authenticator} interface.
      */
     Authenticator("Authenticator", "Shiro"),
     /**
@@ -123,11 +149,9 @@ public enum SystemProperties implements SystemPropertyOperations {
      */
     BulkImport_useDirectories("BulkImport.useDirectories", false),
     /**
-     * Initialise the clustered version of vertx. Default value is 'true'.
-     */
-    Gateway_clusteredVertx("Gateway.clusteredVertx", true),
-    /**
-     * Defines the class to be used as a {@link ClusterStorage} implementation. No default value.
+     * Ordered list of implementation of the {@link ClusterStorage} interface that Cristal will use for storage 
+     * of Item local objects. Precedence is left to right. If package name is not supplied, 
+     * org.cristalise.storage is implied. No default value.
      */
     ClusterStorage("ClusterStorage"),
     /**
@@ -135,6 +159,13 @@ public enum SystemProperties implements SystemPropertyOperations {
      * Default is value is 'expireAfterAccess = 600s, recordStats'
      */
     ClusterStorage_cacheSpec("ClusterStorage.cacheSpec", "expireAfterAccess = 600s, recordStats"),
+    /**
+     * Define the java classname that implements the {@link DataHelper} interface. No default value.
+     * 
+     * @apiNote $Name means that it will be replaced with name of the {@link DataHelper} when 
+     * {@link #getString(Object...)} is used.
+     */
+    DataHelper_$name("DataHelper.%s"),
     /**
      * Add or not a new Item Property 'StaeMachineURN' during {@link CreateItemFromDescription}.
      * Default value is false.
@@ -151,9 +182,13 @@ public enum SystemProperties implements SystemPropertyOperations {
      */
     Dependency_checkMemberUniqueness("Dependency.checkMemberUniqueness", true),
     /**
-     * Replace UUID with Activitz name while exporting {@link CompositeActivityDef}. Default value is "false"
+     * Replace UUID with Activity name while exporting {@link CompositeActivityDef}. Default value is 'false'
      */
     Export_replaceActivitySlotDefUUIDWithName("Export.replaceActivitySlotDefUUIDWithName", false),
+    /**
+     * Initialise the clustered version of vertx. Default value is 'true'.
+     */
+    Gateway_clusteredVertx("Gateway.clusteredVertx", true),
     /**
      * The name of the Server Item. default is 'localhost', although kernel code overrides that 
      * with InetAddress.getLocalHost().getHostName().
@@ -213,20 +248,30 @@ public enum SystemProperties implements SystemPropertyOperations {
      */
     LocalObjectLoader_lookupUseProperties("LocalObjectLoader.lookupUseProperties", false),
     /**
-     * Define the java class that implements the {@link Lookup} interface. No default value.
+     * Define the java classname that implements the {@link Lookup} interface. No default value.
      */
     Lookup("Lookup"),
     /**
-     * Create Role even if it is not fully specified in the ImportAgent. Default value is false.
+     * Create Role(s) defined in {@link ImportAgent} even if it is not fully specified. Default value is false.
      */
     Module_ImportAgent_enableRoleCreation("Module.ImportAgent.enableRoleCreation", false),
     /**
-     * Forces Bootstrap to overwrite existing resources, even if it was updated by some else, 
-     * i.e. using dynamic editing through UI. Default value is 'false'.
+     * Forces {@link Bootstrap} to overwrite existing resources imported from all modules. 
+     * If true the resource is updated to the version stored in the jar to overwrite changes by someone 
+     * other than {@link Bootstrap} (i.e. using dynamic editing through UI. Default value is 'false'.
      */
     Module_reset("Module.reset", false),
     /**
-     * Generate error if the resource Item is referenced without version number, otherwise use
+     * Forces {@link Bootstrap} to overwrite existing resources imported from the given module (see apiNote of $Namespace). 
+     * If true the resource is updated to the version stored in the jar to overwrite changes by someone 
+     * other than {@link Bootstrap} (i.e. using dynamic editing through UI. Default value is 'false'.
+     * 
+     * @apiNote $Namespace means that it will be replaced with name of the Namespace 
+     * when {@link #getBoolean(Object...)} is used.
+     */
+    Module_$Namespace_reset("Module.%s.reset"),
+    /**
+     * If true generates error if the resource Item is referenced without version number, otherwise use
      * version 0. Default value is false.
      */
     Module_Versioning_strict("Module.Versioning.strict", false),
@@ -235,6 +280,15 @@ public enum SystemProperties implements SystemPropertyOperations {
      * It was added to investigate strange Apache Xerces xml corruption issue.
      */
     Outcome_Validation_useDOM("Outcome.Validation.useDOM", true),
+    /**
+     * Specifies an {@link OutcomeInitiator} implementation to use to create new empty Outcomes. 
+     * Will be invoked from Job.getOutcome() for Activities with an 'OutcomeInit' property set to the given name.
+     * Default is null.
+     * 
+     * @apiNote $Name means that it will be replaced with name of the OutcomeInitiator when 
+     * {@link #getString(Object...)} is used.
+     */
+    OutcomeInit_$name("OutcomeInit.%s"),
     /**
      * Use last Outcome instance instead of OutcomeInitiator. Default value is false.
      */
@@ -249,10 +303,21 @@ public enum SystemProperties implements SystemPropertyOperations {
      */
     Resource_useOldImportFormat("Resource.useOldImportFormat", false),
     /**
+     * Specifies a custom ResourceImportHandler implementation, allowing modules to define their 
+     * own resource types, or override the import of the core ones. The type code can be any string, 
+     * but by convention a short upper-case string is used. The core types are EA (Elementary Activity), 
+     * CA (Composite Activity), OD (Outcome Description - Schema), SC (Script) and SM (State Machine)
+     */
+    ResourceImportHandler_$typeCode("ResourceImportHandler.%s"),
+    /**
      * Throws an exception when the RoutingScript does not return of the Script is not a String
      * type. Default value is 'false', which means the Object.toString() value is returned.
      */
     RoutingScript_enforceStringReturnValue("RoutingScript.enforceStringReturnValue", false),
+    /**
+     * Override the javax.script engine for the given scripting language. Used to override Javascript in Java8+ with Rhino
+     */
+    Script_EngineOverride_$lang("Script.EngineOverride.%s"),
     /**
      * Configuration of the shiro.ini file, normally it is in the config directory. No default value.
      */
@@ -287,7 +352,95 @@ public enum SystemProperties implements SystemPropertyOperations {
      */
     TcpBridge_port("TcpBridge.port", 7000),
     /**
-     * Specifies the root directory of the XML file based Storage- No default value.
+     * Defines the default role to be used for UserCode. It also used as a prefix for every configuration property
+     * eg: UserCode.StateMachine.startTransition. Default value is 'UserCode'.
+     */
+    UserCode_roleOverride("UserCode.roleOverride", "UserCode"),
+    /**
+     * Specifies the Agent name associated with the UserCode role. No default value.
+     * 
+     * @apiNote $UserCodeRole means that it will be replaced with Role name of the associated with the UserCode
+     * when {@link #getString(Object...)} is used.
+     */
+    $UserCodeRole_agent("%s.agent"),
+    /**
+     * Specifies the password of the Agent associated with the UserCode role. Default value is 'uc'.
+     * 
+     * @apiNote $UserCodeRole means that it will be replaced with Role name of the associated with the UserCode
+     * when {@link #getString(Object...)} is used.
+     */
+    $UserCodeRole_password("%s.password", "uc"),
+    /**
+     * Specifies the permissions, i.e. comma separated {@link WildcardPermission} strings, of the Agent 
+     * associated with the UserCode role. Default value is 'uc'.
+     * 
+     * @apiNote $UserCodeRole means that it will be replaced with Role name of the associated with the UserCode
+     * when {@link #getString(Object...)} is used.
+     */
+    $UserCodeRole_permissions("%s.permissions"),
+    /**
+     * Override the default mapping for Start transition of UserCode.
+     * It is always prefixed like this: eg: UserCode.StateMachine.startTransition
+     * 
+     * @apiNote $UserCodeRole means that it will be replaced with Role name of the associated with the UserCode
+     * when {@link #getString(Object...)} is used.
+     */
+    $UserCodeRole_StateMachine_startTransition("%s.StateMachine.startTransition", "Start"),
+    /**
+     * Override the default mapping for Complete transition of UserCode.
+     * It is always prefixed like this: eg: UserCode.StateMachine.completeTransition
+     * 
+     * @apiNote $UserCodeRole means that it will be replaced with Role name of the associated with the UserCode
+     * when {@link #getString(Object...)} is used.
+     */
+    $UserCodeRole_StateMachine_completeTransition("%s.StateMachine.completeTransition", "Complete"),
+    /**
+     * Override the default mapping for Error transition of UserCode.
+     * It is always prefixed like this: eg: UserCode.StateMachine.errorTransition
+     * 
+     * @apiNote $UserCodeRole means that it will be replaced with Role name of the associated with the UserCode
+     * when {@link #getString(Object...)} is used.
+     */
+    $UserCodeRole_StateMachine_errorTransition("%s.StateMachine.errorTransition", "Suspend"),
+    /**
+     * Specifies the StateMachine Name required for the UserCode implementation. Default value is 'Default'
+     * because standard implementation is based in the built-in StateMachine.
+     * 
+     * @apiNote $UserCodeRole means that it will be replaced with Role name of the associated with the UserCode
+     * when {@link #getString(Object...)} is used.
+     */
+    $UserCodeRole_StateMachine_name("%s.StateMachine.name", "Default"),
+    /**
+     * Specifies the StateMachine version required for the UserCode implementation. Default value is '0'.
+     * 
+     * @apiNote $UserCodeRole means that it will be replaced with Role name of the associated with the UserCode
+     * when {@link #getString(Object...)} is used.
+     */
+    $UserCodeRole_StateMachine_version("%s.StateMachine.version"),
+    /**
+     * Specifies the namespace (i.e. the module) from which the StateMachine required for the UserCode implementation
+     * can be loaded. No default value.
+     * 
+     * @apiNote $UserCodeRole means that it will be replaced with Role name of the associated with 
+     * the UserCode when {@link #getString(Object...)} is used.
+     * 
+     * @apiNote It was added to enable testing, when LocalObjectLoader is not fully initialised, 
+     * so the StateMachine is loaded from the jar directly.
+     */
+    $UserCodeRole_StateMachine_namespace("%s.StateMachine.namespace"),
+    /**
+     * Specifies the file path to of the StateMachine XML file used in the jar. This will be used to find 
+     * the StateMachine required for the UserCode implementation can be loaded. No default value.
+     * 
+     * @apiNote $UserCodeRole means that it will be replaced with Role name of the associated with the UserCode
+     * when {@link #getString(Object...)} is used.
+     * 
+     * @apiNote It was added to enable testing, when LocalObjectLoader is not fully initialised, 
+     * so the StateMachine is loaded from the jar directly.
+     */
+    $UserCodeRole_StateMachine_bootfile("%s.StateMachine.bootfile"),
+    /**
+     * If using {@link XMLClusterStorage}, this defined the root directory of XML file storage No default value.
      */
     XMLStorage_root("XMLStorage.root");
 

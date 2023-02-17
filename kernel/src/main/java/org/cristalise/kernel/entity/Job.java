@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.entity;
 
+import static org.cristalise.kernel.SystemProperties.OutcomeInit_$name;
 import static org.cristalise.kernel.SystemProperties.OutcomeInit_jobUseViewpoint;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.OUTCOME_INIT;
@@ -27,7 +28,6 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.PropertyUtility.getPropertyValue;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -357,25 +357,20 @@ public class Job implements C2KLocalObject {
         String ocInitName = getActPropString(OUTCOME_INIT);
 
         if (StringUtils.isNotBlank(ocInitName)) {
-            String ocConfigPropName = OUTCOME_INIT.getName()+"."+ocInitName;
             OutcomeInitiator ocInit;
 
             synchronized (ocInitCache) {
-                log.debug("Job.getOutcomeInitiator() - ocConfigPropName:{}", ocConfigPropName);
-                ocInit = ocInitCache.get(ocConfigPropName);
+                log.debug("Job.getOutcomeInitiator() - ocInitName:{}", ocInitName);
+                ocInit = ocInitCache.get(ocInitName);
 
                 if (ocInit == null) {
-                    if (!Gateway.getProperties().containsKey(ocConfigPropName)) {
-                        throw new InvalidDataException("Property OutcomeInitiator "+ocConfigPropName+" isn't defined. Check module.xml");
-                    }
-
                     try {
-                        ocInit = (OutcomeInitiator)Gateway.getProperties().getInstance(ocConfigPropName);
-                        ocInitCache.put(ocConfigPropName, ocInit);
+                        ocInit = (OutcomeInitiator)OutcomeInit_$name.getInstance(ocInitName);
+                        ocInitCache.put(ocInitName, ocInit);
                     }
-                    catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
-                        log.trace("getOutcomeInitiator() - cannot instantiate {} ", ocConfigPropName, e);
-                        throw new InvalidDataException("OutcomeInitiator "+ocConfigPropName+" couldn't be instantiated:", e);
+                    catch (ReflectiveOperationException e) {
+                        log.trace("getOutcomeInitiator() - cannot instantiate {} ", ocInitName, e);
+                        throw new InvalidDataException("OutcomeInitiator "+ocInitName+" couldn't be instantiated:", e);
                     }
                 }
             }

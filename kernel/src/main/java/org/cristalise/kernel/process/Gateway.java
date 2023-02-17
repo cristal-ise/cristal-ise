@@ -26,8 +26,8 @@ import static org.cristalise.kernel.SystemProperties.Gateway_clusteredVertx;
 import static org.cristalise.kernel.SystemProperties.ItemServer_Telnet_host;
 import static org.cristalise.kernel.SystemProperties.ItemServer_Telnet_port;
 import static org.cristalise.kernel.SystemProperties.Lookup;
+import static org.cristalise.kernel.SystemProperties.ResourceImportHandler_$typeCode;
 
-import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -592,11 +592,14 @@ public class Gateway extends ProxyManager
     public static ResourceImportHandler getResourceImportHandler(BuiltInResources resType) throws Exception {
         if (resourceImportHandlerCache.containsKey(resType)) return resourceImportHandlerCache.get(resType);
 
+        //this variable is needed to call the proper signature of SystemProperties
+        Object[] args = new Object[] {resType.toString()};
+
         ResourceImportHandler handler = null;
 
-        if (Gateway.getProperties().containsKey("ResourceImportHandler."+resType)) {
+        if (ResourceImportHandler_$typeCode.getObject(args) != null) {
             try {
-                handler = (ResourceImportHandler) Gateway.getProperties().getInstance("ResourceImportHandler."+resType);
+                handler = (ResourceImportHandler) ResourceImportHandler_$typeCode.getInstance(args);
             }
             catch (Exception ex) {
                 log.error("Exception loading ResourceHandler for "+resType+". Using default.", ex);

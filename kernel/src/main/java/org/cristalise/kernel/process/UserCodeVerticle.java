@@ -20,6 +20,9 @@
  */
 package org.cristalise.kernel.process;
 
+import static org.cristalise.kernel.SystemProperties.$UserCodeRole_StateMachine_completeTransition;
+import static org.cristalise.kernel.SystemProperties.$UserCodeRole_StateMachine_errorTransition;
+import static org.cristalise.kernel.SystemProperties.$UserCodeRole_StateMachine_startTransition;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.cristalise.kernel.process.StandardClient.getRequiredStateMachine;
 import static org.cristalise.kernel.process.UserCodeProcess.getAgentName;
@@ -62,21 +65,6 @@ public class UserCodeVerticle extends AbstractVerticle {
     private final int ERROR;
 
     /**
-     * Defines the name of the CRISTAL Property (value:{@value}) to override the default mapping for Start transition.
-     * It is always prefixed like this: eg: UserCode.StateMachine.startTransition
-     */
-    public static final String STATE_MACHINE_START_TRANSITION = "StateMachine.startTransition";
-    /**
-     * Defines the name of the CRISTAL Property (value:{@value}) to override the default mapping for Complete transition.
-     * It is always prefixed like this: eg: UserCode.StateMachine.completeTransition
-     */
-    public static final String STATE_MACHINE_COMPLETE_TRANSITION = "StateMachine.completeTransition";
-    /**
-     * Defines the name of the CRISTAL Property (value:{@value}) to override the default mapping for Error transition.
-     * It is always prefixed like this: eg: UserCode.StateMachine.errorTransition
-     */
-    public static final String STATE_MACHINE_ERROR_TRANSITION = "StateMachine.errorTransition";
-    /**
      * Defines the value (value:{@value}) to to be used in CRISTAL Property to ignore the Jobs of that Transition
      * eg: UserCode.StateMachine.resumeTransition = USERCODE_IGNORE
      */
@@ -89,14 +77,12 @@ public class UserCodeVerticle extends AbstractVerticle {
      * @throws ObjectNotFoundException
      */
     public UserCodeVerticle() throws InvalidDataException, ObjectNotFoundException {
-
         StateMachine sm = getRequiredStateMachine(getRoleName(), null, "boot/SM/Default.xml");
-        String propPrefix = getRoleName();
 
         //default values are valid for Transitions compatible with kernel provided Default StateMachine
-        START    = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_START_TRANSITION,    "Start");
-        ERROR    = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_ERROR_TRANSITION,    "Suspend");
-        COMPLETE = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_COMPLETE_TRANSITION, "Complete");
+        START    = getValidTransitionID(sm, $UserCodeRole_StateMachine_startTransition.getString(null, getRoleName()));
+        ERROR    = getValidTransitionID(sm, $UserCodeRole_StateMachine_errorTransition.getString(null, getRoleName()));
+        COMPLETE = getValidTransitionID(sm, $UserCodeRole_StateMachine_completeTransition.getString(null, getRoleName()));
     }
 
     /**
@@ -107,9 +93,7 @@ public class UserCodeVerticle extends AbstractVerticle {
      * @return
      * @throws InvalidDataException
      */
-    private int getValidTransitionID(StateMachine sm, String propertyName, String defaultValue) throws InvalidDataException {
-        String propertyValue = Gateway.getProperties().getString(propertyName, defaultValue);
-
+    private int getValidTransitionID(StateMachine sm, String propertyValue) throws InvalidDataException {
         if(USERCODE_IGNORE.equals(propertyValue)) return -1;
         else                                      return sm.getValidTransitionID(propertyValue);
     }
