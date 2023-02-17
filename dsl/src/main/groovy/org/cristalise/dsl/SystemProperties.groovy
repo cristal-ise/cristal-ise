@@ -35,13 +35,21 @@ import lombok.Getter
  *   ModuleScript_lineSeparator => ModuleScript.lineSeparator
  * </pre>
  * 
+ * @see #DSL_Module_BindingConvention_autoAddObject
  * @see #DSL_Module_BindingConvention_defaulBeanKeys
  * @see #DSL_Module_BindingConvention_variablePrefix
- * @see #DSL_Module_BindingConvention_autoAddObject
- * @see #ModuleScript_lineSeparator
+ * @see #DSL_Module_generateAllResourceItems
+ * @see #DSL_Module_generateModuleXml
+ * @see #DSL_Module_generateResourceXml
+ * @see #DSL_Module_lineSeparator
+ * @see #DSL_Module_strictUpdate
  */
 enum SystemProperties implements SystemPropertyOperations {
 
+    /**
+     * Enable the automatically variable creation to the Binding. Default value is 'true'.
+     */
+    DSL_Module_BindingConvention_autoAddObject('DSL.Module.BindingConvention.autoAddObject', true),
     /**
      * Comma separated keys to read from the Object when automatically adding variables to the Binding.
      * Default value is 'id,key,name'.
@@ -52,15 +60,31 @@ enum SystemProperties implements SystemPropertyOperations {
      */
     DSL_Module_BindingConvention_variablePrefix('DSL.Module.BindingConvention.variablePrefix', '$'),
     /**
-     * Enable the automatically variable creation to the Binding. Default value is true'.
+     * Enables DSL to generate separate XML file for Item/Agent/Role definitions as well. Default value is 'true'.
      */
-    DSL_Module_BindingConvention_autoAddObject('DSL.Module.BindingConvention.autoAddObject', true),
+    DSL_Module_generateAllResourceItems('DSL.Module.generateAllResourceItems', true),
+    /**
+     * Enables DSL to generate module.xml. Default value is 'true'.
+     * 
+     * @apiNote It was added to enable testing, when the module.xml generation is not required.
+     */
+    DSL_Module_generateModuleXml('DSL.Module.generateModuleXml', true),
+    /**
+     * Enables DSL to generate XML files for the resource Items. Default value is 'true'.
+     * 
+     * @apiNote It was added to enable testing, when resource XML file generation is not required.
+     */
+    DSL_Module_generateResourceXml('DSL.Module.generateResourceXml', true),
     /**
      * Sets the java system property 'line.separator' to be used in module scripts.
      * Default value is 'linux', i.e. '\n' will be used. Any other value will force the system 
      * to use windows specific '\r\n' line endings.
      */
-    ModuleScript_lineSeparator('ModuleScript.lineSeparator', 'linux');
+    DSL_Module_lineSeparator('ModuleScript.lineSeparator', 'linux'),
+    /**
+     * Prevents the module generation DSL to update the same resource Item more than once. Default value is 'true'.
+     */
+    DSL_Module_strictUpdate('DSL.Module.strictUpdate', true)
 
     final Object defaultValue;
     final String systemPropertyName;

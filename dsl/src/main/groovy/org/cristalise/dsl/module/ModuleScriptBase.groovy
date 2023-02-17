@@ -20,7 +20,7 @@
  */
 package org.cristalise.dsl.module
 
-import static org.cristalise.dsl.SystemProperties.ModuleScript_lineSeparator
+import static org.cristalise.dsl.SystemProperties.DSL_Module_lineSeparator
 
 import java.nio.file.Paths
 
@@ -54,7 +54,7 @@ abstract class ModuleScriptBase extends DelegatingScript {
 
     public boolean init() {
         //This solution is used because ObjectProperties.getString('...') trims the value which will trim new line characters as well.
-        String lineSepType = ModuleScript_lineSeparator.getString();
+        String lineSepType = DSL_Module_lineSeparator.getString();
         System.setProperty('line.separator', lineSepType == 'linux' ? '\n' : '\r\n' )
 
         if (configDir && (connect || config)) throw new InvalidDataException('Specify only configDir or connect/config')
