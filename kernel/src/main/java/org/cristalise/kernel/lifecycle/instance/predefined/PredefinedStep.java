@@ -371,7 +371,7 @@ public abstract class PredefinedStep extends Activity {
             CannotManageException, 
             InvalidCollectionModification
     {
-        log.info("request(item:{}) - class:{}", itemPath.getItemName(transactionKey), getType());
+        log.info("request({}) - class:{}", itemPath.getItemName(transactionKey), getType());
         this.setActive(true);
         return request(agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, transactionKey);
     }

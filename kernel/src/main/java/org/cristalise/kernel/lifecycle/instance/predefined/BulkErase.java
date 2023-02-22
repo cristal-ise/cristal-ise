@@ -25,6 +25,7 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_N
 import java.io.IOException;
 
 import org.cristalise.kernel.common.CannotManageException;
+import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -48,6 +49,10 @@ public class BulkErase extends Erase {
     public static final String description =  "Deletes all Items selected bz the SearchFilter : Root Domainpath and list of Properties";
 
     private static final int LIMIT = Gateway.getProperties().getInt("BulkErase.limit", 0); // 0 means no paging
+    /**
+     *  if true continue Erase even if an error - UNIMPLEMENTED
+     */
+    private static final boolean FORCE_FLAG = Gateway.getProperties().getBoolean("BulkErase.force", false);
 
     public BulkErase() {
         super();
@@ -61,14 +66,14 @@ public class BulkErase extends Erase {
      */
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
-            throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
+            throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException, InvalidCollectionModification
     {
         try {
             SearchFilter filter = (SearchFilter) Gateway.getMarshaller().unmarshall(requestData);
 
-            log.debug("runActivityLogic() - item:{} filter:{} limit:{}", item, filter, LIMIT);
+            log.debug("runActivityLogic() - item:{} filter:{} limit:{} forceFlag:{}", item, filter, LIMIT, FORCE_FLAG);
 
-            int recordsDeleted = eraseAllItemsOfSearch(filter, transactionKey, 0, LIMIT);
+            int recordsDeleted = eraseAllItemsOfSearch(agent, filter, transactionKey, 0, LIMIT);
             filter.setRecordsFound(recordsDeleted);
 
             log.info("runActivityLogic() - DONE #{} items with filter:{}", filter.getRecordsFound(), filter);
@@ -80,8 +85,8 @@ public class BulkErase extends Erase {
         }
     }
 
-    private int eraseAllItemsOfSearch(SearchFilter filter, TransactionKey transactionKey, final int offset, final int limit)
-            throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, InvalidDataException, PersistencyException
+    private int eraseAllItemsOfSearch(AgentPath agent, SearchFilter filter, TransactionKey transactionKey, final int offset, final int limit)
+            throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, InvalidDataException, PersistencyException, InvalidCollectionModification
     {
         PagedResult result = Gateway.getLookup().search(new DomainPath(filter.getSearchRoot()), filter.getProperties(), offset, limit);
 
@@ -96,7 +101,7 @@ public class BulkErase extends Erase {
 
         for (Path p : result.rows) {
             ItemPath item = ((DomainPath)p).getTarget();
-            eraseOneItem(item, transactionKey);
+            eraseOneItem(agent, item, FORCE_FLAG, transactionKey);
         }
 
         if (limit == 0) {
@@ -105,7 +110,7 @@ public class BulkErase extends Erase {
         }
         else if (result.maxRows > LIMIT) {
             // there are more pages to read and delete
-            int recordDeleted = eraseAllItemsOfSearch(filter, transactionKey, offset + LIMIT, LIMIT);
+            int recordDeleted = eraseAllItemsOfSearch(agent, filter, transactionKey, offset + LIMIT, LIMIT);
             return recordDeleted + LIMIT;
         }
         else {
