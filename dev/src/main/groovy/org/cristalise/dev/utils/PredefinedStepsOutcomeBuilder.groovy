@@ -59,6 +59,7 @@ class PredefinedStepsOutcomeBuilder {
      */
     public PredefinedStepsOutcomeBuilder(ItemProxy anItem, Outcome outcome, Schema schema) {
         item = anItem
+        assert schema, 'Cannot initialise wihtout a valid Schema'
 
         if (outcome) builder = new OutcomeBuilder(schema, outcome)
         else         builder = new OutcomeBuilder(schema)
@@ -113,6 +114,20 @@ class PredefinedStepsOutcomeBuilder {
 
         if (index == 0) return predefStepsPath + '/' + predefStepClazz.getSimpleName()
         else            return predefStepsPath + '/' + predefStepClazz.getSimpleName() + '[' + index + ']'
+    }
+
+    /**
+     * Initialises the Outcome with the /${OutcomeRoot}/PredefeinedSteps/${PredefStepName} element 
+     * and appends the given xml
+     * 
+     * @param predefStepClazz the class of the predefined step
+     * @param xml the be added to the Outcome
+     * @return the initialised Outcome
+     */
+    public Outcome initOutcomePredefStepField(Class predefStepClazz, String xml) {
+        def predefStepXpath = initOutcomePredefStepField(predefStepClazz)
+        builder.outcome.appendXmlFragment(predefStepXpath, xml)
+        return builder.outcome
     }
 
     /**
