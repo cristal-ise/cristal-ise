@@ -23,6 +23,7 @@ package org.cristalise.kernel.collection;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ACTIVITY_DEF_URN;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_ALLOW_DUPLICATE_ITEMS;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_CARDINALITY;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_TO;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_TYPE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.QUERY_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.QUERY_VERSION;
@@ -39,6 +40,7 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.QUERY_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.STATE_MACHINE_URN;
+import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.WORKFLOW_URN;
 
 import java.util.ArrayList;
@@ -56,6 +58,7 @@ import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
+import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -302,20 +305,6 @@ public class Dependency extends Collection<DependencyMember> {
             checkUniqueness = Gateway.getProperties().getBoolean("Dependency.checkMemberUniqueness", true);
         }
         return checkUniqueness;
-    }
-
-    /**
-     * 
-     */
-    @Override
-    public void removeMember(int memberId) throws ObjectNotFoundException {
-        for (DependencyMember element : mMembers.list) {
-            if (element.getID() == memberId) {
-                mMembers.list.remove(element);
-                return;
-            }
-        }
-        throw new ObjectNotFoundException("Collection name:"+getName()+" does not contains Member id:"+memberId);
     }
 
     /**
@@ -630,6 +619,41 @@ public class Dependency extends Collection<DependencyMember> {
             return Collection.Cardinality.valueOf((String)getBuiltInProperty(DEPENDENCY_CARDINALITY));
         }
         return null;
+    }
+
+
+    /**
+     * Reads the DependencyTo property to retrieve the name of the dependency. The property may 
+     * contain a single Dependency name or a mapping of ItemType to a Dependency 
+     * e.g.: 'Employee:Employees, Guest:Guests'
+     * 
+     * @param referencedItem
+     * @param transactionKey
+     * @return 
+     * @throws InvalidDataException
+     */
+    public String getToDependencyName(ItemPath referencedItem, TransactionKey transactionKey)
+            throws InvalidDataException
+    {
+        String toDependencyName = "";
+        String currentItemType = PropertyUtility.getPropertyValue(referencedItem, TYPE, "", transactionKey);
+        String[] toDependencyNames = ((String)getBuiltInProperty(DEPENDENCY_TO, "")).trim().split(",");
+
+        for (String nameValueString: toDependencyNames) {
+            String[] nameValue = nameValueString.trim().split(":");
+
+            if (nameValue.length == 1)                             toDependencyName = nameValue[0].trim();
+            else if (currentItemType.equals( nameValue[0].trim())) toDependencyName = nameValue[1].trim();
+
+            if (StringUtils.isNotBlank(toDependencyName)) break;
+        }
+
+        if (StringUtils.isBlank(toDependencyName)) {
+            throw new InvalidDataException(
+                    "Invalid value MemberProperty:" + DEPENDENCY_TO + "=" + toDependencyNames + " item:" + referencedItem.getItemName(transactionKey));
+        }
+
+        return toDependencyName;
     }
 
     
