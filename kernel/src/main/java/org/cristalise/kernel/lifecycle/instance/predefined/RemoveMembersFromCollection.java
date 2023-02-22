@@ -72,7 +72,18 @@ public class RemoveMembersFromCollection extends ManageMembersOfCollectionBase {
             for (DependencyMember inputMember : inputDependendy.getMembers().list) {
                 evaluateScript(itemPath, currentDependency, inputMember, transactionKey);
 
-                currentDependency.removeMember(inputMember.getID());
+                DependencyMember removedMember = null;
+
+                if (inputMember.getID() != -1) {
+                    removedMember = currentDependency.removeMember(inputMember.getID());
+                }
+                else {
+                    removedMember = currentDependency.removeMember(inputMember.getItemPath());
+                }
+
+                if (inputMember.getItemPath() != null & ! removedMember.getItemPath().equals(inputMember.getItemPath())) {
+                    throw new InvalidDataException("MemberID is inconsistent with ItemPath");
+                }
             }
 
             Gateway.getStorage().put(itemPath, currentDependency, transactionKey);
@@ -80,8 +91,7 @@ public class RemoveMembersFromCollection extends ManageMembersOfCollectionBase {
             return Gateway.getMarshaller().marshall(currentDependency);
         }
         catch (IOException | ValidationException | MarshalException | MappingException ex) {
-            log.error("Error adding members to collection", ex);
-            throw new InvalidDataException("Error adding members to collection: " + ex);
+            throw new InvalidDataException(ex);
         }
     }
 

@@ -9,6 +9,7 @@ import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMemberToCollection
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection
+import org.cristalise.kernel.lifecycle.instance.predefined.Erase
 import org.cristalise.kernel.lifecycle.instance.predefined.UpdateDependencyMember
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
@@ -204,5 +205,41 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
             fail("Shall throw InvalidCollectionModification");
         }
         catch (InvalidCollectionModification e) {}
+    }
+
+    @Test
+    public void testEraseAutomaticRemovesFromBidirectionalDependency() {
+        def doctor = setupDoctors(1)[0]
+        def patients = setupPatients(2)
+
+        for (patient in patients) {
+            def addPatientJob = doctor.getJobByName('AddPatient', agent)
+            assert addPatientJob
+            addMemberPathToOutcome(addPatientJob, patient.path)
+
+            agent.execute(addPatientJob)
+        }
+
+        await("Patients collection of Doctor '${doctor}' was not updated").until {
+            doctor.clearCache()
+            def depPatients = (Dependency)doctor.getCollection('Patients')
+            depPatients.getMembers().list.size() == 2
+        }
+
+        assert doctor.getCollection('Patients').getMember(patients[0].path)
+        assert doctor.getCollection('Patients').getMember(patients[1].path)
+        assert patients[0].getCollection('Doctor').getMember(doctor.path)
+        assert patients[1].getCollection('Doctor').getMember(doctor.path)
+
+        agent.execute(patients[1], Erase.class)
+
+        await("Patients collection of Doctor '${doctor}' was not updated").until {
+            doctor.clearCache()
+            def depPatients = (Dependency)doctor.getCollection('Patients')
+            depPatients.getMembers().list.size() == 1
+        }
+
+        assert patients[0].getCollection('Doctor').getMember(doctor.path)
+        assert doctor.getCollection('Patients').getMember(patients[0].path)
     }
 }
