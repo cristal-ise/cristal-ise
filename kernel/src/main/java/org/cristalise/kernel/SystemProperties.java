@@ -52,20 +52,18 @@ import lombok.Getter;
  * 
  * @see #Activity_validateOutcome
  * @see #Authenticator
+ * @see #BulkErase_force
  * @see #BulkErase_limit
  * @see #BulkImport_fileExtension
  * @see #BulkImport_rootDirectory
  * @see #BulkImport_useDirectories
- * @see #$UserCodeRole_StateMachine_bootfile
- * @see #$UserCodeRole_StateMachine_name
- * @see #$UserCodeRole_StateMachine_namespace
- * @see #$UserCodeRole_StateMachine_version
  * @see #ClusterStorage
  * @see #ClusterStorage_cacheSpec
  * @see #DataHelper
  * @see #Dependency_addStateMachineURN
  * @see #Dependency_addWorkflowURN
  * @see #Dependency_checkMemberUniqueness
+ * @see #Erase_force
  * @see #Export_replaceActivitySlotDefUUIDWithName
  * @see #Gateway_clusteredVertx
  * @see #ItemServer_name
@@ -130,6 +128,10 @@ public enum SystemProperties implements SystemPropertyOperations {
      */
     Authenticator("Authenticator", "Shiro"),
     /**
+     *  If true continue Erase even if an error. Default value is false - UNIMPLEMENTED
+     */
+    BulkErase_force("BulkErase.force", false),
+    /**
      * Defines the paging size used during {@link BulkErase} predefined step. Defaul is 0, which
      * means there is no limit in deleting Items
      */
@@ -181,6 +183,10 @@ public enum SystemProperties implements SystemPropertyOperations {
      * is true.
      */
     Dependency_checkMemberUniqueness("Dependency.checkMemberUniqueness", true),
+    /**
+     *  If true continue Erase even if an error during deleting BiDirectional references. Default value is false.
+     */
+    Erase_force("Erase.force", false),
     /**
      * Replace UUID with Activity name while exporting {@link CompositeActivityDef}. Default value is 'false'
      */

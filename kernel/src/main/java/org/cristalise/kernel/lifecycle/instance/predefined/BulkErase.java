@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
+import static org.cristalise.kernel.SystemProperties.BulkErase_force;
 import static org.cristalise.kernel.SystemProperties.BulkErase_limit;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 
@@ -50,10 +51,7 @@ public class BulkErase extends Erase {
     public static final String description =  "Deletes all Items selected bz the SearchFilter : Root Domainpath and list of Properties";
 
     private static final int LIMIT = BulkErase_limit.getInteger();
-    /**
-     *  if true continue Erase even if an error - UNIMPLEMENTED
-     */
-    private static final boolean FORCE_FLAG = Gateway.getProperties().getBoolean("BulkErase.force", false);
+    private static final boolean FORCE_FLAG = BulkErase_force.getBoolean();
 
     public BulkErase() {
         super();

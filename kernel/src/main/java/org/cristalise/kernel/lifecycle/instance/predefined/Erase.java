@@ -23,6 +23,7 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.collection.Collection.Type.Bidirectional;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_TO;
+import static org.cristalise.kernel.SystemProperties.Erase_force;
 
 import java.util.Collections;
 import java.util.ListIterator;
@@ -54,10 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Erase extends PredefinedStep {
     public static final String description =  "Deletes all domain paths (aliases), roles (if agent) and clusters for this item or agent.";
-    /**
-     *  if true continue Erase even if an error - UNIMPLEMENTED
-     */
-    private static final boolean FORCE_FLAG = Gateway.getProperties().getBoolean("BulkErase.force", false);
+    private static final boolean FORCE_FLAG = Erase_force.getBoolean();
 
     public Erase() {
         super();
