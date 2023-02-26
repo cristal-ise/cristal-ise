@@ -20,6 +20,7 @@
  */
 package org.cristalise.dsl.entity
 
+import org.apache.commons.lang3.StringUtils
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.entity.DomainContext
 import org.cristalise.kernel.property.Property
@@ -45,22 +46,30 @@ class PropertyDelegate {
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
     }
-    
+
     private void setProperty(String key, Object value, boolean mutable) {
+        String stringValue = null
+
+        if (value != null) {
+            if      (value instanceof DomainContext) stringValue = ((DomainContext)value).getDomainPath()
+            else if (value instanceof String)        stringValue = (String)value
+            else                                     stringValue = value.toString()
+        }
+
         def propType = mutable ? 'Property' : 'InmutableProperty'
+        log.debug('{} - {}:{}', propType, key, stringValue)
 
-        if (value instanceof DomainContext) value = ((DomainContext)value).getDomainPath()
-
-        log.debug('{} - {}:{}', propType, key, value)
-
-        itemProps.put(new Property(key, value as String, mutable))
+        itemProps.put(new Property(key, stringValue, mutable))
     }
 
     public void InmutableProperty(Map<String, Object> attrs) {
         assert attrs, "InmutableProperty must have the name and value pair set"
 
         attrs.each { k, v ->
-            if (!v) throw new InvalidDataException("Inmutable EntityProperty '$k' must have valid value")
+            // ItempProperties have type String, so blank values are also rejected here
+            if (v == null || (v instanceof String && StringUtils.isBlank(v))) {
+                throw new InvalidDataException("Inmutable EntityProperty '$k' must have valid value")
+            }
 
             setProperty(k, v, false)
         }
