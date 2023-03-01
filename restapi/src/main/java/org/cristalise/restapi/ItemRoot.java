@@ -155,13 +155,14 @@ public class ItemRoot extends ItemUtils {
                         .status(Response.Status.NOT_FOUND)
                         .newCookie(cookie).build();
             }
-        } catch (ObjectNotFoundException | InvalidDataException | ScriptingEngineException e) {
+        }
+        catch (ObjectNotFoundException | InvalidDataException | ScriptingEngineException e) {
             throw new WebAppExceptionBuilder()
                 .message("Error retrieving MasterOutcome")
                 .status(Response.Status.NOT_FOUND)
                 .newCookie(cookie).build();
-        } 
-        catch ( UnsupportedOperationException e ) {
+        }
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -185,10 +186,16 @@ public class ItemRoot extends ItemUtils {
      * @return returns the Script or null
      */
     private Script getAggregateScript(ItemProxy item, String name, Integer version) {
+        if ("Factory".equals(item.getType())) {
+            log.warn("getAggregateScript() - Return null for Factory item:{}", item);
+            return null;
+        }
+
         try {
             return item.getAggregateScript(name, version);
         }
         catch (InvalidDataException | ObjectNotFoundException e) {
+            log.trace("getAggregateScript() - Return null for item:{}", item, e);
             return null;
         }
     }
@@ -213,8 +220,12 @@ public class ItemRoot extends ItemUtils {
                     .executeScript(headers, item, scriptName, scriptVersion, actPath, inputJson, ImmutableMap.of())
                     .cookie(cookie).build();
         }
-        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+        catch (Throwable t) {
+            log.error("getScriptResult() - could not execute {}://{}'", item, scriptName, t);
+            throw new WebAppExceptionBuilder().exception(new CriseVertxException(t)).newCookie(cookie).build();
         }
     }
 
@@ -239,8 +250,12 @@ public class ItemRoot extends ItemUtils {
                     .executeScript(headers, item, scriptName, scriptVersion, actPath, postData, ImmutableMap.of())
                     .cookie(cookie).build();
         }
-        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+        catch (Throwable t) {
+            log.error("getScriptResultPost() - could not execute {}://{}'", item, scriptName, t);
+            throw new WebAppExceptionBuilder().exception(new CriseVertxException(t)).newCookie(cookie).build();
         }
     }
 
@@ -275,7 +290,8 @@ public class ItemRoot extends ItemUtils {
                         .status(Response.Status.NOT_FOUND)
                         .newCookie(cookie).build();
             }
-        } catch (UnsupportedOperationException | ObjectNotFoundException | InvalidDataException | PersistencyException e) {
+        }
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -334,7 +350,8 @@ public class ItemRoot extends ItemUtils {
         catch (ObjectNotFoundException e) {
             throw new WebAppExceptionBuilder().message("No Properties found")
                     .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
-        } catch ( Exception e ) {
+        }
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -365,7 +382,7 @@ public class ItemRoot extends ItemUtils {
                 jobList = item.getJobs(agent);
         }
         catch (Exception e) {
-            throw new WebAppExceptionBuilder("Error loading joblist", e, null, cookie).build();
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
 
         if (jobList != null) {
@@ -425,11 +442,11 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
-            log.error("requestTransition() - could not execute {}://{}:{}'", uuid, actPath, transition);
+            log.error("requestTransition() - could not execute {}://{}:{}'", item, actPath, transition, e);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
         catch (Throwable t) {
-            log.error("requestTransition() - could not execute {}://{}:{}'", uuid, actPath, transition);
+            log.error("requestTransition() - could not execute {}://{}:{}'", item, actPath, transition, t);
             throw new WebAppExceptionBuilder().exception(new CriseVertxException(t)).newCookie(cookie).build();
         }
     }
@@ -503,11 +520,11 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
-            log.error("requestBinaryTransition() - could not execute {}://{}:{}'", uuid, actPath, transition);
+            log.error("requestBinaryTransition() - could not execute {}://{}:{}'", item, actPath, transition, e);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
         catch (Throwable t) {
-            log.error("requestTransition() - could not execute {}://{}:{}'", uuid, actPath, transition);
+            log.error("requestTransition() - could not execute {}://{}:{}'", item, actPath, transition, t);
             throw new WebAppExceptionBuilder().exception(new CriseVertxException(t)).newCookie(cookie).build();
         }
     }
