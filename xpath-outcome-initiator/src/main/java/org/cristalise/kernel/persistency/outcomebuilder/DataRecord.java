@@ -43,6 +43,7 @@ public class DataRecord extends OutcomeStructure {
 
     public DataRecord(ElementDecl model) throws OutcomeBuilderException {
         super(model);
+        log.debug("ctor() - name:{} optional:{} isAnyType:{}", model.getName(), isOptional(), isAnyType());
         setup();
     }
 
@@ -200,7 +201,7 @@ public class DataRecord extends OutcomeStructure {
 
         for (String elementName : subStructureOrder) subStructure.get(elementName).exportViewTemplate(template);
 
-        template.write("</DataRecord>");
+        template.write("</FieldSet>");
     }
 
     @Override

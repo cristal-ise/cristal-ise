@@ -51,6 +51,8 @@ public class Dimension extends OutcomeStructure {
     public Dimension(ElementDecl model) {
         super(model);
 
+        log.debug("ctor() - name:{} optional:{} isAnyType:{}", model.getName(), isOptional(), isAnyType());
+
         // decide whether a table or tabs
         try {
             tableModel = new DimensionTableModel(model);

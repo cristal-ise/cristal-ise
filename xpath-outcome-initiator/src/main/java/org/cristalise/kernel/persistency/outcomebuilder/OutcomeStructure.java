@@ -79,7 +79,7 @@ public abstract class OutcomeStructure {
     public OutcomeStructure() {}
 
     public OutcomeStructure(Wildcard model) {
-        log.debug("Creating Wildcard structure as " + this.getClass().getSimpleName());
+        log.debug("ctor() - Creating Wildcard structure as " + this.getClass().getSimpleName());
 
         String doc = extractHelp(model);
         if (StringUtils.isNotBlank(doc)) help = doc;
@@ -89,7 +89,7 @@ public abstract class OutcomeStructure {
         this.model = model;
         subStructure = new HashMap<String, OutcomeStructure>();
 
-        log.debug("Creating '" + model.getName() + "' structure as " + this.getClass().getSimpleName());
+        log.debug("ctor() - Creating '" + model.getName() + "' structure as " + this.getClass().getSimpleName());
 
         String doc = extractHelp(model);
         if (StringUtils.isNotBlank(doc)) help = doc;
