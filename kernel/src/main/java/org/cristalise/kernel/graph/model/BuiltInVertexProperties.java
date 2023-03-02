@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.graph.model;
 
+import org.cristalise.kernel.SystemProperties;
 import org.cristalise.kernel.collection.Collection;
 
 /**
@@ -338,7 +339,7 @@ public enum BuiltInVertexProperties {
 
     /**
      * Boolean property to trigger Outcome validation before creating the entry in the ClusterStore. 
-     * Default value is false, which can be overwritten by the 'Activity.validateOutcome' system property.
+     * Default value is false, which can be overwritten by the {@link SystemProperties#Activity_validateOutcome}.
      */
     VALIDATE_OUTCOME("ValidateOutcome"),
 

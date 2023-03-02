@@ -20,6 +20,9 @@
  */
 package org.cristalise.dsl.module
 
+import static org.cristalise.dsl.SystemProperties.*
+
+import org.cristalise.dsl.SystemProperties
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.utils.DescriptionObject
 import org.slf4j.Logger
@@ -34,28 +37,14 @@ trait BindingConvention {
     // @Slf4j annotation does not work on traits
     private static final Logger log = LoggerFactory.getLogger(this.class)
 
-    /**
-     * 
-     */
-    private static final String[] defaulBeanKeys = 
-            Gateway.getProperties().getString('DSL.Module.BindingConvention.defaulBeanKeys', 'id,key,name').split(',')
-
-    /**
-     * 
-     */
-    private static final String variablePrefix = 
-            Gateway.getProperties().getString('DSL.Module.BindingConvention.variablePrefix', '$')
-
+    private static final String[] defaulBeanKeys = DSL_Module_BindingConvention_defaulBeanKeys.getString().split(',')
+    private static final String   variablePrefix = DSL_Module_BindingConvention_variablePrefix.getString()
+    private static final boolean  autoAddObject  = DSL_Module_BindingConvention_autoAddObject.getBoolean()
+    
     /**
      * These characters will be removed from the name of the 'variable' added to the binding
      */
     private static final String removedChars = "[\\s,./:!?;\$]+"
-    
-    /**
-     * 
-     */
-    private static final boolean autoAddObject = 
-            Gateway.getProperties().getBoolean('DSL.Module.BindingConvention.autoAddObject', true)
 
     public static String getVariablePrefix() {
         return variablePrefix
@@ -80,7 +69,7 @@ trait BindingConvention {
     private String getDefaultBindingsName(obj) {
         for(String beanKey: defaulBeanKeys) {
             if(obj?."$beanKey" != null) {
-                log.trace('getDefaultPropertyName() - using beanKey:{}', beanKey)
+                log.trace('getDefaultBindingsName() - using beanKey:{}', beanKey)
                 return convertToValidName(obj.class.simpleName + obj."$beanKey")
             }
         }
@@ -107,7 +96,7 @@ trait BindingConvention {
 
         if (propertyName) {
             def name = variablePrefix + propertyName + postFix
-            log.debug('getPropertyName() - returning:{}', name)
+            log.debug('getBindingsName() - returning:{}', name)
             return name
         }
         else {
@@ -117,24 +106,30 @@ trait BindingConvention {
 
     /**
      * Adds the value to the Bindings of DSL script using the configured naming convention, i.e.
-     * the name will be prefixed using '$' by default. Use 'DSL.Module.BindingConvention.variablePrefix'
-     * to configured the variable prefix.
+     * the name will be prefixed using '$' by default. 
+     * 
+     * @see SystemProperties#DSL_Module_BindingConvention_variablePrefix
+     * @see SystemProperties#DSL_Module_BindingConvention_defaulBeanKeys
+     * @see SystemProperties#DSL_Module_BindingConvention_autoAddObject
      * 
      * @param bindings to be updated
      * @param name of the variable. It will be prefixed using '$' by default
-     * @param value of the variable
+     * @param obj to be added to the bindings
      * @return the actual name that was added to the binding
      */
-    public String addToBingings(Binding bindings, String name, Object value) {
+    public String addToBingings(Binding bindings, String name, Object obj) {
         def variableName = variablePrefix + name
-        bindings[variableName] = value
+        bindings[variableName] = obj
         return variableName
     }
 
     /**
      * Adds the value to the Bindings of DSL script using the configured naming convention, i.e. 
      * the name will be prefixed using '$' by default, and postfixed with the simpleName of DescriptionObjects subclass.
-     * Use 'DSL.Module.BindingConvention.variablePrefix' to configured the variable prefix.
+     * 
+     * @see SystemProperties#DSL_Module_BindingConvention_variablePrefix
+     * @see SystemProperties#DSL_Module_BindingConvention_defaulBeanKeys
+     * @see SystemProperties#DSL_Module_BindingConvention_autoAddObject
      * 
      * @param bindings to be updated
      * @param obj to be added to the bindings
@@ -144,14 +139,18 @@ trait BindingConvention {
         if (autoAddObject) {
             String name = getBindingsName(obj)
 
-            if (name) bindings[name] = obj
-            else      log.warn('addToBingings() - Could not create valid bindings name for object:{}', obj)
-
-            return name
+            if (name) {
+                bindings[name] = obj
+                return name
+            }
+            else {
+                log.warn('addToBingings() - Could not create valid bindings name for object:{}', obj)
+            }
         }
         else {
             log.trace('addToBingings() - object:{} was not added to bindings', obj)
-            return null
         }
+
+        return null
     }
 }

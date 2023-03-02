@@ -22,6 +22,10 @@ package org.cristalise.kernel.persistency.outcomebuilder.utils;
 
 import static org.apache.commons.lang3.StringUtils.equalsAny;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_format_date;
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_format_datetime;
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_format_time;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -35,6 +39,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
+
 import org.apache.commons.beanutils.converters.BigDecimalConverter;
 import org.apache.commons.beanutils.converters.BigIntegerConverter;
 import org.apache.commons.beanutils.converters.BooleanConverter;
@@ -43,8 +48,8 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcomebuilder.Field;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
-import org.cristalise.kernel.process.Gateway;
 import org.json.JSONObject;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -56,9 +61,9 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class OutcomeUtils {
-    public static final String webuiDateFormat     = Gateway.getProperties().getString("Webui.format.date",     "yyyy-MM-dd");
-    public static final String webuiDateTimeFormat = Gateway.getProperties().getString("Webui.format.datetime", "yyyy-MM-dd'T'HH:mm:ss");
-    public static final String webuiTimeFormat     = Gateway.getProperties().getString("Webui.format.time",     "HH:mm:ss");
+    public static final String webuiDateFormat     = Webui_format_date.getString();
+    public static final String webuiDateTimeFormat = Webui_format_datetime.getString();
+    public static final String webuiTimeFormat     = Webui_format_time.getString();
 
     /**
      * Check if the String has a not blank valid value, i.e. it does not equal to 'string' nor 'null'.
@@ -297,12 +302,12 @@ public class OutcomeUtils {
 
     /**
      * Returns the valid value of the given field as Boolean or null.
-     * Based on apache beanutils BooleanConverter which convertes strings {"yes", "y", "true", "on", "1"} to true
+     * Based on apache beanutils BooleanConverter which converts strings {"yes", "y", "true", "on", "1"} to true
      * and converts strings {"no", "n", "false", "off", "0"} to false 
      * <br>
      * <b>Valid value:</b> {@link OutcomeUtils#hasValidNotBlankValue(String)}
      *
-     * @param input either a JSONObject or an Outcome
+     * @param input either a JSONObject, an Outcome or a Map
      * @param key the field to be converted
      * @return value of the given field as Boolean or null
      * 

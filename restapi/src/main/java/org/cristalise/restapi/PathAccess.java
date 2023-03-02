@@ -20,6 +20,9 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.restapi.SystemProperties.REST_DefaultBatchSize;
+import static org.cristalise.restapi.SystemProperties.REST_Path_DefaultBatchSize;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -72,8 +75,7 @@ public class PathAccess extends PathUtils {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         DomainPath domPath = new DomainPath(path);
 
-        int defaultBatchSize = Gateway.getProperties().getInt("REST.DefaultBatchSize", 75);
-        if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Path.DefaultBatchSize", defaultBatchSize);
+        if (batchSize == null) batchSize = REST_Path_DefaultBatchSize.getInteger(REST_DefaultBatchSize.getInteger());
 
         if (path.equals("aliases") && search != null && search.startsWith("[") && search.endsWith("]")) {
             return getAliases(search, cookie).build();

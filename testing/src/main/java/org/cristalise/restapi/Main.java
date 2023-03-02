@@ -20,12 +20,14 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.restapi.SystemProperties.REST_URI;
+import static org.cristalise.restapi.SystemProperties.REST_addCorsHeaders;
+
 import java.io.IOException;
 import java.net.URI;
 
 import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.process.AbstractMain;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.ShutdownHandler;
 import org.cristalise.kernel.process.StandardClient;
 import org.cristalise.kernel.process.resource.BadArgumentsException;
@@ -60,7 +62,7 @@ public class Main extends StandardClient {
 
         standardInitialisation(args);
 
-        String uri = Gateway.getProperties().getString("REST.URI", "http://localhost:8081/");
+        String uri = REST_URI.getString();
 
         if (uri == null || uri.length() == 0) 
             throw new BadArgumentsException("Please specify REST.URI on which to listen in config.");
@@ -69,7 +71,7 @@ public class Main extends StandardClient {
 
         rc.register(MultiPartFeature.class);
 
-        if (Gateway.getProperties().getBoolean("REST.addCorsHeaders", false)) rc.register(CORSResponseFilter.class);
+        if (REST_addCorsHeaders.getBoolean()) rc.register(CORSResponseFilter.class);
 
         log.info("startServer() - Jersey app started with WADL available at "+uri+"application.wadl");
 

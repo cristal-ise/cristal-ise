@@ -60,9 +60,6 @@ public class Event implements C2KLocalObject {
      */
     GTimeStamp mTimeStamp;
 
-//TODO: add these fields to persitency
-//String mOriginStateName, mTransitionName, mTargetStateName;
-
     public Event(ItemPath itemPath, AgentPath agentPath, String agentRole,
                  String stepName, String stepPath, String stepType, StateMachine stateMachine, int transitionId)
     {

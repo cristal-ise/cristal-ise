@@ -24,6 +24,7 @@ import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
 import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
 import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.WILDCARD_MATCH;
 import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.retrieveContext;
+import static org.cristalise.storage.jooqdb.SystemProperties.JooqLookupManager_domainTreeSearches_specialCharsToEscape;
 import static org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler.ITEM_PROPERTY_TABLE;
 import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.DOMAIN_PATH_TABLE;
 import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.TARGET;
@@ -34,12 +35,14 @@ import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.upper;
+
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
@@ -71,6 +74,7 @@ import org.jooq.SQLDialect;
 import org.jooq.SelectQuery;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -409,7 +413,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     private String escapeSpecialChars(String s) {
-        String specialCharsToReplace = Gateway.getProperties().getString("JooqLookupManager.getChildrenPattern.specialCharsToReplace", "[^a-zA-Z0-9 ]");
+        String specialCharsToReplace = JooqLookupManager_domainTreeSearches_specialCharsToEscape.getString();
         return s.replaceAll("(" + specialCharsToReplace + ")", "\\\\$1");
     }
 
@@ -641,10 +645,8 @@ public class JooqLookupManager implements LookupManager {
         select.addSelect(
                 field(name("item", "UUID"), UUID.class),
                 JooqItemHandler.IS_AGENT,
-                JooqItemPropertyHandler.VALUE.as("Name"));
-
-        if (Gateway.getProperties().getBoolean("JOOQ.TemporaryPwdFieldImplemented", true))
-            select.addSelect(JooqItemHandler.IS_PASSWORD_TEMPORARY);
+                JooqItemPropertyHandler.VALUE.as("Name"),
+                JooqItemHandler.IS_PASSWORD_TEMPORARY);
 
         select.addOrderBy(field(name("Name")));
 

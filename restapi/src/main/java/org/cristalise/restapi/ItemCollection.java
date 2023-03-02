@@ -21,6 +21,7 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
+import static org.cristalise.restapi.SystemProperties.REST_CollectionForm_checkInputs;
 
 import java.util.HashMap;
 import java.util.List;
@@ -155,7 +156,7 @@ public class ItemCollection extends ItemUtils {
             if (inputs.isEmpty()) {
                 List<String> names = getItemNames(dep.getClassProperties());
 
-                if (Gateway.getProperties().getBoolean("REST.CollectionForm.checkInputs", false)) {
+                if (REST_CollectionForm_checkInputs.getBoolean()) {
                     if (names.size() == 0) {
                         throw new WebAppExceptionBuilder()
                                 .message("No Item was found")

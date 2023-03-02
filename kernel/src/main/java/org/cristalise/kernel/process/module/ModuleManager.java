@@ -20,6 +20,10 @@
  */
 package org.cristalise.kernel.process.module;
 
+import static org.cristalise.kernel.SystemProperties.ItemServer_name;
+import static org.cristalise.kernel.SystemProperties.Module_reset;
+import static org.cristalise.kernel.SystemProperties.Module_$Namespace_reset;
+
 import java.net.InetAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -232,7 +236,7 @@ public class ModuleManager {
         DomainPath serverItemDP = null;
 
         try {
-            String serverName = Gateway.getProperties().getString("ItemServer.name", InetAddress.getLocalHost().getHostName());
+            String serverName = ItemServer_name.getString(InetAddress.getLocalHost().getHostName());
             serverItemDP = new DomainPath("/servers/"+serverName);
         }
         catch (UnknownHostException e1) {
@@ -248,13 +252,13 @@ public class ModuleManager {
             throw new ModuleException("Cannot find local server Item:"+serverItemDP);
         }
 
-        boolean reset = Gateway.getProperties().getBoolean("Module.reset", false);
+        Boolean reset = Module_reset.getBoolean();
 
         for (Module thisMod : modules) {
             if (Bootstrap.shutdown) return; 
 
             try {
-                reset = Gateway.getProperties().getBoolean("Module."+thisMod.getNamespace()+".reset", reset);
+                reset = Module_$Namespace_reset.getBoolean(reset, thisMod.getNamespace());
 
                 log.info("registerModules() - Registering module ns:'{}' with reset:{}", thisMod.getNamespace(), reset);
 

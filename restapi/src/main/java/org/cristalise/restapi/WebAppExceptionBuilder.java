@@ -20,25 +20,32 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.restapi.SystemProperties.REST_Debug_errorsWithBody;
+
+import java.io.IOException;
+
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.NewCookie;
+import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.common.*;
+import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.InvalidCollectionModification;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.InvalidTransitionException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.ScriptErrorException;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
-
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
 
 import lombok.extern.slf4j.Slf4j;
-
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;
-import java.io.IOException;
 
 @Slf4j
 public class WebAppExceptionBuilder {
@@ -181,7 +188,7 @@ public class WebAppExceptionBuilder {
         if (newCookie != null && status != Response.Status.UNAUTHORIZED) responseBuilder = Response.status(status).cookie(newCookie);
         else                                                             responseBuilder = Response.status(status);
 
-        if (Gateway.getProperties().getBoolean("REST.Debug.errorsWithBody", false)) {
+        if (REST_Debug_errorsWithBody.getBoolean()) {
             StringBuffer sb = new StringBuffer("[errorMessage]");
             sb.append(message).append("[/errorMessage]");
 

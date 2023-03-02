@@ -21,6 +21,8 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
+import static org.cristalise.restapi.SystemProperties.REST_DefaultBatchSize;
+import static org.cristalise.restapi.SystemProperties.REST_Event_DefaultBatchSize;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -44,7 +46,6 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.process.Gateway;
 
 @Path("/item/{uuid}/history")
 public class ItemHistory extends ItemUtils {
@@ -66,7 +67,7 @@ public class ItemHistory extends ItemUtils {
         descending = descending != null;
 
         if (batchSize == null) {
-            batchSize = Gateway.getProperties().getInt("REST.Event.DefaultBatchSize", Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
+            batchSize = REST_Event_DefaultBatchSize.getInteger(REST_DefaultBatchSize.getInteger());
         }
 
         // fetch this batch of events from the RemoteMap

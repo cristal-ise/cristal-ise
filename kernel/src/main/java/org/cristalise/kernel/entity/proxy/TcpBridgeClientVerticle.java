@@ -20,8 +20,9 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
+import static org.cristalise.kernel.SystemProperties.*;
+
 import org.cristalise.kernel.entity.ItemVerticle;
-import org.cristalise.kernel.process.Gateway;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -35,11 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class TcpBridgeClientVerticle extends AbstractVerticle {
-    public static final String TCPBRIDGE_HOST_PROPERTY = "TcpBridge.host";
-    public static final String TCPBRIDGE_PORT_PROPERTY = "TcpBridge.port";
-
-    public static final int    PORT = Gateway.getProperties().getInt(TCPBRIDGE_PORT_PROPERTY, 7000);
-    public static final String HOST = Gateway.getProperties().getString(TCPBRIDGE_HOST_PROPERTY);
 
     NetSocket socket;
 
@@ -47,7 +43,10 @@ public class TcpBridgeClientVerticle extends AbstractVerticle {
     public void start(Promise<Void> startPromise) throws Exception {
         NetClient tcpClient = Vertx.vertx().createNetClient();
 
-        tcpClient.connect(PORT, HOST, result -> {
+        String host = TcpBridge_host.getString();
+        int    port = TcpBridge_port.getInteger();
+
+        tcpClient.connect(port, host, result -> {
             if (result.succeeded()) {
                 socket = result.result();
 
@@ -87,18 +86,21 @@ public class TcpBridgeClientVerticle extends AbstractVerticle {
                     }));
                 });
                 startPromise.complete();
-                log.info("start() - connected to {}:{}", HOST, PORT);
+                log.info("start() - connected to {}:{}", host, port);
             }
             else {
                 startPromise.fail(result.cause());
-                log.error("start() - failed connection to {}:{}", HOST, PORT, result.cause());
+                log.error("start() - failed connection to {}:{}", host, port, result.cause());
             }
         });
     }
 
     @Override
     public void stop() throws Exception {
-        log.info("stop() - closing connection to {}:{}", HOST, PORT);
+        String host = TcpBridge_host.getString();
+        int    port = TcpBridge_port.getInteger();
+
+        log.info("stop() - closing connection to {}:{}", host, port);
         socket.close();
     }
 }

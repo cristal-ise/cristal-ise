@@ -57,8 +57,6 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
     static final Field<String>  FILE_NAME       = field(name("FILE_NAME"),      String.class);
     static final Field<byte[]>  ATTACHMENT      = field(name("ATTACHMENT"),     byte[].class);
 
-    private boolean enableFileName = Gateway.getProperties().getBoolean("JOOQ.OutcomeAttachment.enableFileName", true);
-
     @Override
     protected Table<?> getTable() {
         return OUTCOME_ATTACHMENT_TABLE;
@@ -120,9 +118,8 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
                        .set(SCHEMA_NAME,    attachment.getSchemaName())
                        .set(SCHEMA_VERSION, attachment.getSchemaVersion())
                        .set(EVENT_ID,       attachment.getEventId())
-                       .set(ATTACHMENT,     attachment.getBinaryData());
-
-        if (enableFileName) insert.set(FILE_NAME, attachment.getFileName());
+                       .set(ATTACHMENT,     attachment.getBinaryData())
+                       .set(FILE_NAME,      attachment.getFileName());
 
         return insert.execute();
     }
@@ -132,10 +129,6 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
         Record result = fetchRecord(context, uuid, primaryKeys);
 
         if(result != null) {
-            String fileName = null;
-
-            if (enableFileName) fileName = result.get(FILE_NAME);
-
             try {
                 byte[] binaryData = (byte[]) result.get(ATTACHMENT);
                 return new OutcomeAttachment(
@@ -143,7 +136,7 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
                         result.get(SCHEMA_NAME),
                         result.get(SCHEMA_VERSION),
                         result.get(EVENT_ID),
-                        fileName,
+                        result.get(FILE_NAME),
                         binaryData);
             }
             catch (Exception e) {
@@ -162,9 +155,8 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
                     .column(SCHEMA_NAME,    NAME_TYPE      .nullable(false))
                     .column(SCHEMA_VERSION, VERSION_TYPE   .nullable(false))
                     .column(EVENT_ID,       ID_TYPE        .nullable(false))
-                    .column(ATTACHMENT,     ATTACHMENT_TYPE.nullable(false));
-
-        if (enableFileName) create.column(FILE_NAME, NAME_TYPE.nullable(true));
+                    .column(ATTACHMENT,     ATTACHMENT_TYPE.nullable(false))
+                    .column(FILE_NAME,      NAME_TYPE      .nullable(true));
 
         create
             .constraints(

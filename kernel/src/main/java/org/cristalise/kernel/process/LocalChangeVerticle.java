@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.process;
 
+import static org.cristalise.kernel.SystemProperties.LocalChangeVerticle_publishLocalMessage;
+
 import java.util.ArrayList;
 
 import org.cristalise.kernel.common.InvalidDataException;
@@ -45,7 +47,7 @@ public class LocalChangeVerticle extends AbstractVerticle {
             JsonArray messageArray = (JsonArray) message.body();
             log.trace("handler() - message.body:{}", messageArray);
 
-            boolean publish = Gateway.getProperties().getBoolean("LocalChangeVerticle.publishLocalMessage", true);
+            boolean publish = LocalChangeVerticle_publishLocalMessage.getBoolean();
 
             try {
                 //order is important: see above

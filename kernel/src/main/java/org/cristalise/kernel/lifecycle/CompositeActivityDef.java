@@ -20,11 +20,13 @@
  */
 package org.cristalise.kernel.lifecycle;
 
+import static org.cristalise.kernel.SystemProperties.Export_replaceActivitySlotDefUUIDWithName;
 import static org.cristalise.kernel.collection.BuiltInCollections.ACTIVITY;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ACTIVITY_DEF_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ABORTABLE;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ACTIVITY_DEF_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.REPEAT_WHEN;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -34,8 +36,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
@@ -61,6 +65,7 @@ import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -465,7 +470,7 @@ public class CompositeActivityDef extends ActivityDef {
         try {
             // export marshalled compAct
             String compactXML = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
-            if (Gateway.getProperties().getBoolean("Export.replaceActivitySlotDefUUIDWithName", false)) {
+            if (Export_replaceActivitySlotDefUUIDWithName.getBoolean()) {
                 compactXML = replaceActivitySlotDefUUIDWithName(compactXML);
             }
             FileStringUtility.string2File(new File(new File(dir, tc), getActName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml"), compactXML);

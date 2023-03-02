@@ -21,6 +21,7 @@
 package org.cristalise.kernel.entity.proxy;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.cristalise.kernel.SystemProperties.Module_Versioning_strict;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
@@ -1485,7 +1486,7 @@ public class ItemProxy {
 
         if (schemaVersion == null) {
             if (StringUtils.isBlank(masterSchemaUrn)) {
-                if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+                if (Module_Versioning_strict.getBoolean()) {
                     throw new InvalidDataException("Version for Schema '" + schemaName + "' cannot be null");
                 }
                 else {
@@ -1532,7 +1533,7 @@ public class ItemProxy {
 
         if (scriptVersion == null) {
             if (StringUtils.isBlank(aggregateScriptUrn)) {
-                if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+                if (Module_Versioning_strict.getBoolean()) {
                     throw new InvalidDataException("Version for Script '" + scriptName + "' cannot be null");
                 }
                 else {

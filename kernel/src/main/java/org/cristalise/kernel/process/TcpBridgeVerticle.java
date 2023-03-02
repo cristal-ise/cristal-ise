@@ -20,7 +20,7 @@
  */
 package org.cristalise.kernel.process;
 
-import org.cristalise.kernel.entity.proxy.TcpBridgeClientVerticle;
+import static org.cristalise.kernel.SystemProperties.TcpBridge_port;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -42,13 +42,15 @@ public class TcpBridgeVerticle extends AbstractVerticle {
                 .addInboundPermitted(new PermittedOptions().setAddressRegex(".*"))
                 .addOutboundPermitted(new PermittedOptions().setAddressRegex(".*t")));
 
-        bridge.listen(TcpBridgeClientVerticle.PORT, res -> {
+        int port = TcpBridge_port.getInteger();
+
+        bridge.listen(port, res -> {
           if (res.succeeded()) {
-              log.info("start() - listen to port:{}", TcpBridgeClientVerticle.PORT);
+              log.info("start() - listen to port:{}", port);
               startPromise.complete();
           }
           else {
-              log.error("start() - CANNOT listen to port:{}", TcpBridgeClientVerticle.PORT, res.cause());
+              log.error("start() - CANNOT listen to port:{}", port, res.cause());
               startPromise.fail(res.cause());
           }
         });
@@ -56,7 +58,8 @@ public class TcpBridgeVerticle extends AbstractVerticle {
 
     @Override
     public void stop() throws Exception {
-        log.info("stop() - closing listening to port:{}", TcpBridgeClientVerticle.PORT);
+        int port = TcpBridge_port.getInteger();
+        log.info("stop() - closing listening to port:{}", port);
         bridge.close();
     }
 }

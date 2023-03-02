@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.entity.imports;
 
+import static org.cristalise.kernel.SystemProperties.Module_ImportAgent_enableRoleCreation;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 
@@ -167,8 +168,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
                 // no update to the role is done, because role might not be fully specified (i.e. it only contains the name as a reference)
             }
             else {
-                if (Gateway.getProperties().getBoolean("Module.ImportAgent.enableRoleCreation", false)) {
-                    // Creates Role even if it is not fully specified in the ImportAgent (i.e. no permissions were specified)
+                if (Module_ImportAgent_enableRoleCreation.getBoolean()) {
                     RolePath thisRole = (RolePath)role.create(agentPath, reset, transactionKey);
                     lookupManager.addRole(getAgentPath(), thisRole, transactionKey);
                 }

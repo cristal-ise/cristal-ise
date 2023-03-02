@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.SystemProperties.Resource_useOldImportFormat;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE;
 import java.io.File;
@@ -87,7 +88,7 @@ public interface DescriptionObject {
 
         if (imports == null) return;
 
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
+        if (Resource_useOldImportFormat.getBoolean()) {
             imports.write("<Resource "
                     + "name='" + getName() + "' "
                     + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")

@@ -20,11 +20,13 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
+import static org.cristalise.kernel.SystemProperties.RoutingScript_enforceStringReturnValue;
 import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.LAST_NUM;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_EXPR;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_VERSION;
+
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -38,7 +40,6 @@ import org.cristalise.kernel.lifecycle.routingHelpers.DataHelperUtility;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -194,7 +195,7 @@ public abstract class Split extends WfVertex {
             stringValue = (String) value;
         }
         else {
-            if (Gateway.getProperties().getBoolean("RoutingScript.enforceStringReturnValue", false))
+            if (RoutingScript_enforceStringReturnValue.getBoolean())
                 throw new InvalidDataException("Split id:"+getID()+" Routing script or expression must return String");
             else
                 stringValue = value.toString();

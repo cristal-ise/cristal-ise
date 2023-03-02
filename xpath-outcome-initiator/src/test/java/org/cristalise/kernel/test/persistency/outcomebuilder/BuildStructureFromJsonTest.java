@@ -26,6 +26,7 @@ import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.json.JSONObject;
 import org.json.XML;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class BuildStructureFromJsonTest extends XMLUtils {
@@ -35,14 +36,20 @@ public class BuildStructureFromJsonTest extends XMLUtils {
     @Before
     public void setUp() throws Exception {}
 
-    private void checkJson2XmlOutcome(String type, String postfix) throws Exception {
-        JSONObject actualJson = new JSONObject(getJSON(dir, type+postfix));
-        String expected = getXML(dir, type+postfix);
+    private void checkJson2XmlOutcome(String testCase, String type, String postfix) throws Exception {
+        String testDir = testCase == null ? dir : dir + "/" + testCase;
 
-        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
+        JSONObject actualJson = new JSONObject(getJSON(testDir, type+postfix));
+        String expected = getXML(testDir, type+postfix);
+
+        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(testDir, type)), true);
         builder.addJsonInstance(actualJson);
 
         assert compareXML(expected, builder.getXml());
+    }
+
+    private void checkJson2XmlOutcome(String type, String postfix) throws Exception {
+        checkJson2XmlOutcome(null, type, postfix);
     }
 
     private void checkXml2Json2XmlOutcome(String type, String postFix) throws Exception {
@@ -121,5 +128,17 @@ public class BuildStructureFromJsonTest extends XMLUtils {
     @Test
     public void field_contains_array_value() throws Exception {
         checkJson2XmlOutcome("EmployeeWithSkills", "");
+    }
+
+    @Test
+    public void structWithOptionalFields() throws Exception {
+        checkJson2XmlOutcome("structWithOptionalFields", "EnvironmentDetails", "");
+        checkJson2XmlOutcome("structWithOptionalFields", "EnvironmentDetails", "WithAdminUser");
+    }
+
+    @Test @Ignore("Check issue  #627")
+    public void optionalStructWithOptionalFields() throws Exception {
+        checkJson2XmlOutcome("optionalStructWithOptionalFields", "EnvironmentDetails", "");
+        checkJson2XmlOutcome("optionalStructWithOptionalFields", "EnvironmentDetails", "WithAdminUser");
     }
 }

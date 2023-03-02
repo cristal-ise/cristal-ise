@@ -20,6 +20,17 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_DataSourceProperty;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_URI;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_autoCommit;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_dialect;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_idleTimeout;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_maxLifetime;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_maximumPoolSize;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_minimumIdle;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_password;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_readOnlyDataSource;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_user;
 import static org.jooq.SQLDialect.MYSQL;
 import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.using;
@@ -28,8 +39,8 @@ import java.sql.Connection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-
 import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.persistency.TransactionKey;
@@ -46,67 +57,13 @@ import com.zaxxer.hikari.HikariPoolMXBean;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Wrapper class to handle HikaryCP and JOOQ configurations and initialisation.
+ */
 @Slf4j
 public class JooqDataSourceHandler {
 
     private static final ConcurrentHashMap<Object, Connection> connectionMap  = new ConcurrentHashMap<Object, Connection>();
-
-    /**
-     * Defines the key (value:{@value}) to retrieve a string value to set JDBC URI
-     */
-    public static final String JOOQ_URI = "JOOQ.URI";
-    /**
-     * Defines the key (value:{@value}) to retrieve a string value to set the user
-     */
-    public static final String JOOQ_USER = "JOOQ.user";
-    /**
-     * Defines the key (value:{@value}) to retrieve a string value to set the password
-     */
-    public static final String JOOQ_PASSWORD = "JOOQ.password";
-    /**
-     * Defines the key (value:{@value}) to retrieve the database dialect. Default is 'POSTGRES'
-     */
-    public static final String JOOQ_DIALECT = "JOOQ.dialect";
-    /**
-     * Defines the key (value:{@value}) to retrieve a boolean value to set the JDBC connection 
-     * with autocommit or not. Default is 'false'
-     */
-    public static final String JOOQ_AUTOCOMMIT = "JOOQ.autoCommit";
-    /**
-     * Defines the key (value:{@value}) to retrieve a boolean value to tell the data source to
-     * create read only connections. Default is 'false'
-     */
-    public static final String JOOQ_READONLYDATASOURCE = "JOOQ.readOnlyDataSource";
-    /**
-     * Defines the key (value:{@value}) to retrieve a boolean value to setup JooqOutcomeHandler
-     * to use SQLXML support of jdbc. Default is 'true'.
-     */
-    public static final String JOOQ_USESQLXML = "JOOQ.supportJdbcXmlType";
-
-    /**
-     * Defines the key (value:{@value}) to retrieve an integer value to set the maximumPoolSize
-     */
-    public static final String JOOQ_MAXIMUMPOOLSIZE = "JOOQ.maximumPoolSize";
-
-    /**
-     * Defines the key (value:{@value}) to retrieve a long value to set the maxLifetime
-     */
-    public static final String JOOQ_MAXLIFETIME = "JOOQ.maxLifetime";
-
-    /**
-     * Defines the key (value:{@value}) to retrieve an integer value to set the minimumIdle
-     */
-    public static final String JOOQ_MINIMUMIDLE = "JOOQ.minimumIdle";
-
-    /**
-     * Defines the key (value:{@value}) to retrieve a long value to set the idleTimeout
-     */
-    public static final String JOOQ_IDLETIMEOUT = "JOOQ.idleTimeout";
-
-    /**
-     * Defines the prefix key (value:{@value}) to retrieve String entries to add in DataSourceProperty
-     */
-    public static final String JOOQ_DATASOURCEPROPERTY = "JOOQ.DataSourceProperty.";
 
     public static String     uri;
     public static String     user;
@@ -114,7 +71,6 @@ public class JooqDataSourceHandler {
     public static Boolean    autoCommit;
     public static Boolean    readOnlyDataSource;
     public static SQLDialect dialect;
-    public static Boolean    useSqlXml;
     public static int        maximumPoolSize;
     public static int        maxLifetime;
     public static int        minimumIdle;
@@ -126,20 +82,27 @@ public class JooqDataSourceHandler {
     private static HikariConfig config;
 
     public static void readSystemProperties() {
-        uri                    = Gateway.getProperties().getString(JOOQ_URI);
-        user                   = Gateway.getProperties().getString(JOOQ_USER);
-        pwd                    = Gateway.getProperties().getString(JOOQ_PASSWORD);
-        autoCommit             = Gateway.getProperties().getBoolean(JOOQ_AUTOCOMMIT, false);
-        readOnlyDataSource     = Gateway.getProperties().getBoolean(JOOQ_READONLYDATASOURCE, false);
-        dialect                = SQLDialect.valueOf(Gateway.getProperties().getString(JOOQ_DIALECT, "POSTGRES"));
-        useSqlXml              = Gateway.getProperties().getBoolean(JOOQ_USESQLXML, true);
-        maximumPoolSize        = Gateway.getProperties().getInt(JOOQ_MAXIMUMPOOLSIZE, 50);
-        maxLifetime            = Gateway.getProperties().getInt(JOOQ_MAXLIFETIME, 60000);
-        minimumIdle            = Gateway.getProperties().getInt(JOOQ_MINIMUMIDLE, 10);
-        idleTimeout            = Gateway.getProperties().getInt(JOOQ_IDLETIMEOUT, 30000);
+        uri                = JOOQ_URI.getString();
+        user               = JOOQ_user.getString();
+        pwd                = JOOQ_password.getString();
+        autoCommit         = JOOQ_autoCommit.getBoolean();
+        readOnlyDataSource = JOOQ_readOnlyDataSource.getBoolean();
+        dialect            = SQLDialect.valueOf(JOOQ_dialect.getString());
+        maximumPoolSize    = JOOQ_maximumPoolSize.getInteger();
+        maxLifetime        = JOOQ_maxLifetime.getInteger();
+        minimumIdle        = JOOQ_minimumIdle.getInteger();
+        idleTimeout        = JOOQ_idleTimeout.getInteger();
+
+        setAdditionDataSourcePorperties();
+    }
+
+    private static void setAdditionDataSourcePorperties() {
+        String addPropertyPrefix = JOOQ_DataSourceProperty.getSystemPropertyName();
+
+        // stream through all SystemProperties and find those which key starts with 'JOOQ.DataSourceProperty.'
         dataSourceProperties   = Gateway.getProperties().entrySet()
-                                  .stream().filter(e -> e.getKey().toString().startsWith(JOOQ_DATASOURCEPROPERTY))
-                                  .collect(Collectors.toMap(e -> e.getKey().toString().trim().substring(JOOQ_DATASOURCEPROPERTY.length()), Entry::getValue));
+                                  .stream().filter(e -> e.getKey().toString().startsWith(addPropertyPrefix))
+                                  .collect(Collectors.toMap(e -> e.getKey().toString().trim().substring(addPropertyPrefix.length()), Entry::getValue));
 
         // setting default values for dataSourceProperties
         if (! dataSourceProperties.containsKey("cachePrepStmts"))        dataSourceProperties.put("cachePrepStmts", true);
@@ -159,6 +122,7 @@ public class JooqDataSourceHandler {
             }
 
             config = new HikariConfig();
+
             config.setPoolName("CRISTAL-iSE-HikariCP");
             config.setRegisterMbeans(true);
             config.setJdbcUrl(uri);
@@ -171,6 +135,7 @@ public class JooqDataSourceHandler {
             config.setMinimumIdle(minimumIdle);
             config.setIdleTimeout(idleTimeout);
             //config.setLeakDetectionThreshold(30000); // enable to see connection leak warning
+
             if (dataSourceProperties != null) {
                 dataSourceProperties.forEach((k,v) -> config.addDataSourceProperty(k, v));
             }
@@ -287,9 +252,7 @@ public class JooqDataSourceHandler {
     }
 
     /**
-     * Return the string DataType for the given dialect
-     * 
-     * @return the string DataType for the given dialect
+     * @return the string DataType to store XML for the given dialect
      */
     public static DataType<String> getStringXmlType() {
         //There a bug in jooq supporting CLOB with MySQL: check issue #23
@@ -297,12 +260,16 @@ public class JooqDataSourceHandler {
         else                       return JooqHandler.XML_TYPE;
     }
 
+    /**
+     * @return true if the given dialect support NativeXML type otherwise false
+     */
     public static boolean checkSqlXmlSupport() {
         switch (dialect) {
             case POSTGRES: 
                 return true;
             default:
-                throw new ConfigurationException("NativeXML is not supported for " + dialect);
+                log.debug("checkSqlXmlSupport() - NativeXML is not supported for dialect:{}", dialect);
+                return false;
         }
     }
 

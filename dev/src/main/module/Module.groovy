@@ -31,13 +31,14 @@ setModuleDir scriptUri
 Module(ns: 'dev', name: 'CristaliseDev', version: 0) {
     Info(description: 'CRISTAL-iSE Development Items to implement CRUD functionality.', version: '${version}') {}
 
-    Config(name: 'OutcomeInit.Dev',               value: 'org.cristalise.dev.DevObjectOutcomeInitiator')
-    Config(name: 'OverrideScriptLang.javascript', value: 'rhino')
-    Config(name: 'OverrideScriptLang.JavaScript', value: 'rhino')
-    Config(name: 'OverrideScriptLang.js',         value: 'rhino')
-    Config(name: 'OverrideScriptLang.JS',         value: 'rhino')
-    Config(name: 'OverrideScriptLang.ECMAScript', value: 'rhino')
-    Config(name: 'OverrideScriptLang.ecmascript', value: 'rhino')
+    Config(name: 'OutcomeInit.Dev',                  value: 'org.cristalise.dev.DevObjectOutcomeInitiator')
+    Config(name: 'OutcomeInit.dev',                  value: 'org.cristalise.dev.DevObjectOutcomeInitiator')
+    Config(name: 'Script.EngineOverride.javascript', value: 'rhino')
+    Config(name: 'Script.EngineOverride.JavaScript', value: 'rhino')
+    Config(name: 'Script.EngineOverride.js',         value: 'rhino')
+    Config(name: 'Script.EngineOverride.JS',         value: 'rhino')
+    Config(name: 'Script.EngineOverride.ECMAScript', value: 'rhino')
+    Config(name: 'Script.EngineOverride.ecmascript', value: 'rhino')
 
     Url('org/cristalise/dev/resources/')
 

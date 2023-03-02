@@ -20,8 +20,10 @@
  */
 package org.cristalise.dsl.module
 
+import static org.cristalise.dsl.SystemProperties.*
 import static org.cristalise.dsl.lifecycle.definition.CompActDefBuilder.generateWorkflowSVG
 import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE
+
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.entity.AgentBuilder
 import org.cristalise.dsl.entity.AgentDelegate
@@ -79,6 +81,7 @@ import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.FileStringUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
+
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import groovy.xml.XmlUtil
@@ -89,10 +92,10 @@ import groovy.xml.XmlUtil
 @CompileStatic @Slf4j
 class ModuleDelegate implements BindingConvention {
 
-    private final boolean generateResourceXml      = Gateway.properties.getBoolean('DSL.Module.generateResourceXml', true)
-    private final boolean generateModuleXml        = Gateway.properties.getBoolean('DSL.Module.generateModuleXml', true)
-    private final boolean strictUpdate             = Gateway.properties.getBoolean('DSL.Module.strictUpdate', true)
-    private final boolean generateAllResourceItems = Gateway.properties.getBoolean('DSL.Module.generateAllResourceItems', true)
+    private final boolean generateResourceXml      = DSL_Module_generateResourceXml.getBoolean()
+    private final boolean generateModuleXml        = DSL_Module_generateModuleXml.getBoolean()
+    private final boolean strictUpdate             = DSL_Module_strictUpdate.getBoolean()
+    private final boolean generateAllResourceItems = DSL_Module_generateAllResourceItems.getBoolean()
 
     private Boolean updateChangedItems  = null
 

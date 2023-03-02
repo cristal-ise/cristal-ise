@@ -21,6 +21,7 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE;
+import static org.cristalise.restapi.SystemProperties.REST_DefaultBatchSize;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.CookieParam;
@@ -39,10 +40,8 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.jooq.DSLContext;
 import org.jooq.exception.DataAccessException;
@@ -64,7 +63,7 @@ public class ScriptAccess extends ResourceAccess {
     {
         AuthData authData = checkAuthCookie(authCookie);
 
-        if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.DefaultBatchSize", 75);
+        if (batchSize == null) batchSize = REST_DefaultBatchSize.getInteger();
         NewCookie cookie = checkAndCreateNewCookie(authData);
 
         return listAllResources(SCRIPT_RESOURCE, uri, start, batchSize, cookie).build();
@@ -145,14 +144,14 @@ public class ScriptAccess extends ResourceAccess {
         try (DSLContext context = JooqDataSourceHandler.retrieveContext(null)) {
             return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, ImmutableMap.of("dsl", context)).cookie(cookie).build();
         }
-        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
-            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
-        }
         catch (DataAccessException | PersistencyException e) {
             throw new WebAppExceptionBuilder("Error connecting to database, please contact support", e, Response.Status.NOT_FOUND, cookie).build();
         }
         catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+        catch (Throwable t) {
+            throw new WebAppExceptionBuilder().exception(new CriseVertxException(t)).newCookie(cookie).build();
         }
     }
 }

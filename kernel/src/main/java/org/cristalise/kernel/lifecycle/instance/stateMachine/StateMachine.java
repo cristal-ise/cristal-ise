@@ -20,9 +20,14 @@
  */
 package org.cristalise.kernel.lifecycle.instance.stateMachine;
 
+import static org.cristalise.kernel.SystemProperties.StateMachine_Composite_default;
+import static org.cristalise.kernel.SystemProperties.StateMachine_Elementary_default;
+import static org.cristalise.kernel.SystemProperties.StateMachine_Predefined_default;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -32,9 +37,9 @@ import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.DescriptionObject;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -313,14 +318,14 @@ public class StateMachine implements DescriptionObject {
     }
 
     public static String getDefaultStateMachine(String type) {
-        if      ("Elementary".equals(type)) {
-            return Gateway.getProperties().getString("StateMachine.Elementary.default", "Default");
+        if ("Elementary".equals(type)) {
+            return StateMachine_Elementary_default.getString();
         }
         else if ("Composite".equals(type))  {
-            return Gateway.getProperties().getString("StateMachine.Composite.default",  "CompositeActivity");
+            return StateMachine_Composite_default.getString();
         }
         else if ("Predefined".equals(type))  {
-            return Gateway.getProperties().getString("StateMachine.Predefined.default", "PredefinedStep");
+            return StateMachine_Predefined_default.getString();
         }
         else {
             throw new UnsupportedOperationException("Keyword '"+type+"' is not supported");

@@ -20,7 +20,10 @@
  */
 package org.cristalise.kernel.process;
 
-import static org.cristalise.kernel.process.Gateway.getProperties;
+import static org.cristalise.kernel.SystemProperties.$UserCodeRole_agent;
+import static org.cristalise.kernel.SystemProperties.$UserCodeRole_password;
+import static org.cristalise.kernel.SystemProperties.$UserCodeRole_permissions;
+import static org.cristalise.kernel.SystemProperties.UserCode_roleOverride;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -38,11 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 public class UserCodeProcess extends StandardClient {
 
     /**
-     * Defines the default role (value:{@value}). It also used as a prefix for every configuration property
-     * eg: UserCode.StateMachine.startTransition
-     */
-    public static final String DEFAULT_ROLE = "UserCode";
-    /**
      * Defines the default password (value:{@value}).
      */
     public static final String DEFAULT_PASSWORD = "uc";
@@ -52,7 +50,7 @@ public class UserCodeProcess extends StandardClient {
      * @return
      */
     public static String getRoleName() {
-        return getProperties().getString("UserCode.roleOverride", DEFAULT_ROLE);
+        return UserCode_roleOverride.getString();
     }
 
     /**
@@ -60,7 +58,7 @@ public class UserCodeProcess extends StandardClient {
      * @return
      */
     public static List<String> getRolePermissions() {
-        String permissionString = Gateway.getProperties().getString(getRoleName() + ".permissions", "*");
+        String permissionString = $UserCodeRole_permissions.getString(getRoleName());
         return Arrays.asList(permissionString.split(","));
     }
 
@@ -79,10 +77,10 @@ public class UserCodeProcess extends StandardClient {
      */
     public static String getAgentName() {
         try {
-            return getProperties().getString(getRoleName()+ ".agent", InetAddress.getLocalHost().getHostName());
+            return  $UserCodeRole_agent.getString(InetAddress.getLocalHost().getHostName(), getRoleName());
         }
         catch (UnknownHostException e) {
-            log.error("getRole(roelName={}) ", getRoleName(), e);
+            log.error("getAgentName() - roleName:{}", getRoleName(), e);
             return null;
         }
     }
@@ -92,7 +90,7 @@ public class UserCodeProcess extends StandardClient {
      * @return
      */
     public static String getAgentPassword() {
-        return getProperties().getString(getRoleName() + ".password", DEFAULT_PASSWORD);
+        return $UserCodeRole_password.getString(DEFAULT_PASSWORD, getRoleName());
     }
 
     /**
