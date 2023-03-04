@@ -153,23 +153,25 @@ public abstract class GraphableVertex extends Vertex {
         return null;
     }
 
-    /** @return the Graphable searched or null if not this or children */
+    /**
+     * Generic search API to find the vertex bz ID or Name or by full path.
+     * 
+     * @param ids it either contains the name or id of the vertex, or it can be the full path to 
+     * the vertex
+     * @return the Graphable searched or null if not this or children
+     */
     public GraphableVertex search(String ids) {
-        if (getName().equals(ids))               return this;
-        if (String.valueOf(getID()).equals(ids)) return this;
+        String stringID = String.valueOf(getID());
 
-        if (getProperties() != null
-            && getProperties().getBuiltInProperty(NAME) != null 
-            && getProperties().getBuiltInProperty(NAME).equals(ids))
-        {
-            return this;
-        }
+        if (getName().equals(ids))                                return this;
+        if (stringID.equals(ids))                                 return this;
+        if (mProperties.getBuiltInProperty(NAME, "").equals(ids)) return this;
 
         if (getIsComposite()) {
-            if (ids.startsWith(String.valueOf(getID()))) ids = ids.substring(ids.indexOf("/") + 1);
-            else if (ids.startsWith(getName()))          ids = ids.substring(getName().length() + 1);
-            else if (ids.startsWith(getPath()))          ids = ids.substring(getPath().length() + 1);
-            else if (getParent() != null)                return null;
+            // remove superfluous string from the begining of the ids
+            if      (ids.startsWith(stringID))   ids = ids.substring(ids.indexOf("/") + 1);
+            else if (ids.startsWith(getName()))  ids = ids.substring(getName().length() + 1);
+            else if (ids.startsWith(getPath()))  ids = ids.substring(getPath().length() + 1);
 
             for (GraphableVertex graphable: getChildren()) {
                 GraphableVertex grap = graphable.search(ids);
