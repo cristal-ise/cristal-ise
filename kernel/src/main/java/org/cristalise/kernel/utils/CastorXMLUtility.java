@@ -38,9 +38,7 @@ import org.cristalise.kernel.process.resource.ResourceLoader;
 import org.cristalise.kernel.querying.Query;
 import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.Marshaller;
-import org.exolab.castor.xml.ValidationException;
 import org.exolab.castor.xml.XMLContext;
 
 import lombok.extern.slf4j.Slf4j;
@@ -141,21 +139,26 @@ public class CastorXMLUtility {
      * @param obj the object to be marshalled
      * @return the xml string of the marshalled object
      */
-    public String marshall(Object obj) throws IOException, MappingException, MarshalException, ValidationException {
+    public String marshall(Object obj) throws InvalidDataException {
         if (obj == null) return "<NULL/>";
 
         if (obj instanceof Outcome) return ((Outcome) obj).getData();
 
-        StringWriter sWriter = new StringWriter();
-        Marshaller marshaller = mappingContext.createMarshaller();
-        marshaller.setWriter(sWriter);
-        marshaller.setMarshalAsDocument(false);
+        try {
+            StringWriter sWriter = new StringWriter();
+            Marshaller marshaller = mappingContext.createMarshaller();
+            marshaller.setWriter(sWriter);
+            marshaller.setMarshalAsDocument(false);
 
-        if (obj instanceof Query) marshaller.addProcessingInstruction(Result.PI_DISABLE_OUTPUT_ESCAPING, "");
+            if (obj instanceof Query) marshaller.addProcessingInstruction(Result.PI_DISABLE_OUTPUT_ESCAPING, "");
 
-        marshaller.marshal(obj);
+            marshaller.marshal(obj);
 
-        return sWriter.toString();
+            return sWriter.toString();
+        }
+        catch (Exception e) {
+            throw new InvalidDataException(e);
+        }
     }
 
     /**
@@ -164,11 +167,16 @@ public class CastorXMLUtility {
      * @param data the string to be unmarshalled
      * @return the unmarshalled object
      */
-    public Object unmarshall(String data) throws IOException, MappingException, MarshalException, ValidationException {
+    public Object unmarshall(String data) throws InvalidDataException {
         if (data.equals("<NULL/>")) return null;
 
         StringReader sReader = new StringReader(data);
 
-        return mappingContext.createUnmarshaller().unmarshal(sReader);
+        try {
+            return mappingContext.createUnmarshaller().unmarshal(sReader);
+        }
+        catch (Exception e) {
+            throw new InvalidDataException(e);
+        }
     }
 }

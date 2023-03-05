@@ -23,8 +23,6 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
 import static org.cristalise.kernel.collection.Collection.Type.Bidirectional;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_TO;
 
-import java.io.IOException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Collection.Cardinality;
 import org.cristalise.kernel.collection.Collection.Type;
@@ -44,9 +42,6 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 import org.w3c.dom.Node;
 
 import lombok.extern.slf4j.Slf4j;
@@ -122,19 +117,13 @@ public abstract class ManageMembersOfCollectionBase extends PredefinedStep {
     protected Dependency addCurrentDependencyUpdate(ItemPath currentItem, Node dependencyNode) throws InvalidDataException {
         String dependencyString = Outcome.serialize(dependencyNode, false);
 
-        try {
-            getAutoUpdates().put(currentItem, dependencyString);
+        getAutoUpdates().put(currentItem, dependencyString);
 
-            if (log.isTraceEnabled()) {
-                log.trace("addCurrentDependencyUpdate() - currentItem:{} outcome:{}", currentItem.getItemName(), dependencyString);
-            }
+        if (log.isTraceEnabled()) {
+            log.trace("addCurrentDependencyUpdate() - currentItem:{} outcome:{}", currentItem.getItemName(), dependencyString);
+        }
 
-            return (Dependency) Gateway.getMarshaller().unmarshall(dependencyString);
-        }
-        catch (MarshalException | ValidationException | IOException | MappingException e) {
-            log.error("The outcome must contain the serialized Dependency - outcome:{}", dependencyString, e);
-            throw new InvalidDataException("The outcome must contain the serialized Dependency", e);
-        }
+        return (Dependency) Gateway.getMarshaller().unmarshall(dependencyString);
     }
 
     /**
@@ -155,24 +144,18 @@ public abstract class ManageMembersOfCollectionBase extends PredefinedStep {
         for (DependencyMember inputMember : inputDependency.getMembers().list) {
             Dependency toDep = new Dependency(toDependencyName);
 
-            try {
-                CastorHashMap inputMemberProps = inputMember.getProperties();
-                inputMemberProps.setBuiltInProperty(DEPENDENCY_TO, currentDependency.getName());
+            CastorHashMap inputMemberProps = inputMember.getProperties();
+            inputMemberProps.setBuiltInProperty(DEPENDENCY_TO, currentDependency.getName());
 
-                toDep.addMember(currentItem, inputMemberProps, inputMember.getClassProps(), null);
+            toDep.addMember(currentItem, inputMemberProps, inputMember.getClassProps(), null);
 
-                String dependencyString = Gateway.getMarshaller().marshall(toDep);
+            String dependencyString = Gateway.getMarshaller().marshall(toDep);
 
-                if (log.isTraceEnabled()) {
-                    log.trace("addUpdates_DependencyTo() - toItem:{} outcome:{}", inputMember.getItemPath().getItemName(), dependencyString);
-                }
-
-                getAutoUpdates().put(inputMember.getItemPath(), dependencyString);
+            if (log.isTraceEnabled()) {
+                log.trace("addUpdates_DependencyTo() - toItem:{} outcome:{}", inputMember.getItemPath().getItemName(), dependencyString);
             }
-            catch (MarshalException | ValidationException | IOException | MappingException e) {
-                log.error("addUpdates_DependencyTo()", e);
-                throw new InvalidDataException(e.getMessage());
-            }
+
+            getAutoUpdates().put(inputMember.getItemPath(), dependencyString);
         }
     }
 

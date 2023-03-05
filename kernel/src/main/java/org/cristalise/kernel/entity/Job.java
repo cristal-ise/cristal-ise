@@ -591,7 +591,7 @@ public class Job implements C2KLocalObject {
                     Gateway.getVertx().eventBus().send(ebAddress+"/"+role, jobXml);
                 }
             }
-            catch (MarshalException | ValidationException | IOException | MappingException e) {
+            catch (Exception e) {
                 log.error("sendToRoleChannel() - could not sends job:{}", this, e);
             }
         }
