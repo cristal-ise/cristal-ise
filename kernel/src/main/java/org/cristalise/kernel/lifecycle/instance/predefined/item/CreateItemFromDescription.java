@@ -28,6 +28,7 @@ import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIAL
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
+import static org.cristalise.kernel.process.Gateway.getMarshaller;
 import static org.cristalise.kernel.property.BuiltInItemProperties.CREATOR;
 import static org.cristalise.kernel.property.BuiltInItemProperties.ID_PREFIX;
 import static org.cristalise.kernel.property.BuiltInItemProperties.LAST_COUNT;
@@ -121,7 +122,7 @@ public class CreateItemFromDescription extends PredefinedStep {
         String            newName   = getItemName(descItemPath, inputs[0], transactionKey);
         String            domPath   = inputs[1];
         String            descVer   = inputs.length > 2 && isNotBlank(inputs[2]) ? inputs[2] : "last";
-        PropertyArrayList initProps = inputs.length > 3 && isNotBlank(inputs[3]) ? unmarshallInitProperties(inputs[3]) : new PropertyArrayList();
+        PropertyArrayList initProps = inputs.length > 3 && isNotBlank(inputs[3]) ? (PropertyArrayList) getMarshaller().unmarshall(inputs[3]) : new PropertyArrayList();
         String            outcome   = inputs.length > 4 && isNotBlank(inputs[4]) ? inputs[4] : "";
 
         // check if the path is already taken
@@ -253,23 +254,6 @@ public class CreateItemFromDescription extends PredefinedStep {
         log.info("Creating " + context);
         context.setItemPath(newItemPath);
         Gateway.getLookupManager().add(context, transactionKey);
-    }
-
-    /**
-     * Unmarshalls initial Properties
-     *
-     * @param initPropString
-     * @return unmarshalled initial PropertyArrayList
-     * @throws InvalidDataException
-     */
-    protected PropertyArrayList unmarshallInitProperties(String initPropString) throws InvalidDataException {
-        try {
-            return (PropertyArrayList) Gateway.getMarshaller().unmarshall(initPropString);
-        }
-        catch (Exception e) {
-            log.error("", e);
-            throw new InvalidDataException("Initial property parameter was not a marshalled PropertyArrayList: " + initPropString, e);
-        }
     }
 
     /**
@@ -498,7 +482,7 @@ public class CreateItemFromDescription extends PredefinedStep {
 
         // Store an "Initialize" event and the outcome containing the initial values for properties
         Schema initSchema = LocalObjectLoader.getSchema("ItemInitialization", 0, transactionKey);
-        Outcome initOutcome = new Outcome(0, Gateway.getMarshaller().marshall(props), initSchema);
+        Outcome initOutcome = new Outcome(0, getMarshaller().marshall(props), initSchema);
         StateMachine predefSm = LocalObjectLoader.getStateMachine("PredefinedStep", 0, transactionKey);
 
         Event newEvent = hist.addEvent(agent, "", "Initialize", "", "", initSchema, predefSm, PredefinedStep.DONE, "last");

@@ -21,6 +21,7 @@
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
+import static org.cristalise.kernel.process.Gateway.getMarshaller;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
@@ -81,7 +82,7 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
         String[]          roles     = StringUtils.isNotBlank(input[2]) ? input[2].split(",") : new String[0];
         String            pwd       = input.length > 3 && StringUtils.isNotBlank(input[3]) ? input[3] : "";
         String            descVer   = input.length > 4 && StringUtils.isNotBlank(input[4]) ? input[4] : "last";
-        PropertyArrayList initProps = input.length > 5 && StringUtils.isNotBlank(input[5]) ? unmarshallInitProperties(input[5]) : new PropertyArrayList();
+        PropertyArrayList initProps = input.length > 5 && StringUtils.isNotBlank(input[5]) ? (PropertyArrayList) getMarshaller().unmarshall(input[5]) : new PropertyArrayList();
         String            outcome   = input.length > 6 && StringUtils.isNotBlank(input[6]) ? input[6] : "";
 
         // generate new agent path with new UUID
