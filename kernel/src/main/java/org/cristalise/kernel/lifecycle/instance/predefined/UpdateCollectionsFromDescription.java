@@ -22,7 +22,6 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -43,10 +42,10 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
-import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
@@ -55,9 +54,6 @@ import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -90,39 +86,20 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
 
         if (inputs.length != 2 && inputs.length != 3) throw new InvalidDataException("Invalid nunber of inputs:" + Arrays.toString(inputs));
 
-        String descPath = inputs[0]; //i.e. domainPath of FactoryItem
+        ItemProxy descItem = Gateway.getProxy(new DomainPath(inputs[0]));
         String descVer  = inputs[1];
-
         //use this 3rd parameter to update the members that cannot be calculate from the description
-        CollectionMemberList<DependencyMember> newMembers = null; //inputs[2]
-
-        try {
-            if (inputs.length == 3) { //optional parameter
-                newMembers = (CollectionMemberList<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
-            }
-        }
-        catch (MarshalException | ValidationException | IOException | MappingException e) {
-            log.error("", e);
-            throw new InvalidDataException(e.getMessage());
-        }
-
-        ItemPath descItemPath; // very likely the factory item
-
-        try {
-            descItemPath = Gateway.getLookup().resolvePath(new DomainPath(descPath), transactionKey);
-        }
-        catch (InvalidItemPathException e) {
-            log.error("", e);
-            throw new InvalidDataException(e.getMessage());
-        }
+        CollectionMemberList<DependencyMember> newMembers = 
+                (CollectionMemberList<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
 
         PropertyArrayList newItemProps = new PropertyArrayList();
         List<String> currentCollNames = new ArrayList<>(Arrays.asList(Gateway.getStorage().getClusterContents(item, COLLECTION, transactionKey)));
 
         //Loop through collection desc names and create new ones
-        for (String collName :  Gateway.getStorage().getClusterContents(descItemPath, COLLECTION, transactionKey)) {
+
+        for (String collName: descItem.getContents(COLLECTION, transactionKey)) {
             if (! currentCollNames.contains(collName)) {
-                Collection<?> newColl = CreateItemFromDescription.instantiateCollection(collName, descItemPath, descVer, newItemProps, transactionKey);
+                Collection<?> newColl = CreateItemFromDescription.instantiateCollection(collName, descItem.getPath(), descVer, newItemProps, transactionKey);
 
                 if (newColl != null) Gateway.getStorage().put(item, newColl, transactionKey);
             }
@@ -130,7 +107,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
                 currentCollNames.remove(collName);
 
                 //FIXME: Check if current collection is a Dependency, properties are only available in Dependency and DependencyDescription
-                Dependency itemColl = updateDependencyProperties(item, descItemPath, descVer, collName, transactionKey);
+                Dependency itemColl = updateDependencyProperties(item, descItem.getPath(), descVer, collName, transactionKey);
 
                 updateDependencyMembers(itemColl, newMembers);
 
@@ -209,23 +186,24 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         Dependency itemColl = (Dependency) Gateway.getStorage().get(item, COLLECTION + "/" + collName + "/" + descVer, transactionKey);
 
         Iterator<String> iterator =  itemColl.getProperties().keySet().iterator();
+
         while (iterator.hasNext()) {
             String keyStr = iterator.next();
             if(! newCollProps.containsKey(keyStr)) {
                 iterator.remove();
             }
         }
-        
+
         // Iterate over newCollProps to add or update properties
         for (Map.Entry<String, Object> propDef : newCollProps.entrySet()) {
             itemColl.getProperties().put(propDef.getKey(), propDef.getValue());
         }
-        
+
         // updates classProps for Dependency if there is any
-        if(itemPropertyList != null){
+        if(itemPropertyList != null) {
             itemColl.setClassProps(itemPropertyList.getClassProps());
         }
-       
+
         return itemColl;
     }
 }

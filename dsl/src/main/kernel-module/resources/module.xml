@@ -8,5 +8,6 @@
     <SchemaResource name="LoggerConfig" version="0"/>
     <SchemaResource name="ModuleChanges" version="0"/>
     <SchemaResource name="Dependency" version="0"/>
+    <SchemaResource name="WorkflowMigrationData" version="0"/>
   </Imports>
 </CristalModule>

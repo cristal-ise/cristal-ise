@@ -39,6 +39,8 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateItemFromDescription extends PredefinedStep {
 
     public static final String description = "";
+    
+
 
     public UpdateItemFromDescription() {
         super();
@@ -60,5 +62,4 @@ public class UpdateItemFromDescription extends PredefinedStep {
 
         return requestData;
     }
-
 }

@@ -48,8 +48,6 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey) 
             throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
-        Workflow lifeCycle = getWf();
-
         String[] params = getDataList(requestData);
 
         log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
@@ -57,34 +55,39 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
         if (params.length != 1)
             throw new InvalidDataException("ReplaceDomainWorkflow: Invalid parameters " + Arrays.toString(params));
 
-        lifeCycle.getChildrenGraphModel().removeVertex(lifeCycle.search("workflow/domain"));
-        CompositeActivity domain;
-        try {
-            domain = (CompositeActivity) Gateway.getMarshaller().unmarshall(params[0]);
-        }
-        catch (Exception e) {
-            log.error("ReplaceDomainWorkflow: Could not unmarshall new workflow", e);
-            throw new InvalidDataException("ReplaceDomainWorkflow: Could not unmarshall new workflow: " + e.getMessage());
-        }
-        domain.setName("domain");
-        lifeCycle.initChild(domain, true, new GraphPoint(150, 100));
+        Workflow currentWf = getWf();
+        String currentWfXml = Gateway.getMarshaller().marshall(currentWf);
+
+        CompositeActivity newDomainCA = (CompositeActivity) Gateway.getMarshaller().unmarshall(params[0]);
+
+        replaceDomainWorkflow(agent, item, currentWf, newDomainCA, transactionKey);
+
+        return requestData;
+    }
+
+    public static void replaceDomainWorkflow(AgentPath agent, ItemPath item, Workflow currentWf, CompositeActivity newDomainCA, TransactionKey transactionKey)
+            throws InvalidDataException, PersistencyException, ObjectNotFoundException
+    {
+        newDomainCA.setName("domain");
+        
+        // replace 'workflow/domain' in currentWf with newDomainCA
+        currentWf.getChildrenGraphModel().removeVertex(currentWf.search("workflow/domain"));
+        currentWf.initChild(newDomainCA, true, new GraphPoint(150, 100));
 
         // if new workflow, activate it, otherwise refresh the jobs
-        if (!domain.active) lifeCycle.run(agent, item, transactionKey);
+        if (!newDomainCA.active) currentWf.run(agent, item, transactionKey);
 
         // store new wf
-        Gateway.getStorage().put(item, lifeCycle, transactionKey);
+        Gateway.getStorage().put(item, currentWf, transactionKey);
 
         // replace Jobs with the new ones
         Gateway.getStorage().removeCluster(item, ClusterType.JOB, transactionKey);
 
-        ArrayList<Job> newJobs = ((CompositeActivity)lifeCycle.search("workflow/domain")).calculateJobs(agent, item, true);
+        ArrayList<Job> newJobs = ((CompositeActivity)currentWf.search("workflow/domain")).calculateJobs(agent, item, true);
         for (Job newJob: newJobs) {
             Gateway.getStorage().put(item, newJob, transactionKey);
 
             if (StringUtils.isNotBlank(newJob.getRoleOverride())) newJob.sendToRoleChannel();
         }
-
-        return requestData;
     }
 }
