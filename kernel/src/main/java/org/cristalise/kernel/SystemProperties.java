@@ -26,6 +26,7 @@ import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.predefined.BulkErase;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
+import org.cristalise.kernel.lifecycle.instance.predefined.server.BulkExport;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.BulkImport;
 import org.cristalise.kernel.lifecycle.routingHelpers.DataHelper;
 import org.cristalise.kernel.lookup.Lookup;
@@ -54,6 +55,9 @@ import lombok.Getter;
  * @see #Authenticator
  * @see #BulkErase_force
  * @see #BulkErase_limit
+ * @see #BulkExport_fileExtension
+ * @see #BulkExport_rootDirectory
+ * @see #BulkExport_useDirectories
  * @see #BulkImport_fileExtension
  * @see #BulkImport_rootDirectory
  * @see #BulkImport_useDirectories
@@ -136,6 +140,20 @@ public enum SystemProperties implements SystemPropertyOperations {
      * means there is no limit in deleting Items
      */
     BulkErase_limit("BulkErase.limit", 0),
+    /**
+     * Defines file extension to be used by the {@link BulkExport} predefined step. Default value is
+     * empty string
+     */
+    BulkExport_fileExtension("BulkExport.fileExtension", ""),
+    /**
+     * Defines root directory used by the {@link BulkExport} predefined step. No default value
+     */
+    BulkExport_rootDirectory("BulkExport.rootDirectory"),
+    /**
+     * Defines if {@link BulkExport} predefined step is based on directory structure or not. Default
+     * value is 'false'
+     */
+    BulkExport_useDirectories("BulkExport.useDirectories", false),
     /**
      * Defines file extension to be used by the {@link BulkImport} predefined step. Default value is
      * empty string

@@ -1,5 +1,8 @@
 package org.cristalise.kernel.lifecycle.instance.predefined.server;
 
+import static org.cristalise.kernel.SystemProperties.BulkExport_fileExtension;
+import static org.cristalise.kernel.SystemProperties.BulkExport_rootDirectory;
+import static org.cristalise.kernel.SystemProperties.BulkExport_useDirectories;
 import static org.cristalise.kernel.persistency.ClusterType.ATTACHMENT;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
@@ -29,19 +32,6 @@ import org.cristalise.storage.XMLClusterStorage;
 
 public class BulkExport extends PredefinedStep {
 
-    /**
-     * 
-     */
-    public static final String BULK_EXPORT_ROOT_DIRECTORY = "BulkExport.rootDirectory";
-    /**
-     * 
-     */
-    public static final String BULK_EXPORT_USE_DIRECTORIES = "BulkExport.useDirectories";
-    /**
-     * 
-     */
-    public static final String BULK_EXPORT_FILE_EXTENSION = "BulkExport.fileExtension";
-
     private String root;
     private String ext;
     private Boolean useDir;
@@ -51,9 +41,9 @@ public class BulkExport extends PredefinedStep {
     public BulkExport() {
         super();
 
-        root = Gateway.getProperties().getString(BULK_EXPORT_ROOT_DIRECTORY);
-        ext = Gateway.getProperties().getString(BULK_EXPORT_FILE_EXTENSION, "");
-        useDir = Gateway.getProperties().getBoolean(BULK_EXPORT_USE_DIRECTORIES, false);
+        root = BulkExport_rootDirectory.getString();
+        ext = BulkExport_fileExtension.getString();
+        useDir = BulkExport_useDirectories.getBoolean();
     }
 
 
@@ -124,7 +114,6 @@ public class BulkExport extends PredefinedStep {
             exportCluster.put(item, c2KLocalObj, transKey);
         }
     }
-
 
     public void exportLifeCycle(ItemPath item, TransactionKey transKey) throws PersistencyException, ObjectNotFoundException {
         String[] objList = Gateway.getStorage().getClusterContents(item, LIFECYCLE + "/", transKey);
