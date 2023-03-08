@@ -154,7 +154,17 @@ public abstract class GraphableVertex extends Vertex {
     }
 
     /**
-     * Generic search API to find the vertex bz ID or Name or by full path.
+     * The Name stored in the Properties overrides the Name in Vertex field
+     */
+    @Override
+    public String getName() {
+        String nameProp =  getBuiltInProperty(NAME, "").toString();
+        return StringUtils.isNotBlank(nameProp) ? nameProp : super.getName();
+    }
+
+    /**
+     * Generic recursive search API to find the vertex by ID or Name or by its full path. It
+     * can find vertexes with 
      * 
      * @param ids it either contains the name or id of the vertex, or it can be the full path to 
      * the vertex
@@ -163,12 +173,11 @@ public abstract class GraphableVertex extends Vertex {
     public GraphableVertex search(String ids) {
         String stringID = String.valueOf(getID());
 
-        if (getName().equals(ids))                                return this;
-        if (stringID.equals(ids))                                 return this;
-        if (mProperties.getBuiltInProperty(NAME, "").equals(ids)) return this;
+        if (getName().equals(ids)) return this;
+        if (stringID.equals(ids))  return this;
 
         if (getIsComposite()) {
-            // remove superfluous string from the begining of the ids
+            // remove superfluous string from the beginning of the ids
             if      (ids.startsWith(stringID))   ids = ids.substring(ids.indexOf("/") + 1);
             else if (ids.startsWith(getName()))  ids = ids.substring(getName().length() + 1);
             else if (ids.startsWith(getPath()))  ids = ids.substring(getPath().length() + 1);
@@ -293,7 +302,7 @@ public abstract class GraphableVertex extends Vertex {
     }
 
     public Object getBuiltInProperty(BuiltInVertexProperties prop) {
-        return mProperties.get(prop.getName());
+        return mProperties.getBuiltInProperty(prop);
     }
 
     public Object getBuiltInProperty(BuiltInVertexProperties prop, Object defaultVal) {
@@ -304,7 +313,7 @@ public abstract class GraphableVertex extends Vertex {
     }
 
     public void setBuiltInProperty(BuiltInVertexProperties prop, Object val) {
-        mProperties.put(prop.getName(), val);
+        mProperties.setBuiltInProperty(prop, val);
     }
 
     @SuppressWarnings("unlikely-arg-type")
