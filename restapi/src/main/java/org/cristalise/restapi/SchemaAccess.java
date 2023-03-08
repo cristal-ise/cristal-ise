@@ -21,6 +21,7 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE;
+import static org.cristalise.restapi.SystemProperties.REST_DefaultBatchSize;
 
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DefaultValue;
@@ -42,7 +43,6 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
 @Path("/schema")
@@ -68,7 +68,7 @@ public class SchemaAccess extends ResourceAccess {
         AuthData authData = checkAuthCookie(authCookie);
         NewCookie cookie = checkAndCreateNewCookie( authData );
 
-        if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.DefaultBatchSize", 75);
+        if (batchSize == null) batchSize = REST_DefaultBatchSize.getInteger();
 
         return listAllResources(SCHEMA_RESOURCE, uri, start, batchSize, cookie).build();
     }
@@ -119,8 +119,14 @@ public class SchemaAccess extends ResourceAccess {
             return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms()).cookie(cookie).build();
         }
         catch (ObjectNotFoundException | InvalidDataException | OutcomeBuilderException e) {
-            throw new WebAppExceptionBuilder().message("Schema "+name+" v"+version+" doesn't point to any data")
-                    .status(Response.Status.NOT_FOUND).newCookie(cookie).build();
+            throw new WebAppExceptionBuilder()
+                .message("Schema "+name+" v"+version+" doesn't point to any data")
+                .status(Response.Status.NOT_FOUND)
+                .newCookie(cookie)
+                .build();
+        }
+        catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
@@ -141,8 +147,14 @@ public class SchemaAccess extends ResourceAccess {
             return Response.ok(new OutcomeBuilder(schema).exportViewTemplate()).cookie(cookie).build();
         }
         catch (ObjectNotFoundException | InvalidDataException | OutcomeBuilderException e) {
-            throw new WebAppExceptionBuilder().message("Schema "+name+" v"+version+" doesn't point to any data")
-                    .status(Response.Status.NOT_FOUND).newCookie(cookie).build();
+            throw new WebAppExceptionBuilder()
+                .message("Schema "+name+" v"+version+" doesn't point to any data")
+                .status(Response.Status.NOT_FOUND)
+                .newCookie(cookie)
+                .build();
+        }
+        catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 }

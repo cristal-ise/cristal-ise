@@ -1,16 +1,13 @@
 package org.cristalise.dev.test.scenario;
 
-import static org.junit.Assert.*
-import groovy.transform.CompileStatic
-
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
-
+import groovy.transform.CompileStatic
 
 /**
  * 

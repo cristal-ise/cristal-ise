@@ -20,7 +20,10 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_inputField_time_defaultValue;
+
 import java.time.Instant;
+import java.time.OffsetTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -29,7 +32,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
-import org.cristalise.kernel.process.Gateway;
 import org.json.JSONObject;
 
 import lombok.extern.slf4j.Slf4j;
@@ -39,13 +41,14 @@ public class TimeField extends StringField {
 
     public TimeField() {
         super();
+        javaType = OffsetTime.class;
     }
 
     @Override
     public String getDefaultValue() {
         //return DateTimeFormatter.ISO_DATE_TIME.format(LocalDateTime.of ( LocalDate.now(), LocalTime.of (12, 0, 0) ));
         //return "12:00:00";
-        return Gateway.getProperties().getString("Webui.inputField.time.defaultValue", "");
+        return Webui_inputField_time_defaultValue.getString("");
     }
 
     @Override

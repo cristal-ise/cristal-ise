@@ -1,0 +1,37 @@
+{
+  "column": [
+    {
+      "field": "Name",
+      "caption": "Name",
+      "align": "left",
+      "width": 100
+    },
+    {
+      "field": "State",
+      "caption": "State",
+      "align": "left",
+      "width": 100
+    },
+@if{item.fields != null && item.fields.size() != 0}
+  @foreach{field : item.fields.values()}
+    {
+      "field": "@{field.name}",
+      "caption": "@{field.label}",
+      "align": "left",
+      "width": 100
+    }
+  @end{','}
+@else{}
+    {
+      "field": "Description",
+      "caption": "Description",
+      "align": "left",
+      "width": 100
+    }
+@end{}
+  ],
+  "sort": {
+    "field": "Name",
+    "order": "asc"
+  }
+}

@@ -25,6 +25,7 @@ import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
 import static org.jooq.impl.DSL.table;
 import static org.jooq.impl.DSL.using;
+import static org.junit.Assert.assertEquals;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -36,7 +37,6 @@ import org.jooq.SQLDialect;
 import org.jooq.Table;
 import org.jooq.impl.SQLDataType;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -135,10 +135,10 @@ public class JooqOnDuplicateKeyUpdateTest {
         java.util.UUID uuid = java.util.UUID.randomUUID();
         createTable();
 
-        assert set(uuid, "Type", "Serious") == 1;
-        Assert.assertEquals("Serious", fetch(uuid, "Type"));
+        assertEquals(1, set(uuid, "Type", "Serious"));
+        assertEquals("Serious", fetch(uuid, "Type"));
 
-        assert set(uuid, "Type", "Ridiculous") == 1;
-        Assert.assertEquals("Ridiculous", fetch(uuid, "Type"));
+        assertEquals(1, set(uuid, "Type", "Ridiculous"));
+        assertEquals("Ridiculous", fetch(uuid, "Type"));
     }
 }

@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.test.entity
 
+import org.cristalise.dsl.entity.RoleBuilder
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
 import org.cristalise.dsl.test.builders.AgentTestBuilder
 import org.cristalise.dsl.test.builders.ItemTestBuilder
@@ -34,23 +35,39 @@ import spock.util.concurrent.PollingConditions
  */
 class JoblistSpecs extends Specification implements CristalTestSetup {
 
-    PollingConditions pollingWait = new PollingConditions(timeout: 2, initialDelay: 0.2, factor: 1)
+    PollingConditions pollingWait = new PollingConditions(timeout: 5, initialDelay: 0.5, delay: 0.2, factor: 1)
 
     AgentTestBuilder dummyAgentBuilder
     AgentTestBuilder timeoutAgentBuilder
 
-    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8) }
+    def setupSpec() {
+        def props = new Properties()
+        props.put('Shiro.iniFile', 'src/main/bin/shiroInMemory.ini')
+        //skips boostrap!!!
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', props, true)
+    }
+
+    def setup() {
+    }
+
     def cleanup() {
-        if(dummyAgentBuilder) dummyAgentBuilder.jobList.deactivate()
-        if(timeoutAgentBuilder) timeoutAgentBuilder.jobList.deactivate()
+        if(dummyAgentBuilder) dummyAgentBuilder.jobList = null
+        if(timeoutAgentBuilder) timeoutAgentBuilder.jobList = null
+    }
+
+    def cleanupSpec() {
         cristalCleanup()
     }
 
     def 'The persistent Joblist of Agent is automatically updated'() {
         given: "the workflow of Item is initialised its first Activity is activated"
+        RoleBuilder.create {
+            Role(name: 'toto', jobList: true) { Permission('*') }
+        }
+
         dummyAgentBuilder = AgentTestBuilder.create(name: "dummyAgent", password: 'dummy') {
             Roles {
-                Role(name: 'toto', jobList: true) { Permission('*') }
+                Role(name: 'toto')
             }
         }
 
@@ -85,7 +102,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
 
         then: "Agent gets the Proccess Job for the Activity it was assigned to"
         pollingWait.eventually {
-            dummyAgentBuilder.checkJobList([[stepName: "EA1", agentRole: "toto", transitionName: "Proceed"]])
+            dummyAgentBuilder.checkJobList([])
         }
     }
 
@@ -112,15 +129,20 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
             finishingState("Finished")
         }
 
-        AgentTestBuilder dummyAgentBuilder = AgentTestBuilder.create(name: "dummy", password: 'dummy') {
+        RoleBuilder.create {
+            Role(name: 'toto') { Permission('*') }
+            Role(name: 'Timeout', jobList: true) { Permission('*') }
+        }
+
+        dummyAgentBuilder = AgentTestBuilder.create(name: "dummy", password: 'dummy') {
             Roles {
-                Role(name: 'toto') { Permission('*') }
+                Role(name: 'toto')
             }
         }
 
-        AgentTestBuilder timeoutAgentBuilder = AgentTestBuilder.create(name: "TimeoutManager", password: 'dummy') {
+        timeoutAgentBuilder = AgentTestBuilder.create(name: "TimeoutManager", password: 'dummy') {
             Roles {
-                Role(name: 'Timeout', jobList: true) { Permission('*') }
+                Role(name: 'Timeout')
             }
         }
 

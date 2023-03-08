@@ -20,12 +20,11 @@
  */
 package org.cristalise.kernel.test.utils
 
-import java.util.Properties
 import org.cristalise.kernel.process.AbstractMain
-import org.cristalise.kernel.process.Bootstrap
 import org.cristalise.kernel.process.Gateway
-import org.cristalise.kernel.process.auth.Authenticator
-import org.cristalise.kernel.utils.Logger
+import org.cristalise.kernel.process.StandardClient
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import groovy.transform.CompileStatic
 
@@ -34,10 +33,11 @@ import groovy.transform.CompileStatic
  */
 @CompileStatic
 trait CristalTestSetup {
-    final int defaultLogLevel = 8
+    // @Slf4j annotation does not work on traits
+    private static final Logger log = LoggerFactory.getLogger(this.class)
 
     private void waitBootstrapThread() {
-        //Give some time the Bootstrapper to start so this check will not fail because it was executed prematurely
+        //Give some time the Bootstrapper thread to start so this check will not fail because it was executed prematurely
         Thread.sleep(1000)
 
         ThreadGroup rootGroup = Thread.currentThread().getThreadGroup();
@@ -57,91 +57,76 @@ trait CristalTestSetup {
             index--
         }
 
-        if(bootstrapT) {
-            Logger.msg "CristalTestSetup.waitBootstrapThread() - Bootstrapper FOUND"
+        if (bootstrapT) {
+            log.info('waitBootstrapThread() - Bootstrapper FOUND')
             bootstrapT.join()
-            Logger.msg "CristalTestSetup.waitBootstrapThread() - Bootstrapper FINISHED"
+            log.info "waitBootstrapThread() - Bootstrapper FINISHED"
         }
-        else
-            Logger.die "CristalTestSetup.waitBootstrapThread() - NO Bootstrapper FOUND!?!?"
+        else {
+            log.error "waitBootstrapThread() - NO Bootstrapper FOUND!?!?"
+            AbstractMain.shutdown(1) 
+        }
     }
 
-    public void loggerSetup(int logLevel = defaultLogLevel) {
-        Logger.addLogStream(System.out, logLevel);
-    }
+    public void inMemorySetup(String conf, String clc) {
+        def testProps = new Properties()
+        testProps.put('Gateway.clusteredVertx', false);
 
-    public void loggerCleanup() {
-        Logger.removeLogStream(System.out);
-    }
-
-    public void inMemorySetup(String conf, String clc,int logLevel) {
-        cristalSetup(logLevel, conf, clc)
-    }
-
-    public void inMemorySetup(int logLevel = defaultLogLevel) {
-        cristalSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
+        cristalSetup(conf, clc, testProps)
         //FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", Gateway.getLookup(), true)
     }
 
-    public void inMemoryServer(String conf, String clc, int logLevel, Properties testProps = null, boolean skipBootstrap = false) {
-        serverSetup(logLevel, conf, clc, testProps, skipBootstrap)
+    public void inMemorySetup() {
+        inMemorySetup('src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc')
     }
 
-    public void inMemoryServer(int logLevel = defaultLogLevel, Properties testProps = null, boolean skipBootstrap = false) {
-        serverSetup(logLevel, 'src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc', testProps, skipBootstrap)
-        //Thread.sleep(2000)
+    public void inMemoryServer(String conf, String clc, Properties testProps = null, boolean skipBootstrap = false) {
+        if (!testProps) testProps = new Properties()
+        if (!testProps.containsKey('Gateway.clusteredVertx')) testProps.put('Gateway.clusteredVertx', false);
+
+        serverSetup(conf, clc, testProps, skipBootstrap)
     }
 
-    public Authenticator serverSetup(int logLevel, String config, String connect, Properties testProps = null, boolean skipBootstrap = false) {
-        Authenticator auth = cristalSetup(logLevel, config, connect, testProps)
-        Logger.initConsole("ItemServer");
+    public void inMemoryServer(Properties testProps = null, boolean skipBootstrap = false) {
+        inMemoryServer('src/test/conf/testServer.conf', 'src/test/conf/testInMemory.clc', testProps, skipBootstrap)
+    }
+
+    public void serverSetup(String config, String connect, Properties testProps = null, boolean skipBootstrap = false) {
+        AbstractMain.isServer = true
+
+        if (skipBootstrap) {
+            if (testProps == null) testProps = new Properties()
+            testProps.put(AbstractMain.MAIN_ARG_SKIPBOOTSTRAP, true)
+        }
+        cristalSetup(config, connect, testProps)
 
         Gateway.startServer()
+        Gateway.runBoostrap();
 
         if (!skipBootstrap) {
-            Gateway.runBoostrap();
             waitBootstrapThread()
         }
-
-        return auth
     }
 
-    public Authenticator cristalSetup(int logLevel, String config, String connect, Properties testProps = null) {
-        cristalInit(logLevel, config, connect, testProps)
-        return Gateway.connect()
+    public void clientSetup(String config, String connect, Properties testProps = null) {
+        cristalInit(config, connect, testProps)
+        Gateway.connect()
+        StandardClient.createClientVerticles()
     }
 
-    public void cristalInit(int logLevel, String config, String connect, Properties testProps = null) {
-        loggerSetup(logLevel)
+    public void cristalSetup(String config, String connect, Properties testProps = null) {
+        cristalInit(config, connect, testProps)
+        Gateway.connect()
+    }
 
+    public void cristalInit(String config, String connect, Properties testProps = null) {
         if (testProps == null) testProps = new Properties();
-        testProps.put("Shiro.iniFile", "src/main/bin/shiro.ini");
+        if (!testProps.containsKey('Shiro.iniFile')) testProps.put("Shiro.iniFile", "src/main/bin/shiro.ini");
 
         Gateway.init(AbstractMain.readPropertyFiles(config, connect, testProps))
     }
 
-    public void cristalCleanup() {
-        /*
-        def ORB = null
-
-        try { ORB = Gateway.getORB() }
-        catch(any) { ORB = null }
-
-        if(ORB && ORB instanceof com.sun.corba.se.impl.orb.ORBImpl) {
-            Logger.msg("Forcing Sun ORB port closure");
-            try {
-                com.sun.corba.se.spi.transport.CorbaTransportManager mgr = ((com.sun.corba.se.impl.orb.ORBImpl)ORB).getCorbaTransportManager();
-                for (Object accept: mgr.getAcceptors()) {
-                    ((com.sun.corba.se.pept.transport.Acceptor) accept).close(); 
-                }
-            }
-            catch(Throwable t) {
-                Logger.error(t)
-//                System.err.println("Error closing ORB!")
-//                t.printStackTrace()
-            }
-        }
-        */
+    public static void cristalCleanup() {
         Gateway.close()
     }
 }

@@ -21,29 +21,62 @@
 package org.cristalise.storage.jooqdb;
 
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-
+import static org.junit.Assert.assertTrue;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Properties;
-
 import org.cristalise.JooqTestConfigurationBase;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.BulkImport;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.querying.Query;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.xmlunit.builder.DiffBuilder;
+import org.xmlunit.diff.DefaultNodeMatcher;
+import org.xmlunit.diff.Diff;
+import org.xmlunit.diff.Difference;
+import org.xmlunit.diff.ElementSelectors;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class JooqClusterStorageTest extends JooqTestConfigurationBase {
+    static String uuid = "fcecd4ad-40eb-421c-a648-edc1d74f339b";
     static ItemPath itemPath;
+
+    public static boolean compareXML(String expected, String actual)  {
+        Diff diffIdentical = DiffBuilder.compare(expected).withTest(actual)
+                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndAllAttributes))
+                .ignoreComments()
+                .ignoreWhitespace()
+                .checkForSimilar()
+                .build();
+
+        if(diffIdentical.hasDifferences()) {
+            log.info("actual:{}", actual);
+            log.warn(diffIdentical.toString());
+
+            Iterator<Difference> allDiffs = diffIdentical.getDifferences().iterator();
+            int i = 1;
+
+            while (allDiffs.hasNext()) { log.warn("#" + i++ + ":" + allDiffs.next().toString()); }
+        }
+
+        return !diffIdentical.hasDifferences();
+    }
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -51,31 +84,29 @@ public class JooqClusterStorageTest extends JooqTestConfigurationBase {
 
         props.put("ClusterStorage", "org.cristalise.storage.jooqdb.JooqClusterStorage");
         props.put("BulkImport.rootDirectory", "src/test/data");
+        props.put("Gateway.clusteredVertx", false);
 
         setUpStorage(props);
 
         Gateway.init(props);
         Gateway.connect();
 
-        itemPath = new ItemPath("fcecd4ad-40eb-421c-a648-edc1d74f339b");
+        itemPath = new ItemPath(uuid);
     }
 
     @Before
     public void importItem() throws Exception {
         BulkImport importer = new BulkImport();
         importer.initialise();
+        importer.importAllClusters(null);
 
-        importer.importProperty (itemPath, null);
-        importer.importLifeCycle(itemPath, null);
-        importer.importOutcome  (itemPath, null);
-        importer.importViewPoint(itemPath, null);
-        importer.importHistory  (itemPath, null);
+        Gateway.getStorage().clearCache();
     }
 
     @After
     public void deleteItem() throws Exception {
         //NOTE: implicitly tests deleting full item data
-        Gateway.getStorage().removeCluster(itemPath, "", null);
+        Gateway.getStorage().removeCluster(itemPath, null);
     }
 
     @AfterClass
@@ -88,7 +119,7 @@ public class JooqClusterStorageTest extends JooqTestConfigurationBase {
         String[] types = Gateway.getStorage().getClusterContents(itemPath, "");
 
         assertThat(Arrays.asList(types), IsIterableContainingInAnyOrder.containsInAnyOrder(
-                "Property", "LifeCycle", "Outcome", "ViewPoint", "AuditTrail"));
+                "Property", "LifeCycle", "Outcome", "ViewPoint", "AuditTrail", "Job"));
     }
 
     @Test
@@ -132,7 +163,7 @@ public class JooqClusterStorageTest extends JooqTestConfigurationBase {
 
         contents = Gateway.getStorage().getClusterContents(itemPath, VIEWPOINT+"/Dispensing2Data");
         assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder("last"));
-        
+
         contents = Gateway.getStorage().getClusterContents(itemPath, VIEWPOINT+"/DispensingData");
         assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder("old", "last"));
 
@@ -148,5 +179,65 @@ public class JooqClusterStorageTest extends JooqTestConfigurationBase {
 
         assertNotNull( Gateway.getStorage().get(itemPath, HISTORY+"/0", null) );
         assertNotNull( Gateway.getStorage().get(itemPath, HISTORY+"/9", null) );
+    }
+
+    @Test
+    public void jobClusterTest() throws Exception {
+        String[] contents = Gateway.getStorage().getClusterContents(itemPath, JOB);
+        assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder(
+                "TestStep", "TestStep2"));
+
+        contents = Gateway.getStorage().getClusterContents(itemPath, JOB+"/TestStep");
+        assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder(
+                "Done", "Start"));
+
+        String actualXml = Gateway.getMarshaller().marshall(Gateway.getStorage().get(itemPath, JOB+"/TestStep/Done", null));
+        String expectedXml = new String(Files.readAllBytes(Paths.get("src/test/data/fcecd4ad-40eb-421c-a648-edc1d74f339b/Job.TestStep.Done")));
+        assertTrue(compareXML(expectedXml, actualXml));
+
+        actualXml = Gateway.getMarshaller().marshall(Gateway.getStorage().get(itemPath, JOB+"/TestStep2/Start", null));
+        expectedXml = new String(Files.readAllBytes(Paths.get("src/test/data/fcecd4ad-40eb-421c-a648-edc1d74f339b/Job.TestStep2.Start")));
+        assertTrue(compareXML(expectedXml, actualXml));
+    }
+
+    @Test
+    public void queryHistoryTest() throws Exception {
+        String queryXml          = new String(Files.readAllBytes(Paths.get("src/test/data/TestQueryHistory.xml")));
+        String expectedResultXml = new String(Files.readAllBytes(Paths.get("src/test/data/TestQueryHistoryResult.xml")));
+
+        Query q = new Query(queryXml);
+        q.setStringParameter("schemaName", "PredefinedStepOutcome");
+        q.setStringParameter("itemUUID", uuid);
+
+        String resultXml = Gateway.getStorage().executeQuery(q);
+        assertTrue(compareXML(expectedResultXml, resultXml));
+    }
+
+    @Test
+    public void queryEventTest() throws Exception {
+        String queryXml          = new String(Files.readAllBytes(Paths.get("src/test/data/TestQueryEvent.xml")));
+        String expectedResultXml = new String(Files.readAllBytes(Paths.get("src/test/data/TestQueryEventResult.xml")));
+
+        Query q = new Query(queryXml);
+        q.setStringParameter("eventId", 0);
+        q.setStringParameter("itemUUID", uuid);
+
+        String resultXml = Gateway.getStorage().executeQuery(q);
+        assertTrue(compareXML(expectedResultXml, resultXml));
+    }
+
+    @Test
+    public void queryOutcomeTest() throws Exception {
+        String queryXml          = new String(Files.readAllBytes(Paths.get("src/test/data/TestQueryOutcome.xml")));
+        String expectedResultXml = new String(Files.readAllBytes(Paths.get("src/test/data/"+uuid+"/Outcome.PredefinedStepOutcome.0.0")));
+
+        Query q = new Query(queryXml);
+        q.setStringParameter("itemUUID", uuid);
+        q.setStringParameter("schemaName", "PredefinedStepOutcome");
+        q.setStringParameter("schemaVersion", 0);
+        q.setStringParameter("eventId", 0);
+
+        String resultXml = Gateway.getStorage().executeQuery(q);
+        assertTrue(compareXML(expectedResultXml, resultXml));
     }
 }

@@ -75,7 +75,7 @@ public class ResourceAccess extends ItemUtils {
         for (Path p: pr.rows) {
             LinkedHashMap<String, String> resourceNameData = new LinkedHashMap<>();
             try {
-                ItemProxy proxy = Gateway.getProxyManager().getProxy(p.getItemPath());
+                ItemProxy proxy = Gateway.getProxy(p.getItemPath());
                 String name = proxy.getName();
                 resourceNameData.put("name", name );
                 resourceNameData.put("url", uri.getAbsolutePathBuilder().path(name).build().toString());
@@ -102,11 +102,18 @@ public class ResourceAccess extends ItemUtils {
         }
 
         try {
-            ItemProxy item = Gateway.getProxyManager().getProxy(iter.next());
+            ItemProxy item = Gateway.getProxy(iter.next());
             return toJSON(getResourceVersions(item, VIEWPOINT + "/" + resource.getSchemaName(), name, uri, cookie), cookie);
         }
         catch (ObjectNotFoundException e) {
-            throw new WebAppExceptionBuilder().message(resourceTypeName + " has no versions").status(Status.NOT_FOUND).newCookie(cookie).build();
+            throw new WebAppExceptionBuilder()
+                .message(resourceTypeName + " has no versions")
+                .exception(e)
+                .status(Status.NOT_FOUND)
+                .newCookie(cookie).build();
+        }
+        catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
@@ -129,7 +136,7 @@ public class ResourceAccess extends ItemUtils {
 
             return childrenData;
         }
-        catch (ObjectNotFoundException e) {
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -175,6 +182,9 @@ public class ResourceAccess extends ItemUtils {
         }
         catch (MarshalException | ValidationException | IOException | MappingException e) {
             throw new WebAppExceptionBuilder(resource.name()+" "+name+" v"+version+" xml convert problem", e, Status.INTERNAL_SERVER_ERROR, cookie).build();
+        }
+        catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 }

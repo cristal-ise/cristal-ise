@@ -35,6 +35,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.lookup.Lookup.SearchConstraints;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -42,6 +43,7 @@ import org.jooq.InsertQuery;
 import org.jooq.Record;
 import org.jooq.Result;
 import org.jooq.SelectConditionStep;
+import org.jooq.SelectSeekStep1;
 import org.jooq.Table;
 
 import lombok.extern.slf4j.Slf4j;
@@ -122,7 +124,7 @@ public class JooqDomainPathHandler {
             }
         }
 
-        log.debug("JooqDomainPathHandler.insert() - SQL:\n"+insertInto.toString());
+        log.debug("insert() - SQL:{}\n", insertInto);
 
         return insertInto.execute();
     }
@@ -149,42 +151,47 @@ public class JooqDomainPathHandler {
                 .fetchOne(0, int.class);
     }
 
-    // TODO: Merge with countByRegex()
-    public List<Path> findByRegex(DSLContext context, String pattern) {
-        Result<Record> result = context
-                .select().from(DOMAIN_PATH_TABLE)
-                .where(PATH.likeRegex(pattern))
-                .fetch();
-
-        return getListOfPath(result);
-    }
-
     // TODO: Merge with findByRegex()
-    public List<Path> findByRegex(DSLContext context, String pattern, int offset, int limit) {
-        Result<Record> result = context
+    public List<Path> findByRegex(DSLContext context, String pattern, int offset, int limit, boolean contextOnly) {
+        SelectConditionStep<Record> whereStep = 
+                context
                 .select().from(DOMAIN_PATH_TABLE)
-                .where(PATH.likeRegex(pattern))
-                .orderBy(PATH)
-                .limit(limit)
-                .offset(offset)
-                .fetch();
+                .where(PATH.likeRegex(pattern));
+
+        SelectSeekStep1<Record, String> orderByStep = null;
+
+        if (contextOnly) orderByStep = whereStep.and(TARGET.isNull()).orderBy(PATH);
+        else             orderByStep = whereStep.orderBy(PATH);
+
+        Result<Record> result = null;
+
+        if (limit != 0) result = orderByStep.limit(limit).offset(offset).fetch();
+        else            result = orderByStep.fetch();
 
         return getListOfPath(result);
     }
 
-    public String getFindPattern(Path startPath, String name) {
-        if (StringUtils.isBlank(name)) return startPath.getStringPath() + "%";
-        else                           return startPath.getStringPath() + "/%" + name;
+    public String getFindPattern(Path startPath, String name, SearchConstraints constraints) {
+        if (StringUtils.isBlank(name)) {
+            return startPath.getStringPath() + "%";
+        }
+        else {
+            switch (constraints) {
+                case EXACT_NAME_MATCH: return startPath.getStringPath() + "/%/" + name;
+                case WILDCARD_MATCH:
+                default:               return startPath.getStringPath() + "/%"  + name;
+            }
+        }
     }
 
-    public List<Path> find(DSLContext context, DomainPath startPath, String name, List<UUID> uuids) {
-        String pattern = getFindPattern(startPath, name);
+    public List<Path> find(DSLContext context, DomainPath startPath, String name, List<UUID> uuids, SearchConstraints constraints) {
+        String pattern = getFindPattern(startPath, name, constraints);
 
         SelectConditionStep<?> select = context.select().from(DOMAIN_PATH_TABLE).where(PATH.like(pattern));
 
         if (uuids != null && uuids.size() != 0) select.and(TARGET.in(uuids));
 
-        log.debug("JooqDomainPathHandler.find() - SQL:\n" + select);
+        log.debug("find() - SQL:{}\n", select);
 
         return getListOfPath(select.fetch());
     }

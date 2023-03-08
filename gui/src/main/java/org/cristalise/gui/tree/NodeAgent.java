@@ -21,28 +21,16 @@
 package org.cristalise.gui.tree;
 
 
-import java.util.ArrayList;
-
 import org.cristalise.gui.ItemTabManager;
 import org.cristalise.kernel.lookup.Path;
 
 
 /**
  * Structure for Item presence on the tree and ItemDetails boxes. Created by NodeFactory.
- * @author $Author: abranson $
- * @version $Version$
  */
 public class NodeAgent extends NodeItem {
 
     public NodeAgent(Path path, ItemTabManager desktop) {
         super(path, desktop);
-    }
-
-    @Override
-	public ArrayList<String> getTabs() {
-
-        ArrayList<String> requiredTabs = super.getTabs();
-        requiredTabs.add("JobList");
-        return requiredTabs;
     }
 }

@@ -43,6 +43,7 @@ public class DataRecord extends OutcomeStructure {
 
     public DataRecord(ElementDecl model) throws OutcomeBuilderException {
         super(model);
+        log.debug("ctor() - name:{} optional:{} isAnyType:{}", model.getName(), isOptional(), isAnyType());
         setup();
     }
 
@@ -178,8 +179,13 @@ public class DataRecord extends OutcomeStructure {
         // populate
         for (String elementName : subStructureOrder) {
             OutcomeStructure childStructure = subStructure.get(elementName);
-
-            if (childStructure instanceof Dimension) ((Dimension) childStructure).setParentElement(myElement);
+            
+            if (childStructure instanceof Field) {
+                if (((Field)childStructure).isAnyField) continue;
+            }
+            else if (childStructure instanceof Dimension) {
+                ((Dimension) childStructure).setParentElement(myElement);
+            }
 
             for (int i = 0; i < childStructure.getModel().getMinOccurs(); i++) {
                 myElement.appendChild(childStructure.initNew(rootDocument));
@@ -195,7 +201,7 @@ public class DataRecord extends OutcomeStructure {
 
         for (String elementName : subStructureOrder) subStructure.get(elementName).exportViewTemplate(template);
 
-        template.write("</DataRecord>");
+        template.write("</FieldSet>");
     }
 
     @Override
@@ -204,7 +210,7 @@ public class DataRecord extends OutcomeStructure {
         JSONObject drGrid = new JSONObject();
         
         StructureWithAppInfo appInfoer = new StructureWithAppInfo();
-        appInfoer.readAppInfoDynamicForms(model, drGrid, true);
+        appInfoer.setAppInfoDynamicFormsJson(model, drGrid, true);
         
         // Set default value when container is not defined
         if (!drGrid.has("container")) {
@@ -232,10 +238,14 @@ public class DataRecord extends OutcomeStructure {
         dr.put("type",  "GROUP");
         dr.put("id",    model.getName());
         dr.put("name",  model.getName());
+        //dr.put("required", !isOptional());
 
         JSONArray array = myAttributes.generateNgDynamicForms(inputs);
 
-        for (String elementName : subStructureOrder) array.put(subStructure.get(elementName).generateNgDynamicForms(inputs));
+        for (String elementName : subStructureOrder) {
+            Object formFregment = subStructure.get(elementName).generateNgDynamicForms(inputs);
+            if (formFregment != null) array.put(formFregment);
+        }
 
         if (!isRootElement && !dr.has("label")) {
             String label = StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(model.getName()), " ");
@@ -245,7 +255,7 @@ public class DataRecord extends OutcomeStructure {
         StructureWithAppInfo appInfoer = new StructureWithAppInfo();
 
         //This call could overwrite values set earlier
-        appInfoer.readAppInfoDynamicForms(model, dr, false);
+        appInfoer.setAppInfoDynamicFormsJson(model, dr, false);
 
         dr.put("group", array);
 

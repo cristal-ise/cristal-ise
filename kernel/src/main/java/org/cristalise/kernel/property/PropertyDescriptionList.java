@@ -30,6 +30,8 @@ import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.CastorArrayList;
@@ -43,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Getter @Setter @Slf4j
 public class PropertyDescriptionList extends CastorArrayList<PropertyDescription> implements DescriptionObject {
+    String   namespace;
     String   name;
     Integer  version;
     ItemPath itemPath;
@@ -126,7 +129,7 @@ public class PropertyDescriptionList extends CastorArrayList<PropertyDescription
 
         for (Property initProp : initProps.list) {
             if (!definesProperty(initProp.getName()))
-                throw new InvalidDataException("Property "+initProp.getName()+" has not been declared in the property descriptions");
+                throw new InvalidDataException("Property '"+initProp.getName()+"' has not been declared in the PropertyDescriptions");
             else
                 validatedInitProps.put(initProp.getName(), initProp.getValue());
         }
@@ -151,42 +154,12 @@ public class PropertyDescriptionList extends CastorArrayList<PropertyDescription
     }
 
     @Override
-    public CollectionArrayList makeDescCollections() throws InvalidDataException, ObjectNotFoundException {
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         return new CollectionArrayList();
     }
 
     @Override
-    public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
-        String xml;
-        String typeCode = BuiltInResources.PROPERTY_DESC_RESOURCE.getTypeCode();
-        String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
-
-        try {
-            xml = Gateway.getMarshaller().marshall(this);
-        }
-        catch (Exception e) {
-            log.error("", e);
-            throw new InvalidDataException("Couldn't marshall PropertyDescriptionList name:" + getName());
-        }
-
-        FileStringUtility.string2File(new File(new File(dir, typeCode), fileName), xml);
-
-        if (imports == null) return;
-
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
-            imports.write("<Resource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
-                    + "type='" + typeCode + "'>boot/" + typeCode + "/" + fileName
-                    + "</Resource>\n");
-        }
-        else {
-            imports.write("<PropertyDescriptionResource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
-                    + "/>\n");
-        }
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.PROPERTY_DESC_RESOURCE;
     }
 }

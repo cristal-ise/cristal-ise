@@ -25,18 +25,10 @@ import java.awt.event.FocusEvent;
 
 import javax.swing.JCheckBox;
 import javax.swing.text.JTextComponent;
+import lombok.extern.slf4j.Slf4j;
 
-import org.cristalise.kernel.utils.Logger;
 
-
-/**************************************************************************
- *
- * $Revision: 1.7 $
- * $Date: 2005/08/16 13:59:56 $
- *
- * Copyright (C) 2003 CERN - European Organization for Nuclear Research
- * All rights reserved.
- **************************************************************************/
+@Slf4j
 public class BooleanEditField extends EditField {
 
     JCheckBox checkbox;
@@ -48,48 +40,48 @@ public class BooleanEditField extends EditField {
     }
 
     @Override
-	public String getText() {
+    public String getText() {
         return String.valueOf(checkbox.isSelected());
     }
 
     @Override
-	public void setText(String text) {
+    public void setText(String text) {
         boolean newState = false;
         try {
             newState = Boolean.valueOf(text).booleanValue();
         } catch (Exception ex) {
-            Logger.error("Invalid value for checkbox: "+text);
+            log.error("","Invalid value for checkbox: " + text);
         }
         checkbox.setSelected(newState);
     }
 
     @Override
-	public void setEditable(boolean editable) {
-		super.setEditable(editable);
+    public void setEditable(boolean editable) {
+        super.setEditable(editable);
         checkbox.setEnabled(editable);
     }
 
     @Override
-	public Component getControl() {
+    public Component getControl() {
         return checkbox;
     }
 
     @Override
-	public String getDefaultValue() {
+    public String getDefaultValue() {
         return "false";
     }
 
     /** don't reserve the item finder for a boolean */
     @Override
-	public void focusGained(FocusEvent e) {
-        
+    public void focusGained(FocusEvent e) {
+
     }
 
     /**
      *
      */
     @Override
-	public JTextComponent makeTextField() {
+    public JTextComponent makeTextField() {
         // not used by boolean
         return null;
     }

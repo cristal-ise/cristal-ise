@@ -24,6 +24,7 @@ import java.awt.image.BufferedImage
 
 import javax.imageio.ImageIO
 
+import org.cristalise.dsl.lifecycle.instance.CompActDelegate
 import org.cristalise.dsl.lifecycle.instance.WorkflowBuilder
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.graph.model.DirectedEdge
@@ -34,7 +35,9 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
 import org.cristalise.kernel.lifecycle.renderer.LifecycleRenderer
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.ItemPath
+import org.cristalise.kernel.persistency.TransactionKey
 import org.cristalise.kernel.persistency.outcome.Outcome
+import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 
 import groovy.transform.CompileStatic
@@ -63,7 +66,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
         itemPath  = new ItemPath()
         agentPath = new AgentPath(new ItemPath(), "WorkflowTestBuilder")
 
-        if(Gateway.getCorbaServer() != null) {
+        if (AbstractMain.isServer) {
             Gateway.getLookupManager().add(itemPath)
             Gateway.getLookupManager().add(agentPath)
         }
@@ -76,8 +79,8 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @return
      */
     public static int getTransID(StateMachine sm, String name) {
-        Transition t = sm.getTransitions().find{ it.name == name }
-        assert t, "Transition name '$name' is invalid for StateMachine $sm.name"
+        Transition t = sm.getTransitions().find { it.name == name }
+        assert t : "Transition name '$name' is invalid for StateMachine $sm.name"
         return t.id
     }
 
@@ -87,7 +90,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param status
      */
     public void checkActStatus(String name, Map status) {
-        assert vertexCache[name], "Activity '$name' is NOT found in cache"
+        assert vertexCache[name] : "Activity '$name' is NOT found in cache"
         checkActStatus((Activity)vertexCache[name], status)
     }
 
@@ -98,8 +101,8 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      */
     public static void checkActStatus(Activity act, Map status) {
         assert act
-        assert act.getStateName() == "$status.state", "Activity '$act.name' shall be in '$status.state' state NOT in '${act.getStateName()}'"
-        assert act.getActive()    == status.active,   "Activity '$act.name' shall ${(status.active) ? '' : 'NOT '}be active"
+        assert act.getStateName() == "$status.state"
+        assert act.getActive()    == status.active
     }
 
     /**
@@ -110,8 +113,8 @@ class WorkflowTestBuilder extends WorkflowBuilder {
     public void checkSplit(String splitName, List<String> toNames ) {
         log.debug "checkSplit() - Split '$splitName' -> $toNames"
         
-        assert vertexCache.containsKey(splitName), "Split '$splitName' is missing from cache"
-        toNames.each { assert vertexCache.containsKey(it), "Vertex '$it' is missing from cache" }
+        assert vertexCache.containsKey(splitName) : "Split '$splitName' is missing from cache"
+        toNames.each { assert vertexCache.containsKey(it) : "Vertex '$it' is missing from cache" }
 
         List<Integer> splitOutEdgeIDs = vertexCache[splitName].getOutEdges().collect { DirectedEdge e ->  e.terminusVertexId }.sort()
         List<Integer> expectedIDs = toNames.collect { vertexCache[it].ID }.sort()
@@ -127,8 +130,8 @@ class WorkflowTestBuilder extends WorkflowBuilder {
     public void checkJoin(String joinName, List<String> fromNames) {
         log.debug "checkJoin() - Split '$joinName' -> $fromNames"
 
-        assert vertexCache.containsKey(joinName), "Join '$joinName' is missing from cache"
-        fromNames.each { assert vertexCache.containsKey(it), "Vertex '$it' is missing from cache" }
+        assert vertexCache.containsKey(joinName) : "Join '$joinName' is missing from cache"
+        fromNames.each { assert vertexCache.containsKey(it) : "Vertex '$it' is missing from cache" }
 
         List<Integer> joinInEdgeIDs = vertexCache[joinName].getInEdges().collect { DirectedEdge e ->  e.originVertexId }.sort()
         List<Integer> expectedIDs  = fromNames.collect { vertexCache[it].ID }.sort()
@@ -170,14 +173,14 @@ class WorkflowTestBuilder extends WorkflowBuilder {
         log.debug "checkNext() - Vertex '$from' -> '$to'"
         WfVertex fromV = vertexCache[from]
         
-        assert fromV, "Vertex '$from' is missing from cache"
+        assert fromV : "Vertex '$from' is missing from cache"
 
         List<Integer> fromIDs = []
 
         if(fromV instanceof Activity) {
-            assert ((Activity)fromV).next, "Vertex '$from' has NO next"
+            assert ((Activity)fromV).next : "Vertex '$from' has NO next"
             int id = ((Activity)fromV).next.terminusVertexId
-            assert id != fromV.ID, "Vertex '$from' shall NOT be linked to ITSELF"
+            assert id != fromV.ID : "Vertex '$from' shall NOT be linked to ITSELF"
             fromIDs.add(id)
         }
         else if(fromV instanceof Split) {
@@ -185,13 +188,13 @@ class WorkflowTestBuilder extends WorkflowBuilder {
         }
         else if(fromV instanceof Join) {
             int id = fromV.getOutEdges()[0].terminusVertexId
-            assert id != fromV.ID, "Vertex '$from' shall NOT be linked to ITSELF"
+            assert id != fromV.ID : "Vertex '$from' shall NOT be linked to ITSELF"
             fromIDs.add(id)
         }
 
         log.debug "checkNext() - fromIDs: $fromIDs"
 
-        assert fromIDs.contains(vertexCache[to].ID), "Vertex '$from' shall be linked to '$to'"
+        assert fromIDs.contains(vertexCache[to].ID) : "Vertex '$from' shall be linked to '$to'"
     }
 
     /**
@@ -201,7 +204,7 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      */
     public void checkActPath(String name, String path) {
         assert vertexCache[name]
-        assert wf.search(path).is(vertexCache[name]), "Activity '$name' equals '$path'"
+        assert wf.search(path).is(vertexCache[name]) : "Activity '$name' equals '$path'"
     }
 
     /**
@@ -228,8 +231,8 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param act
      * @param trans
      */
-    public void requestAction(Activity act, String trans, Outcome outcome) {
-        log.info "requestAction() - $act.path, $trans"
+    public void requestAction(WfVertex act, String trans, Outcome outcome) {
+        log.info "requestAction() - $act.path : $trans"
 
         int transID = -1
         String requestData = null
@@ -239,7 +242,10 @@ class WorkflowTestBuilder extends WorkflowBuilder {
         if (act instanceof CompositeActivity) transID = getTransID(caSM, trans)
         else transID = getTransID(eaSM, trans)
 
-        wf.requestAction(agentPath, null, act.path, itemPath, transID, requestData, "", "".bytes)
+        TransactionKey tk = new TransactionKey('WorkflowTestBuilder')
+        Gateway.getStorage().begin(tk)
+        wf.requestAction(agentPath, act.path, itemPath, transID, requestData, "", "".bytes, tk)
+        Gateway.getStorage().commit(tk)
     }
 
     /**
@@ -255,14 +261,19 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param cl
      * @return
      */
-    public Workflow buildAndInitWf(Closure cl) {
+    public Workflow buildAndInitWf(@DelegatesTo(CompActDelegate) Closure cl) {
         super.build(cl)
         initialise()
         return wf
     }
 
-    public void saveWorkflowPngImage(GraphModel graphModel, String targetFileName, boolean autoLayout = false){
-        if(autoLayout) {
+    public void saveWorkflowPngImage(String caPath, String targetFileName, boolean autoLayout = false) {
+        GraphModel wfGraphModel = wf.search(caPath).getChildrenGraphModel()
+        saveWorkflowPngImage(wfGraphModel, targetFileName, autoLayout)
+    }
+
+    public void saveWorkflowPngImage(GraphModel graphModel, String targetFileName, boolean autoLayout = false) {
+        if (autoLayout) {
             DefaultGraphLayoutGenerator.layoutGraph(graphModel)
         }
         BufferedImage imgWf = new LifecycleRenderer(graphModel, false).getWorkFlowModelImage(1920, 1080)

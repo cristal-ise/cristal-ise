@@ -20,9 +20,10 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_inputField_boolean_defaultValue;
+
 import java.util.Map;
 
-import org.cristalise.kernel.process.Gateway;
 import org.json.JSONObject;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,9 @@ public class BooleanField extends StringField {
     Boolean checkbox;
 
     public BooleanField() {
+        super();
         checkbox = false;
+        javaType = Boolean.class;
     }
 
     @Override
@@ -69,6 +72,6 @@ public class BooleanField extends StringField {
 
     @Override
     public String getDefaultValue() {
-        return Gateway.getProperties().getString("Webui.inputField.boolean.defaultValue", "false");
+        return Webui_inputField_boolean_defaultValue.getString();
     }
 }

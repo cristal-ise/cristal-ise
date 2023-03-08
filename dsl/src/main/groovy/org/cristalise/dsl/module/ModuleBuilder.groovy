@@ -1,6 +1,6 @@
 /**
  * This file is part of the CRISTAL-iSE kernel.
- * Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
+ * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -32,7 +32,7 @@ import org.cristalise.kernel.process.module.Module
 @CompileStatic
 class ModuleBuilder {
 
-    public static Module build(String ns, String name, int version, Closure cl) {
+    public static Module build(String ns, String name, int version, @DelegatesTo(ModuleDelegate) Closure cl) {
         ModuleDelegate md = new ModuleDelegate(ns, name, version)
 
         if(cl) md.processClosure(cl)
@@ -40,9 +40,9 @@ class ModuleBuilder {
         return md.newModule
     }
 
-    public static Path create(String ns, String name, int version, Closure cl) {
+    public static Path create(String ns, String name, int version, @DelegatesTo(ModuleDelegate) Closure cl) {
         def module = build(ns, name, version, cl)
 
-        return module.create(null, false)
+        return module.create(null, false, null)
     }
 }

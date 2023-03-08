@@ -37,8 +37,8 @@ import spock.lang.Specification
  */
 class SchemaBuilderListOfValuesSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def 'Field can specify listOfValues.scriptRef using String'() {
         expect:
@@ -62,6 +62,16 @@ class SchemaBuilderListOfValuesSpecs extends Specification implements CristalTes
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:all>
                    </xs:complexType>
                  </xs:element>
@@ -70,7 +80,7 @@ class SchemaBuilderListOfValuesSpecs extends Specification implements CristalTes
 
     def 'Field can specify listOfValues.scriptRef using Script object'() {
         expect:
-        def script = new Script("Script", 0, new ItemPath(), "<cristalscript><script language='javascript' name='Script'>;</script></cristalscript>", true);
+        def script = new Script("Script", 0, new ItemPath(), "<cristalscript><script language='javascript' name='Script'><![CDATA[;]]></script></cristalscript>", true);
 
         SchemaTestBuilder.build('test', 'PatientDetails', 0) {
             struct(name: 'PatientDetails') {
@@ -89,6 +99,54 @@ class SchemaBuilderListOfValuesSpecs extends Specification implements CristalTes
                              <listOfValues>
                                <scriptRef>Script:0</scriptRef>
                              </listOfValues>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                     </xs:all>
+                   </xs:complexType>
+                 </xs:element>
+               </xs:schema>''')
+    }
+
+    def 'Field can specify listOfValues.values'() {
+        expect:
+        SchemaTestBuilder.build('test', 'PatientDetails', 0) {
+            struct(name: 'PatientDetails') {
+                field(name: 'Weight', type: 'decimal') {
+                    listOfValues(values: ['v1', 'v2', 'v3'])
+                }
+            }
+        }.compareXML(
+            '''<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+                 <xs:element name="PatientDetails">
+                   <xs:complexType>
+                     <xs:all minOccurs="0">
+                       <xs:element name='Weight' type='xs:decimal' minOccurs='1' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <listOfValues>
+                               <values>v1,v2,v3</values>
+                             </listOfValues>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>

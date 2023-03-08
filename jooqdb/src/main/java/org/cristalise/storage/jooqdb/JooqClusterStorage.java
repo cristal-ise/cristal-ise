@@ -20,24 +20,31 @@
  */
 package org.cristalise.storage.jooqdb;
 
-import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DISABLE_DOMAIN_CREATE;
-import static org.cristalise.storage.jooqdb.JooqHandler.JOOQ_DOMAIN_HANDLERS;
+import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.retrieveContext;
+import static org.cristalise.storage.jooqdb.JooqHandler.getPrimaryKeys;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_disableDomainCreateTables;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_domainHandlers;
 
 import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.SQLXML;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.persistency.TransactionalClusterStorage;
-import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.auth.Authenticator;
+import org.cristalise.kernel.querying.Parameter;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.storage.jooqdb.clusterStore.JooqCollectionHadler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqHistoryHandler;
@@ -48,7 +55,12 @@ import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeAttachmentHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqOutcomeHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqViewpointHandler;
 import org.jooq.DSLContext;
+import org.jooq.Field;
+import org.jooq.Record;
+import org.jooq.Result;
 import org.jooq.impl.DSL;
+import org.mvel2.templates.TemplateCompiler;
+import org.mvel2.templates.TemplateRuntime;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,7 +68,7 @@ import lombok.extern.slf4j.Slf4j;
  * Implementation of the {@link TransactionalClusterStorage} based on <a>http://www.jooq.org/</a>}
  */
 @Slf4j
-public class JooqClusterStorage extends TransactionalClusterStorage {
+public class JooqClusterStorage extends ClusterStorage {
 
     protected HashMap<ClusterType, JooqHandler>     jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
     protected List<JooqDomainHandler>               domainHandlers = new ArrayList<JooqDomainHandler>();
@@ -64,6 +76,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
 
     @Override
     public void open(Authenticator auth) throws PersistencyException {
+        JooqDataSourceHandler.readSystemProperties();
         initialiseHandlers();
     }
 
@@ -84,9 +97,9 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
         jooqHandlers.put(ClusterType.JOB,        new JooqJobHandler());
         jooqHandlers.put(ClusterType.ATTACHMENT, new JooqOutcomeAttachmentHandler());
 
-        DSLContext context = JooqHandler.connect();
+        DSLContext context = retrieveContext(null);
 
-        if (!JooqHandler.readOnlyDataSource) {
+        if (!JooqDataSourceHandler.readOnlyDataSource) {
             context.transaction(nested -> {
                 for (JooqHandler handler : jooqHandlers.values())
                     handler.createTables(DSL.using(nested));
@@ -96,13 +109,13 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     }
 
     /**
-     * Initialise internal domain havdlers handlers
+     * Initialise internal domain handlers handlers
      *
      * @throws PersistencyException Error during initialise ...
      */
     private void initialiseDomainHandlers(DSLContext context) throws PersistencyException {
         try {
-            String handlers = Gateway.getProperties().getString(JOOQ_DOMAIN_HANDLERS, "");
+            String handlers = JOOQ_domainHandlers.getString();
 
             for(String handlerClass: StringUtils.split(handlers, ",")) {
                 if (!handlerClass.contains(".")) handlerClass = "org.cristalise.storage."+handlerClass;
@@ -117,7 +130,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
             throw new PersistencyException("JooqClusterStorage could not instantiate domain handler:"+ex.getMessage());
         }
 
-        if (! Gateway.getProperties().getBoolean(JOOQ_DISABLE_DOMAIN_CREATE, false)) {
+        if (! JOOQ_disableDomainCreateTables.getBoolean()) {
             context.transaction(nested -> {
                 for (JooqDomainHandler handler: domainHandlers) handler.createTables(DSL.using(nested));
             });
@@ -125,7 +138,7 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     }
 
     public void dropHandlers() throws PersistencyException {
-        DSLContext context = JooqHandler.connect();
+        DSLContext context = retrieveContext(null);
         context.transaction(nested -> {
             for (JooqHandler handler: jooqHandlers.values()) handler.dropTables(DSL.using(nested));
         });
@@ -135,121 +148,79 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     @Override
     public void close() throws PersistencyException {
         log.info("close()");
-        JooqHandler.closeDataSource();
+        JooqDataSourceHandler.closeDataSource();
     }
 
     @Override
     public void postBoostrap() throws PersistencyException {
-        JooqHandler.connect().transaction(nested ->{
+        retrieveContext(null).transaction(nested ->{
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postBoostrap(DSL.using(nested));
         });
-
-        // after the the bootstrap the DataSource needs to be reset to its original config
-        if (!JooqHandler.readOnlyDataSource && !JooqHandler.autoCommit) {
-            //Restore data source with original auto-commit setting
-            JooqHandler.recreateDataSource(JooqHandler.autoCommit);
-        }
     }
 
     @Override
     public void postStartServer() throws PersistencyException {
-        JooqHandler.connect().transaction(nested ->{
+        retrieveContext(null).transaction(nested ->{
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postStartServer(DSL.using(nested));
         });
     }
 
     @Override
     public void postConnect() throws PersistencyException {
-        // the DataSource need to be set to autocommit for the the bootstrap to work
-        if (!JooqHandler.readOnlyDataSource && !JooqHandler.autoCommit) {
-            //recreate a new DS with auto-commit forced to true
-            JooqHandler.recreateDataSource(true);
-        }
-
-        JooqHandler.connect().transaction(nested -> {
+        retrieveContext(null).transaction(nested -> {
             for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.postConnect(DSL.using(nested));
         });
-
     }
 
     @Override
-    public void begin(Object locker)  throws PersistencyException {
-        if (!JooqHandler.getDataSource().isAutoCommit() && locker == null) {
-            throw new PersistencyException("locker cannot be null when autoCommit is false");
-        }
-        Connection conn = JooqHandler.connect().configuration().connectionProvider().acquire();
-
-        if (locker != null) connectionMap.put(locker, conn);
-        else                log.warn("begin() called with a null locker");
-    }
-
-    private DSLContext retrieveContext(Object locker) throws PersistencyException {
-        if (JooqHandler.getDataSource().isAutoCommit()) return JooqHandler.connect();
-        else return JooqHandler.connect(connectionMap.get(locker));
+    public void begin(TransactionKey transactionKey)  throws PersistencyException {
+        JooqDataSourceHandler.createConnection(transactionKey);
     }
 
     @Override
-    public void commit(Object locker) throws PersistencyException {
-        if (!JooqHandler.getDataSource().isAutoCommit() && locker == null) {
-            throw new PersistencyException("locker cannot be null when autoCommit is false");
-        }
+    public void commit(TransactionKey transactionKey) throws PersistencyException {
+        log.debug("commit() - transactionKey:{}", transactionKey);
 
-        DSLContext context = retrieveContext(locker);
+        DSLContext context = retrieveContext(transactionKey);
 
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.commit(context, locker);
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.commit(context, transactionKey);
 
-        if (locker == null) {
-            log.warn("commit() Cannot retrieve connection because locker is null");
-            return;
-        }
-
-        log.info("commit()");
+        Connection conn = JooqDataSourceHandler.removeConnection(transactionKey);
+        if (conn == null) return;
 
         try {
-            Connection conn = connectionMap.remove(locker);
-            if (!JooqHandler.getDataSource().isAutoCommit()) {
+            if (!JooqDataSourceHandler.getDataSource().isAutoCommit()) {
               conn.commit();
             }
             conn.close();
         }
         catch (Exception e) {
-            log.error("", e);
+            log.error("commit()", e);
             throw new PersistencyException(e.getMessage());
         }
     }
 
     @Override
-    public void abort(Object locker) throws PersistencyException {
-        if (!JooqHandler.getDataSource().isAutoCommit() && locker == null) {
-            throw new PersistencyException("locker cannot be null when autoCommit is false");
-        }
+    public void abort(TransactionKey transactionKey) throws PersistencyException {
+        log.debug("abort() - transactionKey:{}", transactionKey);
 
-        DSLContext context = retrieveContext(locker);
+        DSLContext context = retrieveContext(transactionKey);
 
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.abort(context, locker);
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.abort(context, transactionKey);
 
-        if (locker == null) {
-            log.warn("abort() Cannot retrieve connection because locker is null");
-            return;
-        }
+        Connection conn = JooqDataSourceHandler.removeConnection(transactionKey);
+        if (conn == null) return;
 
-        log.info("abort()");
         try {
-            Connection conn = connectionMap.remove(locker);
-            if (!JooqHandler.getDataSource().isAutoCommit()) {
+            if (!JooqDataSourceHandler.getDataSource().isAutoCommit()) {
                 conn.rollback();
             }
             conn.close();
         }
         catch (Exception e) {
-            log.error("", e);
+            log.error("abort()", e);
             throw new PersistencyException(e.getMessage());
         }
-    }
-
-    @Override
-    public short queryClusterSupport(String type) {
-        return queryClusterSupport(ClusterType.getValue(type));
     }
 
     @Override
@@ -264,99 +235,181 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     @Override
     public boolean checkQuerySupport(String language) {
         String lang = language.trim().toUpperCase();
-        return "SQL".equals(lang) || ("SQL:"+JooqHandler.dialect).equals(lang);
+        return "SQL".equals(lang) || ("SQL:"+JooqDataSourceHandler.dialect).equals(lang);
     }
 
     @Override
     public String getName() {
-        return "JOOQ:"+JooqHandler.dialect+" ClusterStorage";
+        return "JOOQ:"+JooqDataSourceHandler.dialect+" ClusterStorage";
     }
 
     @Override
     public String getId() {
-        return "JOOQ:"+JooqHandler.dialect;
+        return "JOOQ:"+JooqDataSourceHandler.dialect;
     }
-
+    
     @Override
-    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
-        String[]    pathArray   = path.split("/");
-        ClusterType cluster     = ClusterType.getValue(pathArray[0]);
-
+    public int getLastIntegerId(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
+        DSLContext  context = retrieveContext(transactionKey);
+        ClusterType cluster = getClusterType(path);
         JooqHandler handler = jooqHandlers.get(cluster);
 
         if (handler == null) {
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");
         }
         else if (cluster == ClusterType.HISTORY) {
-            return ((JooqHistoryHandler)handler).getLastEventId(JooqHandler.connect(), itemPath.getUUID());
-        }
-        else if (cluster == ClusterType.JOB) {
-            return ((JooqJobHandler)handler).getLastJobId(JooqHandler.connect(), itemPath.getUUID());
+            return ((JooqHistoryHandler)handler).getLastEventId(context, itemPath.getUUID());
         }
         else {
-            String msg = "Invalid ClusterType! Must be either HISTORY or JOB. Actual cluster:" + cluster;
+            String msg = "Invalid ClusterType! Must be HISTORY. Actual cluster:" + cluster;
             log.error("getLastIntegerId() - {}", msg);
             throw new PersistencyException(msg);
         }
     }
 
     @Override
-    public String executeQuery(Query query) throws PersistencyException {
-        throw new PersistencyException("UnImplemented");
+    public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
+        if(!checkQuerySupport(query.getLanguage())) throw new PersistencyException("Unsupported query:"+query.getLanguage());
+
+        DSLContext context = retrieveContext(transactionKey);
+
+        Map<Object, Object> params = new HashMap<Object, Object>();
+
+        if (query.hasParameters()) {
+            for(Parameter p: query.getParameters()) {
+                if (p.getValue() != null) {
+                    log.debug("executeQuery() - param:'"+p.getName()+"' = '"+p.getValue()+"'");
+                    params.put(p.getName(), p.getValue());
+                }
+            }
+        }
+
+        String sql = query.getQuery();
+        sql = (String)TemplateRuntime.execute(TemplateCompiler.compileTemplate(sql), params);
+        Result<Record> result = context.fetch(sql);
+
+        if (result == null || result.size() == 0) {
+            return "<NULL/>";
+            //return "</"+query.getRootElement()+">";
+        }
+        else if (result.size() == 1) {
+            return convertRecord2Xml(result.get(0), query.getRecordElement());
+        }
+        else {
+            StringBuffer b = new StringBuffer("<"+query.getRootElement()+">");
+
+            for (Record rec: result) {
+                b.append(convertRecord2Xml(rec, query.getRecordElement()));
+            }
+
+            b.append("</"+query.getRootElement()+">");
+
+            return b.toString();
+        }
+    }
+
+    private String convertRecord2Xml(Record rec, String recordElement) throws PersistencyException {
+        if (rec.fields().length == 0) {
+            return "<"+recordElement+"/>";
+        }
+        else if (rec.fields().length == 1) {
+            Field<?> field = rec.fields()[0];
+            return convertField2Xml(field, rec.get(field));
+        }
+        else {
+            StringBuffer b = new StringBuffer("<"+recordElement+">");
+
+            for (Field<?> field: rec.fields()) {
+                b.append(convertField2Xml(field, rec.get(field)));
+            }
+
+            b.append("</"+recordElement+">");
+
+            return b.toString();
+        }
+    }
+
+    private String convertField2Xml(Field<?> field, Object value) throws PersistencyException {
+        StringBuffer b = new StringBuffer();
+
+        if (value == null) {
+            
+            //b.append("</"+field.getName()+">");
+        }
+        else if (value instanceof SQLXML) {
+            try {
+                b.append(((SQLXML)value).getString());
+            }
+            catch (SQLException e) {
+                log.error("Could not process SQLXML type of jdbc", e);
+                throw new PersistencyException(e.getMessage());
+            }
+        }
+        else if("XML".equals(field.getName().toUpperCase())) { //cristal-ise tables use field name 'XML'
+            b.append(value.toString());
+        }
+        else {
+            String stringValue = value.toString();
+
+            if (StringUtils.isEmpty(stringValue)) {
+                b.append("<"+field.getName()+"/>");
+            }
+            else {
+                b.append("<"+field.getName()+">")
+                .append(stringValue)
+                .append("</"+field.getName()+">");
+            }
+        }
+
+        return b.toString();
     }
 
     @Override
-    public ClusterType[] getClusters(ItemPath itemPath) throws PersistencyException {
+    public ClusterType[] getClusters(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
         ArrayList<ClusterType> result = new ArrayList<ClusterType>();
 
         for (ClusterType type:jooqHandlers.keySet()) {
-            if (jooqHandlers.get(type).exists(JooqHandler.connect(), itemPath.getUUID())) result.add(type);
+            if (jooqHandlers.get(type).exists(retrieveContext(transactionKey), itemPath.getUUID())) result.add(type);
         }
 
         return result.toArray(new ClusterType[0]);
     }
 
     @Override
-    public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
+    public String[] getClusterContents(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         if (StringUtils.isBlank(path)) {
             ArrayList<String> result = new ArrayList<String>();
 
-            for (ClusterType k: getClusters(itemPath)) { result.add(k.toString()); }
+            for (ClusterType k: getClusters(itemPath, transactionKey)) { result.add(k.toString()); }
 
             return result.toArray(new String[0]);
         }
 
-        UUID uuid = itemPath.getUUID();
-
-        String[]    pathArray   = path.split("/");
-        String[]    primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
-        ClusterType cluster     = ClusterType.getValue(pathArray[0]);
-
-        JooqHandler handler = jooqHandlers.get(cluster);
+        UUID        uuid        = itemPath.getUUID();
+        ClusterType cluster     = getClusterType(path);
+        JooqHandler handler     = jooqHandlers.get(cluster);
+        String[]    primaryKeys = getPrimaryKeys(path);
 
         if (handler != null) {
             log.debug("getClusterContents() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
-
-            return handler.getNextPrimaryKeys(JooqHandler.connect(), uuid, primaryKeys);
+            return handler.getNextPrimaryKeys(retrieveContext(transactionKey), uuid, primaryKeys);
         }
         else
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");
     }
 
     @Override
-    public C2KLocalObject get(ItemPath itemPath, String path) throws PersistencyException {
+    public C2KLocalObject get(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         UUID uuid = itemPath.getUUID();
 
-        String[]    pathArray   = path.split("/");
-        String[]    primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
-        ClusterType cluster     = ClusterType.getValue(pathArray[0]);
-
-        JooqHandler handler = jooqHandlers.get(cluster);
+        ClusterType cluster     = getClusterType(path);
+        JooqHandler handler     = jooqHandlers.get(cluster);
+        String[]    primaryKeys = getPrimaryKeys(path);
 
         if (handler != null) {
             log.debug("get() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys:"+Arrays.toString(primaryKeys));
 
-            C2KLocalObject obj = handler.fetch(JooqHandler.connect(), uuid, primaryKeys);
+            C2KLocalObject obj = handler.fetch(retrieveContext(transactionKey), uuid, primaryKeys);
 
             if (obj == null) {
                 log.trace(("JooqClusterStorage.get() - Could NOT fetch '"+itemPath+"/"+path+"'"));
@@ -368,69 +421,67 @@ public class JooqClusterStorage extends TransactionalClusterStorage {
     }
 
     @Override
-    public void put(ItemPath itemPath, C2KLocalObject obj) throws PersistencyException {
-        put(itemPath, obj, null);
-    }
-
-    @Override
-    public void put(ItemPath itemPath, C2KLocalObject obj, Object locker) throws PersistencyException {
-        if (!JooqHandler.getDataSource().isAutoCommit() && locker == null) {
-            throw new PersistencyException("locker cannot be null when autoCommit is false");
+    public void put(ItemPath itemPath, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException {
+        if (!JooqDataSourceHandler.getDataSource().isAutoCommit() && transactionKey == null) {
+            throw new PersistencyException("transactionKey cannot be null when autoCommit is false");
         }
 
-        UUID uuid = itemPath.getUUID();
+        UUID        uuid    = itemPath.getUUID();
         ClusterType cluster = obj.getClusterType();
-
         JooqHandler handler = jooqHandlers.get(cluster);
+        DSLContext  context = retrieveContext(transactionKey);
 
-        DSLContext context = retrieveContext(locker);
-        JooqHandler.logConnectionCount("JooqClusterStorage.put(before)", context);
+        JooqDataSourceHandler.logConnectionCount("JooqClusterStorage.put(before)", context);
 
         if (handler != null) {
             log.debug("put() - uuid:"+uuid+" cluster:"+cluster+" path:"+obj.getClusterPath());
-
             handler.put(context, uuid, obj);
         }
         else {
             throw new PersistencyException("Write is not supported for cluster:'"+cluster+"'");
         }
         // Trigger all registered handlers to update domain specific tables
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.put(context, uuid, obj, locker);
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.put(context, uuid, obj, transactionKey);
 
-        JooqHandler.logConnectionCount("JooqClusterStorage.put(after) ", context);
+        JooqDataSourceHandler.logConnectionCount("JooqClusterStorage.put(after) ", context);
     }
 
     @Override
-    public void delete(ItemPath itemPath, String path) throws PersistencyException {
-        delete(itemPath, path, null);
+    public void delete(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
+        log.debug("delete() - complete item:{}", itemPath);
+
+        for(ClusterType cluster: getClusters(itemPath, transactionKey)) {
+            delete(itemPath, cluster, transactionKey);
+        }
     }
 
     @Override
-    public void delete(ItemPath itemPath, String path, Object locker) throws PersistencyException {
-        if (!JooqHandler.getDataSource().isAutoCommit() && locker == null) {
-            throw new PersistencyException("locker cannot be null when autoCommit is false");
+    public void delete(ItemPath itemPath, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
+        log.debug("delete() - item:{} cluster:{}", itemPath, cluster);
+        delete(itemPath, cluster.getName(), transactionKey);
+    }
+
+    @Override
+    public void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
+        if (!JooqDataSourceHandler.getDataSource().isAutoCommit() && transactionKey == null) {
+            throw new PersistencyException("transactionKey cannot be null when autoCommit is false");
         }
 
-        UUID uuid = itemPath.getUUID();
-
-        String[]    pathArray   = path.split("/");
-        String[]    primaryKeys = Arrays.copyOfRange(pathArray, 1, pathArray.length);
-        ClusterType cluster     = ClusterType.getValue(pathArray[0]);
-
-        JooqHandler handler = jooqHandlers.get(cluster);
-
-        DSLContext context = retrieveContext(locker);
+        UUID        uuid        = itemPath.getUUID();
+        ClusterType cluster     = getClusterType(path);
+        JooqHandler handler     = jooqHandlers.get(cluster);
+        String[]    primaryKeys = getPrimaryKeys(path);
+        DSLContext  context     = retrieveContext(transactionKey);
 
         if (handler != null) {
-            log.debug("delete() - uuid:"+uuid+" cluster:"+cluster+" primaryKeys"+Arrays.toString(primaryKeys));
-            handler.delete(context, uuid, primaryKeys);
+            int deletedCount = handler.delete(context, uuid, primaryKeys);
+            log.debug("delete() - DONE uuid:{} cluster:{} primaryKeys:{} deletedCount:{}", uuid, cluster, Arrays.toString(primaryKeys), deletedCount);
         }
         else {
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");
         }
 
         // Trigger all registered handlers to update domain specific tables
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.delete(context, uuid, locker, primaryKeys);
-
+        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.delete(context, uuid, transactionKey, primaryKeys);
     }
 }

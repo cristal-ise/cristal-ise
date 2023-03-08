@@ -23,28 +23,35 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.process.resource.BuiltInResources.STATE_MACHINE_RESOURCE;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.resource.BuiltInResources;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class StateMachineCache extends DescriptionObjectCache<StateMachine> {
 
     @Override
-    public String getTypeCode() {
-        return BuiltInResources.STATE_MACHINE_RESOURCE.getTypeCode();
+    protected String getTypeCode() {
+        return STATE_MACHINE_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
-        return BuiltInResources.STATE_MACHINE_RESOURCE.getSchemaName();
+    protected String getSchemaName() {
+        return STATE_MACHINE_RESOURCE.getSchemaName();
     }
 
     @Override
-    public StateMachine buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected String getTypeRoot() {
+        return STATE_MACHINE_RESOURCE.getTypeRoot();
+    }
+
+    @Override
+    protected StateMachine buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             StateMachine thisStateMachine = (StateMachine) Gateway.getMarshaller().unmarshall(data);
             thisStateMachine.validate();

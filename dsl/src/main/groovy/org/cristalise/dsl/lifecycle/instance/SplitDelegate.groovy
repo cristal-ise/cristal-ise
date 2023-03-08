@@ -85,8 +85,13 @@ class SplitDelegate extends BlockDelegate {
         cl()
 
         childBlocks.each {
-            Next n = aSplit.addNext(it.firstVertex)
-            it.lastVertex.addNext(aJoin)
+            if (it.firstVertex) {
+                aSplit.addNext(it.firstVertex)
+                it.lastVertex.addNext(aJoin)
+            }
+            else {
+                aSplit.addNext(aJoin)
+            }
         }
 
         setSplitProperties(aSplit)
@@ -96,7 +101,7 @@ class SplitDelegate extends BlockDelegate {
         lastVertex = aJoin
     }
 
-    public void Block(Closure cl) {
+    public void Block(@DelegatesTo(BlockDelegate) Closure cl) {
         def b = new BlockDelegate(parentCABlock, vertexCache)
         childBlocks.add(b)
         b.processClosure(cl)

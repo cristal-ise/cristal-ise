@@ -20,6 +20,8 @@
  */
 package org.cristalise.storage.jooqdb.clusterStore;
 
+import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.checkSqlXmlSupport;
+import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.getStringXmlType;
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
@@ -33,14 +35,14 @@ import java.util.UUID;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
-import org.jooq.DataType;
 import org.jooq.Field;
+import org.jooq.InsertSetMoreStep;
 import org.jooq.Record;
 import org.jooq.Table;
+import org.w3c.dom.Document;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,11 +50,12 @@ import lombok.extern.slf4j.Slf4j;
 public class JooqOutcomeHandler extends JooqHandler {
     static final Table<?> OUTCOME_TABLE = table(name("OUTCOME"));
 
-    static final Field<UUID>    UUID            = field(name("UUID"),           UUID.class);
-    static final Field<String>  SCHEMA_NAME     = field(name("SCHEMA_NAME"),    String.class);
-    static final Field<Integer> SCHEMA_VERSION  = field(name("SCHEMA_VERSION"), Integer.class);
-    static final Field<Integer> EVENT_ID        = field(name("EVENT_ID"),       Integer.class);
-    static final Field<String>  XML             = field(name("XML"),            String.class);
+    static final Field<UUID>     UUID            = field(name("UUID"),           UUID.class);
+    static final Field<String>   SCHEMA_NAME     = field(name("SCHEMA_NAME"),    String.class);
+    static final Field<Integer>  SCHEMA_VERSION  = field(name("SCHEMA_VERSION"), Integer.class);
+    static final Field<Integer>  EVENT_ID        = field(name("EVENT_ID"),       Integer.class);
+    static final Field<String>   XML             = field(name("XML"),            getStringXmlType());
+    static final Field<Document> SQLXML          = field(name("XML"),            SQLXML_TYPE);
 
     @Override
     protected Table<?> getTable() {
@@ -102,49 +105,83 @@ public class JooqOutcomeHandler extends JooqHandler {
 
     @Override
     public int update(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
-        throw new IllegalArgumentException("Outcome must not be updated uuid:"+uuid+" name:"+obj.getName());
+        throw new PersistencyException("Outcome must not be updated uuid:"+uuid+" name:"+obj.getName());
     }
 
     @Override
     public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) {
         Outcome outcome = (Outcome)obj;
-        return context
+
+        InsertSetMoreStep<?> insert = context
                 .insertInto(OUTCOME_TABLE)
                 .set(UUID,           uuid)
                 .set(SCHEMA_NAME,    outcome.getSchema().getName())
                 .set(SCHEMA_VERSION, outcome.getSchema().getVersion())
-                .set(EVENT_ID,       outcome.getID())
-                .set(XML,            outcome.getData())
-                .execute();
+                .set(EVENT_ID,       outcome.getID());
+
+        if (checkSqlXmlSupport()) {
+            try {
+                insert.set(SQLXML, outcome.getDOM());
+            }
+            catch (Exception e) {
+                log.error("insert() - could not handle SQLXML conversion", e);
+                return 0;
+            }
+        }
+        else {
+            insert.set(XML, outcome.getData());
+        }
+
+        return insert.execute();
     }
 
     @Override
     public C2KLocalObject fetch(DSLContext context, UUID uuid, String...primaryKeys) throws PersistencyException {
         Record result = fetchRecord(context, uuid, primaryKeys);
 
-        if(result != null) {
+        if (result != null) {
             try {
-                String xml = result.get(XML);
-                return new Outcome(result.get(EVENT_ID), xml, LocalObjectLoader.getSchema(result.get(SCHEMA_NAME), result.get(SCHEMA_VERSION)));
-            }
+                String xml = null;
+
+                if (checkSqlXmlSupport()) {
+                    //this cast should not be needed, see JooqSqlXmlTest class 
+                    xml = ((java.sql.SQLXML)result.get(SQLXML)).getString();
+                }
+                else {
+                    xml = result.get(XML);
+                }
+
+                return new Outcome(result.get(EVENT_ID), xml, result.get(SCHEMA_NAME), result.get(SCHEMA_VERSION));
+           }
             catch (Exception e) {
-                log.error("", e);
+                log.error("fetch() - could not handle XML", e);
                 throw new PersistencyException(e.getMessage());
             }
         }
         return null;
     }
 
+    protected Field<?> getXmlField() {
+        if (checkSqlXmlSupport()) {
+            SQLXML.getDataType().nullable(false);
+            return SQLXML;
+        }
+        else {
+            XML.getDataType().nullable(false);
+            return XML;
+        }
+    }
+
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
-        DataType<String> xmlType = getXMLType(context);
-
+        Field<?> xmlField = getXmlField();
+        
         context.createTableIfNotExists(OUTCOME_TABLE)
         .column(UUID,           UUID_TYPE   .nullable(false))
         .column(SCHEMA_NAME,    NAME_TYPE   .nullable(false))
         .column(SCHEMA_VERSION, VERSION_TYPE.nullable(false))
         .column(EVENT_ID,       ID_TYPE     .nullable(false))
-        .column(XML,            xmlType     .nullable(false))
+        .column(xmlField)
         .constraints(
                 constraint("PK_"+OUTCOME_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
         .execute();

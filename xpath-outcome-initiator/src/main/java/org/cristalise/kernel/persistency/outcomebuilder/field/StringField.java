@@ -20,6 +20,9 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_autoComplete_default;
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_inputField_string_defaultValue;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -34,7 +37,6 @@ import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeStructure;
 import org.cristalise.kernel.persistency.outcomebuilder.StructuralException;
 import org.cristalise.kernel.persistency.outcomebuilder.StructureWithAppInfo;
-import org.cristalise.kernel.process.Gateway;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.AttributeDecl;
@@ -49,6 +51,8 @@ import org.json.JSONObject;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
+
+import lombok.Getter;
 
 /**
  * Superclass for the entry field for Field and AttributeList.
@@ -70,7 +74,10 @@ public class StringField extends StructureWithAppInfo {
     String     container;
     String     control;
     String     labelGrid;
-    
+
+    @Getter
+    Class<?> javaType = String.class;
+
     /**
      * Javascript regexp pattern to validate field value in DynamicForms. It is either provided in the AppInfo.pattern field 
      * or it is computed from data available in XSD restrictions or in various AppInfo fields (check subclasses)
@@ -257,7 +264,7 @@ public class StringField extends StructureWithAppInfo {
      * @return zero length String
      */
     public String getDefaultValue() {
-        return Gateway.getProperties().getString("Webui.inputField.string.defaultValue", "");
+        return Webui_inputField_string_defaultValue.getString();
     }
 
     public void updateNode() {
@@ -391,7 +398,7 @@ public class StringField extends StructureWithAppInfo {
         field.put("required", !isOptional());
 
         //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING or label can be provided
-        readAppInfoDynamicForms(model, field, false);
+        setAppInfoDynamicFormsJson(model, field, false);
 
         field.put("cls", generateNgDynamicFormsCls());
 
@@ -418,7 +425,7 @@ public class StringField extends StructureWithAppInfo {
         //Put label as placholder if it was not specified in the Schema
         if (! field.has("placeholder")) field.put("placeholder", label);
 
-        String defaultAutoComplete = Gateway.getProperties().getString("Webui.autoComplete.default", "off");
+        String defaultAutoComplete = Webui_autoComplete_default.getString();
 
         // autoComplete=on by default in NgDyanmicForms so no need to set
         if (! field.has("autoComplete") && defaultAutoComplete.equals("off") ) {

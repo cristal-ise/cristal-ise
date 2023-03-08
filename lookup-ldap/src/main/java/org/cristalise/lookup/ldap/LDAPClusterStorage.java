@@ -22,7 +22,6 @@ package org.cristalise.lookup.ldap;
 
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -30,12 +29,14 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.querying.Query;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class LDAPClusterStorage extends ClusterStorage {
     LDAPPropertyManager ldapStore;
 
@@ -70,7 +71,7 @@ public class LDAPClusterStorage extends ClusterStorage {
 
     // introspection
     @Override
-    public short queryClusterSupport(String clusterType) {
+    public short queryClusterSupport(ClusterType clusterType) {
         if (clusterType.equals(ClusterType.PROPERTY.getName()))
             return READWRITE;
         else
@@ -89,8 +90,7 @@ public class LDAPClusterStorage extends ClusterStorage {
 
     // retrieve object by path
     @Override
-    public C2KLocalObject get(ItemPath thisItem, String path) throws PersistencyException {
-        Logger.msg(6, "LDAPClusterStorage.get() - " + thisItem + "/" + path);
+    public C2KLocalObject get(ItemPath thisItem, String path, TransactionKey transactionKey) throws PersistencyException {
         StringTokenizer tok = new StringTokenizer(path, "/");
         int pathLength = tok.countTokens();
         if (pathLength != 2) throw new PersistencyException("Path length was invalid: " + path);
@@ -117,9 +117,7 @@ public class LDAPClusterStorage extends ClusterStorage {
 
     // store object by path
     @Override
-    public void put(ItemPath thisItem, C2KLocalObject obj) throws PersistencyException {
-        Logger.msg(6, "LDAPClusterStorage.put() - " + thisItem + "/" + ClusterStorage.getPath(obj));
-
+    public void put(ItemPath thisItem, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException {
         ClusterType type = obj.getClusterType();
 
         if (type == ClusterType.PROPERTY) {
@@ -127,7 +125,7 @@ public class LDAPClusterStorage extends ClusterStorage {
                 ldapStore.setProperty(thisItem, (Property) obj);
             }
             catch (Exception e1) {
-                Logger.error(e1);
+                log.error("",e1);
                 throw new PersistencyException("LDAPClusterStorage - could not write property");
             }
         }
@@ -135,9 +133,32 @@ public class LDAPClusterStorage extends ClusterStorage {
             throw new PersistencyException("Cluster type " + type + " not supported.");
     }
 
+    // delete full cluster
+    @Override
+    public void delete(ItemPath thisItem, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
+        removeCluster(thisItem, cluster.getName(), transactionKey);
+    }
+
+    private void removeCluster(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
+        String[] children = getClusterContents(itemPath, path, transactionKey);
+
+        for (String element : children) {
+            removeCluster(itemPath, path+(path.length()>0?"/":"")+element, transactionKey);
+        }
+
+        if (children.length == 0 && path.indexOf("/") > -1) {
+            delete(itemPath, path, transactionKey);
+        }
+    }
+
+    @Override
+    public void delete(ItemPath thisItem, TransactionKey transactionKey) throws PersistencyException {
+        removeCluster(thisItem, "", transactionKey);
+    }
+
     // delete cluster
     @Override
-    public void delete(ItemPath thisItem, String path) throws PersistencyException {
+    public void delete(ItemPath thisItem, String path, TransactionKey transactionKey) throws PersistencyException {
         StringTokenizer tok = new StringTokenizer(path, "/");
         int pathLength = tok.countTokens();
         if (pathLength != 2) throw new PersistencyException("Path length was invalid: " + path);
@@ -148,7 +169,7 @@ public class LDAPClusterStorage extends ClusterStorage {
                 ldapStore.deleteProperty(thisItem, tok.nextToken());
             }
             catch (Exception e1) {
-                Logger.error(e1);
+                log.error("",e1);
                 throw new PersistencyException("LDAPClusterStorage - could not delete property");
             }
         }
@@ -161,8 +182,7 @@ public class LDAPClusterStorage extends ClusterStorage {
 
     // directory listing
     @Override
-    public String[] getClusterContents(ItemPath thisItem, String path) throws PersistencyException {
-        Logger.msg(6, "LDAPClusterStorage.getClusterContents() - " + thisItem + "/" + path);
+    public String[] getClusterContents(ItemPath thisItem, String path, TransactionKey transactionKey) throws PersistencyException {
         StringTokenizer tok = new StringTokenizer(path, "/");
         int pathLength = tok.countTokens();
         if (pathLength > 1) return new String[0];
@@ -194,12 +214,30 @@ public class LDAPClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String executeQuery(Query query) throws PersistencyException {
+    public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("UNIMPLEMENTED funnctionality");
     }
 
     @Override
-    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+    public int getLastIntegerId(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         throw new PersistencyException("UNIMPLEMENTED funnctionality");
+    }
+
+    @Override
+    public void begin(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void commit(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void abort(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
     }
 }

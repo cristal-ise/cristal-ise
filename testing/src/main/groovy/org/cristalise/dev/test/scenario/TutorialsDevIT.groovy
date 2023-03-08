@@ -1,23 +1,23 @@
 package org.cristalise.dev.test.scenario
 
-import org.cristalise.dsl.test.builders.AgentTestBuilder
+import static org.cristalise.dev.dsl.DevXMLUtility.recordToXML
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
-import org.cristalise.kernel.lifecycle.instance.predefined.Erase
-import org.cristalise.kernel.lookup.RolePath
-import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.After
-import org.junit.Ignore
-import org.junit.Test
-
-import spock.util.concurrent.PollingConditions
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 
 /**
  *
  *
  */
+@CompileStatic @Slf4j
+@TestInstance(Lifecycle.PER_CLASS)
 class TutorialsDevIT extends KernelScenarioTestBase {
     String schemaName  = "PatientDetails"
     String elemActName = "SetPatientDetails"
@@ -25,19 +25,12 @@ class TutorialsDevIT extends KernelScenarioTestBase {
     String factoryName = "PatientFactory"
     String itemType    = "Patient"
 
-    ItemProxy patient
-
-    @After
-    public void after() {
-        //agent.execute(patient, Erase.class)
-        super.after()
-    }
-
     /**
      *
      * @param actDefList
      */
-    private void setupPatient(Map<String, ActivityDef> actDefList) {
+    @CompileDynamic
+    private ItemProxy setupPatient(Map<String, ActivityDef> actDefList) {
         def schema = Schema("$schemaName-$timeStamp", folder) {
             struct(name: schemaName, documentation: 'This is the Schema for Basic Tutorial') {
                 attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
@@ -53,33 +46,30 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         }
 
         def wf = CompositeActivityDef("$compActName-$timeStamp", folder) {
-            ElemActDef(elemActName,  ea)
-            actDefList.each { name, actDef ->
-                ElemActDef(name,  actDef)
+            Layout {
+                Act(elemActName,  ea)
+                actDefList.each { name, actDef ->
+                    Act(name,  actDef)
+                }
             }
         }
 
-        def factory = DescriptionItem("$factoryName-$timeStamp", folder) {
+        return DescriptionItem("$factoryName-$timeStamp", folder) {
             PropertyDesc(name: "Type", defaultValue: "Patient", isMutable: false, isClassIdentifier: true)
             Workflow(wf)
         }
-
-        createNewItemByFactory(factory, "CreateNewInstance", "$itemType-$timeStamp", folder)
-
-        patient = agent.getItem("$folder/$itemType-$timeStamp")
     }
 
     @Test
     public void 'Basic Tutorial with one Activy'() {
-        setupPatient()
+        def factory = setupPatient([:])
+        def patient = createItemFromDescription(factory, "$itemType-$timeStamp", folder)
 
         executeDoneJob(patient, elemActName)
-
-        agent.execute(patient, "Erase", new String[0])
     }
-
-    @Test
-    public void 'Extended Tutorial with default Master Schema and Aggregate Script'() {
+    
+    @CompileDynamic
+    private ItemProxy setupExtedned() {
         Map<String, ActivityDef> actMap = [:]
 
         def urinalysisSchema =  Schema("UrinSample-$timeStamp", folder) {
@@ -96,28 +86,31 @@ class TutorialsDevIT extends KernelScenarioTestBase {
 
         actMap['SetUrinSample'] = urinalysisEA
 
-        eraseItemIfExists("/desc/Schema/$folder", itemType)
-        eraseItemIfExists("/desc/Script/$folder", "${itemType}_Aggregate")
+//        Schema(itemType, folder) {
+//            struct(name: itemType) {
+//                attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
+//                field(name: 'DateOfBirth',  type: 'date')
+//                field(name: 'Gender',       type: 'string', values: ['male', 'female'])
+//                field(name: 'Weight',       type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
+//                field(name: 'Transparency', type: 'string', values: ['clear', 'clouded'])
+//                field(name: 'Color',        type: 'string')
+//            }
+//        }
 
-        Schema(itemType, folder) {
-            struct(name: itemType) {
-                attribute(name: 'InsuranceNumber', type: 'string', default: '123456789ABC')
-                field(name: 'DateOfBirth',  type: 'date')
-                field(name: 'Gender',       type: 'string', values: ['male', 'female'])
-                field(name: 'Weight',       type: 'decimal') { unit(values: ['g', 'kg'], default: 'kg') }
-                field(name: 'Transparency', type: 'string', values: ['clear', 'clouded'])
-                field(name: 'Color',        type: 'string')
-            }
-        }
+//        Script("${itemType}_Aggregate", folder) {
+//            output("error", "org.cristalise.kernel.scripting.ErrorInfo")
+//            script(language: 'groovy') {
+//                new File('src/main/data/AggregatePatientData.groovy').text
+//            }
+//        }
 
-        Script("${itemType}_Aggregate", folder) {
-            output("error", "org.cristalise.kernel.scripting.ErrorInfo")
-            script(language: 'groovy') {
-                new File('src/main/data/AggregatePatientData.groovy').text
-            }
-        }
+        return setupPatient(actMap)
+    }
 
-        setupPatient(actMap)
+    @Test
+    public void 'Extended Tutorial with default Master Schema and Aggregate Script'() {
+        def factory = setupExtedned()
+        def patient = createItemFromDescription(factory, "$itemType-$timeStamp", folder)
 
         assert patient.getMasterSchema()
         assert patient.getAggregateScript()
@@ -126,8 +119,8 @@ class TutorialsDevIT extends KernelScenarioTestBase {
         executeDoneJob(patient, 'SetUrinSample')
     }
 
-    @Test @Ignore('Requires UserCode process')
-    public void 'Extended Tutorial using Usercode to execute Aggregate Script'() {
+    @CompileDynamic
+    private ItemProxy setupUsercode() {
         Map<String, ActivityDef> actMap = [:]
 
         def urinalysisSchema =  Schema("UrinSample-$timeStamp", folder) {
@@ -179,15 +172,6 @@ class TutorialsDevIT extends KernelScenarioTestBase {
             Script(aggregateScript)
         }
 
-        def ucPath = Gateway.getLookup().getAgents(new RolePath("UserCode", false))[0]
-        def userCode = new AgentTestBuilder(ucPath)
-
-        setupPatient(actMap)
-
-        executeDoneJob(patient, elemActName)
-        executeDoneJob(patient, 'SetUrinSample')
-
-        PollingConditions pollingWait = new PollingConditions(timeout: 3, initialDelay: 0.2, factor: 1)
-        pollingWait.eventually { userCode.jobListContains([stepName: "SetAggregated-$timeStamp", agentRole: "UserCode", transitionName: "Proceed"]) }
+        return setupPatient(actMap)
     }
 }

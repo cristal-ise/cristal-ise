@@ -20,7 +20,10 @@
  */
 package org.cristalise.kernel.test.entity
 
+import org.cristalise.dsl.entity.RoleBuilder
 import org.cristalise.dsl.test.builders.AgentTestBuilder;
+import org.cristalise.kernel.lookup.RolePath
+import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup;
 
 import spock.lang.Ignore
@@ -32,29 +35,41 @@ import spock.lang.Specification
  */
 class AgentCreateSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8) }
+    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true) }
     def cleanup() { cristalCleanup() }
 
     def 'Agent with Role is created'() {
         when:
+        RoleBuilder.create {
+            Role(name: 'toto', jobList: true)
+        }
         AgentTestBuilder agentBuilder = AgentTestBuilder.create(name: "dummy", password: 'dummy') {
             Roles {
-                Role(name: 'toto', jobList: true)
+                Role(name: 'toto')
             }
         }
 
         then:
-        agentBuilder.newAgentPath.exists()
         agentBuilder.newAgentPath.agentName == 'dummy'
         agentBuilder.newAgent.roles
         agentBuilder.newAgent.roles.size() == 1
         agentBuilder.newAgent.roles[0].name == 'toto'
         agentBuilder.newAgent.roles[0].jobList == true
+
+        // check data available in through Lookup API
+        def rolePath = agentBuilder.newAgent.roles[0].rolePath
+        agentBuilder.newAgentPath.exists()
+        rolePath.exists()
+        agentBuilder.newAgentPath.hasRole(rolePath)
     }
 
     @Ignore("Unimplemented")
     def 'Agent can be updated'() {
         when:
+        RoleBuilder.create {
+            Role(name: 'toto')
+            Role(name: 'tototo')
+        }
         AgentTestBuilder.create(name: "dummy") {
             Roles {
                 Role(name: 'toto')

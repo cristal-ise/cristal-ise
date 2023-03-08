@@ -21,10 +21,12 @@
 package org.cristalise.kernel.lifecycle;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lifecycle.instance.Join;
 import org.cristalise.kernel.lifecycle.instance.WfVertex;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 public class JoinDef extends WfVertexDef {
     /**
@@ -79,9 +81,9 @@ public class JoinDef extends WfVertexDef {
     }
 
     @Override
-    public WfVertex instantiate() throws InvalidDataException, ObjectNotFoundException {
+    public WfVertex instantiate(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         Join newJoin = new Join();
-        configureInstance(newJoin);
+        configureInstance(newJoin, transactionKey);
         return newJoin;
     }
 }

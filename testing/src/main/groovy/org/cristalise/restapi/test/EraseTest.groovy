@@ -1,8 +1,9 @@
 package org.cristalise.restapi.test
 
-import org.cristalise.kernel.lifecycle.instance.predefined.ChangeName
+import static org.junit.jupiter.api.Assertions.fail
+
 import org.cristalise.kernel.lifecycle.instance.predefined.Erase
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import groovy.transform.CompileStatic
 import io.restassured.http.ContentType
@@ -15,6 +16,11 @@ class EraseTest extends RestapiTestBase {
         login('user', 'test')
         def uuid = createNewItem "TestItem-$timeStamp", ContentType.XML
         executePredefStep(uuid, Erase.class, ContentType.XML)
+        try {
+            resolveDomainPath("/restapiTests/TestItem-$timeStamp")
+            fail("Item:/restapiTests/TestItem-$timeStamp shall be deleted")
+        }
+        catch (Throwable e) {}
         logout(null)
     }
 
@@ -23,6 +29,11 @@ class EraseTest extends RestapiTestBase {
         login('user', 'test')
         def uuid = createNewItem "TestItem-$timeStamp", ContentType.XML
         executePredefStep(uuid, Erase.class, ContentType.JSON)
+        try {
+            resolveDomainPath("/restapiTests/TestItem-$timeStamp")
+            fail("Item:/restapiTests/TestItem-$timeStamp shall be deleted")
+        }
+        catch (Throwable e) {}
         logout(null)
     }
 
@@ -31,14 +42,24 @@ class EraseTest extends RestapiTestBase {
         login('user', 'test')
         def uuid = createNewAgent "TestAgent-$timeStamp", 'test', ContentType.XML
         executePredefStep(uuid, Erase.class, ContentType.XML)
+        try {
+            resolveDomainPath("/restapiTests/TestItem-$timeStamp")
+            fail("Item:/restapiTests/TestItem-$timeStamp shall be deleted")
+        }
+        catch (Throwable e) {}
         logout(null)
     }
 
     @Test
     public void 'Erase agent posting JSON'() throws Exception {
         login('user', 'test')
-        def uuid = createNewAgent "TestItem-$timeStamp", 'test', ContentType.XML
+        def uuid = createNewAgent "TestAgent-$timeStamp", 'test', ContentType.XML
         executePredefStep(uuid, Erase.class, ContentType.JSON)
+        try {
+            resolveDomainPath("/restapiTests/TestItem-$timeStamp")
+            fail("Item:/restapiTests/TestItem-$timeStamp shall be deleted")
+        }
+        catch (Throwable e) {}
         logout(null)
     }
 }

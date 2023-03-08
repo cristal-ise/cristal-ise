@@ -4,11 +4,12 @@ import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.ClusterStorage
 import org.cristalise.kernel.property.Property
-import org.cristalise.kernel.utils.Logger
 import org.cristalise.storage.InMemoryPropertyClusterStorage
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+
+import groovy.transform.CompileStatic
 
 //@CompileStatic
 class PropertyClusterStorageTests {
@@ -23,8 +24,6 @@ class PropertyClusterStorageTests {
 
     @Before
     public void init() {
-        Logger.addLogStream(System.out, 9);
-
         propClusterStore = new InMemoryPropertyClusterStorage()
 
         itemPath0 = new ItemPath(uuid0.toString())
@@ -33,9 +32,9 @@ class PropertyClusterStorageTests {
         propType  = new Property("Type",  "dummy", false)
         propStyle = new Property("Style", "fluffy", false)
         
-        propClusterStore.put(itemPath0, propType)
-        propClusterStore.put(itemPath1, propType)
-        propClusterStore.put(itemPath1, propStyle)
+        propClusterStore.put(itemPath0, propType, null)
+        propClusterStore.put(itemPath1, propType, null)
+        propClusterStore.put(itemPath1, propStyle, null)
         propClusterStore.add(new DomainPath("toto/item0", itemPath0))
         propClusterStore.add(new DomainPath("toto/item1", itemPath1))
     }
@@ -43,14 +42,13 @@ class PropertyClusterStorageTests {
     @After
     public void tearDown() {
         propClusterStore.close()
-        Logger.removeLogStream(System.out);
     }
 
     @Test
     public void getProperty() {
         def propPath = ClusterStorage.getPath(propType)
         assert propPath == "Property/Type"
-        Property p = (Property) propClusterStore.get(itemPath0, propPath)
+        Property p = (Property) propClusterStore.get(itemPath0, propPath, null)
 
         assert p
         assert p.name == "Type"
@@ -61,20 +59,20 @@ class PropertyClusterStorageTests {
     public void searchByProperty() {
         CompareUtils.comparePathLists(
             [new DomainPath("toto/item0"), new DomainPath("toto/item1")],
-            propClusterStore.search(new DomainPath("toto"), propType))
+            propClusterStore.search(new DomainPath("toto"), (Object)null, propType))
     }
 
     @Test
     public void searchByTwoProperties() {
         CompareUtils.comparePathLists(
             [new DomainPath("toto/item1")],
-            propClusterStore.search(new DomainPath("toto"), propType, propStyle))
+            propClusterStore.search(new DomainPath("toto"), (Object)null, propType, propStyle))
     }
     
     @Test
     public void searchByOneProperties_NothingFound() {
         CompareUtils.comparePathLists(
             [],
-            propClusterStore.search(new DomainPath("toto"), new Property("Style", "curly", false)))
+            propClusterStore.search(new DomainPath("toto"), (Object)null, new Property("Style", "curly", false)))
     }
 }

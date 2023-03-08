@@ -23,7 +23,7 @@ package org.cristalise.kernel.persistency.outcome;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 
 /**

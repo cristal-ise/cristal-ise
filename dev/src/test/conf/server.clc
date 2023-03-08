@@ -1,0 +1,15 @@
+Name=Cristal DevTest In Memory Server
+
+Authenticator = org.cristalise.lookup.lite.InMemoryAuthManager
+Lookup        = org.cristalise.storage.InMemoryPropertyClusterStorage
+
+JOOQ.URI        = jdbc:h2:mem:
+JOOQ.user       = sa
+JOOQ.password   = sa
+JOOQ.dialect    = H2
+JOOQ.autoCommit = true
+
+Gateway.clusteredVertx = false
+
+Resource.moduleUseFileNameWithVersion = dev,devtest
+Export.replaceActivitySlotDefUUIDWithName = true

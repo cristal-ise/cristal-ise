@@ -46,7 +46,7 @@ public interface C2KLocalObject {
     public String getName();
 
     /**
-     * Each object belongs to a specific type defined in {@link org.cristalise.kernel.persistency.ClusterStorage}
+     * Each object belongs to a specific type defined in {@link org.cristalise.kernel.persistency.ClusterType}
      * 
      * @return string id of the type
      */
@@ -55,6 +55,10 @@ public interface C2KLocalObject {
     /**
      * Each C2KLocalObject is stored with a path identifier starting with the ClusterType:
      * <ul>
+     * <li>DomainPath:  /Path/Domain/Name
+     * <li>ItemPath:    /Path/Item
+     * <li>AgentPath:   /Path/Agent
+     * <li>RolePath:    /Path/Role/Name
      * <li>Properties:  /Property/Name
      * <li>Workflow:    /LifeCycle/workflow
      * <li>Collections: /Collection/Name/Version (default Name='last')

@@ -1,0 +1,25 @@
+{
+  "column" : [ {
+    "source" : "itemField",
+    "field" : "Name",
+    "caption" : "Name",
+    "align" : "left",
+    "width" : 100
+  }, {
+    "source" : "itemField",
+    "field" : "State",
+    "caption" : "State",
+    "align" : "left",
+    "width" : 100
+  }, {
+    "source" : "itemField",
+    "field" : "Email",
+    "caption" : "Email",
+    "align" : "left",
+    "width" : 100
+  } ],
+  "sort" : {
+    "field" : "Name",
+    "order" : "asc"
+  }
+}

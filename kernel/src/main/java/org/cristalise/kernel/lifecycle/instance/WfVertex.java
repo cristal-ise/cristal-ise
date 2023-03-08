@@ -20,15 +20,24 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID;
+import java.util.Arrays;
+
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.CannotManageException;
+import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.InvalidTransitionException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
+import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.graph.model.GraphableVertex;
+import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.lifecycle.routingHelpers.DataHelperUtility;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 
@@ -39,7 +48,9 @@ public abstract class WfVertex extends GraphableVertex {
 
     public enum Types {
         Atomic,
+        LocalAtomic,
         Composite,
+        LocalComposite,
         OrSplit,
         XOrSplit,
         AndSplit,
@@ -52,7 +63,7 @@ public abstract class WfVertex extends GraphableVertex {
      * Sets the activity available to be executed on start of Workflow or composite activity 
      * (when it is the first one of the (sub)process)
      */
-    public abstract void runFirst(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException;
+    public abstract void runFirst(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException;
 
     /**
      * 
@@ -63,11 +74,15 @@ public abstract class WfVertex extends GraphableVertex {
         setIsComposite(false);
     }
 
-    public abstract void runNext(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException;
+    public abstract void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException;
 
     public abstract void reinit( int idLoop ) throws InvalidDataException;
 
-    public void abort() { }
+    public void abort(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) 
+            throws AccessRightsException, InvalidTransitionException, InvalidDataException, ObjectNotFoundException, PersistencyException,
+            ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification 
+    {
+    }
 
     /**
      * Method verify.
@@ -81,7 +96,7 @@ public abstract class WfVertex extends GraphableVertex {
      */
     public abstract String getErrors();
 
-    public abstract void run(AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException;
+    public abstract void run(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException;
 
     /**
      * @return boolean
@@ -99,17 +114,17 @@ public abstract class WfVertex extends GraphableVertex {
 
     public abstract Next addNext(WfVertex vertex);
 
-    public Object evaluateProperty(ItemPath itemPath, String propName, Object locker)
+    public Object evaluateProperty(ItemPath itemPath, String propName, TransactionKey transactionKey)
             throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
-        return evaluatePropertyValue(itemPath, getProperties().get(propName), locker);
+        return evaluatePropertyValue(itemPath, getProperties().get(propName), transactionKey);
     }
-    public Object evaluatePropertyValue(ItemPath itemPath, Object propValue, Object locker)
+    public Object evaluatePropertyValue(ItemPath itemPath, Object propValue, TransactionKey transactionKey)
             throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
         if (itemPath == null) itemPath = getWf().getItemPath();
 
-        return DataHelperUtility.evaluateValue(itemPath, propValue, getActContext(), locker);
+        return DataHelperUtility.evaluateValue(itemPath, propValue, getActContext(), transactionKey);
     }
 
     /**
@@ -118,16 +133,16 @@ public abstract class WfVertex extends GraphableVertex {
      * @param scriptName
      * @param scriptVersion
      * @param itemPath
-     * @param locker
+     * @param transactionKey
      * @return the value returned by the Script
      * @throws ScriptingEngineException
      */
-    protected Object evaluateScript(String scriptName, Integer scriptVersion, ItemPath itemPath, Object locker) throws ScriptingEngineException {
+    protected Object evaluateScript(String scriptName, Integer scriptVersion, ItemPath itemPath, TransactionKey transactionKey) throws ScriptingEngineException {
         try {
             if (itemPath == null) itemPath = getWf().getItemPath();
 
             Script script = Script.getScript(scriptName, scriptVersion);
-            return script.evaluate(itemPath, getProperties(), getActContext(), locker);
+            return script.evaluate(itemPath, getProperties(), getActContext(), transactionKey);
         }
         catch (Exception e) {
             log.error("", e);
@@ -149,11 +164,16 @@ public abstract class WfVertex extends GraphableVertex {
      * @param pairingID the value of the PairingID property
      * @return the vertex or null if nothing was found
      */
-    protected GraphableVertex findPair(String pairingID) {
-        if (StringUtils.isBlank(pairingID)) return null;
+    protected GraphableVertex findPair() {
+        String pairingID = getPairingId();
+
+        if (StringUtils.isBlank(pairingID)) {
+            log.warn("findPair() - vertex:{} has no valid PairingID", getName());
+            return null;
+        }
 
         for (GraphableVertex vertex: getParent().getLayoutableChildren()) {
-            if (pairingID.equals(vertex.getBuiltInProperty(PAIRING_ID)) && !vertex.equals(this)) {
+            if (pairingID.equals(vertex.getPairingId()) && !vertex.equals(this)) {
                 return vertex;
             }
         }
@@ -161,35 +181,59 @@ public abstract class WfVertex extends GraphableVertex {
     }
 
     /**
-     * Checks if the vertex has a pairing id or not and if it has one compares it with the other vertex pairing id
+     * Finds the last vertex starting from the actual vertex. It follows the outputs of he 
      * 
-     * @param otherVertex the other vertex to check for pairing
-     * @return null if vertex has no PAIRING_ID otherwise compare the pairing ids
+     * @return the last vertex or null if there is no vertex after the actual vertex
      */
-    protected Boolean isMyPair(WfVertex otherVertex) {
-        String loopPairingID = (String) getBuiltInProperty(PAIRING_ID);
+    protected WfVertex findLastVertex() {
+        Vertex[] outVertices = getOutGraphables();
+        boolean cont = outVertices.length > 0;
+        WfVertex lastVertex = null;
 
-        if (StringUtils.isNotBlank(loopPairingID)) {
-            return loopPairingID.equals(getOtherPairingID(otherVertex));
-        }
-        else {
-            return null;
-        }
-    }
+        while (cont) {
+            lastVertex = (WfVertex)outVertices[0];
 
-    /**
-     * Retrieve the PairingID of the other vertex
-     * 
-     * @param otherVertex the other vertex 
-     * @return empty string or the value of the PairingID property
-     */
-    protected String getOtherPairingID(WfVertex otherVertex) {
-        if (otherVertex.getProperties().containsKey(PAIRING_ID.getName())) {
-            return (String) otherVertex.getBuiltInProperty(PAIRING_ID);
+            if (lastVertex instanceof Join || lastVertex instanceof Activity) {
+                outVertices = lastVertex.getOutGraphables();
+                cont = outVertices.length > 0;
+                lastVertex = cont ? (WfVertex) outVertices[0] : lastVertex;
+            }
+            else if (lastVertex instanceof Loop) {
+                String pairingId = (String) lastVertex.getPairingId();
+                if (StringUtils.isNotBlank(pairingId)) {
+                    //Find output Join which does not have the same ParingId of the Loop
+                    Join outJoin = (Join) Arrays.stream(lastVertex.getOutGraphables())
+                            .filter(v -> !pairingId.equals(((WfVertex) v).getPairingId()))
+                            .findFirst().get();
+                    outVertices = outJoin.getOutGraphables();
+                    cont = outVertices.length > 0;
+                    lastVertex = outJoin;
+                }
+                else {
+                    log.warn("findLastVertex() - Loop(id:{}) does not have ParingId", lastVertex.getID());
+                    cont = false;
+                }
+            }
+            else if (lastVertex instanceof Split) {
+                GraphableVertex pairVertex = lastVertex.findPair();
+                if (pairVertex != null) {
+                    // the pair of a Split is a Join
+                    Join splitJoin = (Join)pairVertex;
+                    outVertices = splitJoin.getOutGraphables();
+                    cont = outVertices.length > 0;
+                    lastVertex = splitJoin;
+                }
+                else {
+                    log.warn("findLastVertex() - Split(id:{}) does not have ParingId", lastVertex.getID());
+                    cont = false;
+                }
+            }
+            else {
+                cont = false;
+            }
         }
-        else {
-            return "";
-        }
+    
+        return lastVertex;
     }
 }
 

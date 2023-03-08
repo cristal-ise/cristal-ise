@@ -24,6 +24,7 @@ import java.awt.Dimension;
 
 import javax.swing.JComboBox;
 
+@SuppressWarnings("serial")
 public class JFixedHeightComboBox<E> extends JComboBox<E> {
 	
     @Override

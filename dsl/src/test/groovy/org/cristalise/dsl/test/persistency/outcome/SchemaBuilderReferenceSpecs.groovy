@@ -33,8 +33,8 @@ import spock.lang.Specification
  */
 class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
 
     def 'Field can specify the item type it references using String'() {
@@ -54,6 +54,16 @@ class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSe
                              <reference>
                                <itemType>UnitTest</itemType>
                              </reference>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
@@ -87,6 +97,16 @@ class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSe
                              <reference>
                                <itemType>UnitTest</itemType>
                              </reference>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>

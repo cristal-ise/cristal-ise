@@ -33,7 +33,6 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.persistency.XMLUtils;
-import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -45,7 +44,6 @@ public class ListOfValuesTest extends XMLUtils {
 
     @Before
     public void setUp() throws Exception {
-        Logger.addLogStream(System.out, 8);
         Properties props = new Properties();
         props.put("Webui.autoComplete.default", "on");
         props.put("Authenticator", "Shiro");
@@ -69,8 +67,6 @@ public class ListOfValuesTest extends XMLUtils {
 
         JSONArray actual = builder.generateNgDynamicFormsJson(inputs);
 
-        Logger.msg(actual.toString(2));
-
         JSONArray expected = new JSONArray(getJSON(dir, type));
 
         assertJsonEquals(expected, actual);
@@ -82,8 +78,6 @@ public class ListOfValuesTest extends XMLUtils {
         OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
 
         JSONArray actual   = builder.generateNgDynamicFormsJson();
-
-        Logger.msg(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, type+"_emptyInputs"));
 

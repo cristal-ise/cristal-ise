@@ -4,16 +4,14 @@ import org.cristalise.kernel.persistency.ClusterStorage
 import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.lookup.lite.InMemoryLookupManager
 
-import groovy.transform.CompileStatic
-
-@CompileStatic
+//@CompileStatic
 class InMemoryPropertyClusterStorage extends ClusterStorage {
     @Delegate InMemoryLookupManager lookup = InMemoryLookupManager.instance
 
     @Override
-    short queryClusterSupport(String type) {
-        if (ClusterType.getValue(type) == ClusterType.PROPERTY) return READWRITE;
-        else                                          return NONE;
+    short queryClusterSupport(ClusterType type) {
+        if (type == ClusterType.PROPERTY) return READWRITE;
+        else                              return NONE;
     }
 
     @Override

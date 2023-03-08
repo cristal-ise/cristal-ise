@@ -1,0 +1,9 @@
+[ {
+  "name" : "Cars",
+  "header" : "Cars",
+  "icon" : "fa fa-compress-arrows-alt"
+}, {
+  "name" : "Motorcycles",
+  "header" : "Motorcycles",
+  "icon" : "fa fa-compress-arrows-alt"
+} ]

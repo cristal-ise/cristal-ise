@@ -20,14 +20,20 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import static org.cristalise.dsl.persistency.outcome.SchemaBuilder.FileType.CSV
+import static org.cristalise.dsl.persistency.outcome.SchemaBuilder.FileType.XLSX
+import static org.cristalise.dsl.persistency.outcome.SchemaBuilder.FileType.XSD
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE
 
+import org.cristalise.dsl.csv.TabularGroovyParser
+import org.cristalise.dsl.csv.TabularGroovyParserBuilder
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lookup.DomainPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.ResourceImportHandler
+import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.utils.LocalObjectLoader
 
 import groovy.transform.CompileStatic
@@ -39,13 +45,16 @@ import groovy.util.logging.Slf4j
  */
 @CompileStatic @Slf4j
 class SchemaBuilder {
-    String module = ""
-    String name = ""
+    public enum FileType {XLSX, CSV, XSD}
+
+    String module = ''
+    String name = ''
     int version = -1
 
     DomainPath domainPath = null
 
     Schema schema = null
+    Collection<Script> expressionScipts = []
 
     public SchemaBuilder() {}
 
@@ -77,10 +86,56 @@ class SchemaBuilder {
      * @return
      */
     public SchemaBuilder loadXSD(String xsdFile) {
+        return loadXSD(new File(xsdFile))
+    }
+
+    public SchemaBuilder loadXSD(File xsdFile) {
         log.debug "loadXSD() - From file:$xsdFile"
 
-        schema = new Schema(name, version, new File(xsdFile).text)
+        schema = new Schema(name, version, xsdFile.text)
         schema.validate()
+
+        return this
+    }
+    
+    public SchemaBuilder generateSchema(Closure cl) {
+        def schemaD = new SchemaDelegate(name: name, version: version)
+        schemaD.processClosure(cl)
+
+        log.debug "generated xsd:\n" + schemaD.xsdString
+
+        schema = new Schema(name, version, schemaD.xsdString)
+        String errors = schema.validate()
+        schema.namespace = module
+
+        if (errors) {
+            log.error "generateSchema() - validation errors:\n{}", errors
+            log.error "generateSchema() - validation error xsd:\n{}", schemaD.xsdString
+            throw new InvalidDataException(errors)
+        }
+
+        if (schemaD.expressionScripts) {
+            expressionScipts = schemaD.expressionScripts.values()
+        }
+
+        return this
+    }
+
+    public SchemaBuilder generateSchema(TabularGroovyParser parser) {
+        def schemaD = new SchemaDelegate(name: name, version: version)
+        schemaD.processTabularData(parser)
+
+        schema = new Schema(name, version, schemaD.xsdString)
+        String errors = schema.validate()
+
+        if (errors) {
+            log.error "generateSchema() - xsd:\n{}", schemaD.xsdString
+            throw new InvalidDataException(errors)
+        }
+
+        if (schemaD.expressionScripts) {
+            expressionScipts = schemaD.expressionScripts.values()
+        }
 
         return this
     }
@@ -106,21 +161,24 @@ class SchemaBuilder {
      * @param module
      * @param name
      * @param version
-     * @param xsdFile
+     * @param fileName
      * @return
      */
-    public static SchemaBuilder create(String module, String name, int version, String xsdFile) {
-        def sb = build(module, name, version, xsdFile)
+    public static SchemaBuilder create(String module, String name, int version, String fileName) {
+        def sb = build(module, name, version, fileName)
         sb.create()
         return sb
     }
 
-    public static Schema build(String name, int version, Closure cl) {
-        def sb = new SchemaBuilder(name, version)
-
-        generateSchema(sb, cl)
-
-        return sb.schema
+    /**
+     * 
+     * @param name
+     * @param version
+     * @param cl
+     * @return
+     */
+    public static SchemaBuilder build(String name, int version, Closure cl) {
+        return build('', name, version, cl)
     }
 
     /**
@@ -129,23 +187,11 @@ class SchemaBuilder {
      * @return
      */
     public static SchemaBuilder build(String module, String name, int version, Closure cl) {
+        log.debug("build(closure) - module:{} name:{} version:{}", module, name, version)
+
         def sb = new SchemaBuilder(module, name, version)
-
-        generateSchema(sb, cl)
-
+        sb.generateSchema(cl)
         return sb
-    }
-
-    private static void generateSchema(SchemaBuilder sb, Closure cl) {
-        def schemaD = new SchemaDelegate()
-        schemaD.processClosure(cl)
-
-        log.debug "generated xsd:\n" + schemaD.xsdString
-
-        sb.schema = new Schema(sb.name, sb.version, schemaD.xsdString)
-        String errors = sb.schema.validate()
-
-        if (errors) throw new InvalidDataException(errors)
     }
 
     /**
@@ -153,12 +199,46 @@ class SchemaBuilder {
      * @param module
      * @param name
      * @param version
-     * @param xsdFile
+     * @param fileName
      * @return
      */
-    public static SchemaBuilder build(String module, String name, int version, String xsdFile) {
+    public static SchemaBuilder build(String module, String name, int version, String fileName) {
+        return build(module, name, version, new File(fileName))
+    }
+
+    /**
+     * 
+     * @param name
+     * @param version
+     * @param file
+     * @return
+     */
+    public static SchemaBuilder build(String name, int version, File file) {
+        return build('', name, version, file)
+    }
+
+    /**
+     * 
+     * @param module
+     * @param name
+     * @param version
+     * @param type
+     * @param fileName
+     * @return
+     */
+    public static SchemaBuilder build(String module, String name, int version, File file) {
+        log.debug("build(file) - module:{} name:{} version:{} file:{}", module, name, version, file.name)
+
         def sb = new SchemaBuilder(module, name, version)
-        return sb.loadXSD(xsdFile)
+        def fileName = file.name
+        def type = fileName.substring(fileName.lastIndexOf('.')+1).toUpperCase() as FileType
+
+        switch(type) {
+            case XSD: return sb.loadXSD(file)
+            case XLSX: return sb.generateSchema(new TabularGroovyParserBuilder().excelParser(file, name).withHeaderRowCount(2).build())
+            case CSV: return sb.generateSchema(new TabularGroovyParserBuilder().csvParser(file).withHeaderRowCount(2).build())
+            default: throw new UnsupportedOperationException("Unsupported file type:$type module:$module name:$name")
+        }
     }
 
     /**
@@ -169,6 +249,6 @@ class SchemaBuilder {
     public DomainPath create() {
         Schema schemaSchema = LocalObjectLoader.getSchema("Schema", 0)
         ResourceImportHandler importHandler = Gateway.getResourceImportHandler(SCHEMA_RESOURCE);
-        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, schema.schemaData, schemaSchema), false)
+        return domainPath = importHandler.createResource(module, name, version, new Outcome(-1, schema.schemaData, schemaSchema), false, null)
     }
 }

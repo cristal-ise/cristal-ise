@@ -43,12 +43,11 @@ import org.junit.Test;
 
 public class LookupRoleTest extends LookupTestBase {
 
-    RolePath user = new RolePath( new RolePath(), "User", Arrays.asList("itemType1:enable,disable", "itemType2:update"));
+    RolePath user = new RolePath( new RolePath(), "UserRole", Arrays.asList("itemType1:enable,disable", "itemType2:update"));
     AgentPath jim = new AgentPath(new ItemPath(), "Jim");
     AgentPath tom = new AgentPath(new ItemPath(), "Tom");
 
-    @Override
-    @Before
+    @Override @Before
     public void setUp() throws Exception {
         super.setUp();
 
@@ -149,7 +148,7 @@ public class LookupRoleTest extends LookupTestBase {
         compare(Arrays.asList(user), lookup.getRoles(jim));
         compare(Arrays.asList(user), lookup.getRoles(tom));
 
-        assertReflectionEquals(user, lookup.getRolePath("User"));
+        assertReflectionEquals(user, lookup.getRolePath("UserRole"));
     }
 
     @Test
@@ -279,5 +278,14 @@ public class LookupRoleTest extends LookupTestBase {
 
         assertReflectionEquals(expecteds.subList(30, 35), actuals.rows);
         assertEquals(expecteds.size(), actuals.maxRows);
+    }
+
+    @Test
+    public void setPermissionOfRolePath() throws Exception {
+        RolePath testRole = new RolePath(new RolePath(), "testRole", false);
+        lookup.createRole(testRole);
+        lookup.setPermission(testRole, "nope");
+        testRole.getPermissions().add("nope");
+        checkRolePath(new RolePath(), testRole, "testRole");
     }
 }

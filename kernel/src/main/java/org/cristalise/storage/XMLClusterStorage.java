@@ -20,12 +20,15 @@
  */
 package org.cristalise.storage;
 
+import static org.cristalise.kernel.SystemProperties.XMLStorage_root;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 
@@ -35,6 +38,7 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.auth.Authenticator;
@@ -43,6 +47,9 @@ import org.cristalise.kernel.utils.FileStringUtility;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Implementation of ClusterStorage providing the XML file based persistence.
+ */
 @Slf4j
 public class XMLClusterStorage extends ClusterStorage {
     String  rootDir        = null;
@@ -81,20 +88,20 @@ public class XMLClusterStorage extends ClusterStorage {
     @Override
     public void open(Authenticator auth) throws PersistencyException {
         if (StringUtils.isBlank(rootDir)) {
-            String rootProp = Gateway.getProperties().getString("XMLStorage.root");
+            String rootProp = XMLStorage_root.getString();
 
             if (rootProp == null)
-                throw new PersistencyException("XMLClusterStorage.open() - Root path not given in config file.");
+                throw new PersistencyException("Root path not given in config file.");
 
             rootDir = new File(rootProp).getAbsolutePath();
         }
 
         if (!FileStringUtility.checkDir(rootDir)) {
-            log.error("XMLClusterStorage.open() - Path " + rootDir + "' does not exist. Attempting to create.");
+            log.error("open() - Path " + rootDir + "' does not exist. Attempting to create.");
             boolean success = FileStringUtility.createNewDir(rootDir);
 
             if (!success)
-                throw new PersistencyException("XMLClusterStorage.open() - Could not create dir " + rootDir + ". Cannot continue.");
+                throw new PersistencyException("Could not create dir " + rootDir + ". Cannot continue.");
         }
         
         log.info("open() - DONE rootDir:'" + rootDir + "' ext:'" + fileExtension + "' userDir:" + useDirectories);
@@ -122,7 +129,7 @@ public class XMLClusterStorage extends ClusterStorage {
 
     // introspection
     @Override
-    public short queryClusterSupport(String clusterType) {
+    public short queryClusterSupport(ClusterType clusterType) {
         return ClusterStorage.READWRITE;
     }
 
@@ -143,12 +150,12 @@ public class XMLClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public String executeQuery(Query query) throws PersistencyException {
-        throw new PersistencyException("UNIMPLEMENTED funnction");
+    public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
+        throw new PersistencyException("UNIMPLEMENTED function");
     }
 
     @Override
-    public C2KLocalObject get(ItemPath itemPath, String path) throws PersistencyException {
+    public C2KLocalObject get(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         try {
             ClusterType type      = ClusterStorage.getClusterType(path);
             String      filePath  = getFilePath(itemPath, path) + fileExtension;
@@ -168,7 +175,7 @@ public class XMLClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void put(ItemPath itemPath, C2KLocalObject obj) throws PersistencyException {
+    public void put(ItemPath itemPath, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException {
         try {
             String filePath = getFilePath(itemPath, getPath(obj) + fileExtension);
             log.trace("put() - Writing " + filePath);
@@ -179,18 +186,40 @@ public class XMLClusterStorage extends ClusterStorage {
             if (!FileStringUtility.checkDir(dir)) {
                 boolean success = FileStringUtility.createNewDir(dir);
                 if (!success)
-                    throw new PersistencyException("XMLClusterStorage.put() - Could not create dir " + dir + ". Cannot continue.");
+                    throw new PersistencyException("Could not create dir " + dir + ". Cannot continue.");
             }
             FileStringUtility.string2File(filePath, data);
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException("XMLClusterStorage.put() - Could not write " + getPath(obj) + " to " + itemPath);
+            throw new PersistencyException("Could not write " + getPath(obj) + " to " + itemPath);
+        }
+    }
+
+    private void removeCluster(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
+        String[] children = getClusterContents(itemPath, path, transactionKey);
+
+        for (String element : children) {
+            removeCluster(itemPath, path+(path.length()>0?"/":"")+element, transactionKey);
+        }
+
+        if (children.length == 0 && path.indexOf("/") > -1) {
+            delete(itemPath, path, transactionKey);
         }
     }
 
     @Override
-    public void delete(ItemPath itemPath, String path) throws PersistencyException {
+    public void delete(ItemPath itemPath, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException {
+        delete(itemPath, cluster.getName(), transactionKey);
+    }
+
+    public void delete(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
+        // TODO: use delete full directory when useDirectories = true
+        removeCluster(itemPath, "", transactionKey);
+    }
+
+    @Override
+    public void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         try {
             String filePath = getFilePath(itemPath, path + fileExtension);
             boolean success = FileStringUtility.deleteDir(filePath, true, true);
@@ -202,21 +231,21 @@ public class XMLClusterStorage extends ClusterStorage {
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException(
-                    "XMLClusterStorage.delete() - Failure deleting path " + path + " in " + itemPath + " Error: " + e.getMessage());
+            throw new PersistencyException("Failure deleting path " + path + " in " + itemPath + " Error: " + e.getMessage());
         }
-        throw new PersistencyException("XMLClusterStorage.delete() - Failure deleting path " + path + " in " + itemPath);
+
+        throw new PersistencyException("delete() - Failure deleting path " + path + " in " + itemPath);
     }
 
     @Override
-    public String[] getClusterContents(ItemPath itemPath, String path) throws PersistencyException {
+    public String[] getClusterContents(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         try {
             if (useDirectories) return getContentsFromDirectories(itemPath, path);
             else                return getContentsFromFileNames(itemPath, path);
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException("XMLClusterStorage.getClusterContents("+itemPath+") - Could not get contents of " + path + " from "
+            throw new PersistencyException("itemPath:"+itemPath+" Could not get contents of " + path + " from "
                     + itemPath + ": " + e.getMessage());
         }
     }
@@ -225,22 +254,33 @@ public class XMLClusterStorage extends ClusterStorage {
         TreeSet<String> result = new TreeSet<>();
 
         String resource = getResourceName(path);
+        String[] resourceArray = resource.length() > 0 ? resource.split("\\.") : new String[0];
 
         try (Stream<Path> pathes = Files.list(Paths.get(rootDir + "/" + itemPath.getUUID()))) {
-            pathes.filter(p -> p.getFileName().toString().startsWith(resource))
-                  .forEach(p -> {
-                      String fileName = p.getFileName().toString();
-                      String content = resource.length() != 0 ? fileName.substring(resource.length()+1) : fileName.substring(resource.length());
+            pathes.filter(p -> {
+                    if (resourceArray.length == 0) {
+                        return true;
+                    }
+                    else {
+                        String fileName = p.getFileName().toString();
+                        String[] fileNameArray = fileName.split("\\.");
+                        String[] fileNameSubArray = Arrays.copyOfRange(fileNameArray, 0, resourceArray.length);
+                        return Arrays.equals(resourceArray, fileNameSubArray);
+                    }
+                })
+                .forEach(p -> {
+                    String fileName = p.getFileName().toString();
+                    String content = resource.length() != 0 ? fileName.substring(resource.length()+1) : fileName.substring(resource.length());
 
-                      log.trace("getContentsFromFileNames() - resource:'"+resource+"' fileName:'"+fileName+"' content:'"+content+"'");
+                    log.trace("getContentsFromFileNames() - resource:'"+resource+"' fileName:'"+fileName+"' content:'"+content+"'");
 
-                      if (content.endsWith(fileExtension)) content = content.substring(0, content.length() - fileExtension.length());
+                    if (content.endsWith(fileExtension)) content = content.substring(0, content.length() - fileExtension.length());
 
-                      int i = content.indexOf('.');
-                      if (i != -1) content = content.substring(0, i);
+                    int i = content.indexOf('.');
+                    if (i != -1) content = content.substring(0, i);
 
-                      result.add(content);
-                  });
+                    result.add(content);
+                });
         }
         return result.toArray(new String[0]);
     }
@@ -293,10 +333,10 @@ public class XMLClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException {
+    public int getLastIntegerId(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         int lastId = -1;
         try {
-            String[] keys = getClusterContents(itemPath, path);
+            String[] keys = getClusterContents(itemPath, path, transactionKey);
             for (String key : keys) {
                 int newId = Integer.parseInt(key);
                 lastId = newId > lastId ? newId : lastId;
@@ -308,5 +348,23 @@ public class XMLClusterStorage extends ClusterStorage {
         }
 
         return lastId;
+    }
+
+    @Override
+    public void begin(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void commit(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void abort(TransactionKey transactionKey) throws PersistencyException {
+        // TODO Auto-generated method stub
+        
     }
 }

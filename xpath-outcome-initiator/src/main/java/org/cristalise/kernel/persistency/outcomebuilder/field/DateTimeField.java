@@ -20,23 +20,26 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_inputField_dateTime_defaultValue;
+
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
-import org.cristalise.kernel.process.Gateway;
 import org.json.JSONObject;
 
 public class DateTimeField extends DateField {
 
     public DateTimeField() {
         super();
+        javaType = OffsetDateTime.class;
     }
     
     @Override
     public String getDefaultValue() {
-        return Gateway.getProperties().getString("Webui.inputField.dateTime.defaultValue", "");
+        return Webui_inputField_dateTime_defaultValue.getString("");
     }
 
     @Override

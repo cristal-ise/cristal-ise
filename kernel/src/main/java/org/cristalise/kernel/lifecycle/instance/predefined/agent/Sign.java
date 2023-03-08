@@ -20,6 +20,9 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 
+import static org.cristalise.kernel.SystemProperties.Lifecycle_Sign_agentNameField;
+import static org.cristalise.kernel.SystemProperties.Lifecycle_Sign_passwordField;
+import static org.cristalise.kernel.SystemProperties.Lifecycle_Sign_signedFlagField;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 
 import org.cristalise.kernel.common.CannotManageException;
@@ -27,8 +30,10 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,21 +46,55 @@ public class Sign extends Authenticate {
 
     public static final String description = "Autehnticates the given user and records the Sign event in the system togther with the execution context";
 
+    public static final String agentNameField  = Lifecycle_Sign_agentNameField.getString();
+    public static final String passwordField   = Lifecycle_Sign_passwordField.getString();
+    public static final String signedFlagField = Lifecycle_Sign_signedFlagField.getString();
+
     public Sign() {
         super();
         setBuiltInProperty(SCHEMA_NAME, "SimpleElectonicSignature");
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
-        log.debug("Called by {} on {}", agent.getAgentName(), itemPath);
+        log.debug("Called by {} on {}", agent.getAgentName(transactionKey), itemPath);
 
         Outcome req = new Outcome(requestData);
-        authenticate(agent, itemPath, bundleData(req.getField("AgentName"), req.getField("Password")), locker);
-        req.setField("Password", "REDACTED");
+        authenticate(agent, itemPath, bundleData(req.getField("AgentName"), req.getField("Password")), transactionKey);
+        req.setField("Password", REDACTED);
 
         return req.getData();
+    }
+
+    /**
+     */
+    public static String getSimpleElectonicSignature(Job job) throws InvalidDataException, ObjectNotFoundException {
+        if (job.getOutcome().hasField(agentNameField) && job.getOutcome().hasField(passwordField)) {
+            StringBuffer xml = new StringBuffer("<SimpleElectonicSignature>");
+
+            xml.append("<AgentName>").append(job.getOutcome().getField(agentNameField)).append("</AgentName>");
+            xml.append("<Password>") .append(job.getOutcome().getField(passwordField)) .append("</Password>");
+
+            xml.append("<ExecutionContext>");
+            xml.append("<ItemPath>")     .append(job.getItemUUID())     .append("</ItemPath>");
+            xml.append("<SchemaName>")   .append(job.getSchemaName())   .append("</SchemaName>");
+            xml.append("<SchemaVersion>").append(job.getSchemaVersion()).append("</SchemaVersion>");
+            xml.append("<ActivityType>") .append(job.getStepType())     .append("</ActivityType>");
+            xml.append("<ActivityName>") .append(job.getStepName())     .append("</ActivityName>");
+            xml.append("<StepPath>")     .append(job.getStepPath())     .append("</StepPath>");
+            xml.append("</ExecutionContext>");
+
+            xml.append("</SimpleElectonicSignature>");
+
+            job.getOutcome().setField(passwordField, REDACTED);
+            if (job.getOutcome().hasField(signedFlagField)) job.getOutcome().setField(signedFlagField, "true");
+
+            return xml.toString();
+        }
+        else {
+            throw new InvalidDataException("Outcome does not contain AgentName or Password fields - job:"+job);
+        }
     }
 }

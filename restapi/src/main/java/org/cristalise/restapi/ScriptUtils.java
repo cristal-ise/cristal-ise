@@ -20,20 +20,21 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.kernel.SystemProperties.Module_Versioning_strict;
+
 import java.net.URLDecoder;
 import java.util.Date;
 import java.util.Map;
-import java.util.concurrent.Semaphore;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -45,8 +46,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ScriptUtils extends ItemUtils {
-    
-    static Semaphore mutex = new Semaphore(1);
     
     public ScriptUtils() {
         super();
@@ -87,7 +86,7 @@ public class ScriptUtils extends ItemUtils {
                 throws ObjectNotFoundException, UnsupportedOperationException, InvalidDataException
     {
         if (scriptVersion == null) {
-            if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+            if (Module_Versioning_strict.getBoolean()) {
                 throw new InvalidDataException("Version for Script '" + scriptName + "' cannot be null");
             }
             else {
@@ -135,7 +134,6 @@ public class ScriptUtils extends ItemUtils {
             throws ScriptingEngineException, InvalidDataException
     {
         try {
-            mutex.acquire();
             return runScript(item, schema, script, inputs, jsonFlag);
         }
         catch (ScriptingEngineException e) {
@@ -143,9 +141,6 @@ public class ScriptUtils extends ItemUtils {
         }
         catch (Exception e) {
             throw new InvalidDataException(e.getMessage());
-        }
-        finally {
-            mutex.release();
         }
     }
     

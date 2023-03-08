@@ -23,7 +23,9 @@ package org.cristalise.restapi;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -45,13 +47,16 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
@@ -150,13 +155,14 @@ public class ItemRoot extends ItemUtils {
                         .status(Response.Status.NOT_FOUND)
                         .newCookie(cookie).build();
             }
-        } catch (ObjectNotFoundException | InvalidDataException | ScriptingEngineException e) {
+        }
+        catch (ObjectNotFoundException | InvalidDataException | ScriptingEngineException e) {
             throw new WebAppExceptionBuilder()
                 .message("Error retrieving MasterOutcome")
                 .status(Response.Status.NOT_FOUND)
                 .newCookie(cookie).build();
-        } 
-        catch ( UnsupportedOperationException e ) {
+        }
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -180,10 +186,16 @@ public class ItemRoot extends ItemUtils {
      * @return returns the Script or null
      */
     private Script getAggregateScript(ItemProxy item, String name, Integer version) {
+        if ("Factory".equals(item.getType())) {
+            log.warn("getAggregateScript() - Return null for Factory item:{}", item);
+            return null;
+        }
+
         try {
-            return item.getAggregateScript();
+            return item.getAggregateScript(name, version);
         }
         catch (InvalidDataException | ObjectNotFoundException e) {
+            log.trace("getAggregateScript() - Return null for item:{}", item, e);
             return null;
         }
     }
@@ -208,8 +220,12 @@ public class ItemRoot extends ItemUtils {
                     .executeScript(headers, item, scriptName, scriptVersion, actPath, inputJson, ImmutableMap.of())
                     .cookie(cookie).build();
         }
-        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+        catch (Throwable t) {
+            log.error("getScriptResult() - could not execute {}://{}'", item, scriptName, t);
+            throw new WebAppExceptionBuilder().exception(new CriseVertxException(t)).newCookie(cookie).build();
         }
     }
 
@@ -234,8 +250,12 @@ public class ItemRoot extends ItemUtils {
                     .executeScript(headers, item, scriptName, scriptVersion, actPath, postData, ImmutableMap.of())
                     .cookie(cookie).build();
         }
-        catch (ObjectNotFoundException | UnsupportedOperationException | InvalidDataException e) {
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+        catch (Throwable t) {
+            log.error("getScriptResultPost() - could not execute {}://{}'", item, scriptName, t);
+            throw new WebAppExceptionBuilder().exception(new CriseVertxException(t)).newCookie(cookie).build();
         }
     }
 
@@ -270,7 +290,8 @@ public class ItemRoot extends ItemUtils {
                         .status(Response.Status.NOT_FOUND)
                         .newCookie(cookie).build();
             }
-        } catch (UnsupportedOperationException | ObjectNotFoundException | InvalidDataException | PersistencyException e) {
+        }
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -298,6 +319,7 @@ public class ItemRoot extends ItemUtils {
 
         itemSummary.put("uuid", uuid);
         itemSummary.put("hasMasterOutcome", false);
+        itemSummary.put("isAgent", item.getPath() instanceof AgentPath);
 
         try {
             String type = item.getType();
@@ -318,17 +340,21 @@ public class ItemRoot extends ItemUtils {
             itemSummary.put("history",     getItemURI(uri, item, "history"));
             itemSummary.put("outcome",     getItemURI(uri, item, "outcome"));
             itemSummary.put("attachment",  getItemURI(uri, item, "attachment"));
+            itemSummary.put("job",         getItemURI(uri, item, "job"));
+            if (item.getPath() instanceof AgentPath) {
+                itemSummary.put("roles", getItemURI(uri, item, "roles"));
+            }
 
             return toJSON(itemSummary, cookie).build();
         }
         catch (ObjectNotFoundException e) {
             throw new WebAppExceptionBuilder().message("No Properties found")
                     .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
-        } catch ( Exception e ) {
+        }
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
-
 
     @GET
     @Path("job")
@@ -353,23 +379,21 @@ public class ItemRoot extends ItemUtils {
                 else                                        job = item.getJobByName(activityName, agent);
             }
             else
-                jobList = item.getJobList(agent);
+                jobList = item.getJobs(agent);
         }
         catch (Exception e) {
-            throw new WebAppExceptionBuilder("Error loading joblist", e, null, cookie).build();
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
-
-        String itemName = item.getName();
 
         if (jobList != null) {
             ArrayList<Object> jobListData = new ArrayList<Object>();
 
-            for (Job j : jobList) jobListData.add(makeJobData(j, itemName, uri));
+            for (Job j : jobList) jobListData.add(makeJobData(j, item, uri));
 
             return toJSON(jobListData, cookie).build();
         }
         else if (job != null) {
-            return toJSON(makeJobData(job, itemName, uri), cookie).build();
+            return toJSON(makeJobData(job, item, uri), cookie).build();
         }
         else {
             throw new WebAppExceptionBuilder().message("No job found for actName:" + activityName + " transName:" + transitionName)
@@ -396,14 +420,14 @@ public class ItemRoot extends ItemUtils {
             throw new WebAppExceptionBuilder().message("Must specify activity path").status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
         }
 
-        log.info("requestTransition({}://{}:{})", item, actPath, transition);
+        log.info("requestTransition() - {}://{}:{}", item, actPath, transition);
 
         try {
             String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
 
             log.debug("requestTransition() outcome:'{}' contentType:'{}'", outcome, contentType);
 
-            AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
+            AgentProxy agent = Gateway.getAgentProxy(getAgentPath(authCookie));
             String executeResult;
 
             if (actPath.startsWith(PREDEFINED_PATH)) {
@@ -418,8 +442,12 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
-            log.error("requestTransition() - could not execute {}://{}:{}'", uuid, actPath, transition);
+            log.error("requestTransition() - could not execute {}://{}:{}'", item, actPath, transition, e);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+        catch (Throwable t) {
+            log.error("requestTransition() - could not execute {}://{}:{}'", item, actPath, transition, t);
+            throw new WebAppExceptionBuilder().exception(new CriseVertxException(t)).newCookie(cookie).build();
         }
     }
 
@@ -438,7 +466,7 @@ public class ItemRoot extends ItemUtils {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ItemProxy item = getProxy(uuid, cookie);
 
-        log.info("requestBinaryTransition({}://{}:{})", item, actPath, transition);
+        log.info("requestBinaryTransition() - {}://{}:{}", item, actPath, transition);
 
         if (actPath == null) {
             throw new WebAppExceptionBuilder().message("Must specify activity path")
@@ -448,7 +476,7 @@ public class ItemRoot extends ItemUtils {
         String outcome = null;
 
         try {
-            AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
+            AgentProxy agent = Gateway.getAgentProxy(getAgentPath(authCookie));
             String executeResult;
 
             FormDataBodyPart outcomeBodyPart = body.getField("outcome");
@@ -492,8 +520,12 @@ public class ItemRoot extends ItemUtils {
             else                                                return executeResult;
         }
         catch (Exception e) {
-            log.error("requestBinaryTransition() - could not execute {}://{}:{}'", uuid, actPath, transition);
+            log.error("requestBinaryTransition() - could not execute {}://{}:{}'", item, actPath, transition, e);
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
+        }
+        catch (Throwable t) {
+            log.error("requestTransition() - could not execute {}://{}:{}'", item, actPath, transition, t);
+            throw new WebAppExceptionBuilder().exception(new CriseVertxException(t)).newCookie(cookie).build();
         }
     }
 
@@ -523,7 +555,7 @@ public class ItemRoot extends ItemUtils {
             }
             else {
                 transition = extractAndCheckTransitionName(transition, uri);
-                AgentProxy agent = Gateway.getProxyManager().getAgentProxy(getAgentPath(authCookie));
+                AgentProxy agent = Gateway.getAgentProxy(getAgentPath(authCookie));
 
                 Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
 
@@ -570,5 +602,26 @@ public class ItemRoot extends ItemUtils {
         }
 
         throw new InvalidDataException("Must specify transition name");
+    }
+
+    @GET
+    @Path("roles")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getRoles(
+            @PathParam("uuid")       String  uuid,
+            @CookieParam(COOKIENAME) Cookie  authCookie,
+            @Context                 UriInfo uri)
+    {
+        NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
+        AgentProxy agent = getAgentProxy(uuid, cookie);
+
+        RolePath[] roles = Gateway.getLookup().getRoles(agent.getPath());
+        LinkedHashMap<String, URI> roleData = new LinkedHashMap<String, URI>();
+
+        for (RolePath role : roles) {
+            roleData.put(role.getName(), uri.getBaseUriBuilder().path("role").path(role.getName()).build());
+        }
+
+        return toJSON(roleData, cookie).build();
     }
 }

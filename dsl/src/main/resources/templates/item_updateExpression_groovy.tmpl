@@ -1,0 +1,56 @@
+import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.*
+
+import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
+import org.cristalise.kernel.persistency.outcome.Schema
+import org.cristalise.kernel.utils.LocalObjectLoader
+import org.json.JSONObject
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+import groovy.transform.CompileStatic
+import groovy.xml.MarkupBuilder
+
+@foreach{clazz : imports}import @{clazz}@end{'\n'}
+
+final Logger log = LoggerFactory.getLogger("@{loggerName}")
+
+@if{compileStatic} @CompileStatic @end{}
+def get@{field}(JSONObject json) {
+    def schema = LocalObjectLoader.getSchema('@{schemaName}', @{schemaVersion})
+    def builder = new OutcomeBuilder(schema)
+
+@foreach{inputField : inputFields}    def @{inputField} = get@{inputFieldsType[inputField]}OrNull(json, '@{inputField}')@end{'\n'}
+
+    if (@foreach{inputField : requiredFields}@{inputField} != null@end{' && '}) {
+        //expression comes here, use Outcome, OutcomeBuilder, OutcomeUtils, ItemProxy and other utility classes
+        @{expression}
+    }
+    else {
+        return null
+    }
+}
+
+if (!@{schemaName}) throw new InvalidDataException('Undefined inputs @{schemaName} for script @{loggerName}')
+
+JSONObject jsonInput = (JSONObject)@{schemaName}
+log.debug '@{schemaName}:{}', jsonInput
+
+StringWriter writer = new StringWriter()
+MarkupBuilder xml = new MarkupBuilder(writer)
+
+// returned XML shall only contain fields that is updated by the script
+xml.@{schemaName} {
+    def @{field}Value = get@{field}(jsonInput)
+
+    if (@{field}Value != null) {
+        @{field}(@{field}Value)
+    }
+    else {
+        @{field}()
+    }
+}
+
+@{schemaName}Xml = writer.toString()
+
+log.debug('returning @{schemaName}Xml:{}', @{schemaName}Xml)

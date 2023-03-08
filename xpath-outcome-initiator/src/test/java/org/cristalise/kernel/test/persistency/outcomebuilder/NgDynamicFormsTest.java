@@ -21,17 +21,18 @@
 package org.cristalise.kernel.test.persistency.outcomebuilder;
 
 import static net.javacrumbs.jsonunit.JsonAssert.assertJsonEquals;
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_autoComplete_default;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.persistency.XMLUtils;
-import org.cristalise.kernel.utils.Logger;
 import org.json.JSONArray;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,13 +40,15 @@ import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class NgDynamicFormsTest extends XMLUtils {
 
     String dir = "src/test/data/outcomeBuilder";
 
     @Before
     public void setUp() throws Exception {
-        Logger.addLogStream(System.out, 8);
         Properties props = new Properties();
         props.put("Webui.autoComplete.default", "on");
         props.put("Authenticator", "Shiro");
@@ -68,7 +71,7 @@ public class NgDynamicFormsTest extends XMLUtils {
         JSONArray expected = new JSONArray(expectedJson);
         JSONArray actual   = builder.generateNgDynamicFormsJson();
 
-        Logger.msg(actual.toString(2));
+        log.info(actual.toString(2));
 
         assertJsonEquals(expected, actual);
     }
@@ -79,7 +82,7 @@ public class NgDynamicFormsTest extends XMLUtils {
 
         JSONArray actual   = builder.generateNgDynamicFormsJson();
 
-        Logger.msg(actual.toString(2));
+        log.info(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, "StorageNGForms"));
 
@@ -92,7 +95,7 @@ public class NgDynamicFormsTest extends XMLUtils {
 
         JSONArray actual   = builder.generateNgDynamicFormsJson();
 
-        Logger.msg(actual.toString(2));
+        log.info(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, "TableNGForms"));
 
@@ -105,7 +108,7 @@ public class NgDynamicFormsTest extends XMLUtils {
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
 
-        Logger.msg(actual.toString(2));
+        log.info(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, "ShowSeconds"));
 
@@ -118,11 +121,11 @@ public class NgDynamicFormsTest extends XMLUtils {
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
 
-        Logger.msg(actual.toString(2));
+        log.info(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsWidthConfiguration"));
 
-        Logger.msg(expected.toString(2));
+        log.info(expected.toString(2));
 
         assertJsonEquals(expected, actual);
     }
@@ -134,7 +137,7 @@ public class NgDynamicFormsTest extends XMLUtils {
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
 
-        Logger.msg(actual.toString(2));
+        log.info(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, testName+"NgForms"));
 
@@ -148,7 +151,7 @@ public class NgDynamicFormsTest extends XMLUtils {
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
 
-        Logger.msg(actual.toString(2));
+        log.info(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, testName+"NgForms"));
 
@@ -161,11 +164,11 @@ public class NgDynamicFormsTest extends XMLUtils {
     
           JSONArray actual = builder.generateNgDynamicFormsJson();
     
-          Logger.msg(actual.toString(2));
+          log.info(actual.toString(2));
     
           JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsGroupLabel"));
           
-          Logger.msg(expected.toString(2));
+          log.info(expected.toString(2));
     
           assertJsonEquals(expected, actual);
     }
@@ -176,11 +179,11 @@ public class NgDynamicFormsTest extends XMLUtils {
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
 
-        Logger.msg(actual.toString(2));
+        log.info(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsContainer"));
 
-        Logger.msg(expected.toString(2));
+        log.info(expected.toString(2));
 
         assertJsonEquals(expected, actual);
     }
@@ -191,24 +194,24 @@ public class NgDynamicFormsTest extends XMLUtils {
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
 
-        Logger.msg(actual.toString(2));
+        log.info(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsGroupContainer"));
 
-        Logger.msg(expected.toString(2));
+        log.info(expected.toString(2));
 
         assertJsonEquals(expected, actual);
     }
 
     @Test
     public void ngForm_AutoComplete() throws Exception {
-        Gateway.getProperties().remove("Webui.autoComplete.default");
+        Gateway.getProperties().remove(Webui_autoComplete_default.toString());
 
         OutcomeBuilder builder = new OutcomeBuilder("PatientDetails", new Schema("AutoComplete", 0, getXSD(dir, "AutoComplete")), false);
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
 
-        Logger.msg(actual.toString(2));
+        log.info(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, "AutoComplete"));
 
@@ -221,7 +224,7 @@ public class NgDynamicFormsTest extends XMLUtils {
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
 
-        Logger.msg(actual.toString(2));
+        log.info(actual.toString(2));
 
         JSONArray expected = new JSONArray(getJSON(dir, "Additional"));
 

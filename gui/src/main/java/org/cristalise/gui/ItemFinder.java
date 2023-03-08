@@ -43,9 +43,9 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
+import lombok.extern.slf4j.Slf4j;
 
-
+@Slf4j
 public class ItemFinder extends Box implements Runnable {
     JTextField inputField;
     JButton findButton;
@@ -53,23 +53,20 @@ public class ItemFinder extends Box implements Runnable {
     GridBagLayout gridbag = new GridBagLayout();
     Lookup lookup = Gateway.getLookup();
     DomainKeyConsumer defaultConsumer = null;
-	DomainKeyConsumer currentConsumer = null;
+    DomainKeyConsumer currentConsumer = null;
     Iterator<?> matches;
     Path rootNode = new DomainPath();
 
-	static protected ImageIcon 			mFindIcon 			= null;
-	static protected ImageIcon 			mNextIcon 			= null;
-	static {
-			try
-			{
-				mNextIcon =ImageLoader.findImage("next.png");
-				mFindIcon =ImageLoader.findImage("find.png");
-			}
-			catch (Exception e)
-			{
-				Logger.error("Couldn't load images: " + e);
-			}
-		}
+    static protected ImageIcon mFindIcon = null;
+    static protected ImageIcon mNextIcon = null;
+    static {
+        try {
+            mNextIcon = ImageLoader.findImage("next.png");
+            mFindIcon = ImageLoader.findImage("find.png");
+        } catch (Exception e) {
+            log.error("Couldn't load images", e);
+        }
+    }
 
     public ItemFinder() {
         super(BoxLayout.X_AXIS);
@@ -82,25 +79,25 @@ public class ItemFinder extends Box implements Runnable {
     }
 
     public void setDefaultConsumer(DomainKeyConsumer newConsumer) {
-		defaultConsumer = newConsumer;
-		currentConsumer = newConsumer;
+        defaultConsumer = newConsumer;
+        currentConsumer = newConsumer;
     }
-    
+
     public DomainKeyConsumer getDefaultConsumer() {
-    	return defaultConsumer;
+        return defaultConsumer;
     }
 
-	public void setConsumer(DomainKeyConsumer newConsumer, String label) {
-		currentConsumer = newConsumer;
+    public void setConsumer(DomainKeyConsumer newConsumer, String label) {
+        currentConsumer = newConsumer;
         findButton.setText(label);
-	}
+    }
 
-	public void clearConsumer(DomainKeyConsumer oldConsumer) {
+    public void clearConsumer(DomainKeyConsumer oldConsumer) {
         if (currentConsumer == oldConsumer) {
             currentConsumer = defaultConsumer;
             findButton.setText("");
         }
-	}
+    }
 
     private void initPanel() {
 
@@ -111,60 +108,62 @@ public class ItemFinder extends Box implements Runnable {
         inputField = new JTextField(20);
         add(inputField);
         add(Box.createHorizontalStrut(5));
-        inputField.addActionListener( new ActionListener() {
-             @Override
-			public void actionPerformed(ActionEvent e) {
+        inputField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
                 pushNewKey(inputField.getText());
-             }
+            }
         });
 
-		findButton = new JButton(mFindIcon);//("Find"));
+        findButton = new JButton(mFindIcon);// ("Find"));
         findButton.setMargin(new Insets(2, 5, 2, 5));
-        findButton.addActionListener( new ActionListener() {
-             @Override
-			public void actionPerformed(ActionEvent e) {
-                 pushNewKey(inputField.getText());
-             }
+        findButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pushNewKey(inputField.getText());
+            }
         });
         add(findButton);
         add(Box.createHorizontalStrut(5));
 
-		findNextButton = new JButton(mNextIcon);
+        findNextButton = new JButton(mNextIcon);
         findNextButton.setMargin(new Insets(2, 5, 2, 5));
-        findNextButton.addActionListener( new ActionListener() {
-             @Override
-			public void actionPerformed(ActionEvent e) {
+        findNextButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
                 nextMatch();
-             }
+            }
         });
         findNextButton.setEnabled(false);
         add(findNextButton);
         add(Box.createHorizontalStrut(15));
 
         // create plugins
-        Logger.msg(6, "ItemFinder() - creating plugins");
+        log.debug("creating plugins");
         String requiredListeners = Gateway.getProperties().getString("DomainKeyListeners");
         if (requiredListeners != null) {
             StringTokenizer tok = new StringTokenizer(requiredListeners, ",");
             while (tok.hasMoreTokens()) {
                 String listenerName = tok.nextToken();
-                Logger.msg(6, "ItemFinder() - creating a " + listenerName);
+                log.debug("creating a " + listenerName);
                 try {
                     Class<?> listenerClass = Class.forName(listenerName);
-                    DomainKeyListener newListener = (DomainKeyListener)listenerClass.newInstance();
-                    newListener.init(); newListener.setConsumer(this);
+                    DomainKeyListener newListener = (DomainKeyListener) listenerClass.newInstance();
+                    newListener.init();
+                    newListener.setConsumer(this);
                     JToggleButton listenerButton = new JToggleButton(newListener.getIcon(), false);
-                    listenerButton.addItemListener(new ListenerButtonListener(newListener, listenerButton));
+                    listenerButton.addItemListener(
+                            new ListenerButtonListener(newListener, listenerButton));
                     listenerButton.setMargin(new Insets(0, 2, 0, 2));
-                    listenerButton.setToolTipText("Enable "+newListener.getDescription());
+                    listenerButton.setToolTipText("Enable " + newListener.getDescription());
                     add(listenerButton);
                     add(Box.createHorizontalStrut(7));
                 } catch (Exception e) {
-                    Logger.error("ItemFinder() - could not create a "+listenerName+": "+e);
+                    log.error("ItemFinder() - could not create a " + listenerName + ": ", e);
                 }
             }
             add(Box.createHorizontalGlue());
-		}
+        }
     }
 
     private void runSearch() {
@@ -173,21 +172,25 @@ public class ItemFinder extends Box implements Runnable {
     }
 
     @Override
-	public void run() {
+    public void run() {
         Thread.currentThread().setName("Entity Search");
         String searchTerm = inputField.getText();
-        if (searchTerm.length() == 0) return; // don't allow null searches
+        if (searchTerm.length() == 0)
+            return; // don't allow null searches
 
-        findButton.setEnabled(false); findNextButton.setEnabled(false);
+        findButton.setEnabled(false);
+        findNextButton.setEnabled(false);
         MainFrame.progress.startBouncing("Searching. Please Wait");
         findNextButton.setEnabled(false);
         String term = inputField.getText();
-// The following block does property searching when the field contains a colon, but that returns EntityPaths, which the tree can't handle
-//        int colonPos = term.indexOf(':');
-//        if (colonPos > 0)
-//        	matches = lookup.search(rootNode,term.substring(0, colonPos), term.substring(colonPos+1));
-//        else
-        	matches = lookup.search(rootNode,term);
+        // The following block does property searching when the field contains a colon, but that
+        // returns EntityPaths, which the tree can't handle
+        // int colonPos = term.indexOf(':');
+        // if (colonPos > 0)
+        // matches = lookup.search(rootNode,term.substring(0, colonPos),
+        // term.substring(colonPos+1));
+        // else
+        matches = lookup.search(rootNode, term);
         if (!matches.hasNext()) {
             MainFrame.progress.stopBouncing("No results");
             currentConsumer.push(searchTerm); // for subscribers who don't care if it exists
@@ -200,19 +203,18 @@ public class ItemFinder extends Box implements Runnable {
     }
 
     void nextMatch() {
-        findButton.setEnabled(false); findNextButton.setEnabled(false);
-        DomainPath nextMatch = (DomainPath)matches.next();
-        try
-        {
+        findButton.setEnabled(false);
+        findNextButton.setEnabled(false);
+        DomainPath nextMatch = (DomainPath) matches.next();
+        try {
             currentConsumer.push(nextMatch);
-        }
-        catch (NullPointerException e)
-        {
-            //case the item searched is not found !
+        } catch (NullPointerException e) {
+            // case the item searched is not found !
         }
         findButton.setEnabled(true);
         findNextButton.setToolTipText("Click to show next match");
-        if (matches.hasNext()) findNextButton.setEnabled(true);
+        if (matches.hasNext())
+            findNextButton.setEnabled(true);
     }
 
     private class ListenerButtonListener implements ItemListener {
@@ -225,20 +227,23 @@ public class ItemFinder extends Box implements Runnable {
         }
 
         @Override
-		public void itemStateChanged(ItemEvent e) {
+        public void itemStateChanged(ItemEvent e) {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 // Switch on
                 try {
-                    if (!(listener.enable())) listenerButton.doClick(); // allow plugins to disable themselves
+                    if (!(listener.enable()))
+                        listenerButton.doClick(); // allow plugins to disable themselves
                 } catch (IOException ex) {
-                    JOptionPane.showMessageDialog(null, ex.getMessage(), "Error initialising "+listener.getDescription(), JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(null, ex.getMessage(),
+                            "Error initialising " + listener.getDescription(),
+                            JOptionPane.ERROR_MESSAGE);
                     listenerButton.doClick();
                 }
-                listenerButton.setToolTipText("Disable "+listener.getDescription());
+                listenerButton.setToolTipText("Disable " + listener.getDescription());
             } else {
                 // Switch off
                 listener.disable();
-                listenerButton.setToolTipText("Enable "+listener.getDescription());
+                listenerButton.setToolTipText("Enable " + listener.getDescription());
             }
         }
     }

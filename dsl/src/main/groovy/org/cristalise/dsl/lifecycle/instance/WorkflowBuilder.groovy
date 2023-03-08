@@ -20,12 +20,11 @@
  */
 package org.cristalise.dsl.lifecycle.instance
 
-import groovy.transform.CompileStatic
-
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity
 import org.cristalise.kernel.lifecycle.instance.WfVertex
 import org.cristalise.kernel.lifecycle.instance.Workflow
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer
+import groovy.transform.CompileStatic
 
 
 /**
@@ -42,7 +41,7 @@ class WorkflowBuilder {
      * @param cl
      * @return
      */
-    public Workflow build(/*boolean verify = false,*/ Closure cl) {
+    public Workflow build(@DelegatesTo(CompActDelegate) Closure cl) {
         assert cl, "WorkflowBuilder.build() only works with a valid Closure"
 
         vertexCache = [:]
@@ -52,6 +51,7 @@ class WorkflowBuilder {
 
         wf = new Workflow(rootCA, new ServerPredefinedStepContainer())
         vertexCache['rootCA'] = rootCA
+        vertexCache['domain'] = rootCA
 
         new CompActDelegate('rootCA', vertexCache).processClosure(cl)
 

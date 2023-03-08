@@ -20,7 +20,11 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.SystemProperties.SystemProperties_keywordsToRedact;
+import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
+
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -30,17 +34,16 @@ import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
-import org.cristalise.kernel.process.Gateway;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ObjectProperties extends Properties {
@@ -65,8 +68,6 @@ public class ObjectProperties extends Properties {
     }
 
     /**
-     * ogattaz proposal
-     * 
      * @param propName
      *            the name of the property
      * @return the object value of the property. Returns null if the property doesn't exist or if the properties of the gateway is null
@@ -76,8 +77,6 @@ public class ObjectProperties extends Properties {
     }
 
     /**
-     * ogattaz proposal
-     * 
      * @param propName
      *            the name of the property
      * @param defaultValue
@@ -94,8 +93,6 @@ public class ObjectProperties extends Properties {
     }
 
     /**
-     * ogattaz proposal
-     * 
      * @param aPropertyName
      *            the name of the paroperty
      * @return the boolean value of the property. Returns false if the property doesn't exist or if the value is not a String or a Boolean
@@ -106,8 +103,6 @@ public class ObjectProperties extends Properties {
     }
 
     /**
-     * ogattaz proposal
-     * 
      * @param aPropertyName
      *            the name of the parameter stored in the clc file
      * @param defaultValue
@@ -129,9 +124,27 @@ public class ObjectProperties extends Properties {
         return defaultValue;
     }
 
+    public Integer getInteger(String aPropertyName) {
+        return getInteger(aPropertyName, null);
+    }
+
+    public Integer getInteger(String aPropertyName, Integer defaultValue) {
+        Object wValue = getObject(aPropertyName, defaultValue);
+        if (wValue instanceof Integer) {
+            return (Integer) wValue;
+        }
+        else if (wValue instanceof String) {
+            try {
+                return Integer.valueOf((String) wValue);
+            }
+            catch (NumberFormatException ex) {}
+        }
+        log.error("getInteger(): unable to retrieve an Integer value for [" + aPropertyName + "]. Returning default value [" + defaultValue
+                + "]. object found=" + wValue);
+        return defaultValue;
+    }
+
     /**
-     * ogattaz proposal
-     * 
      * @param aPropertyName
      *            the name of the property
      * @return the int value of the property. Returns -1 if the property doesn't exist or if the value is not a String or an Integer
@@ -142,29 +155,15 @@ public class ObjectProperties extends Properties {
     }
 
     /**
-     * ogattaz proposal
-     * 
      * @param aPropertyName
      *            the name of the property
      * @param defaultValue
      *            the default value
-     * @return the int value of the property. Returns the default vakue if the property doesn't exist or if the value is not a String or an
+     * @return the int value of the property. Returns the default value if the property doesn't exist or if the value is not a String or an
      *         Integer instance
      */
     public int getInt(String aPropertyName, int defaultValue) {
-        Object wValue = getObject(aPropertyName, Integer.valueOf(defaultValue));
-        if (wValue instanceof Integer) {
-            return ((Integer) wValue).intValue();
-        }
-        if (wValue instanceof String) {
-            try {
-                return Integer.parseInt((String) wValue);
-            }
-            catch (NumberFormatException ex) {}
-        }
-        log.error("getInt(): unable to retrieve a int value for [" + aPropertyName + "]. Returning default value [" + defaultValue
-                + "]. object found=" + wValue);
-        return defaultValue;
+        return getInteger(aPropertyName, Integer.valueOf(defaultValue));
     }
 
     /**
@@ -178,18 +177,20 @@ public class ObjectProperties extends Properties {
         put(aPropertyName, aPropertyValue);
     }
 
-    public void dumpProps(int logLevel) {
+    public void dumpProps() {
         for (Enumeration<?> e = propertyNames(); e.hasMoreElements();) {
             String name = (String) e.nextElement();
             Object value = getObject(name);
 
+            if (propertiesToRedact(name)) value = REDACTED;
+
             if (value == null) log.info("{}: 'null'", name);
-            else               log.info("{}: ({}):'{}'", name, getObject(name).getClass().getSimpleName(), getObject(name).toString());
+            else               log.info("{}: ({}):'{}'", name, value.getClass().getSimpleName(), value.toString());
         }
     }
 
     public Object getInstance(String propName, Object defaultVal)
-            throws InstantiationException, IllegalAccessException, ClassNotFoundException
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException
     {
         Object prop = getObject(propName, defaultVal);
 
@@ -197,17 +198,17 @@ public class ObjectProperties extends Properties {
             throw new InstantiationException("Property '" + propName + "' was not defined. Cannot instantiate.");
         }
         if (prop instanceof String) {
-            return Class.forName(((String) prop).trim()).newInstance();
+            return Class.forName(((String) prop).trim()).getDeclaredConstructor().newInstance();
         }
         return prop;
     }
 
-    public Object getInstance(String propName) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+    public Object getInstance(String propName) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         return getInstance(propName, null);
     }
 
     public ArrayList<?> getInstances(String propName, Object defaultVal)
-            throws InstantiationException, IllegalAccessException, ClassNotFoundException
+            throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException
     {
         Object val = getObject(propName, defaultVal);
         if (val == null) return null;
@@ -217,8 +218,7 @@ public class ObjectProperties extends Properties {
         else if (val instanceof String) {
             ArrayList<Object> retArr = new ArrayList<Object>();
             StringTokenizer tok = new StringTokenizer((String) val, ",");
-            while (tok.hasMoreTokens())
-                retArr.add(getInstance(tok.nextToken()));
+            while (tok.hasMoreTokens()) retArr.add(getInstance(tok.nextToken()));
             return retArr;
         }
         else {
@@ -228,7 +228,7 @@ public class ObjectProperties extends Properties {
         }
     }
 
-    public ArrayList<?> getInstances(String propName) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
+    public ArrayList<?> getInstances(String propName) throws InstantiationException, IllegalAccessException, ClassNotFoundException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
         return getInstances(propName, null);
     }
 
@@ -241,7 +241,7 @@ public class ObjectProperties extends Properties {
      * @return if the value of the Property shall be redacted or not
      */
     private boolean propertiesToRedact(String key) {
-        String keywordsToRedact = Gateway.getProperties().getString("SystemProperties.keywordsToRedact", "password,pwd");
+        String keywordsToRedact = SystemProperties_keywordsToRedact.getString();
 
         return StringUtils.containsAny(key.toLowerCase(), keywordsToRedact.split(","));
     }
@@ -258,7 +258,7 @@ public class ObjectProperties extends Properties {
     public Outcome convertToOutcome(String processName) throws IOException, InvalidDataException, ObjectNotFoundException {
         List<Map<String, Object>> props = new ArrayList<Map<String, Object>>();
 
-        String templ = FileStringUtility.url2String(this.getClass().getResource("resources/templates/SystemProperties_xsd.tmpl"));
+        String templ = FileStringUtility.url2String(this.getClass().getResource("resources/templates/SystemProperties_xml.tmpl"));
         CompiledTemplate expr = TemplateCompiler.compileTemplate(templ);
 
         for (Entry<Object, Object> entry: entrySet()) {
@@ -271,7 +271,7 @@ public class ObjectProperties extends Properties {
             prop.put("Name", key);
             prop.put("SetInConfigFiles", true);
 
-            if (propertiesToRedact(key)) prop.put("Value", "REDACTED");
+            if (propertiesToRedact(key)) prop.put("Value", REDACTED);
             else                         prop.put("Value", entry.getValue());
 
             props.add(prop);

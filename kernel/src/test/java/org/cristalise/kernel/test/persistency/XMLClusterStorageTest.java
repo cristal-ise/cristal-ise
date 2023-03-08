@@ -20,21 +20,19 @@
  */
 package org.cristalise.kernel.test.persistency;
 
-import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
-import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
-import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
-import static org.cristalise.kernel.persistency.ClusterType.PATH;
-import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
-import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+import static org.cristalise.kernel.persistency.ClusterType.*;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Properties;
-
+import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.process.MainTest;
@@ -53,7 +51,6 @@ public class XMLClusterStorageTest {
 
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
-
         itemPath = new ItemPath("fcecd4ad-40eb-421c-a648-edc1d74f339b");
     }
 
@@ -63,52 +60,86 @@ public class XMLClusterStorageTest {
     }
 
     public void checkXMLClusterStorage(XMLClusterStorage importCluster) throws Exception {
-        ClusterType[] types = importCluster.getClusters(itemPath);
+        ClusterType[] types = importCluster.getClusters(itemPath, null);
 
-        assertEquals(6, types.length);
+        assertEquals(7, types.length);
 
         for (ClusterType type : types) {
-            String[] contents = importCluster.getClusterContents(itemPath, type);
+            String[] contents = importCluster.getClusterContents(itemPath, type, null);
 
             switch (type) {
                 case PATH:
                     assertEquals(2,  contents.length);
                     assertThat(Arrays.asList(contents), IsIterableContainingInAnyOrder.containsInAnyOrder("Domain", "Item"));
-                    assertNotNull( importCluster.get(itemPath, PATH+"/Item") );
-                    assertNotNull( importCluster.get(itemPath, PATH+"/Domain/Batches2016FG160707C-08") );
+                    assertNotNull( importCluster.get(itemPath, PATH+"/Item", null) );
+                    assertNotNull( importCluster.get(itemPath, PATH+"/Domain/Batches2016FG160707C-08", null) );
                     break;
 
                 case PROPERTY:
                     assertEquals(19, contents.length);
-                    assertNotNull( importCluster.get(itemPath, PROPERTY+"/Name") );
+                    assertNotNull( importCluster.get(itemPath, PROPERTY+"/Name", null) );
                     break;
 
                 case LIFECYCLE:
                     assertEquals(1,  contents.length);
-                    assertNotNull( importCluster.get(itemPath, LIFECYCLE+"/workflow") );
+                    assertNotNull( importCluster.get(itemPath, LIFECYCLE+"/workflow", null) );
                     break;
 
                 case OUTCOME:
                     assertEquals(14, contents.length);
-                    assertNotNull( importCluster.get(itemPath, OUTCOME+"/PredefinedStepOutcome/0/7") );
+                    assertNotNull( importCluster.get(itemPath, OUTCOME+"/PredefinedStepOutcome/0/7", null) );
                     break;
 
                 case VIEWPOINT:
                     assertEquals(14, contents.length);
-                    assertNotNull( importCluster.get(itemPath, VIEWPOINT+"/NextStepData/last") );
+                    assertNotNull( importCluster.get(itemPath, VIEWPOINT+"/NextStepData/last", null) );
                     break;
 
                 case HISTORY:
                     assertEquals(30, contents.length);
-                    assertNotNull( importCluster.get(itemPath, HISTORY+"/0") );
-                    assertNotNull( importCluster.get(itemPath, HISTORY+"/29") );
-                    assertEquals(29, importCluster.getLastIntegerId(itemPath, HISTORY.getName()));
+                    assertNotNull( importCluster.get(itemPath, HISTORY+"/0", null) );
+                    assertNotNull( importCluster.get(itemPath, HISTORY+"/29", null) );
+                    assertEquals(29, importCluster.getLastIntegerId(itemPath, HISTORY.getName(), null));
+                    break;
+
+                case JOB:
+                    assertEquals(2, contents.length);
+                    checkJobs(importCluster);
                     break;
 
                 default:
                     fail("Unhandled ClusterType:"+type);
             }
         }
+    }
+
+    private void checkJobs(ClusterStorage importCluster) throws PersistencyException {
+        Job aJob = (Job)importCluster.get(itemPath, JOB+"/TestStep/Done", null);
+        assertNotNull(aJob);
+        assertEquals("TestStep", aJob.getStepName());
+        assertEquals("Done", aJob.getTransitionName());
+        assertEquals("Admin", aJob.getRoleOverride());
+        assertEquals("da8c7b53-f0ab-4532-9773-64233c536415", aJob.getAgentUUID());
+        assertNotNull(aJob.getTransition());
+        assertEquals(aJob.getTransitionName(), aJob.getTransition().getName());
+
+        assertNotNull( importCluster.get(itemPath, JOB+"/TestStep/Start", null) );
+        aJob = (Job)importCluster.get(itemPath, JOB+"/TestStep/Start", null);
+        assertEquals("TestStep", aJob.getStepName());
+        assertEquals("Start", aJob.getTransitionName());
+        assertNull(aJob.getRoleOverride());
+        assertEquals("da8c7b53-f0ab-4532-9773-64233c536415", aJob.getAgentUUID());
+        assertNotNull(aJob.getTransition());
+        assertEquals(aJob.getTransitionName(), aJob.getTransition().getName());
+
+        assertNotNull( importCluster.get(itemPath, JOB+"/TestStep2/Start", null) );
+        aJob = (Job)importCluster.get(itemPath, JOB+"/TestStep2/Start", null);
+        assertEquals("TestStep2", aJob.getStepName());
+        assertEquals("Start", aJob.getTransitionName());
+        assertNull(aJob.getRoleOverride());
+        assertNull(aJob.getAgentUUID());
+        assertNotNull(aJob.getTransition());
+        assertEquals(aJob.getTransitionName(), aJob.getTransition().getName());
     }
 
     @Test

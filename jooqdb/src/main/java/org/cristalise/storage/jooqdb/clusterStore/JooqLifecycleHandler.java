@@ -33,6 +33,7 @@ import java.util.UUID;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -131,7 +132,7 @@ public class JooqLifecycleHandler extends JooqHandler {
 
     @Override
     public void createTables(DSLContext context) {
-        DataType<String> xmlType = getXMLType(context);
+        DataType<String> xmlType = JooqDataSourceHandler.getStringXmlType();
 
         context.createTableIfNotExists(LIFECYCLE_TABLE)
         .column(UUID, UUID_TYPE.nullable(false))

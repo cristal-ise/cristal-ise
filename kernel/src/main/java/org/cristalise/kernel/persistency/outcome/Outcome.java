@@ -20,18 +20,22 @@
  */
 package org.cristalise.kernel.persistency.outcome;
 
+import static org.cristalise.kernel.SystemProperties.Outcome_Validation_useDOM;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
+import java.util.TreeMap;
+import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -39,10 +43,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -54,11 +58,9 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.AbstractMain;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.custommonkey.xmlunit.Diff;
-import org.custommonkey.xmlunit.XMLUnit;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -66,6 +68,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xmlunit.builder.DiffBuilder;
+import org.xmlunit.diff.DefaultNodeMatcher;
+import org.xmlunit.diff.Diff;
+import org.xmlunit.diff.Difference;
+import org.xmlunit.diff.ElementSelectors;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -87,11 +94,17 @@ public class Outcome implements C2KLocalObject {
 
     private static final int NONE = -1;
 
-    /** ID is the eventID created when the Outcome is stored in History */
+    /** ID is the eventID created when the Outcome is stored in History. Can be NONE = -1 */
     Integer mID;
 
-    /** The Schema object associated with the Outcome */
-    Schema mSchema;
+    /** The Schema object associated with the Outcome. Can be null. */
+    Schema mSchema = null;
+
+    /** The name or UUID of the Schema item associated with the Outcome. Can be null. */
+    String mSchemaName = null;
+
+    /** The version of the Schema item associated with the Outcome. Can be null. */
+    Integer mSchemaVersion;
 
     /** The parsed XML document */
     Document mDOM;
@@ -126,7 +139,7 @@ public class Outcome implements C2KLocalObject {
 
     /**
      * Use this constructor for XML manipulation only. This Outcome cannot be validate
-     * not it can be stored in ClusterStore.
+     * nor it can be stored in ClusterStore.
      *
      * @param xml the XML string to be manipulated
      * @throws InvalidDataException there was an error parsing the XML
@@ -144,6 +157,20 @@ public class Outcome implements C2KLocalObject {
      */
     public Outcome(String xml, Schema schema) throws InvalidDataException {
         this(NONE, xml, schema);
+    }
+
+    public Outcome(int id, String xml, String schemaName, Integer schemaVersion) throws InvalidDataException {
+        this(id, (Document)null, null);
+        mSchemaName = schemaName;
+        mSchemaVersion = schemaVersion;
+
+        try {
+            mDOM = parse(xml);
+        }
+        catch (IOException | SAXException ex) {
+            log.error("INVALID XML - schema:"+(null == mSchema ? null : mSchema.getName())+"\n"+xml, ex);
+            throw new InvalidDataException("XML not valid for schema:"+mSchema+" error:"+ex.getMessage());
+        }
     }
 
     /**
@@ -213,6 +240,32 @@ public class Outcome implements C2KLocalObject {
     }
 
     /**
+     * Gets the Schema object associated with the Outcome
+     * @return the Schema object associated with the Outcome
+     */
+    public Schema getSchema() {
+        return getSchema(null);
+    }
+
+    /**
+     * Gets the Schema object associated with the Outcome
+     * 
+     * @param transactionKey the key of the transaction
+     * @return the Schema object associated with the Outcome
+     */
+    public Schema getSchema(TransactionKey transactionKey) {
+        if (mSchema == null) {
+            try {
+                mSchema = LocalObjectLoader.getSchema(mSchemaName, mSchemaVersion, transactionKey);
+            }
+            catch (ObjectNotFoundException | InvalidDataException e) {
+                log.debug("Cannot retrieve Schema object", e);
+            }
+        }
+        return mSchema;
+    }
+
+    /**
      * Retrieves the SchemaName, Version, EevetnId triplet from the path. Check getClusterPath() implementation
      *
      * @param path the ClusterPath to work with
@@ -244,15 +297,27 @@ public class Outcome implements C2KLocalObject {
     }
 
     /**
-     * Evaluates the given XPath expression thread-safely and efficiently
+     * Evaluates the given XPath expression thread-safely and efficiently. It starts fromt he root Node.
      *
-     * @param xpathExpr the XPath exporession
+     * @param xpathExpr the XPath expression
      * @return the result of the evaluated expression
      * @throws XPathExpressionException  If expression cannot be compiled.
      */
     public Object evaluateXpath(String xpathExpr, QName returnType) throws XPathExpressionException {
+        return evaluateXpath(mDOM, xpathExpr, returnType);
+    }
+
+    /**
+     * Evaluates the given XPath expression thread-safely and efficiently
+     *
+     * @param startNode the starting Node
+     * @param xpathExpr the XPath expression
+     * @return the result of the evaluated expression
+     * @throws XPathExpressionException  If expression cannot be compiled.
+     */
+    public Object evaluateXpath(Node startNode, String xpathExpr, QName returnType) throws XPathExpressionException {
         XPath xpath = XPATH_FACTORY.get().newXPath();
-        return xpath.compile(xpathExpr).evaluate(mDOM, returnType);
+        return xpath.compile(xpathExpr).evaluate(startNode, returnType);
     }
 
     /**
@@ -269,7 +334,7 @@ public class Outcome implements C2KLocalObject {
 
         OutcomeValidator validator = OutcomeValidator.getValidator(mSchema);
 
-        if (Gateway.getProperties().getBoolean("Validation.useDOM", true))
+        if (Outcome_Validation_useDOM.getBoolean())
             return validator.validate(mDOM);
         else
             return validator.validate(getData());
@@ -369,8 +434,9 @@ public class Outcome implements C2KLocalObject {
         int type = node.getNodeType();
 
         if (type == Node.TEXT_NODE || type == Node.CDATA_SECTION_NODE || type == Node.ATTRIBUTE_NODE) {
-            if (useCdata && type != Node.CDATA_SECTION_NODE )
-                throw new InvalidDataException("Node '"+node.getNodeName()+"' can't set cdata of attribute or text node");
+            if (useCdata && type != Node.CDATA_SECTION_NODE ) {
+                throw new InvalidDataException("Node '"+node.getNodeName()+"' can't set CDATA of attribute or text node");
+            }
 
             node.setNodeValue(value);
         }
@@ -378,38 +444,76 @@ public class Outcome implements C2KLocalObject {
             NodeList nodeChildren = node.getChildNodes();
 
             if (nodeChildren.getLength() == 0) {
-                if (useCdata) node.appendChild(mDOM.createCDATASection(value));
-                else          node.appendChild(mDOM.createTextNode(value));
+                createNewTextOrCdataNode(node, value, useCdata);
             }
             else if (nodeChildren.getLength() == 1) {
-                Node child = nodeChildren.item(0);
-
-                switch (child.getNodeType()) {
-                    case Node.TEXT_NODE:
-                        if (useCdata) {
-                            node.replaceChild(mDOM.createCDATASection(value), child);
-                            break;
-                        }
-                    case Node.CDATA_SECTION_NODE:
-                        child.setNodeValue(value);
-                        break;
-
-                    default:
-                        throw new InvalidDataException("Node '"+node.getNodeName()+"' can't set child node of type "+child.getNodeType());
-                }
+                replaceTextOrCdataNode(node, value, useCdata);
             }
-            else
-                throw new InvalidDataException("Node '"+node.getNodeName()+"' shall have 0 or 1 children only #children:"+nodeChildren.getLength());
+            else if (useCdata) {
+                findAndReplaceCdataNode(node, value);
+            }
+            else {
+                throw new InvalidDataException("Node '"+node.getNodeName()+"' shall use CDATA or have 0 or 1 children instead of "+nodeChildren.getLength());
+            }
         }
         else if (type == Node.ATTRIBUTE_NODE) {
-            if (useCdata)
-                throw new InvalidDataException("Node '"+node.getNodeName()+"' can't set cdata of attribute");
+            if (useCdata) {
+                throw new InvalidDataException("Node '"+node.getNodeName()+"' can't set CDATA for attribute");
+            }
 
             node.setNodeValue(value);
         }
         else {
             throw new InvalidDataException("Cannot handle node name:"+node.getNodeName() + " typeCode:"+type);
         }
+    }
+
+    private void findAndReplaceCdataNode(Node node, String value) throws InvalidDataException {
+        NodeList nodeChildren = node.getChildNodes();
+
+        boolean cdataFound = false;
+        for (int i = 0; i < nodeChildren.getLength(); i++) {
+            Node child = nodeChildren.item(i);
+            switch (child.getNodeType()) {
+                case Node.TEXT_NODE:
+                    //do nothing
+                    break;
+                case Node.CDATA_SECTION_NODE:
+                    child.setNodeValue(value);
+                    cdataFound = true;
+                    break;
+
+                default:
+                    throw new InvalidDataException("Node '"+node.getNodeName()+"' can't update CDATA for nodeType:"+child.getNodeType());
+            }
+        }
+
+        if (!cdataFound) {
+            throw new InvalidDataException("Node '"+node.getNodeName()+"' could not find CDATA");
+        }
+    }
+
+    private void replaceTextOrCdataNode(Node node, String value, boolean useCdata) throws InvalidDataException {
+        Node child = node.getChildNodes().item(0);
+
+        switch (child.getNodeType()) {
+            case Node.TEXT_NODE:
+                if (useCdata) {
+                    node.replaceChild(mDOM.createCDATASection(value), child);
+                    break;
+                }
+            case Node.CDATA_SECTION_NODE:
+                child.setNodeValue(value);
+                break;
+
+            default:
+                throw new InvalidDataException("Node '"+node.getNodeName()+"' can't set value for nodeType:"+child.getNodeType());
+        }
+    }
+
+    private void createNewTextOrCdataNode(Node node, String value, boolean useCdata) {
+        if (useCdata) node.appendChild(mDOM.createCDATASection(value));
+        else          node.appendChild(mDOM.createTextNode(value));
     }
 
     /**
@@ -548,8 +652,9 @@ public class Outcome implements C2KLocalObject {
 
             setNodeValue(elements.item(0), data);
         }
-        else
+        else {
             throw new InvalidDataException("'"+name+"' is invalid or not a single field");
+        }
     }
 
     /**
@@ -652,13 +757,23 @@ public class Outcome implements C2KLocalObject {
     }
 
     /**
-     * Returns the serialised DOM as a string
+     * Returns the serialised DOM as a string without pretty printing-
      *
      * @return the xml string
      */
     public String getData() {
+        return getData(false);
+    }
+
+    /**
+     * Returns the serialised DOM as a string -
+     *
+     * @param prettyPrint is the string should be pretty printed or not
+     * @return the xml string
+     */
+    public String getData(boolean prettyPrint) {
         try {
-            return serialize(mDOM, false);
+            return serialize(mDOM, prettyPrint);
         }
         catch (InvalidDataException e) {
            log.error("", e);
@@ -666,18 +781,42 @@ public class Outcome implements C2KLocalObject {
         }
     }
 
-    @Deprecated
-    public String getSchemaType() {
-        if (mSchema == null) throw new IllegalArgumentException("Outcome must have valid Schema");
+    /**
+     * Gets the name or UUID of the Schema item associated with the Outcome
+     * @return the name or UUID of the Schema item associated with the Outcome
+     */
+    public String getSchemaName() {
+        if (mSchema != null) {
+            return mSchema.getName();
+        }
+        else if (StringUtils.isNoneBlank(mSchemaName)) {
+            return mSchemaName;
+        }
 
-        return mSchema.getName();
+        throw new IllegalArgumentException("Outcome must have valid Schema");
     }
 
-    @Deprecated
-    public int getSchemaVersion() {
-        if (mSchema == null) throw new IllegalArgumentException("Outcome must have valid Schema");
+    /**
+     * @deprecated use {@link Outcome#getSchemaName()} instead
+     * @return
+     */
+    public String getSchemaType() {
+        return getSchemaName();
+    }
 
-        return mSchema.getVersion();
+    /**
+     * Gets the version of the Schema item associated with the Outcome
+     * @return the version of the Schema item associated with the Outcome
+     */
+    public int getSchemaVersion() {
+        if (mSchema != null) {
+            return mSchema.getVersion();
+        }
+        else if (mSchemaVersion != null) {
+            return mSchemaVersion;
+        }
+
+        throw new IllegalArgumentException("Outcome must have valid Schema");
     }
 
     /**
@@ -855,57 +994,92 @@ public class Outcome implements C2KLocalObject {
         return nodeToTemove.getParentNode().removeChild(nodeToTemove);
     }
 
+    private static Transformer getPrettyTransformer() throws InvalidDataException {
+        try {
+            TransformerFactory tf = TransformerFactory.newInstance();
+            tf.setAttribute("indent-number", 2);
+
+            // add XSLT for pretty print
+            InputStream is = Outcome.class.getResourceAsStream("/org/cristalise/kernel/utils/resources/textFiles/prettyPrint.xslt");
+            Transformer transformer = tf.newTransformer(new StreamSource(is));
+    
+            // add extra standalone to break the root node to a new line
+            transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
+
+            return transformer;
+        }
+        catch (Exception ex) {
+            log.error("getPrettyTransformer()", ex);
+            throw new InvalidDataException(ex);
+        }
+    }
+
+    private static Transformer getTransformer() throws InvalidDataException {
+        try {
+            TransformerFactory tf = TransformerFactory.newInstance();
+            Transformer             transformer = tf.newTransformer();
+    
+            return transformer;
+        }
+        catch (Exception ex) {
+            log.error("getTransformer()", ex);
+            throw new InvalidDataException(ex);
+        }
+    }
+
     /**
-     * Serialize the Given Document
+     * Serialize the given Document
      *
      * @param doc document to be serialized
      * @param prettyPrint if the xml is pretty printed or not
      * @return the xml string
      * @throws InvalidDataException Transformer Exception
      */
-    static public String serialize(Node node, boolean prettyPrint) throws InvalidDataException {
-        TransformerFactory tf = TransformerFactory.newInstance();
-        Transformer transformer;
+    public static String serialize(Node node, boolean prettyPrint) throws InvalidDataException {
         try {
-            transformer = tf.newTransformer();
-        }
-        catch (TransformerConfigurationException ex) {
-            log.error("", ex);
-            return "";
-        }
-        transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-        transformer.setOutputProperty(OutputKeys.INDENT, prettyPrint?"yes":"no");
-        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            Transformer transformer = prettyPrint ? getPrettyTransformer() : getTransformer();
 
-        Writer out = new StringWriter();
-        try {
+            transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+
+            Writer out = new StringWriter();
             transformer.transform(new DOMSource(node), new StreamResult(out));
+            return out.toString();
         }
-        catch (Exception e) {
-            log.error("", e);
-            throw new InvalidDataException(e.getMessage());
+        catch (Exception ex) {
+            log.error("serialize()", ex);
+            throw new InvalidDataException(ex);
         }
-        return out.toString();
     }
 
     /**
-     * Reads the all Attributes and child Elements of the given Node
+     * 
+     */
+    public static void traverseChildElements(Node node, Consumer<Node> action) {
+        NodeList childNodes = node.getChildNodes();
+
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            if (childNodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                action.accept(childNodes.item(i));
+            }
+        }
+    }
+
+    /**
+     * Reads the all Attributes and child Elements of the given Node. Use TreeMap to keep the order of Nodes.
      *
      * @param node the node to work with
      * @return a Map as a key/value pairs of Attribute/Element names with their value
      */
-    public  Map<String, String> getRecordOfNode(Node node) {
-        HashMap<String, String> record = new HashMap<>();
-        NodeList elements = node.getChildNodes();
+    public Map<String, String> getRecordOfNode(Node node) {
+        final Map<String, String> record = new TreeMap<>();
 
-        for (int i = 0; i < elements.getLength(); i++) {
-            if (elements.item(i).getNodeType() == Node.ELEMENT_NODE) {
-                String name = elements.item(i).getNodeName();
-                String value = elements.item(i).getTextContent();
+        traverseChildElements(node, (element) -> {
+            String name = element.getNodeName();
+            String value = element.getTextContent();
 
-                record.put(name, value);
-            }
-        }
+            record.put(name, value);
+        });
 
         NamedNodeMap attrs = node.getAttributes();
 
@@ -1090,17 +1264,28 @@ public class Outcome implements C2KLocalObject {
      * Utility method to comare 2 XML Documents
      *
      * @param origDocument XML document
-     * @param otherDOM the other XML
+     * @param otherDocument the other XML document
      * @return true if the two XML Documents are identical, otherwise returns false
      */
-    public static boolean isIdentical(Document origDocument, Document otherDOM) {
-        XMLUnit.setIgnoreWhitespace(true);
-        XMLUnit.setIgnoreComments(true);
+    public static boolean isIdentical(Document origDocument, Document otherDocument) {
+        Diff xmlDiff = DiffBuilder.compare(origDocument).withTest(otherDocument)
+                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndAllAttributes))
+                .ignoreComments()
+                .ignoreWhitespace()
+                .checkForSimilar()
+                .build();
 
-        Diff xmlDiff = new Diff(origDocument, otherDOM);
+        if (xmlDiff.hasDifferences()) {
+            Iterator<Difference> allDiffs = xmlDiff.getDifferences().iterator();
 
-        if (!xmlDiff.identical()) {
-            log.info("{}", xmlDiff.toString());
+            for (int i = 1; allDiffs.hasNext(); i++) log.info("Diff #{}:{}", i, allDiffs.next());
+
+            try {
+                log.debug("expected:{}", serialize(origDocument, false));
+                log.debug("actual:{}", serialize(otherDocument, false));
+            }
+            catch (InvalidDataException e) {}
+
             return false;
         }
         else
@@ -1113,5 +1298,14 @@ public class Outcome implements C2KLocalObject {
 
     public boolean hasField(Element element, String name) {
         return hasSingleField(element.getElementsByTagName(name));
+    }
+
+    public String getRootName() {
+        return mDOM.getDocumentElement().getNodeName();
+    }
+
+    @Override
+    public String toString() {
+        return getData(true);
     }
 }

@@ -20,18 +20,20 @@
  */
 package org.cristalise.kernel.scripting;
 
-public class ScriptErrorException extends java.lang.Exception {
+import static org.cristalise.kernel.common.CriseVertxException.FailureCodes.ScriptError;
 
-    /**
-     * 
-     */
+import org.cristalise.kernel.common.CriseVertxException;
+
+public class ScriptErrorException extends CriseVertxException {
     private static final long serialVersionUID = -4298189043503060615L;
+
     /**
      * Creates new <code>sciptingEngineException</code> without detail message.
      */
     ErrorInfo errors;
 
     public ScriptErrorException() {
+        super(ScriptError);
     }
 
     /**
@@ -41,11 +43,11 @@ public class ScriptErrorException extends java.lang.Exception {
      *            the detail message.
      */
     public ScriptErrorException(String msg) {
-        super(msg);
+        super(ScriptError, msg);
     }
 
     public ScriptErrorException(ErrorInfo errors) {
-        super(errors.toString());
+        super(ScriptError, errors.toString());
         this.errors = errors;
     }
 
@@ -54,10 +56,10 @@ public class ScriptErrorException extends java.lang.Exception {
     }
 
     public ScriptErrorException(Throwable throwable) {
-        super(throwable);
+        super(ScriptError, throwable);
     }
 
     public ScriptErrorException(String message, Throwable throwable) {
-        super(message, throwable);
+        super(ScriptError, message, throwable);
     }
 }

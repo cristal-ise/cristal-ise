@@ -26,7 +26,7 @@ import org.cristalise.dsl.entity.RoleBuilder;
 import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
 import org.cristalise.dsl.test.builders.AgentTestBuilder;
 import org.cristalise.dsl.test.builders.ItemTestBuilder
-import org.cristalise.kernel.entity.agent.Job
+import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.process.Gateway;
@@ -44,24 +44,30 @@ import spock.util.concurrent.PollingConditions
 @UnitilsSupport
 class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8) }
+    def setup() {
+        def props = new Properties()
+        props.put('Shiro.iniFile', 'src/main/bin/shiroInMemory.ini')
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', props, true) //skips boostrap!!!
+    }
+
     def cleanup() { cristalCleanup() }
 
     def 'Job is only given to the Agent with the proper Role'() {
         when: ""
+        RoleBuilder.create {
+            Role(name: 'oper')  { Permission('*') }
+            Role(name: 'clerk') { Permission('*') }
+        }
+
         AgentTestBuilder  oper1 = AgentTestBuilder.create(name: "oper1", password: 'dummy') {
             Roles {
-                Role(name: 'oper') {
-                    Permission('*')
-                }
+                Role(name: 'oper')
             }
         }
 
         AgentTestBuilder  clerk1 = AgentTestBuilder.create(name: "clerk1", password: 'dummy') {
             Roles {
-                Role(name: 'clerk') {
-                    Permission('*')
-                }
+                Role(name: 'clerk')
             }
         }
 
@@ -75,21 +81,26 @@ class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetu
         }
 
         then: "Agent 'oper1' gets 2 Jobs but the Agent 'clerk1' get no Job"
-        oper1.getJobs(dummyItem.itemDomPath.itemPath).size() == 2
         clerk1.getJobs(dummyItem.itemDomPath.itemPath).size() == 0
+        oper1.getJobs(dummyItem.itemDomPath.itemPath).size() == 2
     }
 
     def "Activity property 'Agent Role' can contain a list of Roles"() {
         when: ""
+        RoleBuilder.create {
+            Role(name: 'oper')  { Permission('*') }
+            Role(name: 'clerk') { Permission('*') }
+        }
+
         AgentTestBuilder  oper1 = AgentTestBuilder.create(name: "oper1", password: 'dummy') {
             Roles {
-                Role(name: 'oper') { Permission('*') }
+                Role(name: 'oper')
             }
         }
 
         AgentTestBuilder  clerk1 = AgentTestBuilder.create(name: "clerk1", password: 'dummy') {
             Roles {
-                Role(name: 'clerk') { Permission('*') }
+                Role(name: 'clerk')
             }
         }
 
@@ -103,7 +114,8 @@ class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetu
         }
 
         then: "Agents 'oper1' and 'clerk1' gets the same set of Jobs"
-        oper1.getJobs(dummyItem.itemDomPath.itemPath).size() == clerk1.getJobs(dummyItem.itemDomPath.itemPath).size()
+        oper1.getJobs(dummyItem.itemDomPath.itemPath).size() == 2
+        clerk1.getJobs(dummyItem.itemDomPath.itemPath).size() == 2
 
         //Deep comparision of Job does not work, becuase many fields should be ignored
         //assertLenientEquals(oper1.getJobs(dummyItem.itemDomPath.itemPath), clerk1.getJobs(dummyItem.itemDomPath.itemPath))
@@ -111,15 +123,19 @@ class ExecutionAccessRigthSpecs extends Specification implements CristalTestSetu
 
     def "Role hierachy boss/minion declares that boss1 could execute all Jobs of minion1"() {
         when: "Agent 'boss' has a Role of 'boss' and Agent 'minion1' has a Role of 'minion'"
+        RoleBuilder.create {
+            Role(name: 'boss')        { Permission('*') }
+            Role(name: 'boss/minion') { Permission('*') }
+        }
         AgentTestBuilder  boss1 = AgentTestBuilder.create(name: "boss1", password: 'dummy') {
             Roles {
-                Role(name: 'boss') { Permission('*') }
+                Role(name: 'boss')
             }
         }
 
         AgentTestBuilder  minion1 = AgentTestBuilder.create(name: "minion1", password: 'dummy') {
             Roles {
-                Role(name: 'boss/minion') { Permission('*') }
+                Role(name: 'boss/minion')
             }
         }
 

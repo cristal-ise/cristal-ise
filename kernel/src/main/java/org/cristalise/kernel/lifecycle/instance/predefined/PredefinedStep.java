@@ -20,7 +20,6 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
@@ -28,11 +27,14 @@ import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -43,15 +45,20 @@ import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.events.History;
+import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer;
+import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.CastorHashMap;
+import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Document;
@@ -61,6 +68,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -74,37 +82,35 @@ public abstract class PredefinedStep extends Activity {
     public static final int DONE         = 0;
     public static final int AVAILABLE    = 0;
 
+    /**
+     * Order is important
+     */
+    @Getter
+    private Map<ItemPath, String> autoUpdates = new  LinkedHashMap<ItemPath, String>();
+
     public PredefinedStep() {
         super();
-        setBuiltInProperty(STATE_MACHINE_NAME, "PredefinedStep");
+        setBuiltInProperty(STATE_MACHINE_NAME, StateMachine.getDefaultStateMachine("Predefined"));
         setBuiltInProperty(SCHEMA_NAME, "PredefinedStepOutcome");
         setBuiltInProperty(SCHEMA_VERSION, "0");
-
-        addAdminAgentRole();
     }
 
     @Override
     public boolean getActive() {
-        if (isPredefined)
-            return true;
-        else
-            return super.getActive();
+        if (isPredefined) return true;
+        else              return super.getActive();
     }
 
     @Override
     public String getErrors() {
-        if (isPredefined)
-            return getName();
-        else
-            return super.getErrors();
+        if (isPredefined) return getName();
+        else              return super.getErrors();
     }
 
     @Override
     public boolean verify() {
-        if (isPredefined)
-            return true;
-        else
-            return super.verify();
+        if (isPredefined) return true;
+        else              return super.verify();
     }
 
     /**
@@ -136,26 +142,55 @@ public abstract class PredefinedStep extends Activity {
         return this.getClass().getSimpleName();
     }
 
-    static public String getPredefStepSchemaName(String stepName) {
-        PredefinedStepContainer[] allSteps = 
-            { new ItemPredefinedStepContainer(), new AgentPredefinedStepContainer(), new ServerPredefinedStepContainer() };
+    public static String getPredefStepSchemaName(String stepName) {
+        Activity step = getStepInstance(stepName);
+        if (step != null) {
+            return (String) step.getBuiltInProperty(SCHEMA_NAME);
+        }
+        return "PredefinedStepOutcome"; // default to standard if not found - server may be a newer version
+    }
+
+    public static PredefinedStep getStepInstance(String stepName) {
+        PredefinedStepContainer[] allSteps =
+                { new ItemPredefinedStepContainer(), new AgentPredefinedStepContainer(), new ServerPredefinedStepContainer() };
 
         for (PredefinedStepContainer thisContainer : allSteps) {
             String stepPath = thisContainer.getName() + "/" + stepName;
-            Activity step = (Activity) thisContainer.search(stepPath);
+            PredefinedStep step = (PredefinedStep) thisContainer.search(stepPath);
 
-            if (step != null) {
-                return (String) step.getBuiltInProperty(SCHEMA_NAME);
-            }
+            if (step != null) return step;
         }
-        return "PredefinedStepOutcome"; // default to standard if not found - server may be a newer version
+        return null;
+    }
+
+    public Node getPredefStepOutcomeNode(Node predefStepNode) throws InvalidDataException {
+        final List<Node> found = new ArrayList<>();
+
+        if (log.isDebugEnabled()) log.debug("getPredefStepOutcomeNode() - node:{}", Outcome.serialize(predefStepNode, false));
+
+        Outcome.traverseChildElements(predefStepNode, (outcomeNode) -> {
+            String schemaName = (String) getBuiltInProperty(SCHEMA_NAME);
+            if (outcomeNode.getNodeName().equals(schemaName)) {
+                found.add(outcomeNode);
+            }
+        });
+
+        if (found.size() == 0) {
+            return null;
+        }
+        else if (found.size() > 1) {
+            throw new InvalidDataException("Umbiguious input data found in outcome:"+Outcome.serialize(predefStepNode, false));
+        }
+        else {
+            return found.get(0);
+        }
     }
 
     /**
      * All predefined steps must override this to implement their action
      */
     @Override
-    protected abstract String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker) 
+    protected abstract String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, TransactionKey transactionKey) 
             throws  InvalidDataException,
                     InvalidCollectionModification,
                     ObjectAlreadyExistsException,
@@ -166,12 +201,13 @@ public abstract class PredefinedStep extends Activity {
                     AccessRightsException;
 
     /**
-     * Generic bundling of parameters
+     * Generic bundling of parameters. Converts the array of strings to PredefinedStepOutcome XML.
+     * Uses CDATA so any of the string could also be an XML.
      * 
-     * @param data
-     * @return
+     * @param data array of input string for a PredefinedStep
+     * @return the result of the PredefienedStep execution
      */
-    static public String bundleData(String...data) {
+    public static String bundleData(String...data) {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
@@ -199,7 +235,13 @@ public abstract class PredefinedStep extends Activity {
         }
     }
 
-    // generic bundling of single parameter
+    /**
+     * Generic bundling of a single parameter. Converts the array of strings to PredefinedStepOutcome XML.
+     * Uses CDATA so the string could also be an XML.
+     * 
+     * @param input string for a PredefinedStep
+     * @return the result of the PredefienedStep execution
+     */
     static public String bundleData(String data) {
         return bundleData(new String[] { data });
     }
@@ -226,14 +268,6 @@ public abstract class PredefinedStep extends Activity {
         return null;
     }
 
-    protected void addAdminAgentRole() {
-        if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
-            String extraRoles = Gateway.getProperties().getString("PredefinedStep."+ this.getClass().getSimpleName() +".roles");
-            getProperties().setBuiltInProperty(AGENT_ROLE, ADMIN_ROLE.getName() + (StringUtils.isNotBlank(extraRoles) ? ","+extraRoles : ""));
-        }
-    }
-
-
     /********************************
      * Methods migrated from Bootstrap
      ********************************/
@@ -247,10 +281,10 @@ public abstract class PredefinedStep extends Activity {
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome)
+    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, TransactionKey transactionKey )
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
-        storeOutcomeEventAndViews(itemPath, newOutcome, null);
+        storeOutcomeEventAndViews(itemPath, newOutcome, null, transactionKey);
     }
 
     /**
@@ -263,7 +297,7 @@ public abstract class PredefinedStep extends Activity {
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, Integer version)
+    public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, Integer version, TransactionKey transactionKey)
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
         String viewName = "";
@@ -272,32 +306,33 @@ public abstract class PredefinedStep extends Activity {
         log.info("storeOutcomeEventAndViews() - Schema '{}' of version '{}' to '{}'", 
                 newOutcome.getSchema().getName(), version != null ? viewName : "last", itemPath);
 
-        History hist = new History(itemPath, null);
+        History hist = new History(itemPath, transactionKey);
 
-        int eventID = hist.addEvent((AgentPath)SYSTEM_AGENT.getPath(), null,
+        int eventID = hist.addEvent((AgentPath)SYSTEM_AGENT.getPath(transactionKey),
                 ADMIN_ROLE.getName(), "Bootstrap", "Bootstrap", "Bootstrap", newOutcome.getSchema(), 
-                LocalObjectLoader.getStateMachine("PredefinedStep", 0), PredefinedStep.DONE, version != null ? viewName : "last"
+                LocalObjectLoader.getStateMachine("PredefinedStep", 0, transactionKey), PredefinedStep.DONE, version != null ? viewName : "last"
                 ).getID();
 
         newOutcome.setID(eventID);
 
         Viewpoint newLastView = new Viewpoint(itemPath, newOutcome.getSchema(), "last", eventID);
 
-        Gateway.getStorage().put(itemPath, newOutcome,  null);
-        Gateway.getStorage().put(itemPath, newLastView, null);
+        Gateway.getStorage().put(itemPath, newOutcome,  transactionKey);
+        Gateway.getStorage().put(itemPath, newLastView, transactionKey);
 
         if (version != null) {
             Viewpoint newNumberView = new Viewpoint(itemPath, newOutcome.getSchema(), viewName, eventID);
-            Gateway.getStorage().put(itemPath, newNumberView, null);
+            Gateway.getStorage().put(itemPath, newNumberView, transactionKey);
         }
     }
 
     /**
-     * Use this method to run a Predefined step during bootstrap
+     * Use this method to run a Predefined steps during Bootstrap or during Activity.request()
      * 
      * @param agent
      * @param itemPath
      * @param requestData
+     * @param transactioKey
      * @return
      * @throws AccessRightsException
      * @throws InvalidTransitionException
@@ -309,7 +344,7 @@ public abstract class PredefinedStep extends Activity {
      * @throws CannotManageException
      * @throws InvalidCollectionModification
      */
-    public String request(AgentPath agent, ItemPath itemPath, String requestData)
+    public String request(AgentPath agent, ItemPath itemPath, String requestData, TransactionKey transactionKey)
             throws AccessRightsException, 
             InvalidTransitionException, 
             InvalidDataException, 
@@ -320,8 +355,45 @@ public abstract class PredefinedStep extends Activity {
             CannotManageException, 
             InvalidCollectionModification
     {
-        log.info("request({}) - Type:{}", itemPath, getType());
+        log.info("request({}) - class:{}", itemPath.getItemName(transactionKey), getType());
         this.setActive(true);
-        return request(agent, agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, null);
+        return request(agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, transactionKey);
+    }
+
+    /**
+     * 
+     * @param currentItem
+     * @param currentActivity
+     * @param inputOutcome
+     * @param transactionKey
+     */
+    public void computeUpdates(ItemPath currentItem, Activity currentActivity, Node outcomeNode, TransactionKey transactionKey)
+            throws InvalidDataException, PersistencyException, ObjectNotFoundException, ObjectAlreadyExistsException, InvalidCollectionModification
+    {
+        getAutoUpdates().put(currentItem, Outcome.serialize(outcomeNode, false));
+    };
+
+    public void mergeProperties(CastorHashMap newProps) {
+        for (KeyValuePair kvPair : newProps.getKeyValuePairs()) {
+            BuiltInVertexProperties key = BuiltInVertexProperties.getValue((String)kvPair.getKey());
+
+            // only check built-in properties
+            if (key == null) continue;
+
+            switch (key) {
+                case NAME:
+                case VERSION:
+                case STATE_MACHINE_NAME:
+                case STATE_MACHINE_VERSION:
+                case SCHEMA_NAME:
+                case SCHEMA_VERSION:
+                    // do not overwrite existing values for these
+                    break;
+
+                default:
+                    getProperties().setKeyValuePair(kvPair);
+                    break;
+            }
+        }
     }
 }

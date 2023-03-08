@@ -62,4 +62,9 @@ public class Property implements C2KLocalObject {
     public String getClusterPath() {
         return getClusterType()+"/"+mName;
     }
+    
+    @Override
+    public String toString() {
+        return "Property("+mName+":"+mValue+")";
+    }
 }

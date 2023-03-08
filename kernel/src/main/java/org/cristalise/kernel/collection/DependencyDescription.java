@@ -24,6 +24,7 @@ import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -47,7 +48,7 @@ public class DependencyDescription extends Dependency implements CollectionDescr
     }
 
     @Override
-    public Collection<DependencyMember> newInstance() throws ObjectNotFoundException {
+    public Collection<DependencyMember> newInstance(TransactionKey transactionKey) throws ObjectNotFoundException {
         // HACK: Knock the special 'prime' off the end for the case of descriptions of descriptions
         String depName = getName().replaceFirst("\'$", ""); 
 
@@ -58,7 +59,7 @@ public class DependencyDescription extends Dependency implements CollectionDescr
             DependencyMember mem = mMembers.list.get(0);
             String descVer = getDescVer(mem);
 
-            PropertyDescriptionList pdList = PropertyUtility.getPropertyDescriptionOutcome(mem.getItemPath(), descVer, null);
+            PropertyDescriptionList pdList = PropertyUtility.getPropertyDescriptionOutcome(mem.getItemPath(), descVer, transactionKey);
 
             if (pdList != null) {
                 newDep.setProperties(PropertyUtility.convertTransitiveProperties(pdList));
@@ -76,16 +77,17 @@ public class DependencyDescription extends Dependency implements CollectionDescr
     }
 
     @Override
-    public DependencyMember addMember(ItemPath itemPath) throws InvalidCollectionModification, ObjectAlreadyExistsException {
+    public DependencyMember addMember(ItemPath itemPath, TransactionKey transactionKey) throws InvalidCollectionModification, ObjectAlreadyExistsException {
         checkMembership();
-        return super.addMember(itemPath);
+        return super.addMember(itemPath, transactionKey);
     }
 
     @Override
-    public DependencyMember addMember(ItemPath itemPath, CastorHashMap props, String classProps) throws InvalidCollectionModification,
-            ObjectAlreadyExistsException {
+    public DependencyMember addMember(ItemPath itemPath, CastorHashMap props, String classProps, TransactionKey transactionKey) 
+            throws InvalidCollectionModification, ObjectAlreadyExistsException
+    {
         checkMembership();
-        return super.addMember(itemPath, props, classProps);
+        return super.addMember(itemPath, props, classProps, transactionKey);
     }
 
     public void checkMembership() throws InvalidCollectionModification {

@@ -20,12 +20,13 @@
  */
 package org.cristalise.kernel.lifecycle.instance.stateMachine;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
+import static org.cristalise.kernel.SystemProperties.StateMachine_Composite_default;
+import static org.cristalise.kernel.SystemProperties.StateMachine_Elementary_default;
+import static org.cristalise.kernel.SystemProperties.StateMachine_Predefined_default;
+
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.AccessRightsException;
@@ -35,17 +36,23 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.DescriptionObject;
-import org.cristalise.kernel.utils.FileStringUtility;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class StateMachine implements DescriptionObject {
+    @Getter @Setter
+    public String   namespace;
+    @Getter @Setter
     public String   name;
+    @Getter @Setter
     public Integer  version;
+    @Getter @Setter
     public ItemPath itemPath;
 
     private ArrayList<State>                   states;
@@ -160,7 +167,6 @@ public class StateMachine implements DescriptionObject {
         log.debug("validate() - name:'" + name + "'");
 
         for (State state : states) {
-            log.trace("State     :{} ", state);
             stateCodes.put(state.getId(), state);
         }
 
@@ -168,7 +174,6 @@ public class StateMachine implements DescriptionObject {
         else isCoherent = false;
 
         for (Transition trans : transitions) {
-            log.trace("Transition: {}", trans);
             transitionCodes.put(trans.getId(), trans);
             isCoherent = isCoherent && trans.resolveStates(stateCodes);
         }
@@ -200,36 +205,6 @@ public class StateMachine implements DescriptionObject {
         this.initialStateCode = initialStateCode;
         initialState = stateCodes.get(initialStateCode);
         if (initialState == null) isCoherent = false;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public Integer getVersion() {
-        return version;
-    }
-
-    @Override
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    @Override
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
-    @Override
-    public ItemPath getItemPath() {
-        return itemPath;
-    }
-
-    @Override
-    public void setItemPath(ItemPath path) {
-        itemPath = path;
     }
 
     @Override
@@ -289,20 +264,21 @@ public class StateMachine implements DescriptionObject {
     }
 
     @Override
-    public CollectionArrayList makeDescCollections() {
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) {
         return new CollectionArrayList();
     }
 
-    public Map<Transition, String> getPossibleTransitions(Activity act, AgentPath agent)
+    public List<Transition> getPossibleTransitions(Activity act, AgentPath agent)
             throws ObjectNotFoundException, InvalidDataException
     {
-        HashMap<Transition, String> returnList = new HashMap<Transition, String>();
+        List<Transition> returnList = new ArrayList<>();
         State currentState = getState(act.getState());
 
         for (Transition possTrans: currentState.getPossibleTransitions().values()) {
             try {
                 if (possTrans.isEnabled(act)) {
-                    returnList.put(possTrans, possTrans.getPerformingRole(act, agent) );
+                    possTrans.checkPerformingRole(act, agent);
+                    returnList.add(possTrans);
                 }
                 else log.trace("getPossibleTransitions() - DISABLED trans:"+possTrans+" act:"+act.getName());
             }
@@ -320,10 +296,12 @@ public class StateMachine implements DescriptionObject {
         State currentState = getState(act.getState());
 
         if (transition.originState.equals(currentState)) {
-            transition.getPerformingRole(act, agent);
+            transition.checkPerformingRole(act, agent);
             return transition.targetState;
         }
-        else throw new InvalidTransitionException("Transition '" + transition + "' not valid from state '" + currentState.getName() + "'");
+        else {
+            throw new InvalidTransitionException("Transition "+transition+" not valid from state "+currentState);
+        }
     }
 
     public boolean isCoherent() {
@@ -335,37 +313,22 @@ public class StateMachine implements DescriptionObject {
     }
 
     @Override
-    public void export(Writer imports, File dir, boolean shallow) throws IOException, InvalidDataException {
-        String smXML;
-        String typeCode = BuiltInResources.STATE_MACHINE_RESOURCE.getTypeCode();
-        String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.STATE_MACHINE_RESOURCE;
+    }
 
-        try {
-            smXML = Gateway.getMarshaller().marshall(this);
+    public static String getDefaultStateMachine(String type) {
+        if ("Elementary".equals(type)) {
+            return StateMachine_Elementary_default.getString();
         }
-        catch (Exception e) {
-            log.error("", e);
-            throw new InvalidDataException("Couldn't marshall state machine " + getName());
+        else if ("Composite".equals(type))  {
+            return StateMachine_Composite_default.getString();
         }
-
-        FileStringUtility.string2File(new File(new File(dir, typeCode), fileName), smXML);
-
-        if (imports == null) return;
-
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
-            imports.write("<Resource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
-                    + "type='" + typeCode + "'>boot/" + typeCode + "/" + fileName
-                    + "</Resource>\n");
+        else if ("Predefined".equals(type))  {
+            return StateMachine_Predefined_default.getString();
         }
         else {
-            imports.write("<StateMachineResource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
-                    + "/>\n");
+            throw new UnsupportedOperationException("Keyword '"+type+"' is not supported");
         }
     }
 }

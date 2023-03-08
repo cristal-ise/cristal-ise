@@ -1,5 +1,6 @@
 **/.flattened-pom.xml
 target/
+build/
 .project
 .classpath
 .settings/
@@ -7,3 +8,4 @@ target/
 /.metadata/
 .idea
 *.iml
+**/.groovy/

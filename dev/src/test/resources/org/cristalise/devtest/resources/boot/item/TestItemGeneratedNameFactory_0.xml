@@ -1,0 +1,33 @@
+<Item initialPath="/devtest" name="TestItemGeneratedNameFactory" ns="devtest" version="0" workflow="CrudFactory_Workflow" workflowVer="0">
+  <Property mutable="false" name="Type">Factory</Property>
+  <Property mutable="false" name="Root">/devtest/TestItemGeneratedNames</Property>
+  <Property mutable="false" name="IDPrefix">ID</Property>
+  <Property mutable="false" name="LeftPadSize">6</Property>
+  <Property mutable="true" name="LastCount">0</Property>
+  <Property mutable="false" name="UpdateSchema">TestItemGeneratedName_Details:0</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/TestItemGeneratedName_0.xml</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow">
+    <DependencyMember itemPath="/desc/ActivityDesc/devtest/TestItemGeneratedName_Workflow">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="false" name="MasterSchema">
+    <DependencyMember itemPath="/desc/Schema/devtest/TestItemGeneratedName">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="false" name="AggregateScript">
+    <DependencyMember itemPath="/desc/Script/devtest/TestItemGeneratedName_Aggregate">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+</Item>

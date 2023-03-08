@@ -35,6 +35,7 @@ public class GTimeStampComparator implements Comparator<GTimeStamp> {
         if (retVal == 0) retVal = compareInt(t0.mHour - (t0.mTimeOffset / 3600), t1.mHour - (t1.mTimeOffset / 3600));
         if (retVal == 0) retVal = compareInt(t0.mMinute, t1.mMinute);
         if (retVal == 0) retVal = compareInt(t0.mSecond, t1.mSecond);
+        if (retVal == 0) retVal = compareInt(t0.mNano, t1.mNano);
 
         return retVal;
     }

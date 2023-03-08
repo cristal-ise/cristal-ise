@@ -1,15 +1,15 @@
 In CRISTAL 3.x, the hard-coded State Machine of CRISTAL 2.x was replaced with a described one, defined in StateMachine Items. 
 
- * Each State and Transition are identified by integer ID, and have non-unique names. 
- * Each State indicates whether it is a terminal state that triggers the Workflow to proceed.
- * Each Transition can:
-  * Name a boolean Activity Property that can enable or disable it.
-  * Name a Role that may override the Activity assigned Role for that Transition
-  * Indicate how it may change the Agent reservation: Set, clear or preserve
-  * Specify a Script that must be run during the Transition.
-  * Specify a Query that must be executed during the Transition.
-  * Specify that an Outcome may be supplied, referencing its [XMLSchema](../XMLSchema).
-  * Indicate that the Outcome is required.
+- Each State and Transition are identified by integer ID, and have non-unique names. 
+- Each State indicates whether it is a terminal state that triggers the Workflow to proceed.
+- Each Transition can:
+    - Name a boolean Activity Property that can enable or disable it.
+    - Name a Role that may override the Activity assigned Role for that Transition
+    - Indicate how it may change the Agent reservation: Set, clear or preserve
+    - Specify a Script that must be run during the Transition.
+    - Specify a Query that must be executed during the Transition.
+    - Specify that an Outcome may be supplied, referencing its [XMLSchema](../XMLSchema).
+    - Indicate that the Outcome is required.
 
 Values for these properties can be explicit, or reference Activity properties like this: `${SchemaType}`. The referenced properties may also invoke [data helpers](../DataHelper) to reference other Item data.
 
@@ -48,18 +48,18 @@ Activities can have their own state machines defined. Each state machine contain
 * _boolean_ **reinitializes** - indicates whether this transition reinitializes the state of the activity. This applies to composite activities, which will reset their child workflow on execution. Used for looping.
 * _String_ **roleOverride** - overrides the activity defined agent role for this transition. The value may explicitly name a role, or invoke a DataHelper to give one.
 * _String_ **reservation** - defines the change to the activity's ownership caused by this transition. Can be:
-  * set - the activity becomes reserved by the executing agent
-  * preserve - the activity owner does not change
-  * clear - the activity becomes ownerless
+    * set - the activity becomes reserved by the executing agent
+    * preserve - the activity owner does not change
+    * clear - the activity becomes ownerless
 * **Outcome**
-  * _String_ **name** - The name of the outcome schema. Can be a DomainPath, a UUID, or reference an activity property using ${this} syntax. The activity property may invoke a DataHelper to supply the value.
-  * _String_ **version** - Either an integer schema version number, or an activity property reference as above
-  * _boolean_ **required** - Whether or not the job must have a valid outcome set in order to successfully execute.
+    * _String_ **name** - The name of the outcome schema. Can be a DomainPath, a UUID, or reference an activity property using ${this} syntax. The activity property may invoke a DataHelper to supply the value.
+    * _String_ **version** - Either an integer schema version number, or an activity property reference as above
+    * _boolean_ **required** - Whether or not the job must have a valid outcome set in order to successfully execute.
 * **Script**
-  * _String_ **name** - The name of the script. Can be a DomainPath, a UUID, or reference an activity property using ${this} syntax. The activity property may invoke a DataHelper to supply the value.
-  * _String_ **version** - Either an integer script version number, or an activity property reference as above.
+    * _String_ **name** - The name of the script. Can be a DomainPath, a UUID, or reference an activity property using ${this} syntax. The activity property may invoke a DataHelper to supply the value.
+    * _String_ **version** - Either an integer script version number, or an activity property reference as above.
 * **Query**
-  * _String_ **name** - The name of the query. Can be a DomainPath, a UUID, or reference an activity property using ${this} syntax. The activity property may invoke a DataHelper to supply the value.
-  * _String_ **version** - Either an integer script version number, or an activity property reference as above.
+    * _String_ **name** - The name of the query. Can be a DomainPath, a UUID, or reference an activity property using ${this} syntax. The activity property may invoke a DataHelper to supply the value.
+    * _String_ **version** - Either an integer script version number, or an activity property reference as above.
 
 The State Machine itself must define an 'initialState', giving an integer state id.

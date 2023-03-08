@@ -34,7 +34,6 @@ import org.cristalise.kernel.persistency.outcome.SchemaValidator;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,18 +46,17 @@ public class MainTest {
     public void setup() throws InvalidDataException, IOException {
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
-        XMLUnit.setIgnoreWhitespace(true);
-        XMLUnit.setIgnoreComments(true);
     }
 
     @Test
     public void testBootItems() throws Exception {
         HashMap<String, OutcomeValidator> validators = new HashMap<String, OutcomeValidator>();
-        validators.put("CA", new OutcomeValidator(getSchema("CompositeActivityDef",  0, "boot/OD/CompositeActivityDef.xsd")));
-        validators.put("EA", new OutcomeValidator(getSchema("ElementaryActivityDef", 0, "boot/OD/ElementaryActivityDef.xsd")));
-        validators.put("SC", new OutcomeValidator(getSchema("Script",                0, "boot/OD/Script.xsd")));
-        validators.put("SM", new OutcomeValidator(getSchema("StateMachine",          0, "boot/OD/StateMachine.xsd")));
-        validators.put("OD", new SchemaValidator());
+        validators.put("CA",      new OutcomeValidator(getSchema("CompositeActivityDef",  0, "boot/OD/CompositeActivityDef.xsd")));
+        validators.put("EA",      new OutcomeValidator(getSchema("ElementaryActivityDef", 0, "boot/OD/ElementaryActivityDef.xsd")));
+        validators.put("SC",      new OutcomeValidator(getSchema("Script",                0, "boot/OD/Script.xsd")));
+        validators.put("SM",      new OutcomeValidator(getSchema("StateMachine",          0, "boot/OD/StateMachine.xsd")));
+        validators.put("context", new OutcomeValidator(getSchema("DomainContext",         0, "boot/OD/DomainContext.xsd")));
+        validators.put("OD",      new SchemaValidator());
 
         String bootItems = FileStringUtility.url2String(Gateway.getResource().getKernelResourceURL("boot/allbootitems.txt"));
         StringTokenizer str = new StringTokenizer(bootItems, "\n\r");
@@ -66,6 +64,7 @@ public class MainTest {
             String thisItem = str.nextToken();
             StringTokenizer str2 = new StringTokenizer(thisItem, "/,");
             String id = str2.nextToken();
+            assert id != null;
             String itemType = str2.nextToken(), resName = str2.nextToken();
             log.info("Validating " + itemType+" "+resName);
             OutcomeValidator validator = validators.get(itemType);
@@ -76,7 +75,8 @@ public class MainTest {
 
             assert errors.length() == 0 : "Kernel resource " + itemType + " "+ resName + " has errors :" + errors;
 
-            if (itemType.equals("CA") || itemType.equals("EA") || itemType.equals("SM")) {
+            //Outcome and Script cannot be marshaled
+            if (!itemType.equals("OD") && !itemType.equals("SC")) {
                 log.info("Remarshalling " + itemType + " "+ resName);
                 long then = System.currentTimeMillis();
                 Object unmarshalled = Gateway.getMarshaller().unmarshall(data);
@@ -86,14 +86,8 @@ public class MainTest {
                 log.info("Marshall/remarshall of " + itemType + " "+ resName + " took " + (now - then) + "ms");
                 errors = validator.validate(remarshalled);
                 assert errors.length() == 0 : "Remarshalled resource " + itemType + " "+ resName + " has errors :" + errors + "\nRemarshalled form:\n" + remarshalled;
-
-                // Diff xmlDiff = new Diff(data, remarshalled);
-                // if (!xmlDiff.identical()) {
-                // log.info("Difference found in remarshalled "+thisItem+": "+xmlDiff.toString());
-                // Logger.msg("Original: "+data);
-                // Logger.msg("Remarshalled: "+remarshalled);
-                // }
-                // assert xmlDiff.identical();
+                // XMLDiff cannot be used here, because remarshalled xml will have lot of extra optional attributes
+                //assert new Outcome(data).isIdentical(new Outcome(remarshalled));
             }
 
             if (itemType.equals("SC")) {

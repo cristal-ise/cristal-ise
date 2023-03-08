@@ -21,6 +21,7 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.process.resource.BuiltInResources.ELEM_ACT_DESC_RESOURCE;
+import static org.cristalise.restapi.SystemProperties.REST_DefaultBatchSize;
 
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DefaultValue;
@@ -29,9 +30,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.*;
-
-import org.cristalise.kernel.process.Gateway;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.NewCookie;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 @Path("/elementaryActDesc")
 public class ElementaryActDescAccess extends ResourceAccess {
@@ -47,7 +52,7 @@ public class ElementaryActDescAccess extends ResourceAccess {
         AuthData authData = checkAuthCookie(authCookie);
         NewCookie cookie = checkAndCreateNewCookie(authData);
 
-        if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.DefaultBatchSize", 75);
+        if (batchSize == null) batchSize = REST_DefaultBatchSize.getInteger();
 
         return listAllResources(ELEM_ACT_DESC_RESOURCE, uri, start ,batchSize, cookie).build();
     }

@@ -512,6 +512,7 @@
                         </sequence>
                     </complexType>
                 </element>
+                <element name='PredefinedSteps' minOccurs='0' maxOccurs='1' type='anyType' />
             </sequence>
         </complexType>
     </element>

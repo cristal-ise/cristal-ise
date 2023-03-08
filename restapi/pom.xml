@@ -1,6 +1,6 @@
 <!--
 
-    This file is part of the CRISTAL-iSE eXist-DB storage plugin.
+    This file is part of the CRISTAL-iSE REST API.
     Copyright (c) 2001-2016 The CRISTAL Consortium. All rights reserved.
 
     This library is free software; you can redistribute it and/or modify it
@@ -35,7 +35,7 @@
     <name>CRISTAL-iSE Restapi</name>
     <packaging>jar</packaging>
     <description>CRISTAL-iSE REST API Module</description>
-    <url>https://github.com/cristal-ise/xpath-outcomeinit</url>
+    <url>https://github.com/cristal-ise/restapi</url>
     <licenses>
         <license>
             <name>GNU Library or Lesser General Public License v3 (LGPL3)</name>
@@ -105,39 +105,8 @@
         </resources>
         <plugins>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.5</version>
-                <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-release-plugin</artifactId>
-                <version>2.4.1</version>
-            </plugin>
-            <plugin>
                 <groupId>com.mycila</groupId>
                 <artifactId>license-maven-plugin</artifactId>
-                <configuration>
-                    <header>HEADER.txt</header>
-                    <excludes>
-                        <exclude>pom.xml</exclude>
-                        <exclude>.flattened-pom.xml</exclude>
-                        <exclude>**/*LICENSE</exclude>
-                        <exclude>**/*.gpg.enc</exclude>
-                        <exclude>**/src/test/bin/**</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
@@ -178,7 +147,6 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20171018</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -204,7 +172,6 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -31,14 +31,14 @@ import spock.lang.Specification
  */
 class WFBuilderPropertySpecs extends Specification implements CristalTestSetup {
 
-    WorkflowTestBuilder wfBuilder
+    static WorkflowTestBuilder wfBuilder
 
-    def setup() {
+    def setupSpec() {
         inMemorySetup()
         wfBuilder = new WorkflowTestBuilder()
     }
 
-    def cleanup() {
+    def cleanupSpec() {
         cristalCleanup()
     }
 

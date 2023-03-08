@@ -26,29 +26,31 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class NodeRole extends NodeContext {
 
-	RolePath role;
-	public NodeRole(Path path, ItemTabManager desktop) {
-		super(path, desktop);
-		role = (RolePath)path;
-	}
-	@Override
-	public void loadChildren() {
-		AgentPath[] agents;
-		try {
-			agents = Gateway.getLookup().getAgents(role);
-			for (AgentPath agentPath : agents) {
-				add (newNode(agentPath));
-			}
-		} catch (ObjectNotFoundException e) {
-			Logger.error("Role "+role.getName()+" not found");
-		}
-		super.loadChildren();
-	}
-	
-	
+    RolePath role;
+
+    public NodeRole(Path path, ItemTabManager desktop) {
+        super(path, desktop);
+        role = (RolePath) path;
+    }
+
+    @Override
+    public void loadChildren() {
+        AgentPath[] agents;
+        try {
+            agents = Gateway.getLookup().getAgents(role);
+            for (AgentPath agentPath : agents) {
+                add(newNode(agentPath));
+            }
+        } catch (ObjectNotFoundException e) {
+            log.error("Role " + role.getName() + " not found", e);
+        }
+        super.loadChildren();
+    }
+
 }

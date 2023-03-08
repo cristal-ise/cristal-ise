@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.process.module;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -33,6 +34,8 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.process.resource.ResourceImportHandler.Status;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -48,14 +51,19 @@ public abstract class ModuleImport {
     protected boolean isNewItem = true;
     protected boolean isDOMPathExists = true; //avoids multiple call to domainPath.exists()
 
+    protected String resourceChangeDetails = null;
+    protected Status resourceChangeStatus = null;
+
     public ModuleImport() {}
 
-    public abstract Path create(AgentPath agentPath, boolean reset)
+    public ItemPath getItemPath(TransactionKey transactionKey) { return itemPath; };
+
+    public abstract Path create(AgentPath agentPath, boolean reset, TransactionKey transactionKey)
             throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException,
                    InvalidCollectionModification, InvalidDataException, AccessRightsException, PersistencyException;
 
     public void setID(String uuid) throws InvalidItemPathException {
-        if (uuid != null && uuid.length() > 0) itemPath = new ItemPath(uuid);
+        if (StringUtils.isNotBlank(uuid)) itemPath = new ItemPath(uuid);
     }
 
     public String getID() {

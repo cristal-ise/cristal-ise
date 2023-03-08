@@ -20,14 +20,17 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.restapi.SystemProperties.REST_URI;
+import static org.cristalise.restapi.SystemProperties.REST_addCorsHeaders;
+
 import java.io.IOException;
 import java.net.URI;
 
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.process.AbstractMain;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.ShutdownHandler;
 import org.cristalise.kernel.process.StandardClient;
 import org.cristalise.kernel.process.resource.BadArgumentsException;
@@ -50,18 +53,13 @@ public class Main extends StandardClient {
      * Initialise standard CRISTAL-iSE client process.
      * Creates ResourceConfig that scans for JAX-RS resources and providers in 'org.cristalise.restapi' package
      * Creates Grizzly HTTP server exposing the Jersey application at the given URI.
+     * @throws Exception 
      * 
-     * @throws BadArgumentsException Bad Arguments
      * @throws InvalidDataException Invalid Data
      * @throws PersistencyException Persistency problem
      * @throws ObjectNotFoundException Object Not Found
      */
-    public static void startServer(String[] args) 
-            throws BadArgumentsException, 
-                   InvalidDataException, 
-                   PersistencyException, 
-                   ObjectNotFoundException
-    {
+    public static void startServer(String[] args) throws Exception {
         setShutdownHandler(new ShutdownHandler() {
             @Override
             public void shutdown(int errCode, boolean isServer) {
@@ -69,19 +67,18 @@ public class Main extends StandardClient {
             }
         });
 
-        Gateway.init(readC2KArgs(args));
-        Gateway.connect();
+        standardInitialisation(args);
 
-        String uri = Gateway.getProperties().getString("REST.URI", "http://localhost:8081/");
+        String uri = REST_URI.getString();
 
         if (uri == null || uri.length() == 0) 
             throw new BadArgumentsException("Please specify REST.URI on which to listen in config.");
 
         final ResourceConfig rc = new ResourceConfig().packages("org.cristalise.restapi");
         
-       rc.register(MultiPartFeature.class);
+        rc.register(MultiPartFeature.class);
 
-        if (Gateway.getProperties().getBoolean("REST.addCorsHeaders", false)) rc.register(CORSResponseFilter.class);
+        if (REST_addCorsHeaders.getBoolean()) rc.register(CORSResponseFilter.class);
 
         log.info("startServer() - Jersey app started with WADL available at "+uri+"application.wadl");
 
@@ -94,17 +91,9 @@ public class Main extends StandardClient {
      * @param args input parameters
      * @throws IOException Input was incorrect
      * @throws BadArgumentsException Bad Arguments
-     * @throws InvalidDataException Invalid Data
-     * @throws PersistencyException Persistency problem
-     * @throws ObjectNotFoundException Object Not Found
+     * @throws CriseVertxException 
      */
-    public static void main(String[] args)
-            throws IOException,
-                   InvalidDataException,
-                   BadArgumentsException,
-                   PersistencyException,
-                   ObjectNotFoundException
-    {
+    public static void main(String[] args) throws Exception {
         startServer(args);
 
         System.out.println(String.format("Hit enter to stop it..."));

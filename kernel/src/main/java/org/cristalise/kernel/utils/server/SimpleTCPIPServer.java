@@ -28,6 +28,7 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
+
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -97,7 +98,7 @@ public class SimpleTCPIPServer implements Runnable {
                     catch (NoSuchElementException e) {
                         // create new one
                         if (currentHandlers.size() < maxConn) {
-                            freeHandler = (SocketHandler)handlerClass.newInstance();
+                            freeHandler = (SocketHandler)handlerClass.getDeclaredConstructor().newInstance();
                             currentHandlers.add(freeHandler);
                         }
                         else { // max handlers are created. wait for a while, then look again

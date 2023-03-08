@@ -22,6 +22,7 @@ package org.cristalise.kernel.collection;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 
 /**
@@ -33,9 +34,11 @@ public interface CollectionDescription<E extends CollectionMember> extends C2KLo
 	
 	/**
 	 * Create a new instance of this collection.
+	 * 
+	 * @param transactionKey the key of the current transaction
 	 * @return a new collection instance
 	 * @throws ObjectNotFoundException When an essential piece of description 
 	 * data, such as a child Item PropertyDescription outcome, doesn't exist.
 	 */
-	public Collection<E> newInstance() throws ObjectNotFoundException;
+	public Collection<E> newInstance(TransactionKey transactionKey) throws ObjectNotFoundException;
 }

@@ -23,7 +23,6 @@ package org.cristalise.kernel.test.persistency.outcomebuilder;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
-import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,18 +33,14 @@ public class FixFieldValueTest extends XMLUtils {
 
     @Before
     public void setUp() throws Exception {
-        Logger.addLogStream(System.out, 8);
     }
 
     private void checkJson2XmlOutcome(String type, String postFix) throws Exception {
         JSONObject actualJson = new JSONObject(getJSON(dir, type+postFix));
         String expected = getXML(dir, type);
 
-        Logger.msg(2, "Actual json\n-------------------:%s", actualJson.toString());
         OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
         builder.addJsonInstance(actualJson);;
-        Logger.msg(2, "Expected xml\n-------------------:%s", expected);
-        Logger.msg(2, "Actual xml:%s", builder.getXml());
 
         assert compareXML(expected, builder.getXml());
     }

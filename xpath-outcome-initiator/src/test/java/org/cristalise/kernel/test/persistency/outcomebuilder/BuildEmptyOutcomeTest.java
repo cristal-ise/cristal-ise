@@ -20,16 +20,19 @@
  */
 package org.cristalise.kernel.test.persistency.outcomebuilder;
 
+import static org.junit.Assert.assertEquals;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.persistency.outcomebuilder.Field;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.persistency.XMLUtils;
-import org.cristalise.kernel.utils.Logger;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -37,13 +40,15 @@ import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class BuildEmptyOutcomeTest extends XMLUtils {
 
     String dir = "src/test/data/outcomeBuilder";
 
     @Before
     public void setUp() throws Exception {
-        Logger.addLogStream(System.out, 8);
         Properties props = new Properties();
         props.put("Webui.inputField.boolean.defaultValue", "false");
         props.put("Webui.inputField.decimal.defaultValue", "0.0");
@@ -58,7 +63,7 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
 
         OutcomeBuilder actual = new OutcomeBuilder(new Schema(type, 0, xsd));
 
-        Logger.msg(actual.getXml());
+        log.info(actual.getXml());
 
         assert compareXML(expected, actual.getXml());
     }
@@ -93,7 +98,7 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
         checkEmptyOutcome("RootWithOptionalAttr");
     }
 
-    @Test @Ignore
+    @Test
     public void patientDetails() throws Exception {
         String type = "PatientDetails";
         String xsd  = getXSD(dir, type);
@@ -103,9 +108,9 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
         CompiledTemplate expr = TemplateCompiler.compileTemplate(getXML(dir, type));
         String expected = (String)TemplateRuntime.execute(expr, args);
 
-        OutcomeBuilder actual = new OutcomeBuilder(new Schema(type, 0, xsd));
+        OutcomeBuilder actual = new OutcomeBuilder(new Schema(type, 0, xsd), expected);
 
-        Logger.msg(actual.getXml());
+        log.info(actual.getXml());
 
         assert compareXML(expected, actual.getXml());
     }
@@ -126,7 +131,7 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
 
         actual.putField("characters", "");
 
-        Logger.msg(actual.getXml());
+        log.info(actual.getXml());
 
         assert compareXML(getXML("StringField"), actual.getXml());
     }
@@ -136,12 +141,26 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
         Schema schema = new Schema("Storage", 0, getXSD(dir, "Storage"));
 
         OutcomeBuilder ob = new OutcomeBuilder("StorageDetails", schema);
-        Logger.msg(ob.getXml());
+        log.info(ob.getXml());
 
         ob = new OutcomeBuilder("StorageAmount", schema);
-        Logger.msg(ob.getXml());
+        log.info(ob.getXml());
 
         ob = new OutcomeBuilder("Storage", schema);
-        Logger.msg(ob.getXml());
+        log.info(ob.getXml());
+    }
+
+    @Test
+    public void getReferencedItemType() throws Exception {
+        OutcomeBuilder builder = new OutcomeBuilder("Reference", new Schema("Reference", 0, getXSD(dir, "Reference")), false);
+        Field field = (Field)builder.findChildStructure("ItemRef");
+        
+        assertEquals("UnitTest", field.getAppInfoNodeElementValue("reference", "itemType"));
+    }
+
+    @Test
+    public void checkDependnecyXsd() throws Exception {
+        String xsd = Gateway.getResource().getTextResource(null, "boot/OD/Dependency.xsd");
+        new OutcomeBuilder(new Schema("Dependency", 0, null, xsd));
     }
 }

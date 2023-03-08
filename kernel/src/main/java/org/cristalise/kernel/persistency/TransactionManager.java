@@ -29,48 +29,31 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.entity.agent.JobList;
 import org.cristalise.kernel.events.History;
-import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.AbstractMain;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * @deprecated - not used anymore it is kept to know old functionality
+ */
 @Slf4j
 public class TransactionManager {
 
-    private HashMap<ItemPath, Object> locks;
-    HashMap<Object, ArrayList<TransactionEntry>> pendingTransactions;
-    ClusterStorageManager storage;
+    private HashMap<ItemPath, TransactionKey> locks;
+    HashMap<TransactionKey, ArrayList<TransactionEntry>> pendingTransactions;
+    ClusterStorage storage;
 
-    public TransactionManager(Authenticator auth) throws PersistencyException {
-        storage = new ClusterStorageManager(auth);
-        locks = new HashMap<ItemPath, Object>();
-        pendingTransactions = new HashMap<Object, ArrayList<TransactionEntry>>();
+    public TransactionManager(ClusterStorage s) throws PersistencyException {
+        storage = s;
+        locks = new HashMap<ItemPath, TransactionKey>();
+        pendingTransactions = new HashMap<TransactionKey, ArrayList<TransactionEntry>>();
     }
 
     public boolean hasPendingTransactions() {
         return pendingTransactions.size() > 0;
-    }
-
-    public ClusterStorageManager getDb() {
-        return storage;
-    }
-
-    /**
-     * Closing will abort all transactions
-     */
-    public void close() {
-        if (pendingTransactions.size() != 0) {
-            log.error("There were pending transactions on shutdown. All changes were lost.");
-            dumpPendingTransactions(0);
-        }
-
-        log.info("Transaction Manager: Closing storages");
-        storage.close();
     }
 
     /**
@@ -79,8 +62,8 @@ public class TransactionManager {
      * @return
      * @throws PersistencyException
      */
-    public String executeQuery(Query query) throws PersistencyException {
-        return storage.executeQuery(query);
+    public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
+        return storage.executeQuery(query, transactionKey);
     }
 
     /**
@@ -100,12 +83,12 @@ public class TransactionManager {
      * 
      * @param itemPath the item 
      * @param type the type of the cluster
-     * @param locker the transaction key
+     * @param transactionKey the transaction key
      * @return array of ids
      * @throws PersistencyException
      */
-    public String[] getClusterContents(ItemPath itemPath, ClusterType type, Object locker) throws PersistencyException {
-        return getClusterContents(itemPath, type.getName(), locker);
+    public String[] getClusterContents(ItemPath itemPath, ClusterType type, TransactionKey transactionKey) throws PersistencyException {
+        return getClusterContents(itemPath, type.getName(), transactionKey);
     }
 
     /**
@@ -126,17 +109,17 @@ public class TransactionManager {
      * 
      * @param itemPath the item 
      * @param path the cluster path
-     * @param locker the transaction key
+     * @param transactionKey the transaction key
      * @return array of ids
      * @throws PersistencyException
      */
-    public String[] getClusterContents(ItemPath itemPath, String path, Object locker) throws PersistencyException {
+    public String[] getClusterContents(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         if (path.startsWith("/") && path.length() > 1) path = path.substring(1);
 
         List<String> uncomittedContents = new ArrayList<>();
 
-        if (locks.containsKey(itemPath) && locks.get(itemPath).equals(locker)) {
-            for (TransactionEntry thisEntry : pendingTransactions.get(locker)) {
+        if (locks.containsKey(itemPath) && locks.get(itemPath).equals(transactionKey)) {
+            for (TransactionEntry thisEntry : pendingTransactions.get(transactionKey)) {
                 if (itemPath.equals(thisEntry.itemPath) && thisEntry.path.startsWith(path)) {
                     if (thisEntry.obj == null)
                         throw new PersistencyException("TransactionManager.get() - Cluster " + path + " has been deleted in " + itemPath +
@@ -148,51 +131,51 @@ public class TransactionManager {
         }
 
         return ArrayUtils.addAll(
-                storage.getClusterContents(itemPath, path), 
+                storage.getClusterContents(itemPath, path, transactionKey), 
                 uncomittedContents.toArray(new String[uncomittedContents.size()])
         );
     }
 
     /**
-     * Public get method. Required a 'locker' object for a transaction key.
+     * Public get method. Required a 'transactionKey' object for a transaction key.
      * Checks the transaction table first to see if the caller has uncommitted changes
      */
-    public C2KLocalObject get(ItemPath itemPath, String path, Object locker)
+    public C2KLocalObject get(ItemPath itemPath, String path, TransactionKey transactionKey)
             throws PersistencyException, ObjectNotFoundException
     {
         if (path.startsWith("/") && path.length() > 1) path = path.substring(1);
 
         // deal out top level remote maps, if transactions aren't needed
         if (path.indexOf('/') == -1) {
-            if (path.equals(ClusterType.HISTORY) && locker != null) {
-                return new History(itemPath, locker);
+            if (path.equals(ClusterType.HISTORY) && transactionKey != null) {
+                return new History(itemPath, transactionKey);
             }
-            else if (path.equals(ClusterType.JOB) && locker != null) {
-                if (itemPath instanceof AgentPath) return new JobList((AgentPath)itemPath, locker);
-                else                               throw new ObjectNotFoundException("TransactionManager.get() - Items do not have job lists");
+            else if (path.equals(ClusterType.JOB) && transactionKey != null) {
+//                if (itemPath instanceof AgentPath) return new JobList((AgentPath)itemPath, transactionKey);
+//                else                               throw new ObjectNotFoundException("get() - Items do not have job lists");
             }
         }
 
-        // check to see if the locker has been modifying this cluster
-        if (locks.containsKey(itemPath) && locks.get(itemPath).equals(locker)) {
-            ArrayList<TransactionEntry> lockerTransaction = pendingTransactions.get(locker);
+        // check to see if the transactionKey has been modifying this cluster
+        if (locks.containsKey(itemPath) && locks.get(itemPath).equals(transactionKey)) {
+            ArrayList<TransactionEntry> lockerTransaction = pendingTransactions.get(transactionKey);
             for (TransactionEntry thisEntry : lockerTransaction) {
                 if (itemPath.equals(thisEntry.itemPath) && path.equals(thisEntry.path)) {
                     if (thisEntry.obj == null)
-                        throw new PersistencyException("TransactionManager.get() - Cluster " + path + " has been deleted in " + itemPath +
+                        throw new PersistencyException("get() - Cluster " + path + " has been deleted in " + itemPath +
                                 " but not yet committed");
                     return thisEntry.obj;
                 }
             }
         }
-        return storage.get(itemPath, path);
+        return storage.get(itemPath, path, transactionKey);
     }
 
-    public void put(ItemPath itemPath, C2KLocalObject obj, Object locker) throws PersistencyException {
-        ArrayList<TransactionEntry> lockingTransaction = getLockingTransaction(itemPath, locker);
+    public void put(ItemPath itemPath, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException {
+        ArrayList<TransactionEntry> lockingTransaction = getLockingTransaction(itemPath, transactionKey);
 
         if (lockingTransaction == null) {
-            storage.put(itemPath, obj);
+            storage.put(itemPath, obj, transactionKey);
             locks.remove(itemPath);
         }
         else
@@ -202,11 +185,11 @@ public class TransactionManager {
     /**
      * Uses the put method, with null as the object value.
      */
-    public void remove(ItemPath itemPath, String path, Object locker) throws PersistencyException {
-        ArrayList<TransactionEntry> lockingTransaction = getLockingTransaction(itemPath, locker);
+    public void remove(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
+        ArrayList<TransactionEntry> lockingTransaction = getLockingTransaction(itemPath, transactionKey);
 
         if (lockingTransaction == null) {
-            storage.remove(itemPath, path);
+            storage.delete(itemPath, path, transactionKey);
             locks.remove(itemPath);
         }
         else
@@ -214,36 +197,36 @@ public class TransactionManager {
     }
 
     /**
-     * Manages the transaction table keyed by the object 'locker'.
+     * Manages the transaction table keyed by the object 'transactionKey'.
      * If this object is null, transaction support is bypassed (so long as no lock exists on that object).
      * 
      * @param itemPath
-     * @param locker
+     * @param transactionKey
      * @return the list of transaction corresponds to that lock object
      * @throws PersistencyException
      */
-    private ArrayList<TransactionEntry> getLockingTransaction(ItemPath itemPath, Object locker) throws PersistencyException {
+    private ArrayList<TransactionEntry> getLockingTransaction(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
         ArrayList<TransactionEntry> lockerTransaction;
         synchronized(locks) {
             // look to see if this object is already locked
             if (locks.containsKey(itemPath)) {
-                // if it's this locker, get the transaction list
+                // if it's this transactionKey, get the transaction list
                 Object thisLocker = locks.get(itemPath);
                 
-                if (thisLocker.equals(locker)) // retrieve the transaction list
-                    lockerTransaction = pendingTransactions.get(locker);
+                if (thisLocker.equals(transactionKey)) // retrieve the transaction list
+                    lockerTransaction = pendingTransactions.get(transactionKey);
                 else // locked by someone else
                     throw new PersistencyException("Access denied: '"+itemPath+"' has been locked for writing by "+thisLocker);
             }
             else { // no locks for this item
-                if (locker == null) { // lock the item until the non-transactional put/remove is complete :/
-                    locks.put(itemPath, new Object());
+                if (transactionKey == null) { // lock the item until the non-transactional put/remove is complete :/
+                    locks.put(itemPath, new TransactionKey(itemPath));
                     lockerTransaction = null;
                 }
                 else { // initialise the transaction
-                    locks.put(itemPath, locker);
+                    locks.put(itemPath, transactionKey);
                     lockerTransaction = new ArrayList<TransactionEntry>();
-                    pendingTransactions.put(locker, lockerTransaction);
+                    pendingTransactions.put(transactionKey, lockerTransaction);
                 }
             }
         }
@@ -256,20 +239,20 @@ public class TransactionManager {
      * in ArrayList to look for existing entries for this cluster and overwrite them.
      * 
      * @param itemPath
-     * @param obj
+     * @param c2kObj
      * @param lockerTransaction
      * @throws PersistencyException 
      */
-    private void createTransactionEntry(ItemPath itemPath, C2KLocalObject obj, String  path, ArrayList<TransactionEntry> lockerTransaction) throws PersistencyException {
-        TransactionEntry newEntry;
+    private void createTransactionEntry(ItemPath itemPath, C2KLocalObject c2kObj, String  path, ArrayList<TransactionEntry> lockerTransaction) throws PersistencyException {
+        TransactionEntry transEntry;
 
-        if (obj != null)      newEntry = new TransactionEntry(itemPath, obj);
-        else if(path != null) newEntry = new TransactionEntry(itemPath, path);
+        if (c2kObj != null)   transEntry = new TransactionEntry(itemPath, c2kObj);
+        else if(path != null) transEntry = new TransactionEntry(itemPath, path);
         else                  throw new PersistencyException("");
 
-        if (lockerTransaction.contains(newEntry)) lockerTransaction.remove(newEntry);
+        if (lockerTransaction.contains(transEntry)) lockerTransaction.remove(transEntry);
 
-        lockerTransaction.add(newEntry);
+        lockerTransaction.add(transEntry);
     }
 
     /**
@@ -277,53 +260,53 @@ public class TransactionManager {
      *
      * @param itemPath - Item to delete from
      * @param path - root path to delete
-     * @param locker - locking object
+     * @param transactionKey - locking object
      *
      * @throws PersistencyException - when deleting fails
      */
-    public void removeCluster(ItemPath itemPath, String path, Object locker) throws PersistencyException {
+    public void removeCluster(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException {
         String[] children = getClusterContents(itemPath, path);
         
         for (String element : children)
-            removeCluster(itemPath, path+(path.length()>0?"/":"")+element, locker);
+            removeCluster(itemPath, path+(path.length()>0?"/":"")+element, transactionKey);
         
         if (children.length==0 && path.indexOf("/") > -1)
-            remove(itemPath, path, locker);
+            remove(itemPath, path, transactionKey);
     }
     /**
      * Writes all pending changes to the backends.
      * 
-     * @param locker transaction locker
+     * @param transactionKey transaction transactionKey
      * @throws PersistencyException 
      */
-    public void commit(Object locker) throws PersistencyException {
+    public void commit(TransactionKey transactionKey) throws PersistencyException {
         synchronized(locks) {
-            ArrayList<TransactionEntry> lockerTransactions = pendingTransactions.get(locker);
+            ArrayList<TransactionEntry> lockerTransactions = pendingTransactions.get(transactionKey);
             // quit if no transactions are present;
             if (lockerTransactions == null)
                 return;
 
             try {
-                storage.begin(locker);
+                storage.begin(transactionKey);
 
                 for (TransactionEntry thisEntry : lockerTransactions) {
                     if (thisEntry.obj == null)
-                        storage.remove(thisEntry.itemPath, thisEntry.path, locker);
+                        storage.delete(thisEntry.itemPath, thisEntry.path, transactionKey);
                     else
-                        storage.put(thisEntry.itemPath, thisEntry.obj, locker);
+                        storage.put(thisEntry.itemPath, thisEntry.obj, transactionKey);
                 }
 
-                storage.commit(locker);
+                storage.commit(transactionKey);
 
                 for (TransactionEntry thisEntry : lockerTransactions) {
                     locks.remove(thisEntry.itemPath);
                 }
 
-                pendingTransactions.remove(locker);
+                pendingTransactions.remove(transactionKey);
             }
             catch (Exception e) {
-                storage.abort(locker);
-                log.error("commit() - Problems during transaction commit of locker "+locker.toString()+". Database may be in an inconsistent state.");
+                storage.abort(transactionKey);
+                log.error("commit() - Problems during transaction commit of transactionKey "+transactionKey.toString()+". Database may be in an inconsistent state.");
                 dumpPendingTransactions(0);
                 AbstractMain.shutdown(1);
             }
@@ -331,27 +314,27 @@ public class TransactionManager {
     }
 
     /**
-     * Rolls back all changes sent in the name of 'locker' and unlocks the sysKeys
+     * Rolls back all changes sent in the name of 'transactionKey' and unlocks the sysKeys
      * 
-     * @param locker transaction locker
+     * @param transactionKey transaction transactionKey
      */
-    public void abort(Object locker) {
+    public void abort(TransactionKey transactionKey) {
         synchronized(locks) {
-            if (locks.containsValue(locker)) {
+            if (locks.containsValue(transactionKey)) {
                 for (ItemPath thisPath : locks.keySet()) {
-                    if (locks.get(thisPath).equals(locker))
+                    if (locks.get(thisPath).equals(transactionKey))
                         locks.remove(thisPath);
                 }
             }
-            pendingTransactions.remove(locker);
+            pendingTransactions.remove(transactionKey);
         }
     }
 
-    public void clearCache(ItemPath itemPath, String path) {
-        if (itemPath == null)  storage.clearCache();
-        else if (path == null) storage.clearCache(itemPath);
-        else                   storage.clearCache(itemPath, path);
-    }
+//    public void clearCache(ItemPath itemPath, String path) {
+//        if (itemPath == null)  storage.clearCache();
+//        else if (path == null) storage.clearCache(itemPath);
+//        else                   storage.clearCache(itemPath, path);
+//    }
 
     public void dumpPendingTransactions(int logLevel) {
         log.error("Transaction dump. Locked Items:");
@@ -361,8 +344,8 @@ public class TransactionManager {
         }
         else {
             for (ItemPath thisPath : locks.keySet()) {
-                Object locker = locks.get(thisPath);
-                log.error("  "+thisPath+" locked by "+locker);
+                TransactionKey transactionKey = locks.get(thisPath);
+                log.error("  "+thisPath+" locked by "+transactionKey);
             }
         }
 
@@ -448,6 +431,6 @@ public class TransactionManager {
     }
 
     public int getLastIntegerId(ItemPath itemPath, String path) throws PersistencyException{
-        return storage.getLastIntegerId(itemPath, path);
+        return storage.getLastIntegerId(itemPath, path, null);
     }
 }

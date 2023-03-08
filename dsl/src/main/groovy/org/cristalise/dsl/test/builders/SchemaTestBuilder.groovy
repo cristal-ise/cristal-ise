@@ -20,11 +20,11 @@
  */
 package org.cristalise.dsl.test.builders
 
-import groovy.transform.CompileStatic
-
 import org.cristalise.dsl.persistency.outcome.SchemaBuilder
-import org.cristalise.kernel.persistency.outcome.Schema
+import org.cristalise.dsl.persistency.outcome.SchemaDelegate
 import org.cristalise.kernel.test.utils.KernelXMLUtility
+
+import groovy.transform.CompileStatic
 
 
 /**
@@ -41,7 +41,14 @@ class SchemaTestBuilder extends SchemaBuilder {
         schema = sb.schema
     }
 
-    public static SchemaTestBuilder build(String module, String name, int version, Closure cl) {
+    public static SchemaTestBuilder build(String module, String name, int version, String fileName) {
+        def sb = SchemaBuilder.build(module, name, version, fileName)
+        sb.schema.validate()
+
+        return new SchemaTestBuilder(sb)
+    }
+
+    public static SchemaTestBuilder build(String module, String name, int version, @DelegatesTo(SchemaDelegate) Closure cl) {
         def sb = SchemaBuilder.build(module, name, version, cl)
         sb.schema.validate()
 
