@@ -65,35 +65,18 @@ public class BulkExport extends PredefinedStep {
             }
             ClusterType type = ClusterType.valueOf(str.toUpperCase());
             switch (type) {
-                case PATH:
-                    exportPath(item, transKey);
-                    break;
-                case PROPERTY:
-                    exportProperty(item, transKey);
-                    break;
-                case LIFECYCLE:
-                    exportLifeCycle(item, transKey);
-                    break;
-                case HISTORY:
-                    exportHistory(item, transKey);
-                    break;
-                case VIEWPOINT:
-                    exportViewPoint(item, transKey);
-                    break;
-                case OUTCOME:
-                    exportOutcome(item, transKey);
-                    break;
-                case COLLECTION:
-                    exportCollection(item, transKey);
-                    break;
-                case JOB:
-                    exportJob(item, transKey);
-                    break;
-                case ATTACHMENT:
-                    exportAttachment(item, transKey);
-                    break;
+                case PATH:       exportPath(item, transKey); break;
+                case PROPERTY:   exportProperty(item, transKey); break;
+                case LIFECYCLE:  exportLifeCycle(item, transKey); break;
+                case HISTORY:    exportHistory(item, transKey); break;
+                case VIEWPOINT:  exportViewPoint(item, transKey); break;
+                case OUTCOME:    exportOutcome(item, transKey); break;
+                case ATTACHMENT: exportAttachment(item, transKey); break;
+                case COLLECTION: exportCollection(item, transKey); break;
+                case JOB:        exportJob(item, transKey); break;
+
                 default:
-                    break;
+                    throw new InvalidDataException("Uncovered cluster:"+type+" for item:"+item.getItemName());
             }
         }
         Gateway.getStorage().commit(transKey);

@@ -25,6 +25,7 @@ import static org.cristalise.storage.jooqdb.JooqHandler.getPrimaryKeys;
 import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_disableDomainCreateTables;
 import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_domainHandlers;
 
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLXML;
@@ -122,12 +123,12 @@ public class JooqClusterStorage extends ClusterStorage {
 
                 log.info("initialiseHandlers() - Instantiate domain handler:"+handlerClass);
 
-                domainHandlers.add( (JooqDomainHandler) Class.forName(handlerClass).newInstance());
+                domainHandlers.add( (JooqDomainHandler) Class.forName(handlerClass).getDeclaredConstructor().newInstance());
             }
         }
-        catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
+        catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
             log.error("JooqClusterStorage could not instantiate domain handler", ex);
-            throw new PersistencyException("JooqClusterStorage could not instantiate domain handler:"+ex.getMessage());
+            throw new PersistencyException("JooqClusterStorage could not instantiate domain handler:", ex);
         }
 
         if (! JOOQ_disableDomainCreateTables.getBoolean()) {
