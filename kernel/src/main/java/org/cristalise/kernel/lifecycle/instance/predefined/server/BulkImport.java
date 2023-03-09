@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -121,11 +122,12 @@ public class BulkImport extends PredefinedStep {
                     case HISTORY:    importHistory(item, transactionKey);    break;
                     case VIEWPOINT:  importViewPoint(item, transactionKey);  break;
                     case OUTCOME:    importOutcome(item, transactionKey);    break;
+                    case ATTACHMENT: importAttachment(item, transactionKey);    break;
                     case COLLECTION: importCollection(item, transactionKey); break;
                     case JOB:        importJob(item, transactionKey);        break;
 
                     default:
-                        break;
+                        throw new InvalidDataException("Uncovered cluster:"+type+" for item:"+item.getItemName());
                 }
             }
 
@@ -159,7 +161,7 @@ public class BulkImport extends PredefinedStep {
         }
         catch (IOException e) {
             log.error("", e);
-            throw new InvalidDataException(e.getMessage());
+            throw new InvalidDataException(e);
         }
     }
 
@@ -232,6 +234,10 @@ public class BulkImport extends PredefinedStep {
                 }
             }
         }
+    }
+
+    public void importAttachment(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
+        throw new NotImplementedException();
     }
 
     public void importJob(ItemPath item, TransactionKey transactionKey) throws PersistencyException {
