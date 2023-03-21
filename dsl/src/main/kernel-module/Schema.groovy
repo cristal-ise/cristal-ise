@@ -116,16 +116,19 @@ Schema('Dependency', 0) {
 }
 
 Schema('WorkflowReplaceData', 0) {
-    field(name:'NewWorkflowXml', type: 'string')
-    field(name:'OldWorkflowXml', type: 'string', multiplicity: '0..1') // it will set by the PredefinedStep
+    struct(name: 'WorkflowReplaceData') {
+        field(name:'NewWorkflowXml', type: 'string')
+        field(name:'OldWorkflowXml', type: 'string', multiplicity: '0..1') // it will set by the PredefinedStep
+    }
 }
 
 Schema('WorkflowMigrationData', 0) {
     struct(name: 'WorkflowMigrationData', useSequence: true) {
         field(name:'NewWorkflowXml', type: 'string')
         field(name:'OldWorkflowXml', type: 'string', multiplicity: '0..1') // it will set by the PredefinedStep
-        field(name: 'StepPathToEnable', multiplicity: '0..*') 
-        struct(name: 'ActivityStateMap', useSequence: true, multiplicity: '0..*', documentation: 'use state of the old to set the state of the new') {
+        field(name: 'StepPathToEnable', multiplicity: '0..*')
+        struct(name: 'ActivityStateMap', useSequence: true, multiplicity: '0..*') {
+            // use state of the old to set the state of the new
             field(name:'NewStepPath', type: 'string')
             field(name:'OldStepPath', type: 'string')
         }
