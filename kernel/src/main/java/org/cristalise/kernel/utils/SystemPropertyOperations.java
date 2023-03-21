@@ -36,7 +36,12 @@ import org.slf4j.LoggerFactory;
  */
 public interface SystemPropertyOperations {
 
-    final Logger log = LoggerFactory.getLogger(SystemPropertyOperations.class);
+    /**
+     * This logger name is made unusual to avoid the problem when this interface is used in SystemProperty enums.
+     * When all the values of such SystemProperty is statically imported, the log variable will be imported as well. 
+     * This will somehow supersede the log variable declared of the importing class.
+     */
+    final static Logger enumLogger = LoggerFactory.getLogger(SystemPropertyOperations.class);
 
     /**
      * @return the String name of the SystemProperty, e.g. 'ItemServer.Telnet.host'
@@ -115,7 +120,7 @@ public interface SystemPropertyOperations {
 
         Object actualValue = Gateway.getProperties().get(actualName);
 
-        log.trace("getObject() - {} => {} (default:{})", actualName, actualValue, actualDefaultValue);
+        enumLogger.trace("getObject() - {} => {} (default:{})", actualName, actualValue, actualDefaultValue);
 
         if (actualDefaultValue == null) {
             return actualValue;
@@ -184,7 +189,7 @@ public interface SystemPropertyOperations {
     default String getString(String defaultOverwrite, Object... nameArgs) {
         Object actualValue = getObject(defaultOverwrite, nameArgs);
 
-        if (log.isDebugEnabled()) log.debug("getString() - {} => {}", getActualName(nameArgs), actualValue);
+        if (enumLogger.isDebugEnabled()) enumLogger.debug("getString() - {} => {}", getActualName(nameArgs), actualValue);
 
         if (actualValue != null) return new StringConverter(null).convert(String.class, actualValue).trim();
         else                     return null;
@@ -248,7 +253,7 @@ public interface SystemPropertyOperations {
     default Integer getInteger(Integer defaultOverwrite, Object... args) {
         Object actualValue = getObject(defaultOverwrite, args);
 
-        if (log.isDebugEnabled()) log.debug("getInteger() - {} => {}", getActualName(args), actualValue);
+        if (enumLogger.isDebugEnabled()) enumLogger.debug("getInteger() - {} => {}", getActualName(args), actualValue);
 
         if (actualValue != null) return new IntegerConverter(null).convert(Integer.class, actualValue);
         else                     return null;
@@ -312,7 +317,7 @@ public interface SystemPropertyOperations {
     default Boolean getBoolean(Boolean defaultOverwrite, Object... args) {
         Object actualValue = getObject(defaultOverwrite, args);
 
-        if (log.isDebugEnabled()) log.debug("getBoolean() - {} => {}", getActualName(args), actualValue);
+        if (enumLogger.isDebugEnabled()) enumLogger.debug("getBoolean() - {} => {}", getActualName(args), actualValue);
 
         if (actualValue != null) return new BooleanConverter(null).convert(Boolean.class, actualValue);
         else                     return null;
@@ -338,7 +343,7 @@ public interface SystemPropertyOperations {
     default Object getInstance(Object... nameArgs) throws ReflectiveOperationException {
         String actualValue = getString(nameArgs);
 
-        if (log.isDebugEnabled()) log.debug("getInstance() - {} => {}", getActualName(nameArgs), actualValue);
+        if (enumLogger.isDebugEnabled()) enumLogger.debug("getInstance() - {} => {}", getActualName(nameArgs), actualValue);
 
         if (StringUtils.isBlank(actualValue)) {
             throw new InstantiationException("SystemProperty '" + getActualName(nameArgs) + "' was not defined.");
