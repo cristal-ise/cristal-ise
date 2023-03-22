@@ -20,8 +20,9 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
+
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -45,7 +46,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
@@ -53,22 +54,30 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * {@value #description}
+ * <pre>
+ * 1. read current job and consolidate it with field StepPathToEnable to know which activity needs to be enabled
+ * 2. scan ne workflow and set state for each Activity 
+ * 
+ * x. Recalculate jobs and store them
+ * </pre>
+ * 
  */
 @Slf4j
 public class UpdateWorkflowFromDescription extends PredefinedStep {
 
-    public static final String description = "Updates the Workflow of the Item from its description";
+    public static final String description = "Updates the Workflow of the Item from its description.";
 
     private List<String> actsToEnable = null;
 
     public UpdateWorkflowFromDescription() {
         super();
+        this.setBuiltInProperty(SCHEMA_NAME, "WorkflowMigrationData");
     }
 
     /**
-     *  the URN (UUID and version) of the 
      * 
      */
+    @Override
     protected String runActivityLogic(AgentPath agentP, ItemPath itemP, int transitionID, String requestData, TransactionKey transactionKey)
             throws  InvalidDataException,
                     InvalidCollectionModification,
@@ -79,12 +88,10 @@ public class UpdateWorkflowFromDescription extends PredefinedStep {
                     CannotManageException,
                     AccessRightsException
     {
-        String[] inputs = getDataList(requestData);
+        Outcome wfMigrationData = new Outcome(requestData);
 
 //        String descType = Gateway.getProxy(itemP).getType();
 //        actsToEnable = Arrays.asList(Gateway.getProperties().getString(descType+".Activity", "").split(","));
-
-        log.debug("Called by {} on {} with parameters {}", agentP.getAgentName(transactionKey), itemP, (Object)inputs);
 
         migrateWorkflow(itemP, getWf(), (CompositeActivityDef)null/*newWfDef*/, transactionKey);
 
