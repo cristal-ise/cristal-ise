@@ -67,7 +67,7 @@ public interface DescriptionObject {
             else             return xml;
         }
         catch (Exception e) {
-            throw new InvalidDataException("Couldn't marshall " + getResourceType().getSchemaName() + " name:" + getName());
+            throw new InvalidDataException("Couldn't marshall " + getResourceType().getSchemaName() + " name:" + getName(), e);
         }
     }
 
