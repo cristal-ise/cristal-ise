@@ -224,7 +224,7 @@ public class CompositeActivityDef extends ActivityDef {
     public WfVertex instantiate(String name, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         CompositeActivity caInstance = new CompositeActivity();
 
-        log.info("instantiate(name:"+name+") - Starting.");
+        log.debug("instantiate(name:"+name+") - Starting.");
 
         caInstance.setName(name);
 
