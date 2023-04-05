@@ -160,9 +160,9 @@ class CRUDGenerator {
         def scriptDir = new File("${rootDir}/module/${item.name}/script")
         scriptDir.mkdirs()
 
-        new File(itemDir,   "${item.name}.groovy")          .write(mvelGenerate('item_groovy.tmpl',           inputs));
-        new File(scriptDir, "Aggregate.groovy").write(mvelGenerate('item_aggregate_groovy.tmpl', inputs));
-        new File(scriptDir, "QueryList.groovy").write(mvelGenerate('item_queryList_groovy.tmpl', inputs));
+        new File(itemDir,   "${item.name}.groovy").write(mvelGenerate('item_groovy.tmpl',           inputs));
+        new File(scriptDir, "Aggregate.groovy")   .write(mvelGenerate('item_aggregate_groovy.tmpl', inputs));
+        new File(scriptDir, "QueryList.groovy")   .write(mvelGenerate('item_queryList_groovy.tmpl', inputs));
     }
 
     /**

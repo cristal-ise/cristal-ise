@@ -67,7 +67,7 @@ class CRUDItem extends Struct {
         model.append('}\n')
 
         dependencies.values().each { dependency ->
-            if (dependency.originator) model.append(dependency.getPlantUml())
+            if (dependency.originator) model.append(dependency.getPlantUml()+'\n')
         }
 
         return model.toString()

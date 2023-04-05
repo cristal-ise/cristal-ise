@@ -61,7 +61,7 @@ class CRUDDependency {
     public void setCardinality(Cardinality c) {
         cardinality = c
     }
-//
+
     public String getName() {
         if (!name) {
             if (cardinality == ManyToMany || cardinality == OneToMany) {
@@ -91,8 +91,8 @@ class CRUDDependency {
     public String getPlantUml() {
         String fromMany = cardinality == ManyToMany || cardinality == ManyToOne ? '"*" ' : ''
         String toMany   = cardinality == ManyToMany || cardinality == OneToMany ? ' "*"' : ''
-        String toArrow  = type == Unidirectional ? '">"' : ''
+        String toArrow  = type == Unidirectional ? '>' : ''
 
-        return "${from} ${fromMany}--${toArrow}${toMany} ${to}\n".toString()
+        return "${from} ${fromMany}--${toArrow}${toMany} ${to}".toString()
     }
 }
