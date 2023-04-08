@@ -21,7 +21,6 @@
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.MEMBER_REMOVE_SCRIPT;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.collection.DependencyMember;
@@ -44,8 +43,7 @@ public class RemoveMembersFromCollection extends ManageMembersOfCollectionBase {
     public static final String description = "Removes many members from the named Collection of the Item";
 
     public RemoveMembersFromCollection() {
-        super();
-        this.setBuiltInProperty(SCHEMA_NAME, "Dependency");
+        super("Dependency");
     }
 
     @Override
