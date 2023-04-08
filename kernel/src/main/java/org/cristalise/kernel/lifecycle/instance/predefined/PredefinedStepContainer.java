@@ -81,7 +81,6 @@ public abstract class PredefinedStepContainer extends CompositeActivity {
         act.setType(alias);
         act.setBuiltInProperty(DESCRIPTION, description);
         act.setCentrePoint(new GraphPoint());
-        act.setIsPredefined(true);
         addChild(act, new GraphPoint(100, 75 * ++num));
     }
 

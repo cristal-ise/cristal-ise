@@ -55,6 +55,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -78,7 +79,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class PredefinedStep extends Activity {
 
-    private boolean         isPredefined = false;
     public static final int DONE         = 0;
     public static final int AVAILABLE    = 0;
 
@@ -88,48 +88,36 @@ public abstract class PredefinedStep extends Activity {
     @Getter
     private Map<ItemPath, String> autoUpdates = new  LinkedHashMap<ItemPath, String>();
 
-    public PredefinedStep() {
+    public PredefinedStep(String schemaName) {
         super();
         setBuiltInProperty(STATE_MACHINE_NAME, StateMachine.getDefaultStateMachine("Predefined"));
-        setBuiltInProperty(SCHEMA_NAME, "PredefinedStepOutcome");
-        setBuiltInProperty(SCHEMA_VERSION, "0");
+        try {
+            Schema s = LocalObjectLoader.getSchema(schemaName, 0);
+            this.setBuiltInProperty(SCHEMA_NAME, s.getName());
+            setBuiltInProperty(SCHEMA_VERSION, "0");
+        }
+        catch (ObjectNotFoundException | InvalidDataException e) {
+            throw new TypeNotPresentException("", e);
+        }
+    }
+
+    public PredefinedStep() {
+        this("PredefinedStepOutcome");
     }
 
     @Override
     public boolean getActive() {
-        if (isPredefined) return true;
-        else              return super.getActive();
+        return true;
     }
 
     @Override
     public String getErrors() {
-        if (isPredefined) return getName();
-        else              return super.getErrors();
+        return getName();
     }
 
     @Override
     public boolean verify() {
-        if (isPredefined) return true;
-        else              return super.verify();
-    }
-
-    /**
-     * Returns the isPredefined.
-     *
-     * @return boolean
-     */
-    public boolean getIsPredefined() {
-        return isPredefined;
-    }
-
-    /**
-     * Sets the isPredefined.
-     *
-     * @param isPredefined
-     *            The isPredefined to set
-     */
-    public void setIsPredefined(boolean isPredefined) {
-        this.isPredefined = isPredefined;
+        return true;
     }
 
     @Override
