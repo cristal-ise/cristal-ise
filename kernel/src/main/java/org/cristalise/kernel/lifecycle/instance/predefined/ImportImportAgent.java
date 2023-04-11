@@ -20,7 +20,6 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
 
 import org.cristalise.kernel.common.CannotManageException;
@@ -41,8 +40,7 @@ public class ImportImportAgent extends PredefinedStep {
     public static final String description = "Creates or updates the Agent created using ImportAgent object";
 
     public ImportImportAgent() {
-        super();
-        setBuiltInProperty(SCHEMA_NAME, "Agent");
+        super("Agent", description);
     }
 
     @Override

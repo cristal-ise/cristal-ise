@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
@@ -35,6 +36,7 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -46,6 +48,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
+import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
@@ -55,7 +58,6 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -88,21 +90,35 @@ public abstract class PredefinedStep extends Activity {
     @Getter
     private Map<ItemPath, String> autoUpdates = new  LinkedHashMap<ItemPath, String>();
 
-    public PredefinedStep(String schemaName) {
+    public PredefinedStep(String schemaName, String description) {
         super();
         setBuiltInProperty(STATE_MACHINE_NAME, StateMachine.getDefaultStateMachine("Predefined"));
+
+        if (StringUtils.isBlank(schemaName)) schemaName = "PredefinedStepOutcome"; 
+
         try {
-            Schema s = LocalObjectLoader.getSchema(schemaName, 0);
-            this.setBuiltInProperty(SCHEMA_NAME, s.getName());
+            LocalObjectLoader.getSchema(schemaName, 0); // checks if the Schema is available
+            setBuiltInProperty(SCHEMA_NAME, schemaName);
             setBuiltInProperty(SCHEMA_VERSION, "0");
         }
         catch (ObjectNotFoundException | InvalidDataException e) {
-            throw new TypeNotPresentException("", e);
+            throw new TypeNotPresentException("Cannot find Schema:"+schemaName, e);
         }
+
+        if (StringUtils.isNotBlank(description)) setBuiltInProperty(DESCRIPTION, description);
+
+        setName(this.getClass().getSimpleName());
+        setType(this.getClass().getSimpleName());
+
+        setCentrePoint(new GraphPoint());
+    }
+
+    public PredefinedStep(String description) {
+        this(null, description);
     }
 
     public PredefinedStep() {
-        this("PredefinedStepOutcome");
+        this(null, null);
     }
 
     @Override

@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Import extends PredefinedStep {
     public Import() {
-        super();
+        super("Imports an outcome into the Item, with a given schema and viewpoint");
     }
 
     /**

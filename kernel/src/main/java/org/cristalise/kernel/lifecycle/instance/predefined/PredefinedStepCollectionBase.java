@@ -53,6 +53,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class PredefinedStepCollectionBase extends PredefinedStep {
 
+    public PredefinedStepCollectionBase(String desc) {
+        super(desc);
+    }
+
     public PredefinedStepCollectionBase() {
         super();
     }

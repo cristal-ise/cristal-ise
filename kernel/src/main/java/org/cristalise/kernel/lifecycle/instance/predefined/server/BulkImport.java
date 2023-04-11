@@ -74,7 +74,7 @@ public class BulkImport extends PredefinedStep {
     XMLClusterStorage importCluster;
 
     public BulkImport() {
-        super();
+        super("Imports all data provided in a specific directory");
 
         root   = BulkImport_rootDirectory.getString();
         ext    = BulkImport_fileExtension.getString();

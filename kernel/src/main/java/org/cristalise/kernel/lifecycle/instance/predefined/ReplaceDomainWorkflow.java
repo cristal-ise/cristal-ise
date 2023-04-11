@@ -21,7 +21,7 @@
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -34,31 +34,33 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ReplaceDomainWorkflow extends PredefinedStep {
+
+    public static final String description = "Replaces the domain CA with the supplied one.";
+
     public ReplaceDomainWorkflow() {
-        super();
+        super("WorkflowReplaceData", description);
     }
 
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey) 
             throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
-        String[] params = getDataList(requestData);
+        Outcome inputs = new Outcome(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
-
-        if (params.length != 1)
-            throw new InvalidDataException("ReplaceDomainWorkflow: Invalid parameters " + Arrays.toString(params));
+        log.debug("Called by {} on {}", agent.getAgentName(transactionKey), item);
 
         Workflow currentWf = getWf();
-        String currentWfXml = Gateway.getMarshaller().marshall(currentWf);
 
-        CompositeActivity newDomainCA = (CompositeActivity) Gateway.getMarshaller().unmarshall(params[0]);
+        String oldDomainCAXml = Gateway.getMarshaller().marshall(currentWf.search("workflow/domain"));
+
+        CompositeActivity newDomainCA = (CompositeActivity) Gateway.getMarshaller().unmarshall(inputs.getField("NewWorkflowXml"));
 
         replaceDomainWorkflow(agent, item, currentWf, newDomainCA, transactionKey);
 

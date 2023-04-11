@@ -51,8 +51,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class ManageMembersOfCollectionBase extends PredefinedStep {
 
+    public ManageMembersOfCollectionBase(String schemaName, String description) {
+        super(schemaName, description);
+    }
+
     public ManageMembersOfCollectionBase(String schemaName) {
-        super(schemaName);
+        this(schemaName, null);
     }
 
     /**

@@ -38,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AddDomainPath extends PredefinedStep {
 
     public AddDomainPath() {
-        super();
+        super("Adds a new path to this item in the LDAP domain tree");
     }
 
     @Override

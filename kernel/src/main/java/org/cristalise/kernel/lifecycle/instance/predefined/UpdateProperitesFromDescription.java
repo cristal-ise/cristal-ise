@@ -53,7 +53,7 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
     public static final String description = "Updates the Properties of the Item from its description";
 
     public UpdateProperitesFromDescription() {
-        super();
+        super(description);
     }
 
     /**

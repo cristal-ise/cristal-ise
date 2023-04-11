@@ -39,8 +39,16 @@ public class Authenticate extends PredefinedStep {
     
     public static final String REDACTED = "REDACTED";
 
+    public Authenticate(String schema, String desc) {
+        super(schema, desc);
+    }
+
+    public Authenticate(String desc) {
+        this(null, desc);
+    }
+
     public Authenticate() {
-        super();
+        this(null, description);
     }
 
     @Override

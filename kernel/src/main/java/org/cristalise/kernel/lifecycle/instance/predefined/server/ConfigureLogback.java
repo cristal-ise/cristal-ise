@@ -56,8 +56,7 @@ public class ConfigureLogback extends PredefinedStep {
     public static final String description = "Updates the log levels for Root level and for the named Loggers";
 
     public ConfigureLogback() {
-        super();
-        setBuiltInProperty(SCHEMA_NAME, "LoggerConfig");
+        super("LoggerConfig", description);
     }
 
     /**

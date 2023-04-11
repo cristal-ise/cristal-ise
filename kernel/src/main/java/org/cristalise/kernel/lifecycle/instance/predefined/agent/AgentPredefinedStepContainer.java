@@ -25,16 +25,15 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContain
 public class AgentPredefinedStepContainer extends PredefinedStepContainer {
 
     @Override
-    public void createChildren() {
+    protected void createChildren() {
         super.createChildren();
-        predInit(RemoveAgent.class, "Deletes the Agent", new RemoveAgent());
-        predInit(SetAgentPassword.class, "Changes the Agent's password", new SetAgentPassword());
-        predInit(SetAgentRoles.class, "Sets the roles of the Agent", new SetAgentRoles());
-        predInit(Authenticate.class, Authenticate.description, new Authenticate());
-        predInit(Login.class, Login.description, new Login());
-        predInit(LoginTimeout.class, LoginTimeout.description, new LoginTimeout());
-        predInit(Logout.class, Logout.description, new Logout());
-        predInit(ForcedLogout.class, ForcedLogout.description, new ForcedLogout());
-        predInit(Sign.class, Sign.description, new Sign());
+        predInit(SetAgentPassword.class);
+        predInit(SetAgentRoles.class);
+        predInit(Authenticate.class);
+        predInit(Login.class);
+        predInit(LoginTimeout.class);
+        predInit(Logout.class);
+        predInit(ForcedLogout.class);
+        predInit(Sign.class);
     }
 }

@@ -20,33 +20,18 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.server;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
-
-import org.cristalise.kernel.graph.model.GraphPoint;
-import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
 
 public class ServerPredefinedStepContainer extends PredefinedStepContainer {
 
     @Override
-    public void createChildren() {
+    protected void createChildren() {
         super.createChildren();
-        serverPredInit(CreateNewItem.class.getSimpleName(),       "Creates a new Item in this Server without description.",  new CreateNewItem());
-        serverPredInit(CreateNewAgent.class.getSimpleName(),      "Creates a new Agent in this Server without description.", new CreateNewAgent());
-        serverPredInit(CreateNewRole.class.getSimpleName(),       "Creates a new Role in this Server.", new CreateNewRole());
-        serverPredInit(UpdateRole.class.getSimpleName(),          UpdateRole.description, new UpdateRole());
-        serverPredInit(RemoveRole.class.getSimpleName(),          "Removes a Role from this Server.", new RemoveRole());
-        serverPredInit(RemoveDomainContext.class.getSimpleName(), "Deletes an existing context in the domain tree, but only if empty", new RemoveDomainContext());
-        serverPredInit(AddDomainContext.class.getSimpleName(),    "Creates an empty domain context in the tree", new AddDomainContext());
-        serverPredInit(BulkImport.class.getSimpleName(),          "Imports all data provided in a specific directory", new BulkImport());
-        serverPredInit(ConfigureLogback.class.getSimpleName(),    ConfigureLogback.description, new ConfigureLogback());
-    }
-
-    public void serverPredInit(String alias, String Description, PredefinedStep act) {
-        act.setName(alias);
-        act.setType(alias);
-        act.getProperties().setBuiltInProperty(DESCRIPTION, Description);
-        act.setCentrePoint(new GraphPoint());
-        addChild(act, new GraphPoint(100, 75 * ++num));
+        predInit(UpdateRole.class);
+        predInit(RemoveRole.class);
+        predInit(RemoveDomainContext.class);
+        predInit(AddDomainContext.class);
+        predInit(BulkImport.class);
+        predInit(ConfigureLogback.class);
     }
 }

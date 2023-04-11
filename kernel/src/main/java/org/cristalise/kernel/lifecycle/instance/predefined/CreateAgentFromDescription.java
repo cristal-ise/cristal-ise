@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CreateAgentFromDescription extends CreateItemFromDescription {
 
     public CreateAgentFromDescription() {
-        super();
+        super("Create a new agent using this item as its description");
     }
 
     /**

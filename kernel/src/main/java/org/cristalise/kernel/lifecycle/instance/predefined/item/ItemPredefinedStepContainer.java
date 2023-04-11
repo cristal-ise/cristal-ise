@@ -25,8 +25,9 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContain
 public class ItemPredefinedStepContainer extends PredefinedStepContainer {
 
     @Override
-    public void createChildren() {
+    protected void createChildren() {
         super.createChildren();
-        predInit("CreateItemFromDescription", "Create a new item using this item as its description", new CreateItemFromDescription());
+        predInit(CreateItemFromDescription.class);
+        predInit(UpdateItemFromDescription.class);
     }
 }

@@ -43,7 +43,7 @@ public class RemoveMembersFromCollection extends ManageMembersOfCollectionBase {
     public static final String description = "Removes many members from the named Collection of the Item";
 
     public RemoveMembersFromCollection() {
-        super("Dependency");
+        super("Dependency", description);
     }
 
     @Override

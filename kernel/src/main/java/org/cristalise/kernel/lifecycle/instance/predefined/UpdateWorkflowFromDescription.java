@@ -20,8 +20,6 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +54,7 @@ import lombok.extern.slf4j.Slf4j;
  * {@value #description}
  * <pre>
  * 1. read current job and consolidate it with field StepPathToEnable to know which activity needs to be enabled
- * 2. scan ne workflow and set state for each Activity 
+ * 2. loop through new workflow and set state for each Activity 
  * 
  * x. Recalculate jobs and store them
  * </pre>
@@ -70,8 +68,7 @@ public class UpdateWorkflowFromDescription extends PredefinedStep {
     private List<String> actsToEnable = null;
 
     public UpdateWorkflowFromDescription() {
-        super();
-        this.setBuiltInProperty(SCHEMA_NAME, "WorkflowMigrationData");
+        super("WorkflowMigrationData", description);
     }
 
     /**
@@ -113,7 +110,7 @@ public class UpdateWorkflowFromDescription extends PredefinedStep {
     private void migrateActivityState(Activity newAct) throws InvalidDataException {
         log.info("migrateActivityState() - {}", newAct.getPath());
         Activity currentAct = (Activity) getWf().search(newAct.getPath());
-        
+
         if (currentAct != null) {
             newAct.setState(currentAct.getState());
             newAct.active = currentAct.active;

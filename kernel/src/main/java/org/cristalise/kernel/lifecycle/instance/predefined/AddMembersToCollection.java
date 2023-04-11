@@ -45,9 +45,9 @@ public class AddMembersToCollection extends ManageMembersOfCollectionBase {
     public static final String description = "Adds many members to the named Collection of the Item";
 
     public AddMembersToCollection() {
-        super("Dependency");
+        super("Dependency", description);
     }
-    
+
     @Override
     protected void checkCardinatilyConstraint(Dependency currentDependency, Dependency inputDependency, ItemPath itemPath, TransactionKey transactionKey)
             throws InvalidDataException, InvalidCollectionModification

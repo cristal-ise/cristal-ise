@@ -20,8 +20,6 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
-
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
@@ -40,8 +38,7 @@ public class ImportImportRole extends PredefinedStep {
     public static final String description = "Creates or updates the Role created using ImportRole object";
 
     public ImportImportRole() {
-        super();
-        setBuiltInProperty(SCHEMA_NAME, "Role"); // does not requires an Outcome
+        super("Role", description);
     }
 
     @Override

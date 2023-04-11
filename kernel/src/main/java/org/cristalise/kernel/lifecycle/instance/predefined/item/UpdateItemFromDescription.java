@@ -43,7 +43,7 @@ public class UpdateItemFromDescription extends PredefinedStep {
 
 
     public UpdateItemFromDescription() {
-        super();
+        super(description);
     }
 
     protected String runActivityLogic(AgentPath agent, ItemPath descItemPath, int transitionID, String requestData, TransactionKey transactionKey)

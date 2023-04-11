@@ -66,7 +66,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
     public static final String description = "Updates the Collections of the Item from its description";
 
     public UpdateCollectionsFromDescription() {
-        super();
+        super(description);
     }
 
     /**
@@ -85,6 +85,8 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         String[] inputs = getDataList(requestData);
 
         if (inputs.length != 2 && inputs.length != 3) throw new InvalidDataException("Invalid nunber of inputs:" + Arrays.toString(inputs));
+
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)inputs);
 
         ItemProxy descItem = Gateway.getProxy(new DomainPath(inputs[0]));
         String descVer  = inputs[1];

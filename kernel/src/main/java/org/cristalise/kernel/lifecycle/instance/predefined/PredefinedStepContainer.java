@@ -20,8 +20,6 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
-
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 
@@ -37,51 +35,48 @@ public abstract class PredefinedStepContainer extends CompositeActivity {
     }
 
     //TODO make this complete configure from the given classes
-    public void createChildren() {
-        predInit("AddDomainPath", "Adds a new path to this item in the LDAP domain tree", new AddDomainPath());
-        predInit("RemoveDomainPath", "Removes an existing path to this item from the LDAP domain tree", new RemoveDomainPath());
-        predInit("ReplaceDomainWorkflow", "Replaces the domain CA with the supplied one. Used by the GUI to save new Wf layout", new ReplaceDomainWorkflow());
-        predInit("AddC2KObject", "Adds or overwrites a C2Kernel object for this Item", new AddC2KObject());
-        predInit("RemoveC2KObject", "Removes the named C2Kernel object from this Item.", new RemoveC2KObject());
-        predInit("WriteProperty", "Writes a property to the Item", new WriteProperty());
-        predInit("WriteViewpoint", "Writes a viewpoint to the Item", new WriteViewpoint());
-        predInit(RemoveViewpoint.class.getSimpleName(), RemoveViewpoint.description, new RemoveViewpoint());
-        predInit("AddNewCollectionDescription", "Creates a new collection description in this Item", new AddNewCollectionDescription());
-        predInit("CreateNewCollectionVersion", "Creates a new numbered collection version in this Item from the current one.", new CreateNewCollectionVersion());
-        predInit("AddNewSlot", "Creates a new slot in the given aggregation, that holds instances of the item description of the given key", new AddNewSlot());
-        predInit("AssignItemToSlot", "Assigns the referenced item to a pre-existing slot in an aggregation", new AssignItemToSlot());
-        predInit("ClearSlot", "Clears an aggregation member slot, given a slot no or item uuid", new ClearSlot());
-        predInit("RemoveSlotFromCollection", RemoveSlotFromCollection.description, new RemoveSlotFromCollection());
-        predInit("AddMemberToCollection",    AddMemberToCollection.description,    new AddMemberToCollection());
-        predInit(AddMembersToCollection.class,      AddMembersToCollection.description,      new AddMembersToCollection());
-        predInit(RemoveMembersFromCollection.class, RemoveMembersFromCollection.description, new RemoveMembersFromCollection());
-        predInit(UpdateDependencyMember.class,      UpdateDependencyMember.description,      new UpdateDependencyMember());
-        predInit("Import", "Imports an outcome into the Item, with a given schema and viewpoint", new Import());
-        predInit("CreateAgentFromDescription", "Create a new agent using this item as its description", new CreateAgentFromDescription());
-        predInit(ChangeName.class, ChangeName.description, new ChangeName());
-        predInit(Erase.class,      Erase.description,      new Erase());
-        predInit(BulkErase.class,  BulkErase.description,  new BulkErase());
+    protected void createChildren() {
+        predInit(AddDomainPath.class);
+        predInit(RemoveDomainPath.class);
+        predInit(ReplaceDomainWorkflow.class);
+        predInit(AddC2KObject.class);
+        predInit(RemoveC2KObject.class);
+        predInit(WriteProperty.class);
+        predInit(WriteViewpoint.class);
+        predInit(RemoveViewpoint.class);
+        predInit(AddNewCollectionDescription.class);
+        predInit(CreateNewCollectionVersion.class);
+        predInit(AddNewSlot.class);
+        predInit(AssignItemToSlot.class);
+        predInit(ClearSlot.class);
+        predInit(AddMembersToCollection.class);
+        predInit(RemoveMembersFromCollection.class);
+        predInit(UpdateDependencyMember.class);
+        predInit(Import.class);
+        predInit(CreateAgentFromDescription.class);
+        predInit(ChangeName.class);
+        predInit(Erase.class);
+        predInit(BulkErase.class);
 
-        predInit(UpdateCollectionsFromDescription.class, UpdateCollectionsFromDescription.description, new UpdateCollectionsFromDescription());
-        predInit(UpdateProperitesFromDescription.class,  UpdateProperitesFromDescription.description,  new UpdateProperitesFromDescription());
+        predInit(UpdateCollectionsFromDescription.class);
+        predInit(UpdateProperitesFromDescription.class);
 
-        predInit(ImportImportAgent.class, ImportImportAgent.description, new ImportImportAgent());
-        predInit(ImportImportItem.class,  ImportImportItem.description,  new ImportImportItem());
-        predInit(ImportImportRole.class,  ImportImportRole.description,  new ImportImportRole());
+        predInit(ImportImportAgent.class);
+        predInit(ImportImportItem.class);
+        predInit(ImportImportRole.class);
 
         //UpdateImportReport class is not added to the container because it can only be used during bootstrap
     }
 
-    public void predInit(Class<?> clazz, String description, PredefinedStep act) {
-        predInit(clazz.getSimpleName(), description, act);
-    }
-
-    public void predInit(String alias, String description, PredefinedStep act) {
-        act.setName(alias);
-        act.setType(alias);
-        act.setBuiltInProperty(DESCRIPTION, description);
-        act.setCentrePoint(new GraphPoint());
-        addChild(act, new GraphPoint(100, 75 * ++num));
+    protected void predInit(Class<? extends PredefinedStep> clazz) {
+        PredefinedStep act;
+        try {
+            act = clazz.getDeclaredConstructor().newInstance();
+            addChild(act, new GraphPoint(100, 75 * ++num));
+        }
+        catch (Exception e) {
+            throw new TypeNotPresentException("Cannot find Class:"+clazz.getName(), e);
+        }
     }
 
     @Override
