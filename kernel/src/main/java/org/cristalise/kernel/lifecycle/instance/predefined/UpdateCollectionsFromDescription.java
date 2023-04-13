@@ -150,7 +150,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
                     .orElse(null);
             }
 
-            currentMember.updatePropertieFromDescription(itemColl.getProperties(), newMember);
+            currentMember.updatePropertiesFromDescription(itemColl.getProperties(), newMember);
         }
     }
 
