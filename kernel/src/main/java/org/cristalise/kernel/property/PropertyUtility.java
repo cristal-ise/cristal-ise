@@ -89,7 +89,7 @@ public class PropertyUtility {
             for (String name: contents) if(name.equals(propName)) return true;
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            log.error("propertyExists()", e);
         }
         return false;
     }
@@ -123,9 +123,9 @@ public class PropertyUtility {
             return (Property)Gateway.getStorage().get(itemPath, ClusterType.PROPERTY+"/"+propName, transactionKey);
         }
         catch (PersistencyException e) {
-            log.error("", e);
+            log.trace("getProperty()", e);
+            throw new ObjectNotFoundException("Could not fetch Property from '"+itemPath+"'", e);
         }
-        return null;
     }
 
     /**
@@ -189,8 +189,8 @@ public class PropertyUtility {
             }
         }
         catch (Exception e) {
-            log.error("", e);
-            throw new ObjectNotFoundException("Could not fetch PropertyDescription from '"+itemPath+"' error:"+e.getMessage());
+            log.trace("getPropertyDescriptionOutcome()", e);
+            throw new ObjectNotFoundException("Could not fetch PropertyDescription from '"+itemPath+"'", e);
         }
     }
 
@@ -343,15 +343,14 @@ public class PropertyUtility {
      * @return
      */
     public static String getPropertyValue(ItemPath item, String name, String defaultValue, TransactionKey transactionKey) {
-        try {
-            if (checkProperty(item, name, transactionKey)) {
+        if (checkProperty(item, name, transactionKey)) {
+            try {
                 return getProperty(item, name, transactionKey).getValue();
             }
+            catch (ObjectNotFoundException e) {
+                //This line should never happen because of the use of checkProperty()
+            }
         }
-        catch (ObjectNotFoundException e) {
-            //This line should never happen because of the use of checkProperty()
-        }
-
         return defaultValue;
     }
 }
