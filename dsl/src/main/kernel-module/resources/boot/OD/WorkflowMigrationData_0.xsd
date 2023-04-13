@@ -3,17 +3,9 @@
   <xs:element name='WorkflowMigrationData'>
     <xs:complexType>
       <xs:sequence>
-        <xs:element name='NewWorkflowXml' type='xs:string' minOccurs='1' maxOccurs='1' />
-        <xs:element name='OldWorkflowXml' type='xs:string' minOccurs='0' maxOccurs='1' />
+        <xs:element name='DescItemUrn' type='xs:string' minOccurs='1' maxOccurs='1' />
         <xs:element name='StepPathToEnable' type='xs:string' minOccurs='0' maxOccurs='unbounded' />
-        <xs:element name='ActivityStateMap' minOccurs='0' maxOccurs='unbounded'>
-          <xs:complexType>
-            <xs:sequence>
-              <xs:element name='NewStepPath' type='xs:string' minOccurs='1' maxOccurs='1' />
-              <xs:element name='OldStepPath' type='xs:string' minOccurs='1' maxOccurs='1' />
-            </xs:sequence>
-          </xs:complexType>
-        </xs:element>
+        <xs:element name='OldWorkflowXml' type='xs:anyType' minOccurs='1' maxOccurs='1' />
         <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
           <xs:annotation>
             <xs:appinfo>

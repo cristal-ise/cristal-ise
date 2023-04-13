@@ -3,8 +3,8 @@
   <xs:element name='WorkflowReplaceData'>
     <xs:complexType>
       <xs:all minOccurs='0'>
-        <xs:element name='NewWorkflowXml' type='xs:string' minOccurs='1' maxOccurs='1' />
-        <xs:element name='OldWorkflowXml' type='xs:string' minOccurs='0' maxOccurs='1' />
+        <xs:element name='NewWorkflowXml' type='xs:anyType' minOccurs='1' maxOccurs='1' />
+        <xs:element name='OldWorkflowXml' type='xs:anyType' minOccurs='1' maxOccurs='1' />
         <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
           <xs:annotation>
             <xs:appinfo>
