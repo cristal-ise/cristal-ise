@@ -22,6 +22,8 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import java.util.ArrayList;
 
+import javax.xml.xpath.XPathExpressionException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -52,7 +54,7 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey) 
             throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
-        Outcome inputs = new Outcome(requestData);
+        Outcome workflowReplaceData = new Outcome(requestData);
 
         log.debug("Called by {} on {}", agent.getAgentName(transactionKey), item);
 
@@ -60,11 +62,19 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
 
         String oldDomainCAXml = Gateway.getMarshaller().marshall(currentWf.search("workflow/domain"));
 
-        CompositeActivity newDomainCA = (CompositeActivity) Gateway.getMarshaller().unmarshall(inputs.getField("NewWorkflowXml"));
+        try {
+            String xml = Outcome.serialize(workflowReplaceData.getNodeByXPath("//NewWorkflowXml/CompositeActivity"), false);
+            CompositeActivity newDomainCA = (CompositeActivity) Gateway.getMarshaller().unmarshall(xml);
 
-        replaceDomainWorkflow(agent, item, currentWf, newDomainCA, transactionKey);
+            replaceDomainWorkflow(agent, item, currentWf, newDomainCA, transactionKey);
 
-        return requestData;
+            workflowReplaceData.appendXmlFragment("//OldWorkflowXml", oldDomainCAXml);
+        }
+        catch (XPathExpressionException e) {
+            throw new InvalidDataException(e);
+        }
+
+        return workflowReplaceData.getData(true);
     }
 
     public static void replaceDomainWorkflow(AgentPath agent, ItemPath item, Workflow currentWf, CompositeActivity newDomainCA, TransactionKey transactionKey)
