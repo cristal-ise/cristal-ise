@@ -32,11 +32,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
 import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
+
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.UUID;
+
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.JobArrayList;
@@ -62,6 +64,7 @@ import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.ErrorInfo;
 import org.cristalise.kernel.scripting.Script;
+import org.cristalise.kernel.test.TestUtility;
 import org.cristalise.kernel.test.process.MainTest;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.CastorXMLUtility;
@@ -71,43 +74,16 @@ import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.xmlunit.builder.DiffBuilder;
-import org.xmlunit.diff.DefaultNodeMatcher;
-import org.xmlunit.diff.Diff;
-import org.xmlunit.diff.ElementSelectors;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class CastorXMLTest {
+public class CastorXMLTest implements TestUtility {
 
     @BeforeClass
     public static void setup() throws Exception {
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
-    }
-
-    /**
-     * Compares 2 XML string
-     *
-     * @param expected the reference XML
-     * @param actual the xml under test
-     * @return whether the two XMLs are identical or not
-     */
-    public static boolean compareXML(String expected, String actual)  {
-        Diff diffIdentical = DiffBuilder.compare(expected).withTest(actual)
-                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndAllAttributes))
-                .ignoreComments()
-                .ignoreWhitespace()
-                .checkForSimilar()
-                .build();
-
-        if(diffIdentical.hasDifferences()) {
-            log.warn(diffIdentical.toString());
-            log.info("expected:\n{}", expected);
-            log.info("actual:\n{}", actual);
-        }
-
-        return !diffIdentical.hasDifferences();
     }
 
     @Test

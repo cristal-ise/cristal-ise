@@ -9,6 +9,7 @@ import org.apache.commons.lang3.reflect.FieldUtils;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.ReplaceDomainWorkflow;
+import org.cristalise.kernel.lifecycle.instance.predefined.UpdateWorkflowFromDescription;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.BulkImport;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -16,24 +17,18 @@ import org.cristalise.kernel.persistency.ClusterStorageManager;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.test.TestUtility;
 import org.cristalise.kernel.test.process.MainTest;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.xmlunit.builder.DiffBuilder;
-import org.xmlunit.diff.DefaultNodeMatcher;
-import org.xmlunit.diff.Diff;
-import org.xmlunit.diff.ElementSelectors;
 
-import lombok.extern.slf4j.Slf4j;
+public class UpdateWorkflowTest implements TestUtility {
+    ItemPath itemPath;
 
-@Slf4j
-public class UpdateWorkflowTest {
-    static ItemPath itemPath;
-
-    @BeforeAll
-    public static void beforeClass() throws Exception {
+    @BeforeEach
+    public void before() throws Exception {
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/inMemoryServer.conf").getPath());
         Gateway.init(props);
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mStorage", new ClusterStorageManager(null), true);
@@ -44,39 +39,23 @@ public class UpdateWorkflowTest {
         importer.initialise();
         importer.importAllClusters(itemPath, null);
     }
-    
 
-    @AfterAll
-    public static void afterClass() throws Exception {
+    @AfterEach
+    public void after() throws Exception {
         Gateway.close();
     }
 
-    /**
-     * Compares 2 XML string
-     *
-     * @param expected the reference XML
-     * @param actual the xml under test
-     * @return whether the two XMLs are identical or not
-     */
-    private static boolean compareXML(String expected, String actual)  {
-        Diff diffIdentical = DiffBuilder.compare(expected).withTest(actual)
-                .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndAllAttributes))
-                .ignoreComments()
-                .ignoreWhitespace()
-                .checkForSimilar()
-                .build();
-
-        if(diffIdentical.hasDifferences()) {
-            log.warn(diffIdentical.toString());
-            log.info("expected:\n{}", expected);
-            log.info("actual:\n{}", actual);
-        }
-
-        return !diffIdentical.hasDifferences();
-    }
 
     private ReplaceDomainWorkflow mockReplaceDomainWorkflow(Workflow wf) throws Exception {
         ReplaceDomainWorkflow pStep = spy(ReplaceDomainWorkflow.class);
+
+        when(pStep.getParent()).thenReturn(wf);
+
+        return pStep;
+    }
+
+    private UpdateWorkflowFromDescription mockUpdateWorkflowFromDescription(Workflow wf) throws Exception {
+        UpdateWorkflowFromDescription pStep = spy(UpdateWorkflowFromDescription.class);
 
         when(pStep.getParent()).thenReturn(wf);
 
@@ -103,5 +82,10 @@ public class UpdateWorkflowTest {
                 Gateway.getMarshaller().marshall(origDomainCA), 
                 resultOldDomainCAXml
         );
+    }
+
+    @Test
+    public void updateWorkflowFromDescription() throws Exception {
+        
     }
 }
