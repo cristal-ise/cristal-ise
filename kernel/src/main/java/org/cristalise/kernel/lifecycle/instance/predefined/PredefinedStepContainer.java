@@ -34,44 +34,11 @@ public abstract class PredefinedStepContainer extends CompositeActivity {
         createChildren();
     }
 
-    //TODO make this complete configure from the given classes
-    protected void createChildren() {
-        predInit(AddDomainPath.class);
-        predInit(RemoveDomainPath.class);
-        predInit(ReplaceDomainWorkflow.class);
-        predInit(AddC2KObject.class);
-        predInit(RemoveC2KObject.class);
-        predInit(WriteProperty.class);
-        predInit(WriteViewpoint.class);
-        predInit(RemoveViewpoint.class);
-        predInit(AddNewCollectionDescription.class);
-        predInit(CreateNewCollectionVersion.class);
-        predInit(AddNewSlot.class);
-        predInit(AssignItemToSlot.class);
-        predInit(ClearSlot.class);
-        predInit(AddMembersToCollection.class);
-        predInit(RemoveMembersFromCollection.class);
-        predInit(UpdateDependencyMember.class);
-        predInit(Import.class);
-        predInit(CreateAgentFromDescription.class);
-        predInit(ChangeName.class);
-        predInit(Erase.class);
-        predInit(BulkErase.class);
-
-        predInit(UpdateCollectionsFromDescription.class);
-        predInit(UpdateProperitesFromDescription.class);
-
-        predInit(ImportImportAgent.class);
-        predInit(ImportImportItem.class);
-        predInit(ImportImportRole.class);
-
-        //UpdateImportReport class is not added to the container because it can only be used during bootstrap
-    }
+    protected abstract void createChildren();
 
     protected void predInit(Class<? extends PredefinedStep> clazz) {
-        PredefinedStep act;
         try {
-            act = clazz.getDeclaredConstructor().newInstance();
+            PredefinedStep act = clazz.getDeclaredConstructor().newInstance();
             addChild(act, new GraphPoint(100, 75 * ++num));
         }
         catch (Exception e) {

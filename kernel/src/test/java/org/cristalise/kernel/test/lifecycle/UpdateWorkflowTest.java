@@ -32,7 +32,6 @@ public class UpdateWorkflowTest implements TestUtility {
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/inMemoryServer.conf").getPath());
         Gateway.init(props);
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mStorage", new ClusterStorageManager(null), true);
-//        itemPath = new ItemPath("fcecd4ad-40eb-421c-a648-edc1d74f339b");
         itemPath = new ItemPath("2b330968-dabb-11ed-afa1-0242ac120002");
 
         BulkImport importer = new BulkImport("src/test/data/xmlstorage/filebased");
@@ -48,14 +47,6 @@ public class UpdateWorkflowTest implements TestUtility {
 
     private ReplaceDomainWorkflow mockReplaceDomainWorkflow(Workflow wf) throws Exception {
         ReplaceDomainWorkflow pStep = spy(ReplaceDomainWorkflow.class);
-
-        when(pStep.getParent()).thenReturn(wf);
-
-        return pStep;
-    }
-
-    private UpdateWorkflowFromDescription mockUpdateWorkflowFromDescription(Workflow wf) throws Exception {
-        UpdateWorkflowFromDescription pStep = spy(UpdateWorkflowFromDescription.class);
 
         when(pStep.getParent()).thenReturn(wf);
 
@@ -82,10 +73,5 @@ public class UpdateWorkflowTest implements TestUtility {
                 Gateway.getMarshaller().marshall(origDomainCA), 
                 resultOldDomainCAXml
         );
-    }
-
-    @Test
-    public void updateWorkflowFromDescription() throws Exception {
-        
     }
 }

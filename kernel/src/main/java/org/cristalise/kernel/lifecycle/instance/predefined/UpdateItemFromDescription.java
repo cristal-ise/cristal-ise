@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.kernel.lifecycle.instance.predefined.item;
+package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
@@ -28,7 +28,6 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
@@ -59,6 +58,9 @@ public class UpdateItemFromDescription extends PredefinedStep {
         String[] input = getDataList(requestData);
 
         log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), descItemPath, (Object)input);
+        
+        //when finished with the update refresh the ItemProperty called 'MigratedToVersion' to store the current version
+        //agent.execute(item, 'AddC2KObject', agent.marshall(new Property(MIGRATED_PROP_NAME, versionTag, true)))
 
         return requestData;
     }

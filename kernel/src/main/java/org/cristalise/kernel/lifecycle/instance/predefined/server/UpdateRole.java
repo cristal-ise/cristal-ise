@@ -32,9 +32,6 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class UpdateRole extends PredefinedStep {
     public static final String description = "Updates an existing Role on this server";
 

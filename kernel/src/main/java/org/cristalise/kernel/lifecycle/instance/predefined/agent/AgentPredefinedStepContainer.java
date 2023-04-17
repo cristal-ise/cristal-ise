@@ -20,9 +20,9 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 
-import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
+import org.cristalise.kernel.lifecycle.instance.predefined.ItemPredefinedStepContainer;
 
-public class AgentPredefinedStepContainer extends PredefinedStepContainer {
+public class AgentPredefinedStepContainer extends ItemPredefinedStepContainer {
 
     @Override
     protected void createChildren() {

@@ -25,7 +25,7 @@ import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.predefined.BulkErase;
-import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
+import org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.BulkImport;
 import org.cristalise.kernel.lifecycle.routingHelpers.DataHelper;
 import org.cristalise.kernel.lookup.Lookup;

@@ -20,9 +20,9 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.server;
 
-import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
+import org.cristalise.kernel.lifecycle.instance.predefined.ItemPredefinedStepContainer;
 
-public class ServerPredefinedStepContainer extends PredefinedStepContainer {
+public class ServerPredefinedStepContainer extends ItemPredefinedStepContainer {
 
     @Override
     protected void createChildren() {

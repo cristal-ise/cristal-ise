@@ -23,22 +23,24 @@ package org.cristalise.dev.utils
 
 import static org.cristalise.kernel.collection.BuiltInCollections.*
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
-import static org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription.FACTORY_GENERATED_NAME
+import static org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription.FACTORY_GENERATED_NAME
 import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.hasValidNotBlankValue
 import static org.cristalise.kernel.property.BuiltInItemProperties.*;
+
 import org.cristalise.kernel.collection.DependencyMember
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.CreateAgentFromDescription
-import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription
+import org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription
 import org.cristalise.kernel.persistency.TransactionKey
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils
 import org.cristalise.kernel.property.PropertyArrayList
 import org.cristalise.kernel.utils.LocalObjectLoader
 import org.w3c.dom.Node
+
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 

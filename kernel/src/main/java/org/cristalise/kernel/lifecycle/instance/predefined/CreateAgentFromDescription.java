@@ -30,7 +30,6 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -64,7 +63,7 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
      * @throws CannotManageException The Agent could not be created
      * @throws ObjectCannotBeUpdated The addition of the new entries into the LookupManager failed
      * @throws PersistencyException
-     * @see org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription#runActivityLogic(AgentPath, ItemPath, int, String, Object)
+     * @see org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription#runActivityLogic(AgentPath, ItemPath, int, String, Object)
      */
     @Override
     protected String runActivityLogic(AgentPath agentPath, ItemPath descItemPath, int transitionID, String requestData, TransactionKey transactionKey)
