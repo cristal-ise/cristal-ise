@@ -42,20 +42,20 @@ public class ItemPredefinedStepContainer extends PredefinedStepContainer {
         predInit(UpdateDependencyMember.class);
         predInit(Import.class);
         predInit(CreateAgentFromDescription.class);
+        predInit(CreateItemFromDescription.class);
         predInit(ChangeName.class);
         predInit(Erase.class);
         predInit(BulkErase.class);
 
         predInit(UpdateCollectionsFromDescription.class);
         predInit(UpdateProperitesFromDescription.class);
+        predInit(UpdateWorkflowFromDescription.class);
+        predInit(UpdateItemFromDescription.class);
 
         predInit(ImportImportAgent.class);
         predInit(ImportImportItem.class);
         predInit(ImportImportRole.class);
 
-        //UpdateImportReport class is not added to the container because it can only be used during bootstrap
-
-        predInit(CreateItemFromDescription.class);
-        predInit(UpdateItemFromDescription.class);
+        predInit(UpdateImportReport.class);
     }
 }

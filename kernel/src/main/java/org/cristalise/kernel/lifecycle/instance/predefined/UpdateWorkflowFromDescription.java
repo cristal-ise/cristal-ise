@@ -20,8 +20,9 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import static org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription.instantiateWorkflow;
+import static org.cristalise.kernel.lifecycle.instance.predefined.ReplaceDomainWorkflow.replaceDomainWorkflow;
+
 import java.util.List;
 
 import org.cristalise.kernel.common.AccessRightsException;
@@ -32,21 +33,14 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.Job;
-import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.graph.model.GraphableVertex;
-import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
-import org.cristalise.kernel.lifecycle.instance.WfVertex;
-import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 
-import lombok.val;
 import lombok.extern.slf4j.Slf4j;
 
 
@@ -86,28 +80,22 @@ public class UpdateWorkflowFromDescription extends PredefinedStep {
                     AccessRightsException
     {
         Outcome wfMigrationData = new Outcome(requestData);
+        
+        String[] nameAndVersion = wfMigrationData.getField("DescItemUrn").split(":");
+        ItemPath descItem = ItemPath.getItemPath(nameAndVersion[0], transactionKey);
 
-//        String descType = Gateway.getProxy(itemP).getType();
-//        actsToEnable = Arrays.asList(Gateway.getProperties().getString(descType+".Activity", "").split(","));
+//      String descType = Gateway.getProxy(itemP).getType();
+//      actsToEnable = Arrays.asList(Gateway.getProperties().getString(descType+".Activity", "").split(","));
 
-        migrateWorkflow(itemP, getWf(), (CompositeActivityDef)null/*newWfDef*/, transactionKey);
+        CompositeActivity newCompAct = instantiateWorkflow(descItem, nameAndVersion[1], transactionKey);
+
+        migrateCompositeActivity(newCompAct, transactionKey);
+        replaceDomainWorkflow(agentP, itemP, getWf(), newCompAct, transactionKey);
 
         return requestData;
     }
 
-    private WfVertex migrateWorkflow(ItemPath ip, Workflow oldWf, CompositeActivityDef newWfDef, TransactionKey transactionKey) 
-            throws InvalidDataException, ObjectNotFoundException
-    {
-        CompositeActivity newDomain = (CompositeActivity)newWfDef.instantiate(newWfDef.getName(), transactionKey);
-        CompositeActivity oldDomain = (CompositeActivity)oldWf.search("workflow/domain");
-
-        newDomain.setState(oldDomain.getState());
-        newDomain.active = oldDomain.active;
-
-        return migrateWorkflow(ip, newDomain, oldDomain, transactionKey);
-    }
-
-    private void migrateActivityState(Activity newAct) throws InvalidDataException {
+    private void migrateActivityState(Activity newAct, TransactionKey transactionKey) throws InvalidDataException {
         log.info("migrateActivityState() - {}", newAct.getPath());
         Activity currentAct = (Activity) getWf().search(newAct.getPath());
 
@@ -115,89 +103,27 @@ public class UpdateWorkflowFromDescription extends PredefinedStep {
             newAct.setState(currentAct.getState());
             newAct.active = currentAct.active;
         }
+        else {
+            
+        }
     }
 
-    private void migrateCompositeActivity(CompositeActivity newCompAct) throws InvalidDataException {
+    private void migrateCompositeActivity(CompositeActivity newCompAct, TransactionKey transactionKey) throws InvalidDataException {
         log.info("migrateCompositeActivity() - {}", newCompAct.getPath());
 
         for (GraphableVertex newChildV : newCompAct.getChildren()) {
             if (newChildV instanceof CompositeActivity) {
                 CompositeActivity newChildCompAct = (CompositeActivity)newChildV;
 
-                migrateCompositeActivity(newChildCompAct);
-                migrateActivityState(newChildCompAct);
+                migrateCompositeActivity(newChildCompAct, transactionKey);
+                migrateActivityState(newChildCompAct, transactionKey);
             }
             else if (newChildV instanceof Activity) {
-                migrateActivityState((Activity)newChildV);
+                migrateActivityState((Activity)newChildV, transactionKey);
             }
             else {
                 log.debug("migrateCompositeActivity() - SKIPPING {}  {}", newChildV.getPath(), newChildV.getClass().getSimpleName());
             }
         }
     }
-
-    private WfVertex migrateWorkflow(ItemPath ip, CompositeActivity newDomain, CompositeActivity oldDomain, TransactionKey transactionKey) throws InvalidDataException {
-        for (GraphableVertex newChildV : newDomain.getChildren()) {
-            if (newChildV instanceof CompositeActivity) {
-                CompositeActivity newCompAct = (CompositeActivity)newChildV;
-                Activity searchedAct = (Activity) oldDomain.search(newCompAct.getName());
-
-                if (searchedAct != null && searchedAct instanceof CompositeActivity) {
-                    CompositeActivity oldCompAct = (CompositeActivity) searchedAct;
-
-                    newCompAct.setState(oldCompAct.getState());
-                    newCompAct.active = oldCompAct.active;
-
-                    migrateWorkflow(ip, newCompAct, oldCompAct, transactionKey);
-                }
-                else {
-                    if (actsToEnable.contains(newCompAct.getPath())) {
-                        newCompAct.setState(1);
-                        newCompAct.active = true;
-                    }
-                    else {
-                        newCompAct.setState(0);
-                        newCompAct.active = false;
-                    }
-
-                    migrateWorkflow(ip, newCompAct, null, transactionKey);
-                }
-            }
-            else if (newChildV instanceof Activity) {
-                updateNewAct(oldDomain, (Activity)newChildV);
-            }
-        }
-
-        return newDomain;
-    }
-
-    private void updateNewAct(CompositeActivity oldDomain, Activity newAct) {
-        Activity searchedAct = (Activity)oldDomain.search(newAct.getName());
-//        val searchedAct = oldDomain != null && oldDomain.getCh ? oldDomain.children.find { it.name == newAct.name } : null;
-
-        if (searchedAct != null && searchedAct instanceof Activity) {
-            val oldAct = ( Activity ) searchedAct;
-//            newAct.state  = oldAct.stateMachine.name == "Default" &&
-//                    newAct.stateMachine.name == "HmwsSM" ? (oldAct.state == 2 ? 1 : 0) : oldAct.state; // This convert the old state to new state depending on the stateMachine
-            newAct.active = oldAct.active;
-        }
-        else {
-            newAct.setState(0);
-            newAct.active = actsToEnable.contains(newAct.getPath());
-        }
-    }
-
-    private List<String> getAvailableActNames(ItemProxy item, TransactionKey transactionKey) {
-        C2KLocalObjectMap<Job> jobList = item.getJobs(transactionKey);
-        List<String> result = new ArrayList<>();
-
-          for (Job job : jobList.values()) {
-              if (job.getTransition().getId() == 0) result.add(job.getStepName());
-          }
-          Collections.sort(result);
-          return result;
-    }
-
-/*
-*/
 }
