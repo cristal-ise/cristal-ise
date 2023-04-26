@@ -19,7 +19,7 @@
     "@angular/platform-browser": "~14.0.0",
     "@angular/platform-browser-dynamic": "~14.0.0",
     "@angular/router": "~14.0.0",
-    "@nrwl/angular": "14.4.3",
+    "@nrwl/angular": "14.8.8",
     "primeflex": "^3.2.1",
     "primeicons": "^5.0.0",
     "primeng": "^14.0.0",
@@ -28,7 +28,7 @@
     "zone.js": "~0.11.4"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~14.0.0",
+    "@angular-devkit/build-angular": "~14.2.11",
     "@angular-eslint/eslint-plugin": "~14.0.0",
     "@angular-eslint/eslint-plugin-template": "~14.0.0",
     "@angular-eslint/template-parser": "~14.0.0",
