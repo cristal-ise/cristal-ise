@@ -274,7 +274,7 @@ This section is to test that the essential setup of authentication service works
    1. add MessageService to the providers array
 1. add messages member variable to LoginComponent
    ```js
-  public messages: Message[] = [];
+   public messages: Message[] = [];
    ``` 
 1. add p-messages element to `apps/admin/src/app/login/login.component.html`
    ```html
