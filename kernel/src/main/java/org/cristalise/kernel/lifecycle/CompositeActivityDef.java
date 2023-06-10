@@ -467,9 +467,8 @@ public class CompositeActivityDef extends ActivityDef {
             }
             FileStringUtility.string2File(new File(new File(dir, tc), getActName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml"), compactXML);
         }
-        catch (Exception e) {
-            log.error("Couldn't marshall composite activity def " + getActName(), e);
-            throw new InvalidDataException("Couldn't marshall composite activity def " + getActName(), e);
+        catch (XPathExpressionException e) {
+            throw new InvalidDataException("Couldn't export CompositeActivityDef:" + getActName(), e);
         }
 
         if (imports != null) {

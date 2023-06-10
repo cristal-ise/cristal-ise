@@ -93,7 +93,7 @@ public class JooqLifecycleHandler extends JooqHandler {
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException(e.getMessage());
+            throw new PersistencyException(e);
         }
     }
 
@@ -109,7 +109,7 @@ public class JooqLifecycleHandler extends JooqHandler {
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException(e.getMessage());
+            throw new PersistencyException(e);
         }
     }
 
@@ -124,7 +124,7 @@ public class JooqLifecycleHandler extends JooqHandler {
             }
             catch (Exception e) {
                 log.error("", e);
-                throw new PersistencyException(e.getMessage());
+                throw new PersistencyException(e);
             }
         }
         return null;

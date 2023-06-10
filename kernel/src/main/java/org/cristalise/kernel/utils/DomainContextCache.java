@@ -24,13 +24,12 @@
 package org.cristalise.kernel.utils;
 
 import static org.cristalise.kernel.process.resource.BuiltInResources.DOMAIN_CONTEXT_RESOURCE;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.DomainContext;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 public class DomainContextCache extends DescriptionObjectCache<DomainContext> {
 
     @Override
@@ -50,16 +49,10 @@ public class DomainContextCache extends DescriptionObjectCache<DomainContext> {
 
     @Override
     protected DomainContext buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
-        try {
-            DomainContext pdl = (DomainContext) Gateway.getMarshaller().unmarshall(data);
-            pdl.setName(name);
-            pdl.setVersion(version);
-            pdl.setItemPath(path);
-            return pdl;
-        }
-        catch (Exception ex) {
-            log.error("Could not parse DomainContext '" + name + "' v" + version, ex);
-            throw new InvalidDataException("Could not parse DomainContext '" + name + "' v" + version + ": " + ex.getMessage());
-        }
+        DomainContext pdl = (DomainContext) Gateway.getMarshaller().unmarshall(data);
+        pdl.setName(name);
+        pdl.setVersion(version);
+        pdl.setItemPath(path);
+        return pdl;
     }
 }

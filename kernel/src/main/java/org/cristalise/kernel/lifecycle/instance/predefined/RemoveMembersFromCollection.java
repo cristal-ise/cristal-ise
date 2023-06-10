@@ -59,7 +59,7 @@ public class RemoveMembersFromCollection extends ManageMembersOfCollectionBase {
 
         log.debug("runActivityLogic() - {} of item {}", currentDependency, itemPath);
 
-        checkCardinatilyConstraint(currentDependency, inputDependendy, itemPath,transactionKey);
+        checkCardinatilyConstraint(currentDependency, inputDependendy, itemPath, transactionKey);
 
         for (DependencyMember inputMember : inputDependendy.getMembers().list) {
             evaluateScript(itemPath, currentDependency, inputMember, transactionKey);

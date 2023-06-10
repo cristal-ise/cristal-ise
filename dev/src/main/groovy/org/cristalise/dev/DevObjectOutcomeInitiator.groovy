@@ -37,6 +37,7 @@ import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.DescriptionObject;
+
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -82,13 +83,7 @@ public class DevObjectOutcomeInitiator implements OutcomeInitiator {
             }
         }
         else {
-            try {
-                return Gateway.getMarshaller().marshall(emptyObj);
-            }
-            catch (Exception e) {
-                log.error("Error creating empty type:'"+type+"'", e);
-                throw new InvalidDataException("Error creating empty type:'"+type+"' exception:"+e.getMessage());
-            }
+            return Gateway.getMarshaller().marshall(emptyObj);
         }
     }
 }

@@ -34,6 +34,7 @@ import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -77,7 +78,7 @@ public class Erase extends PredefinedStep {
      */
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
-            throws InvalidDataException, InvalidCollectionModification, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
+            throws InvalidDataException, InvalidCollectionModification, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException, ObjectAlreadyExistsException
     {
         //read name before it is erased, so it can be logged
         String itemName = item.getItemName(transactionKey);
@@ -90,7 +91,7 @@ public class Erase extends PredefinedStep {
     }
 
     protected void eraseOneItem(AgentPath agentP, ItemPath itemP, boolean forceFlag, TransactionKey transactionKey) 
-            throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, InvalidDataException, PersistencyException, InvalidCollectionModification
+            throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, InvalidDataException, PersistencyException, InvalidCollectionModification, ObjectAlreadyExistsException
     {
         //read name before it is erased, so it can be logged
         String itemName = itemP.getItemName(transactionKey);
@@ -104,7 +105,7 @@ public class Erase extends PredefinedStep {
     }
 
     protected void removeBidirectionalReferences(AgentPath agentP, ItemPath itemP, boolean forceFlag, TransactionKey transactionKey) 
-            throws InvalidDataException, ObjectNotFoundException, InvalidCollectionModification
+            throws InvalidDataException, ObjectNotFoundException, InvalidCollectionModification, ObjectAlreadyExistsException
     {
         ItemProxy item = Gateway.getProxy(itemP, transactionKey);
 
@@ -120,7 +121,7 @@ public class Erase extends PredefinedStep {
     }
 
     private void triggerRemoveMembersFromCollection(AgentPath agentP, ItemPath itemP, Dependency myDep, boolean forceFlag, TransactionKey transactionKey) 
-            throws InvalidDataException, InvalidCollectionModification
+            throws InvalidDataException, InvalidCollectionModification, ObjectAlreadyExistsException
     {
         for (DependencyMember member: myDep.getMembers().list) {
             String toDependencyName = myDep.getToDependencyName(member.getItemPath(), transactionKey);
@@ -128,17 +129,12 @@ public class Erase extends PredefinedStep {
 
             String dependencyString;
 
-            try {
-                CastorHashMap memberProps = member.getProperties();
-                memberProps.setBuiltInProperty(DEPENDENCY_TO, myDep.getName());
-                DependencyMember newMember = toDep.addMember(itemP, memberProps, member.getClassProps(), null);
-                newMember.setID(-1); // forces the RemoveMembersFromCollection to use ItemPath instead of slotID
+            CastorHashMap memberProps = member.getProperties();
+            memberProps.setBuiltInProperty(DEPENDENCY_TO, myDep.getName());
+            DependencyMember newMember = toDep.addMember(itemP, memberProps, member.getClassProps(), null);
+            newMember.setID(-1); // forces the RemoveMembersFromCollection to use ItemPath instead of slotID
 
-                dependencyString = Gateway.getMarshaller().marshall(toDep);
-            }
-            catch (Exception e) {
-                throw new InvalidDataException("Unable to marshall ToDependency:"+toDependencyName+" of member:"+member.getItemPath().getItemName(transactionKey), e);
-            }
+            dependencyString = Gateway.getMarshaller().marshall(toDep);
 
             // Special error handling due to the forceFalg 
             try {

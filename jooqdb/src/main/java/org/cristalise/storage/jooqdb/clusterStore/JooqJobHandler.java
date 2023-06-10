@@ -112,7 +112,7 @@ public class JooqJobHandler extends JooqHandler {
         }
         catch (Exception ex) {
             log.error("insert()", ex);
-            throw new PersistencyException(ex.getMessage());
+            throw new PersistencyException(ex);
         }
 
         return context
@@ -146,7 +146,7 @@ public class JooqJobHandler extends JooqHandler {
             }
             catch (Exception ex) {
                 log.error("fetch()", ex);
-                throw new PersistencyException(ex.getMessage());
+                throw new PersistencyException(ex);
             }
         }
         else

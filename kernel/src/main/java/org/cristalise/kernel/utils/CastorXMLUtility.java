@@ -24,7 +24,6 @@ package org.cristalise.kernel.utils;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Properties;
@@ -38,7 +37,9 @@ import org.cristalise.kernel.process.resource.ResourceLoader;
 import org.cristalise.kernel.querying.Query;
 import org.exolab.castor.mapping.Mapping;
 import org.exolab.castor.mapping.MappingException;
+import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.Marshaller;
+import org.exolab.castor.xml.ValidationException;
 import org.exolab.castor.xml.XMLContext;
 
 import lombok.extern.slf4j.Slf4j;
@@ -55,13 +56,11 @@ public class CastorXMLUtility {
 
     /**
      * Looks for a file called 'index' at the given URL, and loads every file listed in there by relative path
-     *
-     * @param aResourceLoader
-     *            the resource loader able to return the right class loader
-     * @param aAppProperties
-     *            the application properties containing optional castor configuration
-     * @param mapURL
-     *            the root URL for the mapfiles
+     * 
+     * @param aResourceLoader the resource loader able to return the right class loader
+     * @param aAppProperties the application properties containing optional castor configuration
+     * @param mapURL the root URL for the mapfiles
+     * @throws InvalidDataException
      */
     public CastorXMLUtility(final ResourceLoader aResourceLoader, final Properties aAppProperties, final URL mapURL)
             throws InvalidDataException
@@ -117,17 +116,9 @@ public class CastorXMLUtility {
 
             mappingContext.addMapping(thisMapping);
         }
-        catch (MappingException ex) {
-            log.error("XML Mapping files are not valid", ex);
-            throw new InvalidDataException("XML Mapping files are not valid: " + ex.getMessage());
-        }
-        catch (MalformedURLException ex) {
-            log.error("Mapping file location invalid", ex);
-            throw new InvalidDataException("Mapping file location invalid: " + ex.getMessage());
-        }
-        catch (IOException ex) {
-            log.error("Could not read XML mapping files", ex);
-            throw new InvalidDataException("Could not read XML mapping files: " + ex.getMessage());
+        catch (MappingException | IOException ex) {
+            log.error("ctor() - Could not initialise", ex);
+            throw new InvalidDataException("Could not initialise", ex);
         }
 
         log.info("Loaded [{}] maps from [{}]", loadedMapURLs.size(), mapURL);
@@ -138,12 +129,12 @@ public class CastorXMLUtility {
      *
      * @param obj the object to be marshalled
      * @return the xml string of the marshalled object
+     * @throws InvalidDataException all errors captured
      */
     public String marshall(Object obj) throws InvalidDataException {
         if (obj == null) return "<NULL/>";
-
         if (obj instanceof Outcome) return ((Outcome) obj).getData();
-
+        
         try {
             StringWriter sWriter = new StringWriter();
             Marshaller marshaller = mappingContext.createMarshaller();
@@ -156,8 +147,8 @@ public class CastorXMLUtility {
 
             return sWriter.toString();
         }
-        catch (Exception e) {
-            throw new InvalidDataException(e);
+        catch (IOException | MarshalException | ValidationException ex) {
+            throw new InvalidDataException(ex);
         }
     }
 
@@ -166,6 +157,7 @@ public class CastorXMLUtility {
      *
      * @param data the string to be unmarshalled
      * @return the unmarshalled object
+     * @throws InvalidDataException all errors captured
      */
     public Object unmarshall(String data) throws InvalidDataException {
         if (data.equals("<NULL/>")) return null;
@@ -175,8 +167,8 @@ public class CastorXMLUtility {
         try {
             return mappingContext.createUnmarshaller().unmarshal(sReader);
         }
-        catch (Exception e) {
-            throw new InvalidDataException(e);
+        catch (MarshalException | ValidationException ex) {
+            throw new InvalidDataException(ex);
         }
     }
 }

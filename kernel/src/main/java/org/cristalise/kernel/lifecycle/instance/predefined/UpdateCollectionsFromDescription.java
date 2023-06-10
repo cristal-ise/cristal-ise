@@ -89,15 +89,11 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
 
         ItemProxy descItem = Gateway.getProxy(new DomainPath(inputs[0]));
         String descVer  = inputs[1];
-        //use this 3rd parameter to update the members that cannot be calculate from the description
-        CollectionMemberList<DependencyMember> newMembers = 
-                (CollectionMemberList<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
 
         PropertyArrayList newItemProps = new PropertyArrayList();
         List<String> currentCollNames = new ArrayList<>(Arrays.asList(Gateway.getStorage().getClusterContents(item, COLLECTION, transactionKey)));
 
         //Loop through collection desc names and create new ones
-
         for (String collName: descItem.getContents(COLLECTION, transactionKey)) {
             if (! currentCollNames.contains(collName)) {
                 Collection<?> newColl = CreateItemFromDescription.instantiateCollection(collName, descItem.getPath(), descVer, newItemProps, transactionKey);
@@ -110,7 +106,14 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
                 //FIXME: Check if current collection is a Dependency, properties are only available in Dependency and DependencyDescription
                 Dependency itemColl = updateDependencyProperties(item, descItem.getPath(), descVer, collName, transactionKey);
 
-                updateDependencyMembers(itemColl, newMembers);
+                if (inputs.length == 3) { //optional parameter
+                    //use this 3rd parameter to update the members that cannot be calculate from the description
+                    @SuppressWarnings("unchecked")
+                    CollectionMemberList<DependencyMember> newMembers = 
+                        (CollectionMemberList<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
+
+                    updateDependencyMembers(itemColl, newMembers);
+                }
 
                 Gateway.getStorage().put(item, itemColl, transactionKey);
             }

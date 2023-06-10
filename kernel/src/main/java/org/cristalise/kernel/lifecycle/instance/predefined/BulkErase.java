@@ -26,6 +26,7 @@ import static org.cristalise.kernel.SystemProperties.BulkErase_limit;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -55,10 +56,11 @@ public class BulkErase extends Erase {
      * {@value #description}}
      * 
      * @param requestData is empty
+     * @throws ObjectAlreadyExistsException 
      */
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
-            throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException, InvalidCollectionModification
+            throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException, InvalidCollectionModification, ObjectAlreadyExistsException
     {
         SearchFilter filter = (SearchFilter) Gateway.getMarshaller().unmarshall(requestData);
 
@@ -73,7 +75,7 @@ public class BulkErase extends Erase {
     }
 
     private int eraseAllItemsOfSearch(AgentPath agent, SearchFilter filter, TransactionKey transactionKey, final int offset, final int limit)
-            throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, InvalidDataException, PersistencyException, InvalidCollectionModification
+            throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, InvalidDataException, PersistencyException, InvalidCollectionModification, ObjectAlreadyExistsException
     {
         PagedResult result = Gateway.getLookup().search(new DomainPath(filter.getSearchRoot()), filter.getProperties(), offset, limit);
 

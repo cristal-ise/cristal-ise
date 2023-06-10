@@ -116,7 +116,7 @@ public class AgentProxy extends ItemProxy {
             return execute(job);
         }
         catch (Exception ex) {
-            log.error("", ex);
+            log.trace("execute(errorJob)", ex);
 
             errorJob.setAgentPath(getPath());
             errorJob.setOutcome(Gateway.getMarshaller().marshall(new ErrorInfo(job, ex)));

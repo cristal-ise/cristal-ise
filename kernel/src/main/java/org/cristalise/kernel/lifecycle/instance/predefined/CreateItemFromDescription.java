@@ -241,11 +241,6 @@ public class CreateItemFromDescription extends PredefinedStep {
 
             storeItem(agent, newItem, newProps, newColls, newWorkflow, newViewpoint, outcome, transactionKey);
         }
-        catch (MarshalException | ValidationException | IOException | MappingException e) {
-            if (log.isDebugEnabled()) log.error("initialiseItem()", e);
-            Gateway.getLookupManager().delete(newItemPath, transactionKey);
-            throw new InvalidDataException("CreateItemFromDescription: Problem initializing new Item. See log: " + e.getMessage(), e);
-        }
         catch (InvalidDataException | ObjectNotFoundException | PersistencyException e) {
             if (log.isDebugEnabled()) log.error("initialiseItem()", e);
             Gateway.getLookupManager().delete(newItemPath, transactionKey);
@@ -471,11 +466,7 @@ public class CreateItemFromDescription extends PredefinedStep {
             )
             throws PersistencyException, 
                    ObjectNotFoundException, 
-                   InvalidDataException, 
-                   MarshalException, 
-                   ValidationException, 
-                   IOException, 
-                   MappingException 
+                   InvalidDataException
     {
         // store properties
         for (Property thisProp : props.list) Gateway.getStorage().put(item, thisProp, transactionKey);

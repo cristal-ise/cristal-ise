@@ -47,8 +47,8 @@ public class ImportImportRole extends PredefinedStep {
     {
         ImportRole importRole = (ImportRole) Gateway.getMarshaller().unmarshall(requestData);
 
-//        if (Gateway.getLookup().exists(new RolePath(importRole.getName(), importRole.jobList) ))
-//            throw new ObjectAlreadyExistsException("CreateNewRole: Role '" + importRole.getName() + "' already exists.");
+//      if (Gateway.getLookup().exists(new RolePath(importRole.getName(), importRole.jobList) ))
+//          throw new ObjectAlreadyExistsException("CreateNewRole: Role '" + importRole.getName() + "' already exists.");
 
         importRole.create(agent, true, transactionKey);
 
