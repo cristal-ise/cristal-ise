@@ -20,9 +20,7 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.cristalise</groupId>
@@ -51,7 +49,7 @@
 
     <properties>
         <revision>6.0.0-SNAPSHOT</revision>
-        <vertx.version>4.2.4</vertx.version>
+        <vertx.version>4.4.0</vertx.version>
         <productionMode>false</productionMode>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -61,9 +59,9 @@
         <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
         <source.version>1.8</source.version>
         <target.version>1.8</target.version>
-        <groovy.version>3.0.9</groovy.version>
-        <groovy-eclipse-compiler.version>3.7.0</groovy-eclipse-compiler.version>
-        <groovy-eclipse-batch.version>3.0.8-01</groovy-eclipse-batch.version>
+        <groovy.version>3.0.17</groovy.version>
+        <groovy-eclipse-compiler.version>3.8.0</groovy-eclipse-compiler.version>
+        <groovy-eclipse-batch.version>3.0.17-02</groovy-eclipse-batch.version>
         <slf4j.version>1.7.26</slf4j.version>
         <spock.version>2.0-groovy-3.0</spock.version>
         <spockReports.version>2.1.1-groovy-3.0</spockReports.version>
@@ -225,7 +223,7 @@
     </build>
 
     <profiles>
-	<profile>
+        <profile>
             <id>release</id>
             <modules>
                 <module>kernel</module>
@@ -327,43 +325,47 @@
         </repository>
     </distributionManagement>
 
-  <repositories>
-    <repository>
-      <id>sonatype-oss-snapshots</id>
-      <name>Sonatype OSSRH Snapshots</name>
-      <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-      <layout>default</layout>
-      <releases>
-        <enabled>false</enabled>
-        <updatePolicy>never</updatePolicy>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-        <updatePolicy>never</updatePolicy>
-      </snapshots>
-    </repository>
-  </repositories>
-
-<!--
     <repositories>
         <repository>
-            <id>snapshots-repo</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <id>sonatype-oss-snapshots</id>
+            <name>Sonatype OSSRH Snapshots</name>
+            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+            <layout>default</layout>
             <releases>
                 <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
             </releases>
             <snapshots>
                 <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
             </snapshots>
         </repository>
+        <repository>
+            <id>groovy-libs-release</id>
+            <url>https://groovy.jfrog.io/artifactory/libs-release</url>
+        </repository>
     </repositories>
--->
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>groovy-plugins-release</id>
+            <url>https://groovy.jfrog.io/artifactory/plugins-release</url>
+        </pluginRepository>
+    </pluginRepositories>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>io.vertx</groupId>
                 <artifactId>vertx-stack-depchain</artifactId>
                 <version>${vertx.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.jersey</groupId>
+                <artifactId>jersey-bom</artifactId>
+                <version>2.26</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -414,21 +416,14 @@
                 <version>1.2.3</version>
             </dependency>
             <dependency>
-               <groupId>org.projectlombok</groupId>
-               <artifactId>lombok</artifactId>
-               <version>1.18.8</version>
-           </dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>1.18.8</version>
+            </dependency>
             <dependency>
                 <groupId>org.mvel</groupId>
                 <artifactId>mvel2</artifactId>
                 <version>2.4.12.Final</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey</groupId>
-                <artifactId>jersey-bom</artifactId>
-                <version>2.26</version>
-                <type>pom</type>
-                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
@@ -468,6 +463,13 @@
             <!--                              -->
             <!-- common dependencies for test -->
             <!--                              -->
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>5.8.1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.spockframework</groupId>
                 <artifactId>spock-core</artifactId>
@@ -517,13 +519,6 @@
                 <groupId>org.xmlunit</groupId>
                 <artifactId>xmlunit-core</artifactId>
                 <version>2.7.0</version>
-            </dependency>
-            <dependency>
-                <groupId>org.junit</groupId>
-                <artifactId>junit-bom</artifactId>
-                <version>5.8.1</version>
-                <type>pom</type>
-                <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.hamcrest</groupId>
