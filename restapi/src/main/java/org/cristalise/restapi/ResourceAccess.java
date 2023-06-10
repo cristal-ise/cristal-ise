@@ -24,7 +24,6 @@ import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 import static org.cristalise.kernel.process.resource.BuiltInResources.COMP_ACT_DESC_RESOURCE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.ELEM_ACT_DESC_RESOURCE;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -45,9 +44,6 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 import org.json.XML;
 
 public class ResourceAccess extends ItemUtils {
@@ -179,9 +175,6 @@ public class ResourceAccess extends ItemUtils {
         }
         catch (InvalidDataException e) {
             throw new WebAppExceptionBuilder(resource.name()+" "+name+" v"+version+" does not point to any data", e, Status.NOT_FOUND, cookie).build();
-        }
-        catch (MarshalException | ValidationException | IOException | MappingException e) {
-            throw new WebAppExceptionBuilder(resource.name()+" "+name+" v"+version+" xml convert problem", e, Status.INTERNAL_SERVER_ERROR, cookie).build();
         }
         catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();

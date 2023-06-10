@@ -30,9 +30,6 @@ import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class RoleDescCache extends DescriptionObjectCache<ImportRole> {
 
     @Override
@@ -52,16 +49,10 @@ public class RoleDescCache extends DescriptionObjectCache<ImportRole> {
 
     @Override
     protected ImportRole buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
-        try {
-            ImportRole thisImportRole = (ImportRole) Gateway.getMarshaller().unmarshall(data);
-            thisImportRole.setName(name);
-            thisImportRole.setVersion(version);
-            thisImportRole.setItemPath(path);
-            return thisImportRole;
-        }
-        catch (Exception ex) {
-            log.error("Could not unmarshall ImportRole '" + name + "' v" + version, ex);
-            throw new InvalidDataException("Could not unmarshall ImportRole '" + name + "' v" + version + ": " + ex.getMessage());
-        }
+        ImportRole thisImportRole = (ImportRole) Gateway.getMarshaller().unmarshall(data);
+        thisImportRole.setName(name);
+        thisImportRole.setVersion(version);
+        thisImportRole.setItemPath(path);
+        return thisImportRole;
     }
 }

@@ -58,14 +58,8 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
             throw new InvalidDataException("ReplaceDomainWorkflow: Invalid parameters " + Arrays.toString(params));
 
         lifeCycle.getChildrenGraphModel().removeVertex(lifeCycle.search("workflow/domain"));
-        CompositeActivity domain;
-        try {
-            domain = (CompositeActivity) Gateway.getMarshaller().unmarshall(params[0]);
-        }
-        catch (Exception e) {
-            log.error("ReplaceDomainWorkflow: Could not unmarshall new workflow", e);
-            throw new InvalidDataException("ReplaceDomainWorkflow: Could not unmarshall new workflow: " + e.getMessage());
-        }
+        CompositeActivity domain = (CompositeActivity) Gateway.getMarshaller().unmarshall(params[0]);
+
         domain.setName("domain");
         lifeCycle.initChild(domain, true, new GraphPoint(150, 100));
 

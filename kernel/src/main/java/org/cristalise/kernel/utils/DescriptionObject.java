@@ -23,9 +23,11 @@ package org.cristalise.kernel.utils;
 import static org.cristalise.kernel.SystemProperties.Resource_useOldImportFormat;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
+
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.collection.Dependency;
@@ -60,15 +62,10 @@ public interface DescriptionObject {
     public BuiltInResources getResourceType();
 
     default public String getXml(boolean prettyPrint) throws InvalidDataException {
-        try {
-            String xml = Gateway.getMarshaller().marshall(this);
+        String xml = Gateway.getMarshaller().marshall(this);
 
-            if (prettyPrint) return new Outcome(xml).getData(true);
-            else             return xml;
-        }
-        catch (Exception e) {
-            throw new InvalidDataException("Couldn't marshall " + getResourceType().getSchemaName() + " name:" + getName(), e);
-        }
+        if (prettyPrint) return new Outcome(xml).getData(true);
+        else             return xml;
     }
 
     default public String getXml() throws InvalidDataException {

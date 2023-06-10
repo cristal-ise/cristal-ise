@@ -238,11 +238,6 @@ public class CreateItemFromDescription extends PredefinedStep {
 
             storeItem(agent, newItem, newProps, newColls, newWorkflow, newViewpoint, outcome, transactionKey);
         }
-        catch (MarshalException | ValidationException | IOException | MappingException e) {
-            if (log.isDebugEnabled()) log.error("initialiseItem()", e);
-            Gateway.getLookupManager().delete(newItemPath, transactionKey);
-            throw new InvalidDataException("CreateItemFromDescription: Problem initializing new Item. See log: " + e.getMessage(), e);
-        }
         catch (InvalidDataException | ObjectNotFoundException | PersistencyException e) {
             if (log.isDebugEnabled()) log.error("initialiseItem()", e);
             Gateway.getLookupManager().delete(newItemPath, transactionKey);
@@ -263,13 +258,7 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @throws InvalidDataException
      */
     protected PropertyArrayList unmarshallInitProperties(String initPropString) throws InvalidDataException {
-        try {
-            return (PropertyArrayList) Gateway.getMarshaller().unmarshall(initPropString);
-        }
-        catch (Exception e) {
-            log.error("", e);
-            throw new InvalidDataException("Initial property parameter was not a marshalled PropertyArrayList: " + initPropString, e);
-        }
+        return (PropertyArrayList) Gateway.getMarshaller().unmarshall(initPropString);
     }
 
     /**
@@ -485,11 +474,7 @@ public class CreateItemFromDescription extends PredefinedStep {
             )
             throws PersistencyException, 
                    ObjectNotFoundException, 
-                   InvalidDataException, 
-                   MarshalException, 
-                   ValidationException, 
-                   IOException, 
-                   MappingException 
+                   InvalidDataException
     {
         // store properties
         for (Property thisProp : props.list) Gateway.getStorage().put(item, thisProp, transactionKey);

@@ -22,7 +22,6 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -55,9 +54,6 @@ import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -96,14 +92,8 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         //use this 3rd parameter to update the members that cannot be calculate from the description
         CollectionMemberList<DependencyMember> newMembers = null; //inputs[2]
 
-        try {
-            if (inputs.length == 3) { //optional parameter
-                newMembers = (CollectionMemberList<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
-            }
-        }
-        catch (MarshalException | ValidationException | IOException | MappingException e) {
-            log.error("", e);
-            throw new InvalidDataException(e.getMessage());
+        if (inputs.length == 3) { //optional parameter
+            newMembers = (CollectionMemberList<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
         }
 
         ItemPath descItemPath; // very likely the factory item

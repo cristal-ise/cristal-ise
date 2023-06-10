@@ -30,9 +30,6 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class PropertyDescriptionCache extends DescriptionObjectCache<PropertyDescriptionList> {
 
     @Override
@@ -52,16 +49,10 @@ public class PropertyDescriptionCache extends DescriptionObjectCache<PropertyDes
 
     @Override
     protected PropertyDescriptionList buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
-        try {
-            PropertyDescriptionList pdl = (PropertyDescriptionList) Gateway.getMarshaller().unmarshall(data);
-            pdl.setName(name);
-            pdl.setVersion(version);
-            pdl.setItemPath(path);
-            return pdl;
-        }
-        catch (Exception ex) {
-            log.error("Could not parse PropertyDescriptionList '" + name + "' v" + version, ex);
-            throw new InvalidDataException("Could not parse PropertyDescriptionList '" + name + "' v" + version + ": " + ex.getMessage());
-        }
+        PropertyDescriptionList pdl = (PropertyDescriptionList) Gateway.getMarshaller().unmarshall(data);
+        pdl.setName(name);
+        pdl.setVersion(version);
+        pdl.setItemPath(path);
+        return pdl;
     }
 }
