@@ -31,9 +31,6 @@ public class ServerPredefinedStepContainer extends ItemPredefinedStepContainer {
         predInit(AddDomainContext.class);
         predInit(BulkImport.class);
         predInit(ConfigureLogback.class);
-        predInit(CreateNewAgent.class);
-        predInit(CreateNewItem.class);
-        predInit(CreateNewRole.class);
         predInit(UpdateRole.class);
         predInit(RemoveRole.class);
         predInit(RemoveDomainContext.class);

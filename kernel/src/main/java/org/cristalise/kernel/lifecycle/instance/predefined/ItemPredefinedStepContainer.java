@@ -27,7 +27,6 @@ public class ItemPredefinedStepContainer extends PredefinedStepContainer {
         predInit(AddC2KObject.class);
         predInit(AddDomainPath.class);
         predInit(AddMembersToCollection.class);
-        predInit(AddMemberToCollection.class);
         predInit(AddNewCollectionDescription.class);
         predInit(AddNewSlot.class);
         predInit(AssignItemToSlot.class);
@@ -45,7 +44,6 @@ public class ItemPredefinedStepContainer extends PredefinedStepContainer {
         predInit(RemoveC2KObject.class);
         predInit(RemoveDomainPath.class);
         predInit(RemoveMembersFromCollection.class);
-        predInit(RemoveSlotFromCollection.class);
         predInit(RemoveViewpoint.class);
         predInit(ReplaceDomainWorkflow.class);
         predInit(UpdateCollectionsFromDescription.class);
