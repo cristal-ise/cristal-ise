@@ -170,7 +170,7 @@ public class XMLClusterStorage extends ClusterStorage {
         }
         catch (Exception e) {
             log.error("get() - The path " + path + " from " + itemPath + " does not exist", e);
-            throw new PersistencyException(e.getMessage());
+            throw new PersistencyException(e);
         }
     }
 
@@ -192,7 +192,7 @@ public class XMLClusterStorage extends ClusterStorage {
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException("Could not write " + getPath(obj) + " to " + itemPath);
+            throw new PersistencyException("Could not write " + getPath(obj) + " to " + itemPath, e);
         }
     }
 

@@ -122,7 +122,7 @@ public class ModuleManager {
                 moduleNs.add(newModule.getNamespace());
             }
             catch (Exception e) {
-                log.error("", e);
+                log.error("loadModules()", e);
                 throw new ModuleException("Could not load module.xml from url:"+newModuleURL);
             }
         }

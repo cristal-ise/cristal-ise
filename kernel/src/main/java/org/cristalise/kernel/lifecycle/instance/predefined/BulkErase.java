@@ -24,11 +24,10 @@ import static org.cristalise.kernel.SystemProperties.BulkErase_force;
 import static org.cristalise.kernel.SystemProperties.BulkErase_limit;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 
-import java.io.IOException;
-
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
@@ -40,9 +39,6 @@ import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.SearchFilter;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,30 +58,26 @@ public class BulkErase extends Erase {
      * {@value #description}}
      * 
      * @param requestData is empty
+     * @throws ObjectAlreadyExistsException 
      */
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
-            throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException, InvalidCollectionModification
+            throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException, InvalidCollectionModification, ObjectAlreadyExistsException
     {
-        try {
-            SearchFilter filter = (SearchFilter) Gateway.getMarshaller().unmarshall(requestData);
+        SearchFilter filter = (SearchFilter) Gateway.getMarshaller().unmarshall(requestData);
 
-            log.debug("runActivityLogic() - item:{} filter:{} limit:{} forceFlag:{}", item, filter, LIMIT, FORCE_FLAG);
+        log.debug("runActivityLogic() - item:{} filter:{} limit:{} forceFlag:{}", item, filter, LIMIT, FORCE_FLAG);
 
-            int recordsDeleted = eraseAllItemsOfSearch(agent, filter, transactionKey, 0, LIMIT);
-            filter.setRecordsFound(recordsDeleted);
+        int recordsDeleted = eraseAllItemsOfSearch(agent, filter, transactionKey, 0, LIMIT);
+        filter.setRecordsFound(recordsDeleted);
 
-            log.info("runActivityLogic() - DONE #{} items with filter:{}", filter.getRecordsFound(), filter);
+        log.info("runActivityLogic() - DONE #{} items with filter:{}", filter.getRecordsFound(), filter);
 
-            return Gateway.getMarshaller().marshall(filter);
-        }
-        catch (MarshalException | ValidationException | IOException | MappingException e) {
-            throw new InvalidDataException("Error adding members to collection", e);
-        }
+        return Gateway.getMarshaller().marshall(filter);
     }
 
     private int eraseAllItemsOfSearch(AgentPath agent, SearchFilter filter, TransactionKey transactionKey, final int offset, final int limit)
-            throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, InvalidDataException, PersistencyException, InvalidCollectionModification
+            throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, InvalidDataException, PersistencyException, InvalidCollectionModification, ObjectAlreadyExistsException
     {
         PagedResult result = Gateway.getLookup().search(new DomainPath(filter.getSearchRoot()), filter.getProperties(), offset, limit);
 

@@ -109,17 +109,11 @@ public class ActDefCache extends DescriptionObjectCache<ActivityDef> {
 
     @Override
     protected ActivityDef buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
-        try {
-            ActivityDef thisActDef = (ActivityDef) Gateway.getMarshaller().unmarshall(data);
-            thisActDef.setBuiltInProperty(VERSION, version);
-            thisActDef.setName(name);
-            thisActDef.setVersion(version);
-            thisActDef.setItemPath(path);
-            return thisActDef;
-        }
-        catch (Exception ex) {
-            log.error("Could not unmarshall Activity '" + name + "' v" + version, ex);
-            throw new InvalidDataException("Could not unmarshall Activity '" + name + "' v" + version + ": " + ex.getMessage());
-        }
+        ActivityDef thisActDef = (ActivityDef) Gateway.getMarshaller().unmarshall(data);
+        thisActDef.setBuiltInProperty(VERSION, version);
+        thisActDef.setName(name);
+        thisActDef.setVersion(version);
+        thisActDef.setItemPath(path);
+        return thisActDef;
     }
 }

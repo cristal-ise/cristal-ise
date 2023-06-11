@@ -50,13 +50,8 @@ public class AddC2KObject extends PredefinedStep {
 
         if (params.length != 1) throw new InvalidDataException("AddC2KObject: Invalid parameters " + Arrays.toString(params));
 
-        try {
-            C2KLocalObject obj = (C2KLocalObject) Gateway.getMarshaller().unmarshall(params[0]);
-            Gateway.getStorage().put(item, obj, transactionKey);
-        }
-        catch (Exception e) {
-            throw new InvalidDataException("AddC2KObject: Could not unmarshall new object: " + params[0]);
-        }
+        C2KLocalObject obj = (C2KLocalObject) Gateway.getMarshaller().unmarshall(params[0]);
+        Gateway.getStorage().put(item, obj, transactionKey);
         return requestData;
     }
 }

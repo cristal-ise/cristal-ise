@@ -27,7 +27,6 @@ import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.OUTCOME_
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.PropertyUtility.getPropertyValue;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,9 +56,6 @@ import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -295,7 +291,7 @@ public class Job implements C2KLocalObject {
             setOutcome(Gateway.getMarshaller().marshall(error));
         }
         catch (Exception e) {
-            log.error("Error marshalling ErrorInfo in job", e);
+            log.error("Error marshalling ErrorInfo in job:{}", this, e);
         } 
     }
 
@@ -591,7 +587,7 @@ public class Job implements C2KLocalObject {
                     Gateway.getVertx().eventBus().send(ebAddress+"/"+role, jobXml);
                 }
             }
-            catch (MarshalException | ValidationException | IOException | MappingException e) {
+            catch (InvalidDataException e) {
                 log.error("sendToRoleChannel() - could not sends job:{}", this, e);
             }
         }

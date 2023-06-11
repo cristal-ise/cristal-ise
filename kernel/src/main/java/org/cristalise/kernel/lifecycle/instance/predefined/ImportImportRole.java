@@ -22,8 +22,6 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 
-import java.io.IOException;
-
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
@@ -34,13 +32,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 /**
  * {@value #description}
  */
@@ -56,19 +48,13 @@ public class ImportImportRole extends PredefinedStep {
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
     {
-        try {
-            ImportRole importRole = (ImportRole) Gateway.getMarshaller().unmarshall(requestData);
+        ImportRole importRole = (ImportRole) Gateway.getMarshaller().unmarshall(requestData);
 
-//            if (Gateway.getLookup().exists(new RolePath(importRole.getName(), importRole.jobList) ))
-//                throw new ObjectAlreadyExistsException("CreateNewRole: Role '" + importRole.getName() + "' already exists.");
+//      if (Gateway.getLookup().exists(new RolePath(importRole.getName(), importRole.jobList) ))
+//          throw new ObjectAlreadyExistsException("CreateNewRole: Role '" + importRole.getName() + "' already exists.");
 
-            importRole.create(agent, true, transactionKey);
+        importRole.create(agent, true, transactionKey);
 
-            return Gateway.getMarshaller().marshall(importRole);
-        }
-        catch (MarshalException | ValidationException | IOException | MappingException e) {
-            log.error("Couldn't unmarshall Role: " + requestData, e);
-            throw new InvalidDataException("Couldn't unmarshall Role: " + requestData);
-        }
+        return Gateway.getMarshaller().marshall(importRole);
     }
 }
