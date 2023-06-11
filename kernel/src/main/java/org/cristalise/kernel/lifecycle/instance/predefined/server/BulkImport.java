@@ -82,7 +82,7 @@ public class BulkImport extends PredefinedStep {
     }
 
     public BulkImport(String rootDir) {
-        super();
+        this();
         root = rootDir;
         ext = "";
         useDir = false;

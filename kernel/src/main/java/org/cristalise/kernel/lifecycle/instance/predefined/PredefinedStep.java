@@ -80,8 +80,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class PredefinedStep extends Activity {
 
-    public static final int DONE         = 0;
-    public static final int AVAILABLE    = 0;
+    public static final int DONE      = 0;
+    public static final int AVAILABLE = 0;
 
     /**
      * Order is important
@@ -116,10 +116,6 @@ public abstract class PredefinedStep extends Activity {
         this(null, description);
     }
 
-    public PredefinedStep() {
-        this(null, null);
-    }
-
     @Override
     public boolean getActive() {
         return true;
@@ -127,7 +123,7 @@ public abstract class PredefinedStep extends Activity {
 
     @Override
     public String getErrors() {
-        return getName();
+        return super.getErrors();
     }
 
     @Override

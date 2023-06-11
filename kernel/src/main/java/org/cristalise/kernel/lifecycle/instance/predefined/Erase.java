@@ -58,7 +58,6 @@ public class Erase extends PredefinedStep {
     public static final String description =  "Deletes all domain paths (aliases), roles (if agent) and clusters for this item or agent.";
     private static final boolean FORCE_FLAG = Erase_force.getBoolean();
 
-
     public Erase(String schema, String desc) {
         super(schema, desc);
     }

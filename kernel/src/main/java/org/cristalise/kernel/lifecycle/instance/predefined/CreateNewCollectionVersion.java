@@ -45,7 +45,6 @@ public class CreateNewCollectionVersion extends PredefinedStep {
         super("Creates a new numbered collection version in this Item from the current one.");
     }
 
-
     /**
      * Generates a new snapshot of a collection from its current state. 
      * The new version is given the next available number, starting at 0.

@@ -41,6 +41,10 @@ public class ImportImportRole extends PredefinedStep {
         super("Role", description);
     }
 
+    public ImportImportRole(String desc) {
+        super(desc);
+    }
+
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException

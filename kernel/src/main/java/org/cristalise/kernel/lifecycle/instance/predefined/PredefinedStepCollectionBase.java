@@ -57,10 +57,6 @@ public abstract class PredefinedStepCollectionBase extends PredefinedStep {
         super(desc);
     }
 
-    public PredefinedStepCollectionBase() {
-        super();
-    }
-
     protected String        collectionName = null;
     protected int           slotID         = -1;
     protected ItemPath      childPath      = null;

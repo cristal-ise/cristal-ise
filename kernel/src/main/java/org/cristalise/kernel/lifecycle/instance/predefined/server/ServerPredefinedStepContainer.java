@@ -25,13 +25,14 @@ import org.cristalise.kernel.lifecycle.instance.predefined.ItemPredefinedStepCon
 public class ServerPredefinedStepContainer extends ItemPredefinedStepContainer {
 
     @Override
-    protected void createChildren() {
+    public void createChildren() {
         super.createChildren();
-        predInit(UpdateRole.class);
-        predInit(RemoveRole.class);
-        predInit(RemoveDomainContext.class);
+
         predInit(AddDomainContext.class);
         predInit(BulkImport.class);
         predInit(ConfigureLogback.class);
+        predInit(UpdateRole.class);
+        predInit(RemoveRole.class);
+        predInit(RemoveDomainContext.class);
     }
 }

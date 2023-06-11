@@ -23,39 +23,34 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
 public class ItemPredefinedStepContainer extends PredefinedStepContainer {
 
     @Override
-    protected void createChildren() {
-        predInit(AddDomainPath.class);
-        predInit(RemoveDomainPath.class);
-        predInit(ReplaceDomainWorkflow.class);
+    public void createChildren() {
         predInit(AddC2KObject.class);
-        predInit(RemoveC2KObject.class);
-        predInit(WriteProperty.class);
-        predInit(WriteViewpoint.class);
-        predInit(RemoveViewpoint.class);
+        predInit(AddDomainPath.class);
+        predInit(AddMembersToCollection.class);
         predInit(AddNewCollectionDescription.class);
-        predInit(CreateNewCollectionVersion.class);
         predInit(AddNewSlot.class);
         predInit(AssignItemToSlot.class);
+        predInit(BulkErase.class);
+        predInit(ChangeName.class);
         predInit(ClearSlot.class);
-        predInit(AddMembersToCollection.class);
-        predInit(RemoveMembersFromCollection.class);
-        predInit(UpdateDependencyMember.class);
-        predInit(Import.class);
         predInit(CreateAgentFromDescription.class);
         predInit(CreateItemFromDescription.class);
-        predInit(ChangeName.class);
+        predInit(CreateNewCollectionVersion.class);
         predInit(Erase.class);
-        predInit(BulkErase.class);
-
-        predInit(UpdateCollectionsFromDescription.class);
-        predInit(UpdateProperitesFromDescription.class);
-        predInit(UpdateWorkflowFromDescription.class);
-        predInit(UpdateItemFromDescription.class);
-
+        predInit(Import.class);
         predInit(ImportImportAgent.class);
         predInit(ImportImportItem.class);
         predInit(ImportImportRole.class);
-
-        predInit(UpdateImportReport.class);
+        predInit(RemoveC2KObject.class);
+        predInit(RemoveDomainPath.class);
+        predInit(RemoveMembersFromCollection.class);
+        predInit(RemoveViewpoint.class);
+        predInit(ReplaceDomainWorkflow.class);
+        predInit(UpdateCollectionsFromDescription.class);
+        predInit(UpdateDependencyMember.class);
+        predInit(WriteProperty.class);
+        predInit(WriteViewpoint.class);
+        //UpdateImportReport class is not added to the container because it can only be used during bootstrap
+        predInit(UpdateProperitesFromDescription.class);
     }
 }

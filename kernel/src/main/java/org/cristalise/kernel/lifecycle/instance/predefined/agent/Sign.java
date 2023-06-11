@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Sign extends Authenticate {
 
-    public static final String description = "Autehnticates the given user and records the Sign event in the system togther with the execution context";
+    public static final String description = "Authenticates the given user and records the Sign event in the system together with the execution context";
 
     public static final String agentNameField  = Lifecycle_Sign_agentNameField.getString();
     public static final String passwordField   = Lifecycle_Sign_passwordField.getString();

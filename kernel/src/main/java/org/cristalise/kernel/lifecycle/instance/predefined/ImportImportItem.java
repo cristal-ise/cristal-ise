@@ -43,6 +43,10 @@ public class ImportImportItem extends PredefinedStep {
         super("Item", description);
     }
 
+    public ImportImportItem(String desc) {
+        super(desc);
+    }
+
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException,

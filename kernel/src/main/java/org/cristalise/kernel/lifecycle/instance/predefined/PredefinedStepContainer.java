@@ -34,7 +34,7 @@ public abstract class PredefinedStepContainer extends CompositeActivity {
         createChildren();
     }
 
-    protected abstract void createChildren();
+    abstract public void createChildren();
 
     protected void predInit(Class<? extends PredefinedStep> clazz) {
         try {
