@@ -77,9 +77,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class PredefinedStep extends Activity {
 
-    private boolean         isPredefined = false;
-    public static final int DONE         = 0;
-    public static final int AVAILABLE    = 0;
+    public static final int DONE      = 0;
+    public static final int AVAILABLE = 0;
 
     /**
      * Order is important
@@ -96,39 +95,17 @@ public abstract class PredefinedStep extends Activity {
 
     @Override
     public boolean getActive() {
-        if (isPredefined) return true;
-        else              return super.getActive();
+        return true;
     }
 
     @Override
     public String getErrors() {
-        if (isPredefined) return getName();
-        else              return super.getErrors();
+        return super.getErrors();
     }
 
     @Override
     public boolean verify() {
-        if (isPredefined) return true;
-        else              return super.verify();
-    }
-
-    /**
-     * Returns the isPredefined.
-     *
-     * @return boolean
-     */
-    public boolean getIsPredefined() {
-        return isPredefined;
-    }
-
-    /**
-     * Sets the isPredefined.
-     *
-     * @param isPredefined
-     *            The isPredefined to set
-     */
-    public void setIsPredefined(boolean isPredefined) {
-        this.isPredefined = isPredefined;
+        return true;
     }
 
     @Override
