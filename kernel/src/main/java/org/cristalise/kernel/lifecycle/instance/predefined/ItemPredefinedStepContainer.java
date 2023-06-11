@@ -18,9 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.kernel.lifecycle.instance.predefined.item;
-
-import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
+package org.cristalise.kernel.lifecycle.instance.predefined;
 
 public class ItemPredefinedStepContainer extends PredefinedStepContainer {
 

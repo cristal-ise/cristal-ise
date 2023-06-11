@@ -21,7 +21,7 @@
 
 package org.cristalise.kernel.property;
 
-import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
+import org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription;
 
 
 /**

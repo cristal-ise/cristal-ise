@@ -24,7 +24,7 @@ import static org.cristalise.dev.dsl.DevXMLUtility.recordToXML
 import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.*
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION
-import static org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription.FACTORY_GENERATED_NAME
+import static org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription.FACTORY_GENERATED_NAME
 
 import org.cristalise.dev.dsl.DevXMLUtility
 import org.cristalise.dev.utils.CrudFactoryHelper
