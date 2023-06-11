@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AddDomainContext extends PredefinedStep {
 
     public AddDomainContext() {
-        super();
+        super("Creates an empty domain context in the tree");
     }
 
     @Override

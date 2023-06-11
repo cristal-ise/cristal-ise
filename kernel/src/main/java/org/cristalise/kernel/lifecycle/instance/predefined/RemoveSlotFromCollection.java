@@ -43,7 +43,7 @@ public class RemoveSlotFromCollection extends PredefinedStepCollectionBase {
     public static final String description = "Removes the given slot from the collection";
 
     public RemoveSlotFromCollection() {
-        super();
+        super(description);
     }
 
     @Override

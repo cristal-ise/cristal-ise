@@ -65,12 +65,13 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
     public static final String description = "Updates the Collections of the Item from its description";
 
     public UpdateCollectionsFromDescription() {
-        super();
+        super(description);
     }
 
     /**
      * 
      */
+    @SuppressWarnings("unchecked")
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws  InvalidDataException,
                     InvalidCollectionModification,

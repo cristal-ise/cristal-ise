@@ -26,8 +26,6 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
  * @deprecated use {@link AddMembersToCollection}
  */
 public class AddMemberToCollection extends AddMembersToCollection {
-    public static final String description = "Deprecated. Use AddMembersToCollection";
-
     /**
      * Constructor for Castor
      */

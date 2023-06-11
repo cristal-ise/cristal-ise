@@ -27,14 +27,15 @@ public class ServerPredefinedStepContainer extends ItemPredefinedStepContainer {
     @Override
     public void createChildren() {
         super.createChildren();
-        predInit(CreateNewItem.class.getSimpleName(),       "Creates a new Item in this Server without description.",  new CreateNewItem());
-        predInit(CreateNewAgent.class.getSimpleName(),      "Creates a new Agent in this Server without description.", new CreateNewAgent());
-        predInit(CreateNewRole.class.getSimpleName(),       "Creates a new Role in this Server.", new CreateNewRole());
-        predInit(UpdateRole.class.getSimpleName(),          UpdateRole.description, new UpdateRole());
-        predInit(RemoveRole.class.getSimpleName(),          "Removes a Role from this Server.", new RemoveRole());
-        predInit(RemoveDomainContext.class.getSimpleName(), "Deletes an existing context in the domain tree, but only if empty", new RemoveDomainContext());
-        predInit(AddDomainContext.class.getSimpleName(),    "Creates an empty domain context in the tree", new AddDomainContext());
-        predInit(BulkImport.class.getSimpleName(),          "Imports all data provided in a specific directory", new BulkImport());
-        predInit(ConfigureLogback.class.getSimpleName(),    ConfigureLogback.description, new ConfigureLogback());
+
+        predInit(AddDomainContext.class);
+        predInit(BulkImport.class);
+        predInit(ConfigureLogback.class);
+        predInit(CreateNewAgent.class);
+        predInit(CreateNewItem.class);
+        predInit(CreateNewRole.class);
+        predInit(UpdateRole.class);
+        predInit(RemoveRole.class);
+        predInit(RemoveDomainContext.class);
     }
 }

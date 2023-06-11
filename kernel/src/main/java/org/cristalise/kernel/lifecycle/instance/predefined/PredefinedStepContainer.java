@@ -20,8 +20,6 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
-
 import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 
@@ -46,18 +44,6 @@ public abstract class PredefinedStepContainer extends CompositeActivity {
         catch (Exception e) {
             throw new TypeNotPresentException("Cannot find Class:"+clazz.getName(), e);
         }
-    }
-
-    public void predInit(Class<?> clazz, String description, PredefinedStep act) {
-        predInit(clazz.getSimpleName(), description, act);
-    }
-
-    public void predInit(String alias, String description, PredefinedStep act) {
-        act.setName(alias);
-        act.setType(alias);
-        act.setBuiltInProperty(DESCRIPTION, description);
-        act.setCentrePoint(new GraphPoint());
-        addChild(act, new GraphPoint(100, 75 * ++num));
     }
 
     @Override

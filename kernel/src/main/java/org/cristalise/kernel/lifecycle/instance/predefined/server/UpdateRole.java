@@ -20,8 +20,6 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.server;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
-
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
@@ -38,8 +36,7 @@ public class UpdateRole extends PredefinedStep {
     public static final String description = "Updates an existing Role on this server";
 
     public UpdateRole() {
-        super();
-        setBuiltInProperty(SCHEMA_NAME, "Role");
+        super("Role", description);
     }
 
     @Override

@@ -29,6 +29,6 @@ import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportItem;
 @Deprecated
 public class CreateNewItem extends ImportImportItem {
     public CreateNewItem() {
-        super();
+        super("Creates a new Item in this Server without description.");
     }
 }

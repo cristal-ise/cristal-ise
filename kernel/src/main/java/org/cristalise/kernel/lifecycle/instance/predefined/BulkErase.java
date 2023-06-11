@@ -22,7 +22,6 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.SystemProperties.BulkErase_force;
 import static org.cristalise.kernel.SystemProperties.BulkErase_limit;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -50,8 +49,7 @@ public class BulkErase extends Erase {
     private static final boolean FORCE_FLAG = BulkErase_force.getBoolean();
 
     public BulkErase() {
-        super();
-        this.setBuiltInProperty(SCHEMA_NAME, "SearchFilter");
+        super("SearchFilter", description);
     }
 
     /**

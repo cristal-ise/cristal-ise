@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AddC2KObject extends PredefinedStep {
 
     public AddC2KObject() {
-        super();
+        super("Adds or overwrites a C2Kernel object for this Item");
     }
 
     // requestdata is xmlstring

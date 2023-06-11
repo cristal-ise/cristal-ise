@@ -84,8 +84,12 @@ public class CreateItemFromDescription extends PredefinedStep {
      */
     public static final String FACTORY_GENERATED_NAME = "FACTORY_GENERATED";
 
+    public CreateItemFromDescription(String desc) {
+        super(desc);
+    }
+
     public CreateItemFromDescription() {
-        super();
+        this("Create a new item using this item as its description");
     }
 
     /**

@@ -29,6 +29,6 @@ import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportRole;
 @Deprecated
 public class CreateNewRole extends ImportImportRole {
     public CreateNewRole() {
-        super();
+        super("Creates a new Role in this Server.");
     }
 }

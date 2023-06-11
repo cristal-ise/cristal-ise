@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AddNewSlot extends PredefinedStep {
     public AddNewSlot() {
-        super();
+        super("Creates a new slot in the given aggregation, that holds instances of the item description of the given key");
     }
 
     /**

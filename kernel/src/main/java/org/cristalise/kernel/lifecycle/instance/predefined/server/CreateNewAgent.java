@@ -29,6 +29,6 @@ import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportAgent;
 @Deprecated
 public class CreateNewAgent extends ImportImportAgent {
     public CreateNewAgent() {
-        super();
+        super("Creates a new Agent in this Server without description.");
     }
 }
