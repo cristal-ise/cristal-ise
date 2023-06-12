@@ -26,6 +26,7 @@ import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIAL
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION
 import static org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription.FACTORY_GENERATED_NAME
 
+import org.atteo.evo.inflector.English
 import org.cristalise.dev.dsl.DevXMLUtility
 import org.cristalise.dev.utils.CrudFactoryHelper
 import org.cristalise.dsl.csv.TabularGroovyParser
@@ -170,19 +171,20 @@ class CRUDItemCreator extends StandardClient {
             String referencedItemType = field?.getAppInfoNodeElementValue('reference', 'itemType')
 
             if (referencedItemType) {
+                def typeFolder = English.plural(referencedItemType)
                 Boolean isMultiple = field.getAppInfoNodeElementValue('dynamicForms', 'multiple') as Boolean
 
                 if (isMultiple) {
                     newValue.append('[')
                     fieldValue.toString().split(',').each { value ->
                         if (newValue.toString() != '[') newValue.append(',')
-                        def referencedItem = agent.getItem("$moduleNs/${referencedItemType}s/$value")
+                        def referencedItem = agent.getItem("$moduleNs/${typeFolder}/$value")
                         newValue.append(referencedItem.getUuid())
                     }
                     newValue.append(']')
                 }
                 else {
-                    def referencedItem = agent.getItem("$moduleNs/${referencedItemType}s/$fieldValue")
+                    def referencedItem = agent.getItem("$moduleNs/${typeFolder}/$fieldValue")
                     newValue.append(referencedItem.getUuid())
                 }
 
