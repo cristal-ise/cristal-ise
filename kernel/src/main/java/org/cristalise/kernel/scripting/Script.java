@@ -275,7 +275,7 @@ public class Script implements DescriptionObject {
 
         try {
             log.trace("Loaded consoleScript: {}", scriptText);
-            engine.put(ScriptEngine.FILENAME, "consoleScript init script");
+            engine.put(ScriptEngine.FILENAME, "consoleScript."+lang+".txt");
             engine.eval(scriptText);
         }
         catch (ScriptException ex) {
@@ -744,8 +744,6 @@ public class Script implements DescriptionObject {
                 throw new ScriptingEngineException("Script engine not set. Cannot execute scripts.");
             }
 
-            context.setAttribute(ScriptEngine.FILENAME, mName, ScriptContext.ENGINE_SCOPE);
-
             if (mCompScript != null) returnValue = mCompScript.eval(context);
             else                     returnValue = engine.eval(mScript);
 
@@ -913,7 +911,7 @@ public class Script implements DescriptionObject {
         if (engine instanceof Compilable) {
             try {
                 log.debug("setScriptData() - Compiling script "+mName);
-                engine.put(ScriptEngine.FILENAME, mName);
+                engine.put(ScriptEngine.FILENAME, mName+"."+mLanguage.toLowerCase());
                 mCompScript = ((Compilable)engine).compile(mScript);
             }
             catch (ScriptException e) {

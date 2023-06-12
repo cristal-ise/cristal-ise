@@ -29,14 +29,17 @@ import static org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFrom
 import org.atteo.evo.inflector.English
 import org.cristalise.dev.dsl.DevXMLUtility
 import org.cristalise.dev.utils.CrudFactoryHelper
+import org.cristalise.dev.utils.PredefinedStepsOutcomeBuilder
 import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.dsl.csv.TabularGroovyParserBuilder
+import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.collection.DependencyMember
 import org.cristalise.kernel.common.ObjectAlreadyExistsException
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.Erase
 import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.persistency.outcomebuilder.Field
@@ -45,6 +48,7 @@ import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.StandardClient
 import org.cristalise.kernel.utils.LocalObjectLoader
+import org.json.JSONArray
 
 import groovy.cli.picocli.CliBuilder
 import groovy.transform.CompileDynamic
@@ -166,7 +170,6 @@ class CRUDItemCreator extends StandardClient {
 
         record.each { fieldName, fieldValue ->
             def field = (Field)builder.findChildStructure((String)fieldName)
-            StringBuffer newValue = new StringBuffer()
 
             String referencedItemType = field?.getAppInfoNodeElementValue('reference', 'itemType')
 
@@ -174,22 +177,58 @@ class CRUDItemCreator extends StandardClient {
                 def typeFolder = English.plural(referencedItemType)
                 Boolean isMultiple = field.getAppInfoNodeElementValue('dynamicForms', 'multiple') as Boolean
 
+                // use JSONArray format
                 if (isMultiple) {
-                    newValue.append('[')
+                    def jsonarray = new JSONArray()
+
                     fieldValue.toString().split(',').each { value ->
-                        if (newValue.toString() != '[') newValue.append(',')
                         def referencedItem = agent.getItem("$moduleNs/${typeFolder}/$value")
-                        newValue.append(referencedItem.getUuid())
+                        jsonarray.put(referencedItem.getUuid())
                     }
-                    newValue.append(']')
+
+                    record[fieldName] = jsonarray.toString()
                 }
                 else {
                     def referencedItem = agent.getItem("$moduleNs/${typeFolder}/$fieldValue")
-                    newValue.append(referencedItem.getUuid())
+                    record[fieldName] = referencedItem.getUuid()
                 }
 
-                log.debug('convertItemNamesToUuid() - field:{} replacing value {} with {}', fieldName, fieldValue, newValue)
-                record[fieldName] = newValue.toString()
+                log.debug('convertItemNamesToUuid() - field:{} replacing value {} with {}', fieldName, fieldValue, record[fieldName])
+            }
+        }
+    }
+
+    private updateOutcomeWithAddMembersToCollection(ItemProxy newItem, Map record, Outcome outcome) {
+        def oBuilder = new OutcomeBuilder(outcome.schema, outcome)
+
+        record.each { fieldName, fieldValue ->
+            def field = (Field)oBuilder.findChildStructure((String)fieldName)
+
+            String referencedItemType = field?.getAppInfoNodeElementValue('reference', 'itemType')
+
+            if (referencedItemType) {
+                def dependencyName = English.plural(referencedItemType)
+                Dependency dependency = (Dependency)newItem.getCollection(dependencyName)
+
+                Boolean isMultiple = field.getAppInfoNodeElementValue('dynamicForms', 'multiple') as Boolean
+                List<ItemPath> memberPathes = []
+
+                if (isMultiple) {
+                    def jsonarray = new JSONArray(fieldValue as String)
+
+                    for (int i = 0; i < jsonarray.length(); i++) {
+                        def uuid = jsonarray.getString(i)
+                        memberPathes << agent.getItemByUUID(uuid).path
+                    }
+                }
+                else {
+                    memberPathes << agent.getItemByUUID(fieldValue as String).path
+                }
+
+                for (def memberPath: memberPathes) {
+                    def predefStepOBuilder = new PredefinedStepsOutcomeBuilder(newItem, outcome, outcome.schema)
+                    predefStepOBuilder.updateOutcomeWithAddMembersToCollection(dependencyName, memberPath)
+                }
             }
         }
     }
@@ -203,8 +242,8 @@ class CRUDItemCreator extends StandardClient {
      * @param record
      */
     protected void updateItem(ItemProxy newItem, Schema updateSchema, Map record) {
-        def itemUpdateJob = newItem.getJobByName('Update', agent)
-        assert itemUpdateJob, "Cannot get Job for Activity 'Update' of Item '$newItem'"
+        def updateJob = newItem.getJobByName('Update', agent)
+        assert updateJob, "Cannot get Job for Activity 'Update' of Item '$newItem'"
 
         Outcome outcome = null
 
@@ -214,10 +253,12 @@ class CRUDItemCreator extends StandardClient {
         else {
             convertItemNamesToUuid(record, updateSchema)
             outcome = new Outcome(DevXMLUtility.recordToXML(updateSchema.getName(), record), updateSchema)
+
+            updateOutcomeWithAddMembersToCollection(newItem, record, outcome)
         }
 
-        itemUpdateJob.setOutcome(outcome)
-        agent.execute(itemUpdateJob)
+        updateJob.setOutcome(outcome)
+        agent.execute(updateJob)
 
         log.info('updateItem() - updated:{}', newItem)
 

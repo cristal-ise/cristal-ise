@@ -156,8 +156,10 @@ class CRUDGenerator {
             }
         }
 
-        def itemDir = new File("${rootDir}/module/${item.name}")
-        def scriptDir = new File("${rootDir}/module/${item.name}/script")
+        def packageName = (item.name).uncapitalize()
+
+        def itemDir = new File("${rootDir}/module/${packageName}")
+        def scriptDir = new File("${rootDir}/module/${packageName}/script")
         scriptDir.mkdirs()
 
         new File(itemDir,   "${item.name}.groovy").write(mvelGenerate('item_groovy.tmpl',           inputs));

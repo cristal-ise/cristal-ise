@@ -17,6 +17,8 @@ def xlsxFile = new File(moduleDir+'/@{inputFile}')
 Schema('@{item.name}', 0, xlsxFile)
 Schema('@{item.name}_Details', 0, xlsxFile)
 
+@code{packageName = item.name.uncapitalize()}
+
 @else{}
 Schema('@{item.name}', @{version}) {
     struct(name:' @{item.name}', documentation: '@{item.name} aggregated data') {
@@ -56,13 +58,13 @@ Activity('@{item.name}_Update', @{version}) {
 Script('@{item.name}_Aggregate', @{version}) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
     output('@{item.name}XML', 'java.lang.String')
-    script('groovy', moduleDir+'/@{item.name}/script/Aggregate.groovy')
+    script('groovy', moduleDir+'/@{packageName}/script/@{item.name}_Aggregate.groovy')
 }
 
 Script('@{item.name}_QueryList', @{version}) {
     input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
     output('@{item.name}Map', 'java.util.Map')
-    script('groovy', moduleDir+'/@{item.name}/script/QueryList.groovy')
+    script('groovy', moduleDir+'/@{packageName}/script/@{item.name}_QueryList.groovy')
 }
 
 Activity('@{item.name}_Aggregate', @{version}) {

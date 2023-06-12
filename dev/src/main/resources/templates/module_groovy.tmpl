@@ -29,7 +29,7 @@ Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{version}) {
     include(moduleDir+'/CommonDefs.groovy')
 
 @foreach{fileName : moduleFiles}
-    @code{itemName = fileName.substring(0, fileName.lastIndexOf('.'))}
-    include(moduleDir+'/@{itemName}/@{fileName}')
+    @code{folderName = fileName.substring(0, fileName.lastIndexOf('.')).uncapitalize()}
+    include(moduleDir+'/@{folderName}/@{fileName}')
 @end{}
 }
