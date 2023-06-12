@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
@@ -35,6 +36,7 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -46,9 +48,9 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
+import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
-import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.AgentPath;
@@ -78,9 +80,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class PredefinedStep extends Activity {
 
-    private boolean         isPredefined = false;
-    public static final int DONE         = 0;
-    public static final int AVAILABLE    = 0;
+    public static final int DONE      = 0;
+    public static final int AVAILABLE = 0;
 
     /**
      * Order is important
@@ -88,48 +89,47 @@ public abstract class PredefinedStep extends Activity {
     @Getter
     private Map<ItemPath, String> autoUpdates = new  LinkedHashMap<ItemPath, String>();
 
-    public PredefinedStep() {
+
+    public PredefinedStep(String schemaName, String description) {
         super();
         setBuiltInProperty(STATE_MACHINE_NAME, StateMachine.getDefaultStateMachine("Predefined"));
-        setBuiltInProperty(SCHEMA_NAME, "PredefinedStepOutcome");
-        setBuiltInProperty(SCHEMA_VERSION, "0");
+
+        if (StringUtils.isBlank(schemaName)) schemaName = "PredefinedStepOutcome"; 
+
+        try {
+            LocalObjectLoader.getSchema(schemaName, 0); // checks if the Schema is available
+            setBuiltInProperty(SCHEMA_NAME, schemaName);
+            setBuiltInProperty(SCHEMA_VERSION, "0");
+        }
+        catch (ObjectNotFoundException | InvalidDataException e) {
+            throw new TypeNotPresentException("Cannot find Schema:"+schemaName, e);
+        }
+
+        if (StringUtils.isNotBlank(description)) setBuiltInProperty(DESCRIPTION, description);
+
+        setName(this.getClass().getSimpleName());
+        setType(this.getClass().getSimpleName());
+
+        setCentrePoint(new GraphPoint());
+    }
+
+    public PredefinedStep(String description) {
+        this(null, description);
     }
 
     @Override
     public boolean getActive() {
-        if (isPredefined) return true;
-        else              return super.getActive();
+        return true;
     }
 
     @Override
     public String getErrors() {
-        if (isPredefined) return getName();
-        else              return super.getErrors();
+        return super.getErrors();
     }
 
     @Override
     public boolean verify() {
-        if (isPredefined) return true;
-        else              return super.verify();
-    }
-
-    /**
-     * Returns the isPredefined.
-     *
-     * @return boolean
-     */
-    public boolean getIsPredefined() {
-        return isPredefined;
-    }
-
-    /**
-     * Sets the isPredefined.
-     *
-     * @param isPredefined
-     *            The isPredefined to set
-     */
-    public void setIsPredefined(boolean isPredefined) {
-        this.isPredefined = isPredefined;
+        return true;
     }
 
     @Override

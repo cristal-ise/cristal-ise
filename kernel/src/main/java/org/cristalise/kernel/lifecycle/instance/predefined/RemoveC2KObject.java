@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RemoveC2KObject extends PredefinedStep {
     public RemoveC2KObject() {
-        super();
+        super("Removes the named C2Kernel object from this Item.");
     }
 
     // requestdata is xmlstring

@@ -42,7 +42,6 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -66,12 +65,13 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
     public static final String description = "Updates the Collections of the Item from its description";
 
     public UpdateCollectionsFromDescription() {
-        super();
+        super(description);
     }
 
     /**
      * 
      */
+    @SuppressWarnings("unchecked")
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws  InvalidDataException,
                     InvalidCollectionModification,

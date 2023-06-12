@@ -41,8 +41,11 @@ public class ImportImportAgent extends PredefinedStep {
     public static final String description = "Creates or updates the Agent created using ImportAgent object";
 
     public ImportImportAgent() {
-        super();
-        setBuiltInProperty(SCHEMA_NAME, "Agent");
+        super("Agent", description);
+    }
+
+    public ImportImportAgent(String desc) {
+        super(desc);
     }
 
     @Override

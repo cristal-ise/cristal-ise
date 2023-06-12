@@ -21,7 +21,6 @@
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.MEMBER_ADD_SCRIPT;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 
 import org.cristalise.kernel.collection.Collection.Cardinality;
 import org.cristalise.kernel.collection.Dependency;
@@ -46,8 +45,7 @@ public class AddMembersToCollection extends ManageMembersOfCollectionBase {
     public static final String description = "Adds many members to the named Collection of the Item";
 
     public AddMembersToCollection() {
-        super();
-        this.setBuiltInProperty(SCHEMA_NAME, "Dependency");
+        super("Dependency", description);
     }
     
     @Override

@@ -7,7 +7,6 @@ import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.common.InvalidCollectionModification
 import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.ItemProxy
-import org.cristalise.kernel.lifecycle.instance.predefined.AddMemberToCollection
 import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection
 import org.cristalise.kernel.lifecycle.instance.predefined.Erase
 import org.cristalise.kernel.lifecycle.instance.predefined.UpdateDependencyMember
@@ -97,7 +96,7 @@ class ItemWithCollectionIT extends KernelScenarioTestBase {
         //memberProps1.put("MemberUpdateSchema", "Patient:0");
         dep0.addMember(patients[0].getPath(), memberProps1, '', null);
 
-        agent.execute(doctor, AddMemberToCollection, Gateway.marshaller.marshall(dep0))
+        agent.execute(doctor, AddMembersToCollection, Gateway.marshaller.marshall(dep0))
 
         def dep = new Dependency("Patients");
 

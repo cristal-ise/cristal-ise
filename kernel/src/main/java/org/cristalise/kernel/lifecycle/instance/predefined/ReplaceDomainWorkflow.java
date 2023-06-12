@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ReplaceDomainWorkflow extends PredefinedStep {
     public ReplaceDomainWorkflow() {
-        super();
+        super("Replaces the domain CA with the supplied one. Used by the GUI to save new Wf layout");
     }
 
     @Override

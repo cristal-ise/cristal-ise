@@ -38,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SetAgentRoles extends PredefinedStep {
 
     public SetAgentRoles() {
-        super();
+        super("Sets the roles of the Agent");
     }
 
     @Override

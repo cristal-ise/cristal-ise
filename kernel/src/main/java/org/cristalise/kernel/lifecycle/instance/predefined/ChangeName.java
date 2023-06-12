@@ -45,7 +45,7 @@ public class ChangeName extends PredefinedStep {
     public static final String description = "Removes Items old Name, add the new Name and changes the Name property";
 
     public ChangeName() {
-        super();
+        super(description);
     }
 
     @Override

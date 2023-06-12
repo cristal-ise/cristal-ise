@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WriteViewpoint extends PredefinedStep {
 
     public WriteViewpoint() {
-        super();
+        super("Writes a viewpoint to the Item");
     }
 
     /**

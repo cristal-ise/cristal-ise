@@ -23,7 +23,6 @@ package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 import static org.cristalise.kernel.SystemProperties.Lifecycle_Sign_agentNameField;
 import static org.cristalise.kernel.SystemProperties.Lifecycle_Sign_passwordField;
 import static org.cristalise.kernel.SystemProperties.Lifecycle_Sign_signedFlagField;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -44,15 +43,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Sign extends Authenticate {
 
-    public static final String description = "Autehnticates the given user and records the Sign event in the system togther with the execution context";
+    public static final String description = "Authenticates the given user and records the Sign event in the system together with the execution context";
 
     public static final String agentNameField  = Lifecycle_Sign_agentNameField.getString();
     public static final String passwordField   = Lifecycle_Sign_passwordField.getString();
     public static final String signedFlagField = Lifecycle_Sign_signedFlagField.getString();
 
     public Sign() {
-        super();
-        setBuiltInProperty(SCHEMA_NAME, "SimpleElectonicSignature");
+        super("SimpleElectonicSignature", description);
     }
 
     @Override
