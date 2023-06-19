@@ -54,7 +54,6 @@ public class JooqOnDuplicateKeyUpdateTest {
     @After
     public void after() {
         dropTable();
-        context.close();
     }
 
     public void openH2() throws Exception {

@@ -121,6 +121,5 @@ public class JooqAuthenticator implements Authenticator {
 
     @Override
     public void disconnect() {
-        context.close();
     }
 }

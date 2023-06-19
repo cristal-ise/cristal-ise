@@ -69,7 +69,6 @@ public class JooqSqlXmlTest {
     @After
     public void after() {
         dropTable();
-        context.close();
     }
 
     public void openPostgres() throws Exception {

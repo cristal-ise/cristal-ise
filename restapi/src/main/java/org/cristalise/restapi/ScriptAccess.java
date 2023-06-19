@@ -141,7 +141,8 @@ public class ScriptAccess extends ResourceAccess {
      * @return
      */
     private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie) {
-        try (DSLContext context = JooqDataSourceHandler.retrieveContext(null)) {
+        try {
+            DSLContext context = JooqDataSourceHandler.retrieveContext(null);
             return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, ImmutableMap.of("dsl", context)).cookie(cookie).build();
         }
         catch (DataAccessException | PersistencyException e) {
