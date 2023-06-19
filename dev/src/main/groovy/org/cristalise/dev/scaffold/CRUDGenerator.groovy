@@ -126,9 +126,15 @@ class CRUDGenerator {
 
         inputs.rootDir = rootDir
         inputs.prefix = prefix
-        if (inputs.item) inputs.itemVar = prefix + StringUtils.uncapitalize(inputs.item as String)
+        if (inputs.item) {
+            inputs.itemVar = prefix + StringUtils.uncapitalize(inputs.item as String)
+            inputs.itemPackage = StringUtils.uncapitalize(inputs.item as String)
+        }
         inputs.resourceRootDir = resourceRootDir
         if (moduleXmlDir) inputs.moduleXmlDir = moduleXmlDir
+
+        def packageDir = inputs.rootPackage.toString().replace('.', '/')
+        inputs.resourceURL = "${packageDir}/resources/"
 
         if (!inputs.containsKey('generateProperty')) inputs.generateProperty = false
     }
@@ -146,7 +152,7 @@ class CRUDGenerator {
         def item = (CRUDItem) inputs['item']
 
         if (inputs['generatedName']) {
-            if (!inputs['idPrefix'])    inputs['idPrefix'] = 'ID'
+            if (!inputs['idPrefix'])    inputs['idPrefix']    = 'ID'
             if (!inputs['leftPadSize']) inputs['leftPadSize'] = '6'
         }
 
@@ -156,15 +162,16 @@ class CRUDGenerator {
             }
         }
 
-        def packageName = (item.name).uncapitalize()
+        def packageDir = inputs.rootPackage.toString().replace('.', '/')
 
-        def itemDir = new File("${rootDir}/module/${packageName}")
-        def scriptDir = new File("${rootDir}/module/${packageName}/script")
+        def itemDir = new File("${rootDir}/module/${packageDir}/${item.name.uncapitalize()}")
+        def scriptDir = new File("${itemDir}/script")
+
         scriptDir.mkdirs()
 
-        new File(itemDir,   "${item.name}.groovy").write(mvelGenerate('item_groovy.tmpl',           inputs));
-        new File(scriptDir, "Aggregate.groovy")   .write(mvelGenerate('item_aggregate_groovy.tmpl', inputs));
-        new File(scriptDir, "QueryList.groovy")   .write(mvelGenerate('item_queryList_groovy.tmpl', inputs));
+        new File(itemDir,   "${item.name}.groovy")          .write(mvelGenerate('item_groovy.tmpl',           inputs));
+        new File(scriptDir, "${item.name}_Aggregate.groovy").write(mvelGenerate('item_aggregate_groovy.tmpl', inputs));
+        new File(scriptDir, "${item.name}_QueryList.groovy").write(mvelGenerate('item_queryList_groovy.tmpl', inputs));
     }
 
     /**
@@ -228,7 +235,10 @@ class CRUDGenerator {
     public generateModuleDSL(Map<String, Object> inputs) {
         setInputs(inputs)
 
-        def moduleDir = new File("${rootDir}/module")
+        def packageDir = inputs.rootPackage.toString().replace('.', '/')
+        def moduleDir = new File("${rootDir}/module/${packageDir}")
+
+        moduleDir.mkdirs()
 
         if (!inputs['moduleFiles']) {
             inputs['moduleFiles'] = []
@@ -244,7 +254,7 @@ class CRUDGenerator {
         log.info('generateModuleDSL() - files:{}', inputs['moduleFiles'])
 
         new File(moduleDir, 'CommonDefs.groovy').write(mvelGenerate('commonDefs_groovy.tmpl', inputs));
-        new File(moduleDir, 'Module.groovy').write(mvelGenerate('module_groovy.tmpl', inputs));
+        new File(moduleDir, 'Module.groovy')    .write(mvelGenerate('module_groovy.tmpl',     inputs));
 
         if (inputs.puml ) new File(moduleDir, "Module.puml").write(inputs.puml as String)
     }
@@ -315,6 +325,7 @@ class CRUDGenerator {
                 item:           item,
                 version:        0,
                 moduleNs:       crudModule.namespace,
+                rootPackage:    crudModule.rootPackage,
                 useConstructor: false,
                 isAgent:        false,
                 generatedName:  false,
@@ -330,7 +341,7 @@ class CRUDGenerator {
             def inputs = [
                 moduleName:   crudModule.name,
                 version:      0,
-                resourceURL:  crudModule.resourceURL,
+                rootPackage:  crudModule.rootPackage,
                 moduleNs:     crudModule.namespace,
                 inputFile:    null,
                 moduleXmlDir: null,

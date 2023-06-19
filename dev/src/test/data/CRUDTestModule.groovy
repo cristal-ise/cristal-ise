@@ -1,4 +1,4 @@
-Module(namespace: 'devtest', webuiConfigs: true) {
+Module(namespace: 'devtest', rootPackage: 'org.cristalise.devtest', webuiConfigs: true) {
     Item(name: 'Car') {
         field(name: 'RegistrationPlate')
     }

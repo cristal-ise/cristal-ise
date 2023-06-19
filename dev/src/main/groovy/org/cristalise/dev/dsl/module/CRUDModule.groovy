@@ -31,8 +31,8 @@ class CRUDModule {
 
     String name
     String namespace
-    String resourceURL
-
+    String rootPackage
+    
     /**
      * Set this to true in the DSL file to trigger the generation of the Module.groovy
      */

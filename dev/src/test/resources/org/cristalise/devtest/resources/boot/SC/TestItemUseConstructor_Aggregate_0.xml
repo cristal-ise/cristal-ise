@@ -2,20 +2,17 @@
   <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
   <output name="TestItemUseConstructorXML" type="java.lang.String"/>
   <script language="groovy" name="TestItemUseConstructor_Aggregate">
-    <![CDATA[ import org.cristalise.kernel.persistency.outcome.Outcome
+    <![CDATA[ package org.cristalise.devtest.testItemUseConstructor.script
+
+import org.cristalise.kernel.persistency.outcome.Outcome
+
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import groovy.xml.MarkupBuilder
+import groovy.transform.Field
 
-//--------------------------------------------------
-// item, agent and job are injected by the Script class
-// automatically so these declaration are only needed
-// to write the script with code completion.
-// COMMENT OUT before you run the module generators
-//--------------------------------------------------
-// ItemProxy item
-// AgentProxy agent
-// Job job
-//--------------------------------------------------
+@Field final Logger log = LoggerFactory.getLogger(this.class)
 
 def detailsSchema = 'TestItemUseConstructor_Details'
 

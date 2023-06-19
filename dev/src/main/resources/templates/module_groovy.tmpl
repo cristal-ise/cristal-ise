@@ -1,3 +1,5 @@
+package @{rootPackage}
+
 @BaseScript(org.cristalise.dsl.module.ModuleScriptBase)
 import groovy.transform.BaseScript
 import groovy.transform.SourceURI
@@ -27,9 +29,8 @@ Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{version}) {
     }
 
     include(moduleDir+'/CommonDefs.groovy')
-
 @foreach{fileName : moduleFiles}
-    @code{folderName = fileName.substring(0, fileName.lastIndexOf('.')).uncapitalize()}
+    @code{folderName = org.apache.commons.lang3.StringUtils.uncapitalize(fileName.substring(0, fileName.lastIndexOf('.')))}
     include(moduleDir+'/@{folderName}/@{fileName}')
 @end{}
 }
