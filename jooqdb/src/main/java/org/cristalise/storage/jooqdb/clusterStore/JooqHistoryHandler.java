@@ -39,7 +39,6 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
