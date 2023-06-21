@@ -1,6 +1,5 @@
 <cristalscript>
-  <script language="groovy" name="CrudEntity_ChangeName">
-    <![CDATA[ /**
+  <script language="groovy" name="CrudEntity_ChangeName"><![CDATA[ /**
  * This file is part of the CRISTAL-iSE Development Module.
  * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
@@ -49,6 +48,5 @@ else if (newName != currentName) {
 }
 else {
     log.warn 'New name is equal to the current one. Nothing done!'
-} ]]>
-  </script>
+} ]]></script>
 </cristalscript>

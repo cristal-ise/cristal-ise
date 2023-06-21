@@ -43,7 +43,7 @@
         <module>dsl</module>
         <!--module>testing</module-->
         <module>service</module>
-        <module>js-rhino</module>
+        <!--module>js-rhino</module-->
         <!--module>module-archetype</module-->
     </modules>
 
@@ -375,12 +375,6 @@
                 <version>1.4.1</version>
             </dependency>
             <dependency>
-                <groupId>org.python</groupId>
-                <artifactId>jython</artifactId>
-                <version>2.7.2</version>
-                <scope>runtime</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.codehaus.castor</groupId>
                 <artifactId>castor-xml</artifactId>
                 <version>1.4.1</version>
@@ -418,7 +412,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.8</version>
+                <version>1.18.28</version>
             </dependency>
             <dependency>
                 <groupId>org.mvel</groupId>
@@ -458,7 +452,7 @@
             <dependency>
                 <groupId>com.h2database</groupId>
                 <artifactId>h2</artifactId>
-                <version>2.0.202</version>
+                <version>2.1.214</version>
             </dependency>
             <!--                              -->
             <!-- common dependencies for test -->
@@ -563,6 +557,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.openjdk.nashorn</groupId>
+            <artifactId>nashorn-core</artifactId>
+            <version>15.4</version>
+        </dependency>
+        <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>2.12.2</version>
+        </dependency>
+        <dependency>
             <groupId>org.codehaus.castor</groupId>
             <artifactId>castor-xml-schema</artifactId>
             <exclusions>
@@ -581,11 +585,6 @@
                     <groupId>stax</groupId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.python</groupId>
-            <artifactId>jython</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.shiro</groupId>

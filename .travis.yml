@@ -1,6 +1,6 @@
 language: java
-jdk: openjdk11
-dist: bionic
+jdk: openjdk17
+dist: focal
 branches:
   only:
     - master
@@ -10,7 +10,7 @@ branches:
     - /^hotfix\/.*$/
 
 install:
-- mvn install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip -B -V
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip -B -V
 
 script:
   - |
@@ -21,6 +21,7 @@ script:
     else
       mvn -e clean install --settings .maven.xml -Dgpg.skip -B -V
     fi
+
 cache:
   directories:
     - $HOME/.m2

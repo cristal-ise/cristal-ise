@@ -136,7 +136,7 @@
         <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq</artifactId>
-            <version>3.16.19</version>
+            <version>3.17.13</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>

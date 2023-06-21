@@ -3,8 +3,7 @@
   <param name="agent" type="org.cristalise.kernel.entity.proxy.AgentProxy"/>
   <param name="job" type="org.cristalise.kernel.entity.Job"/>
   <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo"/>
-  <script language="groovy" name="CollDescCreator">
-    <![CDATA[ /**
+  <script language="groovy" name="CollDescCreator"><![CDATA[ /**
  * This file is part of the CRISTAL-iSE Development Module.
  * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
@@ -31,6 +30,5 @@ def name = job.getOutcome().getField("Name");
 def type = job.getOutcome().getField("Type");
 
 agent.execute(item, AddNewCollectionDescription, name, type);
- ]]>
-  </script>
+ ]]></script>
 </cristalscript>

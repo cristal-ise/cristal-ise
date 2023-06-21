@@ -26,6 +26,11 @@
     <param name="job" type="org.cristalise.kernel.entity.Job" />
     <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo" />
     <script language="javascript" name="DescriptionCollVersionLib"><![CDATA[
+
+//
+// NOT USED ANYMORE
+//
+
 function createDescCollVersion( name, version ) {
     var params = new Array(2);
     params[0] = name;
