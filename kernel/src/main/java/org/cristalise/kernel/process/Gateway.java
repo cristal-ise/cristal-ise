@@ -145,6 +145,7 @@ public class Gateway extends ProxyManager
 
         System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory");
         System.setProperty("hazelcast.logging.type", "slf4j");
+        System.setProperty("hazelcast.ignoreXxeProtectionFailures", "true");
 
         // Init properties & resources
         mC2KProps.clear();
