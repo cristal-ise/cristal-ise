@@ -41,8 +41,11 @@
         <module>restapi</module>
         <module>dev</module>
         <module>dsl</module>
+        <!-- Functuonal test cannot be run on travis at this stage -->
         <!--module>testing</module-->
-        <module>service</module>
+
+        <!-- These modules are not needed therefore are not maintained actively -->
+        <!--module>service</module-->
         <!--module>js-rhino</module-->
         <!--module>module-archetype</module-->
     </modules>
@@ -442,12 +445,12 @@
             <dependency>
                 <groupId>org.postgresql</groupId>
                 <artifactId>postgresql</artifactId>
-                <version>42.4.3</version>
+                <version>42.6.0</version>
             </dependency>
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
-                <version>8.0.28</version>
+                <version>8.0.33</version>
             </dependency>
             <dependency>
                 <groupId>com.h2database</groupId>
