@@ -49,7 +49,6 @@ import org.jooq.DSLContext;
 import org.jooq.DataType;
 import org.jooq.Record;
 import org.jooq.SQLDialect;
-import org.jooq.exception.ConfigurationException;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;

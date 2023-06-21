@@ -38,22 +38,34 @@ for (i=0; i<existingViews.length; i++) {
     var thisView = parseInt(existingViews[i]);
     if (thisView != NaN && lastView < thisView) lastView = thisView;
 }
-
 if(lastView == -1) throw "No numbered version was found. Execute CreateNewNumberedVersionFromLast first";
 
-try {
-    var existingLast = agent.unmarshall(item.queryData("/ViewPoint/"+viewName+"/last"));
-}
-catch (e) {
-    throw "No last view found.";
+updateDependenciesVersion(lastView);
+updateViewpoint(viewName, lastView)
+
+//Reads all Dependencies of this Description Item and updates their version
+function updateDependenciesVersion(lastView) {
+    var allCollections = item.getContents("/Collection");
+
+    for (i = 0; i < allCollections.length; i++) {
+        //TODO: check if the collection is a Dependency
+        var params = new Array(2);
+        params[0] = allCollections[i]; // coll name
+        params[1] = lastView;          // coll version
+        agent.execute(item, "CreateNewCollectionVersion", params);
+    }
 }
 
-var params = new Array(3);
-params[0] = viewName;
-params[1] = lastView;
-params[2] = existingLast.getEventId();
-agent.execute(item, "WriteViewpoint", params);
+function updateViewpoint(viewName, lastView) {
+    var existingLast = item.getViewpoint(viewName, "last");
+    
+    var params = new Array(3);
+    params[0] = viewName;
+    params[1] = lastView;
+    params[2] = existingLast.getEventId();
+    
+    agent.execute(item, "WriteViewpoint", params);
 
-updateDescColls(viewName, lastView);
+}
     ]]></script>
 </cristalscript>

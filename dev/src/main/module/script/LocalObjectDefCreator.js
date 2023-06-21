@@ -31,10 +31,4 @@ var params = new Array(2);
 params[0] = name;
 params[1] = domPath;
 
-// Create the new item
-try {
-    agent.execute(item, "CreateItemFromDescription", params);
-}
-catch (e) {
-    throw "Could not create "+name+": "+e.message;
-}
+agent.execute(item, "CreateItemFromDescription", params);

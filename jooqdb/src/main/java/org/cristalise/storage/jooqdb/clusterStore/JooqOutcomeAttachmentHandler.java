@@ -34,10 +34,8 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
-import org.jooq.CreateTableColumnStep;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.InsertSetMoreStep;
@@ -149,19 +147,15 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
 
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
-        CreateTableColumnStep create = 
-                context.createTableIfNotExists(OUTCOME_ATTACHMENT_TABLE)
-                    .column(UUID,           UUID_TYPE      .nullable(false))
-                    .column(SCHEMA_NAME,    NAME_TYPE      .nullable(false))
-                    .column(SCHEMA_VERSION, VERSION_TYPE   .nullable(false))
-                    .column(EVENT_ID,       ID_TYPE        .nullable(false))
-                    .column(ATTACHMENT,     ATTACHMENT_TYPE.nullable(false))
-                    .column(FILE_NAME,      NAME_TYPE      .nullable(true));
-
-        create
-            .constraints(
-                constraint("PK_"+OUTCOME_ATTACHMENT_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
-            .execute();
+        context.createTableIfNotExists(OUTCOME_ATTACHMENT_TABLE)
+                .column(UUID, UUID_TYPE.nullable(false))
+                .column(SCHEMA_NAME, NAME_TYPE.nullable(false))
+                .column(SCHEMA_VERSION, VERSION_TYPE.nullable(false))
+                .column(EVENT_ID, ID_TYPE.nullable(false))
+                .column(ATTACHMENT, ATTACHMENT_TYPE.nullable(false))
+                .column(FILE_NAME, NAME_TYPE.nullable(true))
+                .constraints(constraint("PK_" + OUTCOME_ATTACHMENT_TABLE).primaryKey(UUID,SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
+                .execute();
     }
 
     @Override

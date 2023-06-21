@@ -272,18 +272,6 @@
             <artifactId>evo-inflector</artifactId>
             <version>1.3</version>
         </dependency>
-        <dependency>
-            <groupId>org.mozilla</groupId>
-            <artifactId>rhino</artifactId>
-            <version>1.7.14</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>de.christophkraemer</groupId>
-            <artifactId>rhino-script-engine</artifactId>
-            <version>1.1.1</version>
-            <scope>runtime</scope>
-        </dependency>
 
         <dependency>
             <groupId>org.awaitility</groupId>

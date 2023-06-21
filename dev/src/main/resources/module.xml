@@ -6,12 +6,6 @@
   <ResourceURL>org/cristalise/dev/resources/</ResourceURL>
   <Config name="OutcomeInit.Dev">org.cristalise.dev.DevObjectOutcomeInitiator</Config>
   <Config name="OutcomeInit.dev">org.cristalise.dev.DevObjectOutcomeInitiator</Config>
-  <Config name="Script.EngineOverride.javascript">rhino</Config>
-  <Config name="Script.EngineOverride.JavaScript">rhino</Config>
-  <Config name="Script.EngineOverride.js">rhino</Config>
-  <Config name="Script.EngineOverride.JS">rhino</Config>
-  <Config name="Script.EngineOverride.ECMAScript">rhino</Config>
-  <Config name="Script.EngineOverride.ecmascript">rhino</Config>
   <Imports>
     <DomainContextResource name="DescDevContext" version="0"/>
     <DomainContextResource name="DescActivityDescDevContext" version="0"/>

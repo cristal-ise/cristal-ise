@@ -47,7 +47,7 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         def item = ItemBuilder.build(name: "dummy", folder: "testing") {}
 
         then:
-        item.properties.size == 1
+        item.properties.size() == 1
         item.properties[0].name == "Name"
         item.properties[0].value == "dummy"
     }
@@ -60,7 +60,7 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         }
 
         then:
-        item.properties.size == 3
+        item.properties.size() == 3
         item.properties[0].name    == "Name"
         item.properties[0].value   == "userDefinedProps"
         item.properties[0].mutable == true
@@ -82,7 +82,7 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         item.wf
         item.wf.search("workflow/domain")
 
-        item.properties.size == 1
+        item.properties.size() == 1
     }
 
     def 'Item is built with specifing workfflow name and version'() {
@@ -96,7 +96,7 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         item.workflow == "TestWorkflow"
         item.workflowVer == 1
         
-        item.properties.size == 3
+        item.properties.size() == 3
     }
 
     def 'Item is built without workflow and a single Outcome'() {
@@ -106,7 +106,7 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         }
 
         then:
-        item.outcomes.size == 1
+        item.outcomes.size() == 1
         item.outcomes.get(0).schema == "PropertyDescription"
         item.outcomes.get(0).version == 0
         item.outcomes.get(0).viewname == "last"
@@ -124,10 +124,10 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         }
 
         then:
-        item.dependencyList.size == 1
+        item.dependencyList.size() == 1
         item.dependencyList.get(0).name == "workflow"
         item.dependencyList.get(0).isDescription == false
-        item.dependencyList.get(0).dependencyMemberList.size == 1
+        item.dependencyList.get(0).dependencyMemberList.size() == 1
         item.dependencyList.get(0).dependencyMemberList.get(0).itemPath == "/desc/ActivityDesc/domain/TestWorkflow"
         item.dependencyList.get(0).dependencyMemberList.get(0).props.size() == 1
         item.dependencyList.get(0).dependencyMemberList.get(0).props.get("Version") == 0
@@ -144,10 +144,10 @@ class ItemBuilderSpecs extends Specification implements CristalTestSetup {
         }
 
         then:
-        item.dependencyList.size == 1
+        item.dependencyList.size() == 1
         item.dependencyList.get(0).name == "workflow"
         item.dependencyList.get(0).isDescription == true
-        item.dependencyList.get(0).dependencyMemberList.size == 1
+        item.dependencyList.get(0).dependencyMemberList.size() == 1
         item.dependencyList.get(0).dependencyMemberList.get(0).itemPath == "/desc/ActivityDesc/domain/TestWorkflow"
         item.dependencyList.get(0).dependencyMemberList.get(0).props.size() == 1
         item.dependencyList.get(0).dependencyMemberList.get(0).props.get("Version") == 0

@@ -50,8 +50,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CastorXMLUtility {
 
-    public static final String CASTOR_XML_SERIALIZER_FACTORY = "org.exolab.castor.xml.serializer.factory";
-
     private XMLContext mappingContext;
 
     /**
@@ -102,18 +100,9 @@ public class CastorXMLUtility {
                 }
             }
 
+            // check file castor.properties available in the root
             mappingContext = new XMLContext();
             mappingContext.setClassLoader(defaultClassLoader);
-
-            // if the aAppProperties contains castor properties then
-            if (aAppProperties != null && aAppProperties.containsKey(CASTOR_XML_SERIALIZER_FACTORY)) {
-
-                mappingContext.setProperty(CASTOR_XML_SERIALIZER_FACTORY, aAppProperties.getProperty(CASTOR_XML_SERIALIZER_FACTORY));
-
-                log.info("<init>: castor prop: {}=[{}]", CASTOR_XML_SERIALIZER_FACTORY,
-                        mappingContext.getProperty(CASTOR_XML_SERIALIZER_FACTORY));
-            }
-
             mappingContext.addMapping(thisMapping);
         }
         catch (MappingException | IOException ex) {

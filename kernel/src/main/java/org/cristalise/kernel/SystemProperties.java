@@ -282,10 +282,11 @@ public enum SystemProperties implements SystemPropertyOperations {
      */
     Module_Versioning_strict("Module.Versioning.strict", false),
     /**
-     * Enable to use DOM instead of string during {@link Outcome#validate()}. Default value is 'true'.
-     * It was added to investigate strange Apache Xerces xml corruption issue.
+     * Enable to use DOM instead of string during {@link Outcome#validate()}. Default value is 'false'.
+     * It was added to investigate strange Apache Xerces xml corruption issue. Default value 'false' is 
+     * required since the migration to java 17 and the xerces dependency update on pom.xml
      */
-    Outcome_Validation_useDOM("Outcome.Validation.useDOM", true),
+    Outcome_Validation_useDOM("Outcome.Validation.useDOM", false),
     /**
      * Specifies an {@link OutcomeInitiator} implementation to use to create new empty Outcomes. 
      * Will be invoked from Job.getOutcome() for Activities with an 'OutcomeInit' property set to the given name.

@@ -1,8 +1,7 @@
 <cristalscript>
   <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
   <output name="CarMap" type="java.util.Map"/>
-  <script language="groovy" name="Car_QueryList">
-    <![CDATA[ package org.cristalise.devtest.car.script
+  <script language="groovy" name="Car_QueryList"><![CDATA[ package org.cristalise.devtest.car.script
 
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.lookup.DomainPath
@@ -27,6 +26,5 @@ for (DomainPath dp: result.rows) {
 }
 
 return CarMap
- ]]>
-  </script>
+ ]]></script>
 </cristalscript>

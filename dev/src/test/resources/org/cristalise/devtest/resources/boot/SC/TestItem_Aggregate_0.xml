@@ -1,8 +1,7 @@
 <cristalscript>
   <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
   <output name="TestItemXML" type="java.lang.String"/>
-  <script language="groovy" name="TestItem_Aggregate">
-    <![CDATA[ package org.cristalise.devtest.testItem.script
+  <script language="groovy" name="TestItem_Aggregate"><![CDATA[ package org.cristalise.devtest.testItem.script
 
 import org.cristalise.kernel.persistency.outcome.Outcome
 
@@ -42,6 +41,5 @@ xml."$type" {
 
 //check if this variable was defined as output
 TestItemXML = writer.toString()
- ]]>
-  </script>
+ ]]></script>
 </cristalscript>
