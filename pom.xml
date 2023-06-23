@@ -58,10 +58,10 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <additionalparam>-Xdoclint:none</additionalparam>
         <maven.deploy.skip>true</maven.deploy.skip>
-        <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
         <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
-        <source.version>1.8</source.version>
-        <target.version>1.8</target.version>
+        <source.version>17</source.version>
+        <target.version>17</target.version>
         <groovy.version>3.0.17</groovy.version>
         <groovy-eclipse-compiler.version>3.8.0</groovy-eclipse-compiler.version>
         <groovy-eclipse-batch.version>3.0.17-02</groovy-eclipse-batch.version>
@@ -425,7 +425,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>29.0-jre</version>
+                <version>32.0.1-jre</version>
             </dependency>
             <dependency>
                 <groupId>org.json</groupId>
@@ -568,7 +568,12 @@
             <groupId>xerces</groupId>
             <artifactId>xercesImpl</artifactId>
             <version>2.12.2</version>
-        </dependency>
+            <exclusions>
+                <exclusion>
+                    <groupId>xml-apis</groupId>
+                    <artifactId>xml-apis</artifactId>
+                </exclusion>
+            </exclusions>        </dependency>
         <dependency>
             <groupId>org.codehaus.castor</groupId>
             <artifactId>castor-xml-schema</artifactId>
