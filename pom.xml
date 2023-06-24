@@ -52,7 +52,7 @@
 
     <properties>
         <revision>6.0.0-SNAPSHOT</revision>
-        <vertx.version>4.4.0</vertx.version>
+        <vertx.version>4.4.4</vertx.version>
         <productionMode>false</productionMode>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -68,6 +68,7 @@
         <slf4j.version>1.7.26</slf4j.version>
         <spock.version>2.0-groovy-3.0</spock.version>
         <spockReports.version>2.1.1-groovy-3.0</spockReports.version>
+        <lombok.version>1.18.28</lombok.version>
     </properties>
 
     <description>Cristal-ise is a description-driven software platform originally developed to track the construction of
@@ -160,6 +161,22 @@
                 <configuration>
                     <source>${source.version}</source>
                     <target>${target.version}</target>
+                    <useIncrementalCompilation>false</useIncrementalCompilation>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>io.vertx</groupId>
+                            <artifactId>vertx-codegen</artifactId>
+                            <version>${vertx.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                    <annotationProcessors>
+                        <annotationProcessor>io.vertx.codegen.CodeGenProcessor</annotationProcessor>
+                    </annotationProcessors>
                 </configuration>
             </plugin>
         </plugins>
@@ -415,7 +432,7 @@
             <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.28</version>
+                <version>${lombok.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.mvel</groupId>

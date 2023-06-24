@@ -5,7 +5,7 @@ module cristalise.kernel {
     requires java.desktop;
     requires java.sql;
 
-//    requires castor.core;
+    requires castor.core;
     requires castor.xml;
     requires castor.xml.schema;
 
@@ -20,15 +20,15 @@ module cristalise.kernel {
 
     requires com.google.common;
     requires com.google.errorprone.annotations;
-    
+
+    requires com.hazelcast.core;
     requires com.fasterxml.jackson.core;
     requires io.vertx.core;
-    uses io.vertx.codegen;
     requires io.vertx.shell;
     requires io.vertx.serviceproxy;
     requires io.vertx.auth.common;
     requires io.vertx.eventbusbridge.common;
     requires io.vertx.clustermanager.hazelcast;
-    requires com.hazelcast.core;
-//    requires vertx.codegen;
+    requires vertx.tcp.eventbus.bridge;
+    requires static io.vertx.codegen;
 }
