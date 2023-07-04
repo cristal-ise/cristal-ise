@@ -25,6 +25,7 @@ import static org.cristalise.storage.jooqdb.JooqHandler.getPrimaryKeys;
 import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_disableDomainCreateTables;
 import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_domainHandlers;
 
+import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLXML;
@@ -70,9 +71,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class JooqClusterStorage extends ClusterStorage {
 
-    protected HashMap<ClusterType, JooqHandler>     jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
-    protected List<JooqDomainHandler>               domainHandlers = new ArrayList<JooqDomainHandler>();
-    protected ConcurrentHashMap<Object, Connection> connectionMap  = new ConcurrentHashMap<Object, Connection>();
+    protected Map<ClusterType, JooqHandler> jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
+    protected List<JooqDomainHandler>       domainHandlers = new ArrayList<JooqDomainHandler>();
 
     @Override
     public void open(Authenticator auth) throws PersistencyException {
@@ -100,10 +100,11 @@ public class JooqClusterStorage extends ClusterStorage {
         DSLContext context = retrieveContext(null);
 
         if (!JooqDataSourceHandler.readOnlyDataSource) {
-            context.transaction(nested -> {
-                for (JooqHandler handler : jooqHandlers.values())
-                    handler.createTables(DSL.using(nested));
+            context.transaction(nestedConfig -> {
+                DSLContext nestedContext = DSL.using(nestedConfig);
+                for (JooqHandler handler : jooqHandlers.values()) handler.createTables(nestedContext);
             });
+
             initialiseDomainHandlers(context);
         }
     }
@@ -114,25 +115,24 @@ public class JooqClusterStorage extends ClusterStorage {
      * @throws PersistencyException Error during initialise ...
      */
     private void initialiseDomainHandlers(DSLContext context) throws PersistencyException {
+        String handlersCsv = JOOQ_domainHandlers.getString();
         try {
-            String handlers = JOOQ_domainHandlers.getString();
-
-            for(String handlerClass: StringUtils.split(handlers, ",")) {
+            for(String handlerClass: StringUtils.split(handlersCsv, ",")) {
                 if (!handlerClass.contains(".")) handlerClass = "org.cristalise.storage."+handlerClass;
 
-                log.info("initialiseHandlers() - Instantiate domain handler:"+handlerClass);
+                log.info("initialiseDomainHandlers() - handler:{}", handlerClass);
 
-                domainHandlers.add( (JooqDomainHandler) Class.forName(handlerClass).newInstance());
+                domainHandlers.add( (JooqDomainHandler) Class.forName(handlerClass).getDeclaredConstructor().newInstance());
             }
         }
-        catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-            log.error("JooqClusterStorage could not instantiate domain handler", ex);
-            throw new PersistencyException("JooqClusterStorage could not instantiate domain handler:"+ex.getMessage());
+        catch (InstantiationException | IllegalAccessException | ClassNotFoundException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
+            throw new PersistencyException("Could not instantiate JooqDomainHandler:"+handlersCsv, ex);
         }
 
         if (! JOOQ_disableDomainCreateTables.getBoolean()) {
-            context.transaction(nested -> {
-                for (JooqDomainHandler handler: domainHandlers) handler.createTables(DSL.using(nested));
+            context.transaction(nestedConfig -> {
+                DSLContext nestedContext = DSL.using(nestedConfig);
+                for (JooqDomainHandler handler: domainHandlers) handler.createTables(nestedContext);
             });
         }
     }
@@ -474,14 +474,16 @@ public class JooqClusterStorage extends ClusterStorage {
         DSLContext  context     = retrieveContext(transactionKey);
 
         if (handler != null) {
+            // Trigger DoimanHandlers first (issue: #656)
+            for (JooqDomainHandler domainHandler : domainHandlers) {
+                domainHandler.delete(context, uuid, cluster, primaryKeys, transactionKey);
+            }
+
             int deletedCount = handler.delete(context, uuid, primaryKeys);
             log.debug("delete() - DONE uuid:{} cluster:{} primaryKeys:{} deletedCount:{}", uuid, cluster, Arrays.toString(primaryKeys), deletedCount);
         }
         else {
             throw new PersistencyException("No handler found for cluster:'"+cluster+"'");
         }
-
-        // Trigger all registered handlers to update domain specific tables
-        for (JooqDomainHandler domainHandler : domainHandlers) domainHandler.delete(context, uuid, transactionKey, primaryKeys);
     }
 }
