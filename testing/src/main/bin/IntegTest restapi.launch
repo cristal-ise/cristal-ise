@@ -22,5 +22,5 @@
     <stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="-config src/main/bin/client.conf -connect src/main/bin/integTest.clc"/>
     <stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="cristalise-testing"/>
     <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.m2e.launchconfig.sourcepathProvider"/>
-    <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dfile.encoding=UTF-8"/>
+    <stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Dfile.encoding=UTF-8 -Dlogback.configurationFile=src/main/bin/logback.xml"/>
 </launchConfiguration>
