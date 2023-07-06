@@ -367,7 +367,7 @@ public class ClusterStorageManager {
                 }
             }
             catch (PersistencyException e) {
-                log.debug( "retrive() - reader {} could not retrieve {}/{}", thisReader, itemPath, path, e);
+                log.warn( "retrive() - reader {} could not retrieve {}/{}", thisReader, itemPath, path, e);
             }
         }
 
