@@ -20,6 +20,7 @@
  */
 package org.cristalise.dev.scaffold
 
+import static org.atteo.evo.inflector.English.plural
 import static org.cristalise.dev.dsl.DevXMLUtility.recordToXML
 import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.*
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
@@ -32,8 +33,8 @@ import org.cristalise.dev.utils.CrudFactoryHelper
 import org.cristalise.dev.utils.PredefinedStepsOutcomeBuilder
 import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.dsl.csv.TabularGroovyParserBuilder
-import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.collection.DependencyMember
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.common.ObjectAlreadyExistsException
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
@@ -160,80 +161,6 @@ class CRUDItemCreator extends StandardClient {
     }
 
     /**
-     * Uses the given schema to search the record for fields containing Item names and converts them to UUID string.
-     * 
-     * @param record the list of fields to be processed
-     * @param schema containing the meta data to find fields and the referenced Item types
-     */
-    private void convertItemNamesToUuid(Map record, Schema schema) {
-        def builder = new OutcomeBuilder(schema)
-
-        record.each { fieldName, fieldValue ->
-            def field = (Field)builder.findChildStructure((String)fieldName)
-
-            String referencedItemType = field?.getAppInfoNodeElementValue('reference', 'itemType')
-
-            if (referencedItemType) {
-                def typeFolder = English.plural(referencedItemType)
-                Boolean isMultiple = field.getAppInfoNodeElementValue('dynamicForms', 'multiple') as Boolean
-
-                // use JSONArray format
-                if (isMultiple) {
-                    def jsonarray = new JSONArray()
-
-                    fieldValue.toString().split(',').each { value ->
-                        def referencedItem = agent.getItem("$moduleNs/${typeFolder}/$value")
-                        jsonarray.put(referencedItem.getUuid())
-                    }
-
-                    record[fieldName] = jsonarray.toString()
-                }
-                else {
-                    def referencedItem = agent.getItem("$moduleNs/${typeFolder}/$fieldValue")
-                    record[fieldName] = referencedItem.getUuid()
-                }
-
-                log.debug('convertItemNamesToUuid() - field:{} replacing value {} with {}', fieldName, fieldValue, record[fieldName])
-            }
-        }
-    }
-
-    private updateOutcomeWithAddMembersToCollection(ItemProxy newItem, Map record, Outcome outcome) {
-        def oBuilder = new OutcomeBuilder(outcome.schema, outcome)
-
-        record.each { fieldName, fieldValue ->
-            def field = (Field)oBuilder.findChildStructure((String)fieldName)
-
-            String referencedItemType = field?.getAppInfoNodeElementValue('reference', 'itemType')
-
-            if (referencedItemType) {
-                def dependencyName = English.plural(referencedItemType)
-                Dependency dependency = (Dependency)newItem.getCollection(dependencyName)
-
-                Boolean isMultiple = field.getAppInfoNodeElementValue('dynamicForms', 'multiple') as Boolean
-                List<ItemPath> memberPathes = []
-
-                if (isMultiple) {
-                    def jsonarray = new JSONArray(fieldValue as String)
-
-                    for (int i = 0; i < jsonarray.length(); i++) {
-                        def uuid = jsonarray.getString(i)
-                        memberPathes << agent.getItemByUUID(uuid).path
-                    }
-                }
-                else {
-                    memberPathes << agent.getItemByUUID(fieldValue as String).path
-                }
-
-                for (def memberPath: memberPathes) {
-                    def predefStepOBuilder = new PredefinedStepsOutcomeBuilder(newItem, outcome, outcome.schema)
-                    predefStepOBuilder.updateOutcomeWithAddMembersToCollection(dependencyName, memberPath)
-                }
-            }
-        }
-    }
-
-    /**
      *
      * @param newItem
      * @param itemRoot
@@ -241,7 +168,7 @@ class CRUDItemCreator extends StandardClient {
      * @param updateSchema
      * @param record
      */
-    protected void updateItem(ItemProxy newItem, Schema updateSchema, Map record) {
+    protected void updateItem(ItemProxy newItem, Schema updateSchema, Map<String, Object> record) {
         def updateJob = newItem.getJobByName('Update', agent)
         assert updateJob, "Cannot get Job for Activity 'Update' of Item '$newItem'"
 
@@ -251,10 +178,10 @@ class CRUDItemCreator extends StandardClient {
             outcome = (Outcome)record.outcome
         }
         else {
-            convertItemNamesToUuid(record, updateSchema)
-            outcome = new Outcome(DevXMLUtility.recordToXML(updateSchema.getName(), record), updateSchema)
+            outcome = new Outcome(DevXMLUtility.recordToXML(updateSchema.name, record), updateSchema)
 
-            updateOutcomeWithAddMembersToCollection(newItem, record, outcome)
+            def predefStepOBuilder = new PredefinedStepsOutcomeBuilder(newItem, outcome, updateSchema)
+            predefStepOBuilder.updateOutcomeWithAddMembersToCollection(record, moduleNs)
         }
 
         updateJob.setOutcome(outcome)
@@ -273,7 +200,7 @@ class CRUDItemCreator extends StandardClient {
      * @param eraseOrWhat
      * @return
      */
-    public ItemProxy createItemWithConstructor(Map record, String factoryPath) {
+    public ItemProxy createItemWithConstructor(Map<String, Object> record, String factoryPath) {
         ItemProxy factory = agent.getItem(factoryPath)
         String itemRoot = CrudFactoryHelper.getDomainRoot(factory)
         String subFolder = record.SubFolder // can be null
@@ -300,7 +227,8 @@ class CRUDItemCreator extends StandardClient {
             def createJob  = factory.getJobByTransitionName('InstantiateItem', 'Done', agent)
             assert createJob, "Cannot get Job for Activity 'InstantiateItem' of Factory '$factory'"
 
-            convertItemNamesToUuid(record, updateSchema)
+            def predefStepOBuilder = new PredefinedStepsOutcomeBuilder(item, updateSchema)
+            predefStepOBuilder.convertItemNamesToUuids(record, moduleNs)
 
             def outcome = createJob.getOutcome()
             //Name could be the generated by the Factory
@@ -339,7 +267,7 @@ class CRUDItemCreator extends StandardClient {
      * @param factoryPath
      * @return
      */
-    public ItemProxy createItemWithUpdate(Map record, String factoryPath) {
+    public ItemProxy createItemWithUpdate(Map<String, Object> record, String factoryPath) {
         String itemName = record.Name ?: FACTORY_GENERATED_NAME
         String subFolder = record.SubFolder // can be null
 
