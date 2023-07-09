@@ -51,6 +51,7 @@ class ExcelSchemaBuilderReferenceSpecs extends Specification implements CristalT
                            <xs:appinfo>
                              <reference>
                                <itemType>UnitTest</itemType>
+                               <collectionName>JunitTest</collectionName>
                              </reference>
                            </xs:appinfo>
                          </xs:annotation>

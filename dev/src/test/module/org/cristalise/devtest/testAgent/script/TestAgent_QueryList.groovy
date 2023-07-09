@@ -19,7 +19,7 @@ def result = Gateway.getLookup().search(new DomainPath(), properties, 0, 0)
 TestAgentMap = [:]
 
 for (DomainPath dp: result.rows) {
-    TestAgentMap.put(dp.name, dp.itemPath.UUID)
+  TestAgentMap.put(dp.name, dp.itemPath.UUID)
 }
 
 return TestAgentMap

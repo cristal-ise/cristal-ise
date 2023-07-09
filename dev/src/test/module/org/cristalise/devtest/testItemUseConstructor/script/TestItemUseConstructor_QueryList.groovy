@@ -19,7 +19,7 @@ def result = Gateway.getLookup().search(new DomainPath(), properties, 0, 0)
 TestItemUseConstructorMap = [:]
 
 for (DomainPath dp: result.rows) {
-    TestItemUseConstructorMap.put(dp.name, dp.itemPath.UUID)
+  TestItemUseConstructorMap.put(dp.name, dp.itemPath.UUID)
 }
 
 return TestItemUseConstructorMap

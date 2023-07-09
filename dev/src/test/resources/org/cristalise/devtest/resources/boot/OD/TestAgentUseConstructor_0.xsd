@@ -5,7 +5,7 @@
       <xs:documentation>TestAgentUseConstructor aggregated data</xs:documentation>
     </xs:annotation>
     <xs:complexType>
-      <xs:all minOccurs='0'>
+      <xs:sequence>
         <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
         <xs:element name='State' minOccurs='1' maxOccurs='1'>
           <xs:simpleType>
@@ -15,7 +15,6 @@
             </xs:restriction>
           </xs:simpleType>
         </xs:element>
-        <xs:element name='Description' type='xs:string' minOccurs='1' maxOccurs='1' />
         <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
           <xs:annotation>
             <xs:appinfo>
@@ -26,7 +25,7 @@
             </xs:appinfo>
           </xs:annotation>
         </xs:element>
-      </xs:all>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
 </xs:schema>

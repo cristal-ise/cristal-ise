@@ -74,6 +74,7 @@ class CRUDGenerator {
         'item_aggregate_groovy.tmpl',
         'item_dependencies_groovy.tmpl',
         'item_groovy.tmpl',
+        'item_field_groovy.tmpl',
         'item_queryList_groovy.tmpl',
         'module_groovy.tmpl',
         'commonDefs_groovy.tmpl',

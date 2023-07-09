@@ -112,7 +112,6 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void 'Create Item using Constructor'() {
         item = creator.createItemWithConstructor(
             Name: "ItemUsingConstructor-$timeStamp",
-            Description: 'ItemUsingConstructor description',
             "/$folder/TestItemUseConstructorFactory")
 
         assert item.getMasterSchema()
@@ -123,7 +122,6 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void 'Create Item using Update'() {
         item = creator.createItemWithUpdate(
             Name: "ItemUsingUpdate-$timeStamp",
-            Description: 'ItemUsingUpdate description',
             "/$folder/TestItemFactory")
 
         assert item.getMasterSchema()
@@ -191,9 +189,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void 'Create Item using Update and Generated Name'() {
         String fatoryPath = "/$folder/TestItemGeneratedNameFactory"
 
-        item = creator.createItemWithUpdate(
-            Description: 'ItemUsingUpdateGenretedName description',
-            fatoryPath)
+        item = creator.createItemWithUpdate([:], fatoryPath)
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
@@ -202,9 +198,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         ItemProxy factory = agent.getItem(fatoryPath)
         assert factory.getViewpoint('CrudFactory_NewInstanceDetails', 'last').getOutcome().getField('Name') == 'ID000001'
 
-        item = creator.createItemWithUpdate(
-            Description: 'ItemUsingUpdateGenretedName description',
-            fatoryPath)
+        item = creator.createItemWithUpdate([:], fatoryPath)
 
         assert item.name == 'ID000002'
         assert factory.getViewpoint('CrudFactory_NewInstanceDetails', 'last').getOutcome().getField('Name') == 'ID000002'
@@ -214,7 +208,6 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void 'Create Agent using Constructor'() {
         item = creator.createItemWithConstructor(
             Name: "AgentUsingConstructor-$timeStamp",
-            Description: 'AgentUsingConstructor description',
             "/$folder/TestAgentUseConstructorFactory")
 
         assert item.getMasterSchema()
@@ -225,7 +218,6 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void 'Create Agent using Update'() {
         item = creator.createItemWithUpdate(
             Name: "AgentUsingUpdate-$timeStamp",
-            Description: 'AgentUsingUpdate description',
             "/$folder/TestAgentFactory")
 
         assert item.getMasterSchema()
@@ -281,6 +273,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
         assert clubMember.getProperty(MASTER_SCHEMA_URN)
         assert clubMember.getProperty(AGGREGATE_SCRIPT_URN)
+        assert clubMember.checkCollection('Cars')
 
         assert clubMember.getCollection('Cars')       .members.list.size() == 0
         assert clubMember.getCollection('Motorcycles').members.list.size() == 0
@@ -341,5 +334,28 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 //        clubMemberUpdateJob.outcome.setField('Name', "ClubMember2-$timeStamp")
 //        agent.execute(clubMemberUpdateJob)
 //        assert agent.getItem("/$folder/ClubMembers/ClubMember2-$timeStamp")
+    }
+    
+    
+    @Test
+    public void 'Create Car and add to ClubMember using automatic Dependency update'() {
+        def car = creator.createItemWithUpdate(
+            Name: "Car2-$timeStamp",
+            RegistrationPlate: 'IG 94-11',
+            "/$folder/CarFactory")
+
+        def clubMember = creator.createItemWithUpdate(
+            Name: "ClubMember2-$timeStamp",
+            Email: 'mate@people.hu',
+            FavoriteCar: car.name,
+            "/$folder/ClubMemberFactory")
+
+        def clubMemberCars = (Dependency)clubMember.getCollection('Cars')
+        def carClubMember  = (Dependency)car.getCollection('ClubMember')
+
+        assert clubMemberCars.members.list.size() == 1
+        assert clubMemberCars.getMember(0).itemPath == car.path
+        assert carClubMember.members.list.size() == 1
+        assert carClubMember.getMember(0).itemPath == clubMember.path
     }
 }

@@ -22,21 +22,21 @@ def type  = item.getType()
 Outcome details = null
 
 if (item.checkViewpoint(detailsSchema, 'last')) {
-    details = item.getOutcome(item.getViewpoint(detailsSchema, 'last'))
+  details = item.getOutcome(item.getViewpoint(detailsSchema, 'last'))
 }
 
 def writer = new StringWriter()
 def xml = new MarkupBuilder(writer)
 
 xml."$type" {
-    Name(  name  )
-    State( state )
+  Name(  name  )
+  State( state )
 
-    if (details) {
-        details.getRecord().each {field, value ->
-          if (field != 'Name') "$field"(value)
-        }
+  if (details) {
+    details.getRecord().each {field, value ->
+      if (field != 'Name') "$field"(value)
     }
+  }
 }
 
 //check if this variable was defined as output

@@ -37,7 +37,7 @@ import groovy.transform.Field
 @Field
 final Logger log = LoggerFactory.getLogger("org.cristalise.dev.Script.CrudEntity.ChangeDependecy")
 @Field
-final PredefinedStepsOutcomeBuilder builder = new PredefinedStepsOutcomeBuilder(item, job.outcome, job.schema)
+final PredefinedStepsOutcomeBuilder builder = new PredefinedStepsOutcomeBuilder(item, job.outcome, job.schema, item.transactionKey)
 
 /*
  * Script starts here 

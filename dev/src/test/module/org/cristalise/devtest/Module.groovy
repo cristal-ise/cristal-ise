@@ -16,48 +16,48 @@ setResourceRoot  'src/test/resources/org/cristalise/devtest/resources/'
 
 Module(ns: 'devtest', name: 'DEV Scaffold Test module', version: 0) {
 
-    Info(description: 'DEV Scaffold Test module', version: '0'){
-        Dependencies:['CristaliseDev']
+  Info(description: 'DEV Scaffold Test module', version: '0'){
+    Dependencies:['CristaliseDev']
+  }
+
+  Url('org/cristalise/devtest/resources/')
+
+  Agent(name: 'devtest', version: 0, password: 'test', folder:'/devtest/Agents') {
+    Roles {
+      Role(name: 'Admin')
     }
+  }
 
-    Url('org/cristalise/devtest/resources/')
+  include(moduleDir+'/CommonDefs.groovy')
 
-    Agent(name: 'devtest', version: 0, password: 'test', folder:'/devtest/Agents') {
-        Roles {
-            Role(name: 'Admin')
-        }
-    }
+  
+  include(moduleDir+'/car/Car.groovy')
 
-    include(moduleDir+'/CommonDefs.groovy')
+  
+  include(moduleDir+'/clubMember/ClubMember.groovy')
 
-    
-    include(moduleDir+'/car/Car.groovy')
+  
+  include(moduleDir+'/motorcycle/Motorcycle.groovy')
 
-    
-    include(moduleDir+'/clubMember/ClubMember.groovy')
+  
+  include(moduleDir+'/testAgent/TestAgent.groovy')
 
-    
-    include(moduleDir+'/motorcycle/Motorcycle.groovy')
+  
+  include(moduleDir+'/testAgentUseConstructor/TestAgentUseConstructor.groovy')
 
-    
-    include(moduleDir+'/testAgent/TestAgent.groovy')
+  
+  include(moduleDir+'/testItem/TestItem.groovy')
 
-    
-    include(moduleDir+'/testAgentUseConstructor/TestAgentUseConstructor.groovy')
+  
+  include(moduleDir+'/testItemExcel/TestItemExcel.groovy')
 
-    
-    include(moduleDir+'/testItem/TestItem.groovy')
+  
+  include(moduleDir+'/testItemGeneratedName/TestItemGeneratedName.groovy')
 
-    
-    include(moduleDir+'/testItemExcel/TestItemExcel.groovy')
+  
+  include(moduleDir+'/testItemUseConstructor/TestItemUseConstructor.groovy')
 
-    
-    include(moduleDir+'/testItemGeneratedName/TestItemGeneratedName.groovy')
-
-    
-    include(moduleDir+'/testItemUseConstructor/TestItemUseConstructor.groovy')
-
-    
-    include(moduleDir+'/testItemUseConstructorGeneratedName/TestItemUseConstructorGeneratedName.groovy')
+  
+  include(moduleDir+'/testItemUseConstructorGeneratedName/TestItemUseConstructorGeneratedName.groovy')
 
 }

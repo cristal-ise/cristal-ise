@@ -6,6 +6,9 @@
     "field" : "State",
     "caption" : "State"
   }, {
+    "field" : "Name",
+    "caption" : "Name"
+  }, {
     "field" : "RegistrationPlate",
     "caption" : "Registration Plate"
   } ]
