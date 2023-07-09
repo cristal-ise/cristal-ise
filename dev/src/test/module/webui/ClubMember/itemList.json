@@ -6,6 +6,12 @@
     "field" : "State",
     "caption" : "State"
   }, {
+    "field" : "Name",
+    "caption" : "Name"
+  }, {
+    "field" : "MyCars",
+    "caption" : "My Cars"
+  }, {
     "field" : "Email",
     "caption" : "Email"
   } ]

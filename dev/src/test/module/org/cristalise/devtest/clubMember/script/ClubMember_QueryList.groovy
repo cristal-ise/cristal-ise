@@ -19,7 +19,7 @@ def result = Gateway.getLookup().search(new DomainPath(), properties, 0, 0)
 ClubMemberMap = [:]
 
 for (DomainPath dp: result.rows) {
-    ClubMemberMap.put(dp.name, dp.itemPath.UUID)
+  ClubMemberMap.put(dp.name, dp.itemPath.UUID)
 }
 
 return ClubMemberMap

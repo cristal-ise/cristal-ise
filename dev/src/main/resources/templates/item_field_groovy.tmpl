@@ -1,0 +1,12 @@
+@foreach{field : item.fields.values()}    field(
+      name: '@{field.name}', 
+      type: '@{field.dslType}'@if{field.multiplicityString != null},
+      multiplicity: '@{field.multiplicityString}'@end{}@if{field.values != null},
+      values: @{field.values}@end{}@if{field.pattern != null},
+      pattern: '@{field.pattern}'@end{}
+    )@if{field.reference != null && schemaDetails} {
+      reference(itemType: '@{field.reference.itemType}')
+    }@end{}@if{field.name == 'Name' && generatedName && schemaDetails} {
+      dynamicForms (disabled: true, label: 'ID')
+    }@end{}
+@end{}

@@ -19,7 +19,7 @@ def result = Gateway.getLookup().search(new DomainPath(), properties, 0, 0)
 @{item.name}Map = [:]
 
 for (DomainPath dp: result.rows) {
-    @{item.name}Map.put(dp.name, dp.itemPath.UUID)
+  @{item.name}Map.put(dp.name, dp.itemPath.UUID)
 }
 
 return @{item.name}Map

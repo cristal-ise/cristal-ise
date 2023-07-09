@@ -112,7 +112,6 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void 'Create Item using Constructor'() {
         item = creator.createItemWithConstructor(
             Name: "ItemUsingConstructor-$timeStamp",
-            Description: 'ItemUsingConstructor description',
             "/$folder/TestItemUseConstructorFactory")
 
         assert item.getMasterSchema()
@@ -123,7 +122,6 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void 'Create Item using Update'() {
         item = creator.createItemWithUpdate(
             Name: "ItemUsingUpdate-$timeStamp",
-            Description: 'ItemUsingUpdate description',
             "/$folder/TestItemFactory")
 
         assert item.getMasterSchema()
@@ -191,9 +189,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void 'Create Item using Update and Generated Name'() {
         String fatoryPath = "/$folder/TestItemGeneratedNameFactory"
 
-        item = creator.createItemWithUpdate(
-            Description: 'ItemUsingUpdateGenretedName description',
-            fatoryPath)
+        item = creator.createItemWithUpdate([:], fatoryPath)
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
@@ -202,9 +198,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         ItemProxy factory = agent.getItem(fatoryPath)
         assert factory.getViewpoint('CrudFactory_NewInstanceDetails', 'last').getOutcome().getField('Name') == 'ID000001'
 
-        item = creator.createItemWithUpdate(
-            Description: 'ItemUsingUpdateGenretedName description',
-            fatoryPath)
+        item = creator.createItemWithUpdate([:], fatoryPath)
 
         assert item.name == 'ID000002'
         assert factory.getViewpoint('CrudFactory_NewInstanceDetails', 'last').getOutcome().getField('Name') == 'ID000002'
@@ -214,7 +208,6 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void 'Create Agent using Constructor'() {
         item = creator.createItemWithConstructor(
             Name: "AgentUsingConstructor-$timeStamp",
-            Description: 'AgentUsingConstructor description',
             "/$folder/TestAgentUseConstructorFactory")
 
         assert item.getMasterSchema()
@@ -225,7 +218,6 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void 'Create Agent using Update'() {
         item = creator.createItemWithUpdate(
             Name: "AgentUsingUpdate-$timeStamp",
-            Description: 'AgentUsingUpdate description',
             "/$folder/TestAgentFactory")
 
         assert item.getMasterSchema()

@@ -66,7 +66,7 @@ class PredefinedStepsOutcomeBuilder {
      * @param schema required to build the Outcome
      */
     public PredefinedStepsOutcomeBuilder(ItemProxy anItem, Outcome outcome = null, Schema schema, TransactionKey transKey = null) {
-        assert anItem && schema, 'Cannot initialise wihtout a valid Item and Schema'
+        assert schema, 'Cannot initialise wihtout a valid Schema'
 
         item = anItem
         transaction = transKey

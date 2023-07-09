@@ -36,6 +36,11 @@ class CRUDItem extends Struct {
     List<String> orderOfElements = []
     Map<String, CRUDDependency> dependencies = [:]
 
+    CRUDItem() {
+        useSequence = true
+        fields['Name'] = new Field(name: 'Name')
+    }
+
     public void addBidirectionalDependency(CRUDDependency otherDep) {
         log.debug('addBidirectionalDependency(item:{}) - processing other dependency:{}', name, otherDep.name)
 

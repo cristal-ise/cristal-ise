@@ -19,7 +19,7 @@ def result = Gateway.getLookup().search(new DomainPath(), properties, 0, 0)
 TestItemExcelMap = [:]
 
 for (DomainPath dp: result.rows) {
-    TestItemExcelMap.put(dp.name, dp.itemPath.UUID)
+  TestItemExcelMap.put(dp.name, dp.itemPath.UUID)
 }
 
 return TestItemExcelMap

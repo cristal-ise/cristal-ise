@@ -13,6 +13,18 @@
     "width" : 100
   }, {
     "source" : "itemField",
+    "field" : "Name",
+    "caption" : "Name",
+    "align" : "left",
+    "width" : 100
+  }, {
+    "source" : "itemField",
+    "field" : "MyCars",
+    "caption" : "My Cars",
+    "align" : "left",
+    "width" : 100
+  }, {
+    "source" : "itemField",
     "field" : "Email",
     "caption" : "Email",
     "align" : "left",

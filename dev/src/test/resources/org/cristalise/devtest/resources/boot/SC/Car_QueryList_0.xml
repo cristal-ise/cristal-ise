@@ -22,7 +22,7 @@ def result = Gateway.getLookup().search(new DomainPath(), properties, 0, 0)
 CarMap = [:]
 
 for (DomainPath dp: result.rows) {
-    CarMap.put(dp.name, dp.itemPath.UUID)
+  CarMap.put(dp.name, dp.itemPath.UUID)
 }
 
 return CarMap
