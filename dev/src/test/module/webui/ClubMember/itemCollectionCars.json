@@ -19,14 +19,14 @@
     "width" : 100
   }, {
     "source" : "itemField",
-    "field" : "MyCars",
-    "caption" : "My Cars",
+    "field" : "Email",
+    "caption" : "Email",
     "align" : "left",
     "width" : 100
   }, {
     "source" : "itemField",
-    "field" : "Email",
-    "caption" : "Email",
+    "field" : "FavoriteCar",
+    "caption" : "Favorite Car",
     "align" : "left",
     "width" : 100
   } ],

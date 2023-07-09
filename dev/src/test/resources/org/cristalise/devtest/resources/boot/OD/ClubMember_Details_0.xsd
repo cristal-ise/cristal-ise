@@ -4,7 +4,14 @@
     <xs:complexType>
       <xs:sequence>
         <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
-        <xs:element name='MyCars' type='xs:string' minOccurs='0' maxOccurs='unbounded'>
+        <xs:element name='Email' minOccurs='1' maxOccurs='1'>
+          <xs:simpleType>
+            <xs:restriction base='xs:string'>
+              <xs:pattern value='[^@]+@[^\.]+\..+' />
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element name='FavoriteCar' type='xs:string' minOccurs='0' maxOccurs='1'>
           <xs:annotation>
             <xs:appinfo>
               <reference>
@@ -12,13 +19,6 @@
               </reference>
             </xs:appinfo>
           </xs:annotation>
-        </xs:element>
-        <xs:element name='Email' minOccurs='1' maxOccurs='1'>
-          <xs:simpleType>
-            <xs:restriction base='xs:string'>
-              <xs:pattern value='[^@]+@[^\.]+\..+' />
-            </xs:restriction>
-          </xs:simpleType>
         </xs:element>
         <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
           <xs:annotation>

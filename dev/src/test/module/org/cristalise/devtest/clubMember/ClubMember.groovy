@@ -21,14 +21,14 @@ Schema('ClubMember', 0) {
       type: 'string'
     )
     field(
-      name: 'MyCars', 
-      type: 'string',
-      multiplicity: '0..*'
-    )
-    field(
       name: 'Email', 
       type: 'string',
       pattern: '[^@]+@[^\\.]+\\..+'
+    )
+    field(
+      name: 'FavoriteCar', 
+      type: 'string',
+      multiplicity: '0..1'
     )
 
 
@@ -43,17 +43,17 @@ Schema('ClubMember_Details', 0) {
       type: 'string'
     )
     field(
-      name: 'MyCars', 
-      type: 'string',
-      multiplicity: '0..*'
-    ) {
-      reference(itemType: 'Car')
-    }
-    field(
       name: 'Email', 
       type: 'string',
       pattern: '[^@]+@[^\\.]+\\..+'
     )
+    field(
+      name: 'FavoriteCar', 
+      type: 'string',
+      multiplicity: '0..1'
+    ) {
+      reference(itemType: 'Car')
+    }
 
 
   }

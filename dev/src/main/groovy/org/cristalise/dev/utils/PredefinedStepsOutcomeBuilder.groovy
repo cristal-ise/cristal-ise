@@ -251,9 +251,9 @@ class PredefinedStepsOutcomeBuilder {
                 throw new InvalidDataException("'$item' has no Collection:'$referencedCollectionName'")
             }
             else {
-                def possibleCollNames = [referencedItemType, fieldName, plural(referencedItemType)]
-                
-                possibleCollNames.each { collName ->
+                def possibleCollNames = [referencedItemType, plural(referencedItemType), fieldName]
+
+                for (collName: possibleCollNames) {
                     if (item.checkCollection(collName, transaction)) return collName
                 }
 

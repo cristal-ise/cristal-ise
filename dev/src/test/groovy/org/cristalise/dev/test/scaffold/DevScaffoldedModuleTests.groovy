@@ -273,6 +273,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
         assert clubMember.getProperty(MASTER_SCHEMA_URN)
         assert clubMember.getProperty(AGGREGATE_SCRIPT_URN)
+        assert clubMember.checkCollection('Cars')
 
         assert clubMember.getCollection('Cars')       .members.list.size() == 0
         assert clubMember.getCollection('Motorcycles').members.list.size() == 0
@@ -333,5 +334,28 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 //        clubMemberUpdateJob.outcome.setField('Name', "ClubMember2-$timeStamp")
 //        agent.execute(clubMemberUpdateJob)
 //        assert agent.getItem("/$folder/ClubMembers/ClubMember2-$timeStamp")
+    }
+    
+    
+    @Test
+    public void 'Create Car and add to ClubMember using automatic Dependency update'() {
+        def car = creator.createItemWithUpdate(
+            Name: "Car2-$timeStamp",
+            RegistrationPlate: 'IG 94-11',
+            "/$folder/CarFactory")
+
+        def clubMember = creator.createItemWithUpdate(
+            Name: "ClubMember2-$timeStamp",
+            Email: 'mate@people.hu',
+            FavoriteCar: car.name,
+            "/$folder/ClubMemberFactory")
+
+        def clubMemberCars = (Dependency)clubMember.getCollection('Cars')
+        def carClubMember  = (Dependency)car.getCollection('ClubMember')
+
+        assert clubMemberCars.members.list.size() == 1
+        assert clubMemberCars.getMember(0).itemPath == car.path
+        assert carClubMember.members.list.size() == 1
+        assert carClubMember.getMember(0).itemPath == clubMember.path
     }
 }

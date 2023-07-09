@@ -9,10 +9,10 @@
     "field" : "Name",
     "caption" : "Name"
   }, {
-    "field" : "MyCars",
-    "caption" : "My Cars"
-  }, {
     "field" : "Email",
     "caption" : "Email"
+  }, {
+    "field" : "FavoriteCar",
+    "caption" : "Favorite Car"
   } ]
 }
