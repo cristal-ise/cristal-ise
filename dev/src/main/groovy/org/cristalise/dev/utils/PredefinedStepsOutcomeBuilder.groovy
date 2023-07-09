@@ -253,7 +253,7 @@ class PredefinedStepsOutcomeBuilder {
             else {
                 def possibleCollNames = [referencedItemType, plural(referencedItemType), fieldName]
 
-                for (collName: possibleCollNames) {
+                for (String collName: possibleCollNames) {
                     if (item.checkCollection(collName, transaction)) return collName
                 }
 
