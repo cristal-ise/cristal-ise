@@ -64,11 +64,13 @@ class CRUDItem extends Struct {
 
     public String getPlantUml() {
         def model = new StringBuffer("class $name {\n")
-        model.append("  Name : xs:string\n")
-        model.append("  State : xs:string\n")
+
         fields.each { String name, Field field ->
             model.append("  ${field.name} : ${field.type}\n")
+            // FIXME this is a hack to add State because State is hardcoded in the mvel2 template
+            if (field.name == 'Name') model.append("  State : xs:string\n")
         }
+
         model.append('}\n')
 
         dependencies.values().each { dependency ->
