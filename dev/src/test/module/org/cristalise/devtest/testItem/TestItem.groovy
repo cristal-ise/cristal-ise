@@ -79,14 +79,14 @@ Workflow('TestItem_Workflow', 0) {
 
 
 Item(name: 'TestItemFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
-  InmutableProperty('Type': 'Factory')
-  InmutableProperty('Root': '/devtest/TestItems')
+  InmutableProperty((TYPE): 'Factory')
+  InmutableProperty((ROOT): '/devtest/TestItems')
 
 
 
 
 
-  InmutableProperty('UpdateSchema': 'TestItem_Details:0')
+  InmutableProperty((UPDATE_SCHEMA): 'TestItem_Details:0')
 
 
   Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItem_0.xml')

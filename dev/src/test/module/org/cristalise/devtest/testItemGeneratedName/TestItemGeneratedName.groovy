@@ -81,8 +81,8 @@ Workflow('TestItemGeneratedName_Workflow', 0) {
 
 
 Item(name: 'TestItemGeneratedNameFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
-  InmutableProperty('Type': 'Factory')
-  InmutableProperty('Root': '/devtest/TestItemGeneratedNames')
+  InmutableProperty((TYPE): 'Factory')
+  InmutableProperty((ROOT): '/devtest/TestItemGeneratedNames')
 
   InmutableProperty((ID_PREFIX): 'ID')
   InmutableProperty((LEFT_PAD_SIZE): '6')
@@ -92,7 +92,7 @@ Item(name: 'TestItemGeneratedNameFactory', version: 0, folder: '/devtest', workf
 
 
 
-  InmutableProperty('UpdateSchema': 'TestItemGeneratedName_Details:0')
+  InmutableProperty((UPDATE_SCHEMA): 'TestItemGeneratedName_Details:0')
 
 
   Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItemGeneratedName_0.xml')

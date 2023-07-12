@@ -91,14 +91,14 @@ Workflow('Car_Workflow', 0) {
 
 
 Item(name: 'CarFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
-  InmutableProperty('Type': 'Factory')
-  InmutableProperty('Root': '/devtest/Cars')
+  InmutableProperty((TYPE): 'Factory')
+  InmutableProperty((ROOT): '/devtest/Cars')
 
 
 
 
 
-  InmutableProperty('UpdateSchema': 'Car_Details:0')
+  InmutableProperty((UPDATE_SCHEMA): 'Car_Details:0')
 
 
   Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/Car_0.xml')

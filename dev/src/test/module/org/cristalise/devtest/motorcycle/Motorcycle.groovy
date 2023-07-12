@@ -91,14 +91,14 @@ Workflow('Motorcycle_Workflow', 0) {
 
 
 Item(name: 'MotorcycleFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
-  InmutableProperty('Type': 'Factory')
-  InmutableProperty('Root': '/devtest/Motorcycles')
+  InmutableProperty((TYPE): 'Factory')
+  InmutableProperty((ROOT): '/devtest/Motorcycles')
 
 
 
 
 
-  InmutableProperty('UpdateSchema': 'Motorcycle_Details:0')
+  InmutableProperty((UPDATE_SCHEMA): 'Motorcycle_Details:0')
 
 
   Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/Motorcycle_0.xml')

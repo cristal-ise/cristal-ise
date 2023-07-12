@@ -85,8 +85,8 @@ PropertyDescriptionList('@{item.name}', @{version}) {
 @end{}
 
 Item(name: '@{item.name}Factory', version: @{version}, folder: '/@{moduleNs}', workflow: 'CrudFactory_Workflow', workflowVer: @{version}) {
-  InmutableProperty('Type': 'Factory')
-  InmutableProperty('Root': '/@{moduleNs}/@{item.name}s')
+  InmutableProperty((TYPE): 'Factory')
+  InmutableProperty((ROOT): '/@{moduleNs}/@{item.name}s')
 @if{generatedName}
   InmutableProperty((ID_PREFIX): '@{idPrefix}')
   InmutableProperty((LEFT_PAD_SIZE): '@{leftPadSize}')
@@ -105,7 +105,7 @@ Item(name: '@{item.name}Factory', version: @{version}, folder: '/@{moduleNs}', w
     }
   }
 @else{}
-  InmutableProperty('UpdateSchema': '@{item.name}_Details:@{version}')
+  InmutableProperty((UPDATE_SCHEMA): '@{item.name}_Details:@{version}')
 @end{}
 
   Outcome(schema: 'PropertyDescription', version: '@{version}', viewname: 'last', path: 'boot/property/@{item.name}_@{version}.xml')

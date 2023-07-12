@@ -53,7 +53,6 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
-    ItemProxy item
     CRUDItemCreator creator
 
     static Properties props = new Properties()
@@ -110,7 +109,10 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     @Test
     public void 'Create Item using Constructor'() {
-        item = creator.createItemWithConstructor(
+        def factory = agent.getItem("/$folder/TestItemUseConstructorFactory")
+        assert factory.getUpdateSchema()
+
+        def item = creator.createItemWithConstructor(
             Name: "ItemUsingConstructor-$timeStamp",
             "/$folder/TestItemUseConstructorFactory")
 
@@ -120,7 +122,10 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     @Test
     public void 'Create Item using Update'() {
-        item = creator.createItemWithUpdate(
+        def factory = agent.getItem("/$folder/TestItemFactory")
+        assert factory.getUpdateSchema()
+
+        def item = creator.createItemWithUpdate(
             Name: "ItemUsingUpdate-$timeStamp",
             "/$folder/TestItemFactory")
 
@@ -152,7 +157,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     @Test
     public void 'Create Item using Update - generated from excel'() {
-        item = creator.createItemWithUpdate(
+        def item = creator.createItemWithUpdate(
             Name: "ItemExcelUsingUpdate-$timeStamp",
             Description: 'ItemUsingUpdate description - generated from excel',
             DateOfBirth: '1969-02-23',
@@ -189,7 +194,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     public void 'Create Item using Update and Generated Name'() {
         String fatoryPath = "/$folder/TestItemGeneratedNameFactory"
 
-        item = creator.createItemWithUpdate([:], fatoryPath)
+        def item = creator.createItemWithUpdate([:], fatoryPath)
 
         assert item.getMasterSchema()
         assert item.getAggregateScript()
@@ -206,7 +211,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     @Test
     public void 'Create Agent using Constructor'() {
-        item = creator.createItemWithConstructor(
+        def item = creator.createItemWithConstructor(
             Name: "AgentUsingConstructor-$timeStamp",
             "/$folder/TestAgentUseConstructorFactory")
 
@@ -216,7 +221,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 
     @Test
     public void 'Create Agent using Update'() {
-        item = creator.createItemWithUpdate(
+        def item = creator.createItemWithUpdate(
             Name: "AgentUsingUpdate-$timeStamp",
             "/$folder/TestAgentFactory")
 

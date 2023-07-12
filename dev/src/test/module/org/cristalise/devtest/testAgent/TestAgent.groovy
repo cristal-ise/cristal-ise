@@ -79,8 +79,8 @@ Workflow('TestAgent_Workflow', 0) {
 
 
 Item(name: 'TestAgentFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
-  InmutableProperty('Type': 'Factory')
-  InmutableProperty('Root': '/devtest/TestAgents')
+  InmutableProperty((TYPE): 'Factory')
+  InmutableProperty((ROOT): '/devtest/TestAgents')
 
 
 
@@ -89,7 +89,7 @@ Item(name: 'TestAgentFactory', version: 0, folder: '/devtest', workflow: 'CrudFa
 
 
 
-  InmutableProperty('UpdateSchema': 'TestAgent_Details:0')
+  InmutableProperty((UPDATE_SCHEMA): 'TestAgent_Details:0')
 
 
   Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestAgent_0.xml')

@@ -108,34 +108,6 @@ class CRUDItemCreator extends StandardClient {
     /**
      *
      * @param factory
-     * @return
-     */
-    protected static Schema getUpdateSchema(ItemProxy factory) {
-        String schemaName = null
-        Integer schemaVersion = null
-
-        if (factory.checkCollection(SCHEMA_INITIALISE)) {
-            def initSchemaCollection = factory.getCollection(SCHEMA_INITIALISE)
-            DependencyMember member = (DependencyMember) initSchemaCollection.getMembers().list[0]
-
-            schemaName = member.getChildUUID()
-            def initSchemaVersion = member.getProperties().getBuiltInProperty(VERSION)
-
-            if (initSchemaVersion instanceof String) schemaVersion = Integer.parseInt(initSchemaVersion)
-            else                                     schemaVersion = (Integer)initSchemaVersion
-        }
-        else {
-            def nameAndVersion = factory.getProperty('UpdateSchema').split(':')
-            schemaName = nameAndVersion[0]
-            schemaVersion = Integer.parseInt(nameAndVersion[1])
-        }
-
-        return LocalObjectLoader.getSchema(schemaName, schemaVersion)
-    }
-
-    /**
-     *
-     * @param factory
      * @param itemRoot
      * @param itemName
      * @return
@@ -205,7 +177,7 @@ class CRUDItemCreator extends StandardClient {
         String itemRoot = CrudFactoryHelper.getDomainRoot(factory)
         String subFolder = record.SubFolder // can be null
         String itemName = record.Name ?: FACTORY_GENERATED_NAME
-        Schema updateSchema = getUpdateSchema(factory)
+        Schema updateSchema = factory.getUpdateSchema()
 
         ItemProxy item = null
 
@@ -277,7 +249,7 @@ class CRUDItemCreator extends StandardClient {
         record.Name = item.name
 
         ItemProxy factory = agent.getItem(factoryPath)
-        Schema updateSchema = getUpdateSchema(factory)
+        Schema updateSchema = factory.getUpdateSchema()
 
         // Make sure that the item is updated for the first time
         boolean forceUpate = ! item.checkViewpoint(updateSchema.name, 'last')

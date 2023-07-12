@@ -22,6 +22,8 @@ package org.cristalise.kernel.entity.proxy;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.cristalise.kernel.SystemProperties.Module_Versioning_strict;
+import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
@@ -30,6 +32,7 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+import static org.cristalise.kernel.property.BuiltInItemProperties.UPDATE_SCHEMA;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,6 +44,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.Collection;
+import org.cristalise.kernel.collection.DependencyMember;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.CriseVertxException;
@@ -1503,11 +1507,43 @@ public class ItemProxy {
     }
 
     /**
+     * Returns the so called UpdateSchema which is used while creating new Items. It can be either 
+     * the "constructor" Schema retrieved from the 'SchemaInitialise' dependency 
+     * or the Schema used by the Update Activity
+     * 
+     * @return schema
+     * @throws InvalidDataException the Schema could not be constructed
+     * @throws ObjectNotFoundException no Schema was found
+     */
+    public Schema getUpdateSchema() throws ObjectNotFoundException, InvalidDataException {
+        String schemaName = null;
+        Integer schemaVersion = null;
+
+        if (checkCollection(SCHEMA_INITIALISE)) {
+            Collection<?> initSchemaCollection = getCollection(SCHEMA_INITIALISE);
+            DependencyMember member = (DependencyMember) initSchemaCollection.getMembers().list.get(0);
+
+            schemaName = member.getChildUUID();
+            Object initSchemaVersion = member.getProperties().getBuiltInProperty(VERSION);
+
+            if (initSchemaVersion instanceof String) schemaVersion = Integer.parseInt((String)initSchemaVersion);
+            else                                     schemaVersion = (Integer)initSchemaVersion;
+        }
+        else {
+            String[] nameAndVersion = getProperty(UPDATE_SCHEMA).split(":");
+            schemaName = nameAndVersion[0];
+            schemaVersion = Integer.parseInt(nameAndVersion[1]);
+        }
+
+        return LocalObjectLoader.getSchema(schemaName, schemaVersion);
+    }
+
+    /**
      * Returns the so called Aggregate Script which can be used to construct master outcome.
      * 
-     * @return the script or null
-     * @throws InvalidDataException 
-     * @throws ObjectNotFoundException 
+     * @return the script
+     * @throws InvalidDataException something was wrong with the provided data
+     * @throws ObjectNotFoundException no Script can be found
      */
     public Script getAggregateScript() throws InvalidDataException, ObjectNotFoundException {
         return getAggregateScript(null, null);

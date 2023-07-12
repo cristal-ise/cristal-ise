@@ -225,33 +225,33 @@ class PredefinedStepsOutcomeBuilder {
     }
 
     /**
-     * Checks if the given field is referencing Item(s) use appInfo meta data in Schema to 
+     * Checks if the given field is referencing Item(s) using appInfo meta-data in Schema to 
      * find the existing Collection of the Item. The order of checks:
      * <pre>
-     * 1. check using collectionName from appInfo['reference'] if it was defined in appInfo
-     * 2. check using referencedItemType from appInfo['reference']
-     * 3. check using the gven fieldName
-     * 4. check using the plural form of referencedItemType
+     * 1. use optional appInfo.reference.collectionName
+     * 2. use mandatory appInfo.reference.itemType
+     * 3. use the plural form of mandatory appInfo.reference.itemType
+     * 4. use the given fieldName
      * </pre>
      * 
      * @param fieldName the actual field of the Outcome to be analysed
      * @param transaction key, can be null
      * @return the name of the existing Collection otherwise returns null if referencedItemType was not specified
-     * @throws InvalidDataException if referencedItemType was specified but no Collection can be found
+     * @throws InvalidDataException if reference.itemType was specified but no Collection can be found
      */
     public String getReferencedDependencyName(String fieldName, TransactionKey transaction = null) {
         def field = (Field)builder.findChildStructure(fieldName)
 
-        String referencedItemType       = field?.getAppInfoNodeElementValue('reference', 'itemType')
-        String referencedCollectionName = field?.getAppInfoNodeElementValue('reference', 'collectionName')
+        String referenceItemType       = field?.getAppInfoNodeElementValue('reference', 'itemType')
+        String referenceCollectionName = field?.getAppInfoNodeElementValue('reference', 'collectionName')
 
-        if (referencedItemType) {
-            if (referencedCollectionName) {
-                if (item.checkCollection(referencedCollectionName, transaction)) return referencedCollectionName
-                throw new InvalidDataException("'$item' has no Collection:'$referencedCollectionName'")
+        if (referenceItemType) {
+            if (referenceCollectionName) {
+                if (item.checkCollection(referenceCollectionName, transaction)) return referenceCollectionName
+                throw new InvalidDataException("'$item' has no Collection:'$referenceCollectionName'")
             }
             else {
-                def possibleCollNames = [referencedItemType, plural(referencedItemType), fieldName]
+                def possibleCollNames = [referenceItemType, plural(referenceItemType), fieldName]
 
                 for (String collName: possibleCollNames) {
                     if (item.checkCollection(collName, transaction)) return collName
@@ -265,6 +265,9 @@ class PredefinedStepsOutcomeBuilder {
     }
 
     public String convertItemNamesToUuids(String fieldName, String fieldValue, String moduleNs) {
+        // there is nothing to be done
+        if (ItemPath.isUUID(fieldValue )) return fieldValue
+
         def field = (Field)builder.findChildStructure((String)fieldName)
 
         String referencedItemType = field?.getAppInfoNodeElementValue('reference', 'itemType')

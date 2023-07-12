@@ -121,6 +121,12 @@ public enum BuiltInItemProperties {
     STATE_MACHINE_URN("StateMachineURN"),
 
     /**
+     * The Name or the UUID of the Schema Item and its Version separated by colon ':'. It is specified in Factory Items
+     * is used while creating new Items.
+     */
+    UPDATE_SCHEMA("UpdateSchema"),
+
+    /**
      * The UUID of the Workflow Item and its Version number separated by colon ':'
      */
     WORKFLOW_URN("WorkflowURN");

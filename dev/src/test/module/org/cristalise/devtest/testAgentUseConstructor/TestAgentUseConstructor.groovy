@@ -79,8 +79,8 @@ Workflow('TestAgentUseConstructor_Workflow', 0) {
 
 
 Item(name: 'TestAgentUseConstructorFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
-  InmutableProperty('Type': 'Factory')
-  InmutableProperty('Root': '/devtest/TestAgentUseConstructors')
+  InmutableProperty((TYPE): 'Factory')
+  InmutableProperty((ROOT): '/devtest/TestAgentUseConstructors')
 
 
 

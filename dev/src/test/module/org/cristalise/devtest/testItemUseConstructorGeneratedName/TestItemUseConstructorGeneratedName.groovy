@@ -81,8 +81,8 @@ Workflow('TestItemUseConstructorGeneratedName_Workflow', 0) {
 
 
 Item(name: 'TestItemUseConstructorGeneratedNameFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
-  InmutableProperty('Type': 'Factory')
-  InmutableProperty('Root': '/devtest/TestItemUseConstructorGeneratedNames')
+  InmutableProperty((TYPE): 'Factory')
+  InmutableProperty((ROOT): '/devtest/TestItemUseConstructorGeneratedNames')
 
   InmutableProperty((ID_PREFIX): 'ID')
   InmutableProperty((LEFT_PAD_SIZE): '6')
