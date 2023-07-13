@@ -29,6 +29,12 @@
     "caption" : "Favorite Car",
     "align" : "left",
     "width" : 100
+  }, {
+    "source" : "itemField",
+    "field" : "FavoriteMotorcycle",
+    "caption" : "Favorite Motorcycle",
+    "align" : "left",
+    "width" : 100
   } ],
   "sort" : {
     "field" : "Name",

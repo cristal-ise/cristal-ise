@@ -260,7 +260,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     }
 
     @Test
-    public void 'Create Car, Motorcycle and add them to ClubMember and remove Car'() {
+    public void 'Create Carc and add them to ClubMember and remove Car'() {
         def car = creator.createItemWithUpdate(
             Name: "Car-$timeStamp",
             RegistrationPlate: 'IG 94-11',
@@ -340,27 +340,41 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
 //        agent.execute(clubMemberUpdateJob)
 //        assert agent.getItem("/$folder/ClubMembers/ClubMember2-$timeStamp")
     }
-    
-    
+
     @Test
-    public void 'Create Car and add to ClubMember using automatic Dependency update'() {
+    public void 'Create Car, Motorcycle and add them to ClubMember using automatic Dependency update'() {
         def car = creator.createItemWithUpdate(
             Name: "Car2-$timeStamp",
             RegistrationPlate: 'IG 94-11',
             "/$folder/CarFactory")
 
-        def clubMember = creator.createItemWithUpdate(
+        def motorcycle = creator.createItemWithUpdate(
+            Name: "Motorcycle2-$timeStamp",
+            RegistrationPlate: 'JTG 345',
+            "/$folder/MotorcycleFactory")
+
+        def clubmember = creator.createItemWithUpdate(
             Name: "ClubMember2-$timeStamp",
             Email: 'mate@people.hu',
             FavoriteCar: car.name,
+            FavoriteMotorcycle: motorcycle.name,
             "/$folder/ClubMemberFactory")
 
-        def clubMemberCars = (Dependency)clubMember.getCollection('Cars')
-        def carClubMember  = (Dependency)car.getCollection('ClubMember')
+        def clubmemberCars        = (Dependency)clubmember.getCollection('Cars')
+        def clubmemberMotorcycles = (Dependency)clubmember.getCollection('Motorcycles')
+        def carClubmember         = (Dependency)car.getCollection('ClubMember')
+        def motorcycleClubmember  = (Dependency)motorcycle.getCollection('ClubMember')
 
-        assert clubMemberCars.members.list.size() == 1
-        assert clubMemberCars.getMember(0).itemPath == car.path
-        assert carClubMember.members.list.size() == 1
-        assert carClubMember.getMember(0).itemPath == clubMember.path
+        assert clubmemberCars   .members.list.size() == 1
+        assert clubmemberCars.getMember(0).itemPath == car.path
+        assert clubmemberMotorcycles.members.list.size() == 1
+        assert clubmemberMotorcycles.getMember(0).itemPath == motorcycle.path
+
+        assert carClubmember.members.list.size() == 1
+        assert carClubmember.getMember(0).itemPath == clubmember.path
+        assert motorcycleClubmember.members.list.size() == 1
+        assert motorcycleClubmember.getMember(0).itemPath == clubmember.path
+
+        log.info '{}', clubmember.getViewpoint('ClubMember_Details', 'last').getOutcome()
     }
 }

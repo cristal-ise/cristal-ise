@@ -61,11 +61,11 @@ class PredefinedStepsOutcomeBuilder {
     /**
      * Constructor to initialise the builder
      *  
-     * @param anItem to be updated
+     * @param anItem to be updated - can be null
      * @param outcome to be initialised - can be null
      * @param schema required to build the Outcome
      */
-    public PredefinedStepsOutcomeBuilder(ItemProxy anItem, Outcome outcome = null, Schema schema, TransactionKey transKey = null) {
+    public PredefinedStepsOutcomeBuilder(ItemProxy anItem = null, Outcome outcome = null, Schema schema, TransactionKey transKey = null) {
         assert schema, 'Cannot initialise wihtout a valid Schema'
 
         item = anItem
@@ -146,18 +146,23 @@ class PredefinedStepsOutcomeBuilder {
      * 
      * @param dependencyName name of the updated Dependency
      * @param members list of Item to be added
+     * @param membersProps the list of member properties associated with the Item, can be null
      */
     public void updateOutcomeWithAddMembersToCollection(
-        String          dependencyName,
-        List<ItemPath>  members
+        String              dependencyName,
+        List<ItemPath>      members,
+        List<CastorHashMap> membersProps = null
     ) {
         // checks if the dependency exists
         (Dependency)item.getCollection(dependencyName, transaction)
 
         def dep = new Dependency(dependencyName)
 
-        for(def itemPath: members) {
-            dep.addMember(itemPath, new CastorHashMap(), '', transaction)
+        for (int i = 0; i < members.size(); i++) {
+            def memberPath = members[i]
+            def memberProps = membersProps ? membersProps[i] :  new CastorHashMap()
+
+            dep.addMember(memberPath, memberProps, '', transaction)
         }
 
         def predefStepXpath = initOutcomePredefStepField(AddMembersToCollection.class)
@@ -174,17 +179,10 @@ class PredefinedStepsOutcomeBuilder {
      */
     public void updateOutcomeWithAddMembersToCollection(
         String          dependencyName, 
-        ItemPath        memberPath, 
+        ItemPath        memberPath,
         CastorHashMap   memberProps = null
     ) {
-        // checks if the dependency exists
-        (Dependency)item.getCollection(dependencyName, transaction)
-
-        def dep = new Dependency(dependencyName)
-        dep.addMember(memberPath, memberProps ?: new CastorHashMap(), '', transaction)
-
-        def predefStepXpath = initOutcomePredefStepField(AddMembersToCollection.class)
-        outcome.appendXmlFragment(predefStepXpath, Gateway.getMarshaller().marshall(dep))
+        updateOutcomeWithAddMembersToCollection(dependencyName, [memberPath], (memberProps ? [memberProps] : null))
     }
 
     /**
@@ -307,7 +305,7 @@ class PredefinedStepsOutcomeBuilder {
 
         return convertedValue
     }
-    
+
     /**
      * Loop the record for fields containing Item names and convert them to UUID string.
      *
@@ -315,7 +313,9 @@ class PredefinedStepsOutcomeBuilder {
      */
     public void convertItemNamesToUuids(Map<String, Object> record, String moduleNs) {
         record.each { fieldName, fieldValue ->
-            record[fieldName] = convertItemNamesToUuids(fieldName, fieldValue as String, moduleNs)
+            if (! ItemPath.isUUID(fieldValue as String)) {
+                record[fieldName] = convertItemNamesToUuids(fieldName, fieldValue as String, moduleNs)
+            }
         }
     }
 
@@ -348,11 +348,8 @@ class PredefinedStepsOutcomeBuilder {
                     memberPathes << new ItemPath(convertedValue)
                 }
 
-                for (def memberPath: memberPathes) {
-                    updateOutcomeWithAddMembersToCollection(dependencyName, memberPath)
-                }
+                updateOutcomeWithAddMembersToCollection(dependencyName, memberPathes)
             }
         }
     }
-
 }

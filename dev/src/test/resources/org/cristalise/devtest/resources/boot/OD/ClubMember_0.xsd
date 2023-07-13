@@ -15,6 +15,7 @@
           </xs:simpleType>
         </xs:element>
         <xs:element name='FavoriteCar' type='xs:string' minOccurs='0' maxOccurs='1' />
+        <xs:element name='FavoriteMotorcycle' type='xs:string' minOccurs='0' maxOccurs='1' />
         <xs:element name='State' minOccurs='1' maxOccurs='1'>
           <xs:simpleType>
             <xs:restriction base='xs:string'>

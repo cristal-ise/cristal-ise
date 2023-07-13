@@ -20,6 +20,15 @@
             </xs:appinfo>
           </xs:annotation>
         </xs:element>
+        <xs:element name='FavoriteMotorcycle' type='xs:string' minOccurs='0' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <reference>
+                <itemType>Motorcycle</itemType>
+              </reference>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
         <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
           <xs:annotation>
             <xs:appinfo>

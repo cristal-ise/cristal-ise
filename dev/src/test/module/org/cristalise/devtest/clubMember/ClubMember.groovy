@@ -30,6 +30,11 @@ Schema('ClubMember', 0) {
       type: 'string',
       multiplicity: '0..1'
     )
+    field(
+      name: 'FavoriteMotorcycle', 
+      type: 'string',
+      multiplicity: '0..1'
+    )
 
 
     field(name: 'State', type: 'string', values: states)
@@ -53,6 +58,13 @@ Schema('ClubMember_Details', 0) {
       multiplicity: '0..1'
     ) {
       reference(itemType: 'Car')
+    }
+    field(
+      name: 'FavoriteMotorcycle', 
+      type: 'string',
+      multiplicity: '0..1'
+    ) {
+      reference(itemType: 'Motorcycle')
     }
 
 

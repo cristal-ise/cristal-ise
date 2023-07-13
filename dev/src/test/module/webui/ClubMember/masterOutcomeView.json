@@ -14,5 +14,8 @@
   }, {
     "field" : "FavoriteCar",
     "caption" : "Favorite Car"
+  }, {
+    "field" : "FavoriteMotorcycle",
+    "caption" : "Favorite Motorcycle"
   } ]
 }
