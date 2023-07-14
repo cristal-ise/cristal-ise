@@ -268,6 +268,7 @@ class CRUDItemCreator extends StandardClient {
 
         if (updateMode != SKIP || forceUpate) updateItem(item, outcome)
 
+        return item
     }
 
     /**
