@@ -26,8 +26,6 @@ import java.util.ArrayList;
 
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.graph.model.DirectedEdge;
-import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 
 public class XOrSplit extends Split {
@@ -37,8 +35,8 @@ public class XOrSplit extends Split {
     }
 
     @Override
-	public void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
-        String[] nextsTab = calculateNexts(itemPath, transactionKey);
+	public void runNext(TransactionKey transactionKey) throws InvalidDataException {
+        String[] nextsTab = calculateNexts(transactionKey);
 
         ArrayList<DirectedEdge> nextsToFollow = new ArrayList<DirectedEdge>();
 
@@ -52,10 +50,10 @@ public class XOrSplit extends Split {
             throw new InvalidDataException("not good number of active next! (id:"+getID()+")");
         }
 
-        followNext((Next)nextsToFollow.get(0), agent, itemPath, transactionKey);
+        followNext((Next)nextsToFollow.get(0), transactionKey);
     }
 
-    public void followNext(Next activeNext, AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
-        activeNext.getTerminusVertex().run(agent, itemPath, transactionKey);
+    public void followNext(Next activeNext, TransactionKey transactionKey) throws InvalidDataException {
+        activeNext.getTerminusVertex().run(transactionKey);
     }
 }
