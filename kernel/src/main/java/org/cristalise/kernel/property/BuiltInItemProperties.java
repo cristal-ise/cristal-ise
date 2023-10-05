@@ -31,11 +31,6 @@ public enum BuiltInItemProperties {
     AGGREGATE_SCRIPT_URN("AggregateScriptURN"),
 
     /**
-     * Store the Agent name used used to call the {@link CreateItemFromDescription} predefined Step.
-     */
-    CREATOR("Creator"),
-
-    /**
      * Used in description Items to manage Elementary or Composite Activity Definition
      */
     COMPLEXITY("Complexity"),
