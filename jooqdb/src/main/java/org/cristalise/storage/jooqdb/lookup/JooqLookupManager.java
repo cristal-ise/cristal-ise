@@ -155,18 +155,15 @@ public class JooqLookupManager implements LookupManager {
     public boolean exists(Path path, TransactionKey transactionKey) {
         if (path == null) return false;
 
-        List<Boolean> itemExists = new ArrayList<>();
+        Boolean isExists = false;
 
         try {
             DSLContext context = retrieveContext(transactionKey);
-            boolean isExist = false;
 
-            if      (path instanceof ItemPath)   isExist = items.exists(context, path.getUUID());
-            else if (path instanceof AgentPath)  isExist = items.exists(context, path.getUUID());
-            else if (path instanceof DomainPath) isExist = domains.exists(context, (DomainPath)path);
-            else if (path instanceof RolePath)   isExist = roles.exists(context, (RolePath)path,null);
-
-            if (isExist) itemExists.add(isExist);
+            if      (path instanceof ItemPath)   isExists = items.exists(context, path.getUUID());
+            else if (path instanceof AgentPath)  isExists = items.exists(context, path.getUUID());
+            else if (path instanceof DomainPath) isExists = domains.exists(context, (DomainPath)path);
+            else if (path instanceof RolePath)   isExists = roles.exists(context, (RolePath)path,null);
 
             JooqDataSourceHandler.logConnectionCount("JooqLookupManager.exists()", context);
         }
@@ -174,7 +171,7 @@ public class JooqLookupManager implements LookupManager {
             log.error("exists()", e);
         }
 
-        return itemExists.size() > 0 ? true : false;
+        return isExists;
     }
 
     @Override
@@ -187,17 +184,13 @@ public class JooqLookupManager implements LookupManager {
             DSLContext context = retrieveContext(transactionKey);
 
             int rows = 0;
-            if (newPath instanceof AgentPath) {
-                rows = items.insert(context, (AgentPath) newPath, properties);
-            } else if  (newPath instanceof ItemPath) {
-                rows = items.insert(context, (ItemPath) newPath);
-            } else if (newPath instanceof DomainPath) {
-                rows = domains.insert(context, (DomainPath)newPath);
-            } else if (newPath instanceof RolePath) {
-                rows = (createRole((RolePath)newPath, transactionKey) != null) ? 1 : 0;
-            }
 
-            if (rows == 0) throw new ObjectCannotBeUpdated("JOOQLookupManager must insert some records:"+rows);
+            if      (newPath instanceof AgentPath)  rows = items.insert(context, (AgentPath) newPath, properties);
+            else if (newPath instanceof ItemPath)   rows = items.insert(context, (ItemPath) newPath);
+            else if (newPath instanceof DomainPath) rows = domains.insert(context, (DomainPath)newPath);
+            else if (newPath instanceof RolePath)   rows = (createRole((RolePath)newPath, transactionKey) != null) ? 1 : 0;
+
+            if (rows == 0) throw new ObjectCannotBeUpdated("nothing was inserted - rows:"+rows);
             else           log.debug("add() - path:"+newPath+" rows inserted:"+rows);
 
             if (newPath instanceof DomainPath) {

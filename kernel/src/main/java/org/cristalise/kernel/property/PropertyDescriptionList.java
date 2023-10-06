@@ -121,10 +121,13 @@ public class PropertyDescriptionList extends CastorArrayList<PropertyDescription
         HashMap<String, String> validatedInitProps = new HashMap<>();
 
         for (Property initProp : initProps.list) {
-            if (!definesProperty(initProp.getName()))
-                throw new InvalidDataException("Property '"+initProp.getName()+"' has not been declared in the PropertyDescriptions");
-            else
+            if (definesProperty(initProp.getName())) {
                 validatedInitProps.put(initProp.getName(), initProp.getValue());
+            }
+            else {
+                throw new InvalidDataException("Initial Property '" + initProp.getName()
+                    + "' has not been declared in the PropertyDescriptions:" + getName() + ":" + getVersion());
+            }
         }
 
         PropertyArrayList propInst = new PropertyArrayList();
