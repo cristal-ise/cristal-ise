@@ -272,9 +272,9 @@ public class CompositeActivity extends Activity {
         return finishTrans;
     }
 
-    private AgentPath getSystemAgent() throws InvalidDataException {
+    private AgentPath getSystemAgent(TransactionKey transactionKey) throws InvalidDataException {
         try {
-            return (AgentPath) BuiltInAuthc.SYSTEM_AGENT.getPath();
+            return (AgentPath) BuiltInAuthc.SYSTEM_AGENT.getPath(transactionKey);
         }
         catch (ObjectNotFoundException e) {
             throw new InvalidDataException("CompAct:"+getName(), e);
@@ -283,7 +283,7 @@ public class CompositeActivity extends Activity {
 
     private void autoStart(TransactionKey transactionKey) throws InvalidDataException {
         ItemPath itemPath = getWf().getItemPath();
-        AgentPath agent = getSystemAgent();
+        AgentPath agent = getSystemAgent(transactionKey);
 
         Transition autoStart = getStartTransition(agent);
 
@@ -307,7 +307,7 @@ public class CompositeActivity extends Activity {
 
     private void autoFinish(TransactionKey transactionKey) throws InvalidDataException {
         ItemPath itemPath = getWf().getItemPath();
-        AgentPath agent = getSystemAgent();
+        AgentPath agent = getSystemAgent(transactionKey);
 
         Transition trans = getFinishTransition(agent);
 
