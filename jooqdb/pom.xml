@@ -114,6 +114,7 @@
                         <exclude>**/*LICENSE</exclude>
                         <exclude>**/README</exclude>
                         <exclude>**/*.gpg.enc</exclude>
+                        <exclude>**/castor.properties</exclude>
                     </excludes>
                 </configuration>
                 <executions>
