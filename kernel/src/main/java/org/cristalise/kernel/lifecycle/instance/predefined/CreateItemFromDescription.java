@@ -112,7 +112,7 @@ public class CreateItemFromDescription extends PredefinedStep {
             cache.put(key, Gateway.getMarshaller().marshall(obj));
         }
         catch (InvalidDataException e) {
-            log.warn("getFromCache() - {}", key, e);
+            log.warn("getFromCache() - key:{}", key, e);
         }
     }
     
@@ -120,13 +120,13 @@ public class CreateItemFromDescription extends PredefinedStep {
         String xml = cache.get(key);
 
         if (xml != null) {
-            log.info("getFromCache() - found:{}", key);
+            log.trace("getFromCache() - found:{}", key);
 
             try {
                 return Gateway.getMarshaller().unmarshall(xml);
             }
             catch (InvalidDataException e) {
-                log.warn("getFromCache() - {}", key, e);
+                log.warn("getFromCache() - key:{}", key, e);
             }
         }
 
@@ -292,7 +292,7 @@ public class CreateItemFromDescription extends PredefinedStep {
         }
 
         // add its domain path
-        log.info("Creating " + context);
+        log.debug("initialiseItem() - Creating " + context);
         context.setItemPath(newItemPath);
         Gateway.getLookupManager().add(context, transactionKey);
     }
@@ -432,6 +432,9 @@ public class CreateItemFromDescription extends PredefinedStep {
                     addToCache(cacheKey, newColl);
                 }
             }
+            else {
+                colls.put(aColl);
+            }
         }
         return colls;
     }
@@ -456,12 +459,12 @@ public class CreateItemFromDescription extends PredefinedStep {
         Collection<?> newColl = null;
 
         if (collOfDesc instanceof CollectionDescription) {
-            log.info("instantiateCollection() - Instantiating CollectionDescription:"+ collName);
+            log.debug("instantiateCollection() - Instantiating CollectionDescription:"+ collName);
             CollectionDescription<?> collDesc = (CollectionDescription<?>) collOfDesc;
             newColl = collDesc.newInstance(transactionKey);
         }
         else if(collOfDesc instanceof Dependency) {
-            log.info("instantiateCollection() - Instantiating Dependency:"+ collName);
+            log.debug("instantiateCollection() - Instantiating Dependency:"+ collName);
             ((Dependency) collOfDesc).addToItemProperties(newProps, transactionKey);
         }
         else {

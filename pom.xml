@@ -191,6 +191,7 @@
                             <exclude>**/*.conf</exclude>
                             <exclude>**/*.clc</exclude>
                             <exclude>.groovy/**</exclude>
+                            <exclude>**/castor.properties</exclude>
                         </excludes>
                         <mapping>
                             <idl>JAVADOC_STYLE</idl>
