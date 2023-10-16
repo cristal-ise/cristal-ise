@@ -8,7 +8,6 @@ import static org.cristalise.restapi.RestHandler.USERNAME
 import static org.hamcrest.Matchers.*
 
 import java.nio.charset.StandardCharsets
-import java.time.LocalDateTime
 
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
@@ -21,13 +20,11 @@ import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.property.Property
-import org.cristalise.kernel.security.BuiltInAuthc
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.XML;
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 
 import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
@@ -50,15 +47,6 @@ class RestapiTestBase extends KernelScenarioTestBase {
     public void init() {
         Properties props = AbstractMain.readPropertyFiles("src/main/bin/client.conf", "src/main/bin/integTest.clc", null)
         apiUri = props.get('REST.URI')
-    }
-
-    @BeforeEach
-    public void before() {
-        timeStamp = getNowString()
-    }
-
-    public static String getNowString() {
-        return LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")
     }
 
     public static String encodeString(String s) {
@@ -116,7 +104,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         assert userUuid && ItemPath.isUUID(userUuid)
     }
 
-    def logout(String reason) {
+    def logout(String reason = null) {
         if (reason) {
             given()
                 .accept(JSON)

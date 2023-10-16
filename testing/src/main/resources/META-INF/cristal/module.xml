@@ -3,6 +3,7 @@
         <Description>CRISTAL-iSE Items for testing</Description>
         <Version>${version}</Version>
         <KernelVersion>${version}</KernelVersion>
+        <Dependency>CristalJooqDB</Dependency>
         <Dependency>CristaliseDev</Dependency>
     </Info>
     <ResourceURL>org/cristalise/testing/resources/</ResourceURL>

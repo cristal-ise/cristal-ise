@@ -59,6 +59,7 @@ import lombok.Getter;
  * @see #BulkImport_useDirectories
  * @see #ClusterStorage
  * @see #ClusterStorage_cacheSpec
+ * @see #CreateItemFromDescription_Cache_enable
  * @see #DataHelper
  * @see #Dependency_addStateMachineURN
  * @see #Dependency_addWorkflowURN
@@ -161,6 +162,11 @@ public enum SystemProperties implements SystemPropertyOperations {
      * Default is value is 'expireAfterAccess = 600s, recordStats'
      */
     ClusterStorage_cacheSpec("ClusterStorage.cacheSpec", "expireAfterAccess = 600s, recordStats"),
+    /**
+     * Enable the experimental cache in CreateItemFromDescription predefined step to speed up item creation.
+     * Default is false.
+     */
+    CreateItemFromDescription_Cache_enable("CreateItemFromDescription.Cache.enable", false),
     /**
      * Define the java classname that implements the {@link DataHelper} interface. No default value.
      * 

@@ -175,6 +175,12 @@
         </dependency>
         <dependency>
             <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-jooqdb</artifactId>
+            <version>${revision}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cristalise</groupId>
             <artifactId>cristalise-gui</artifactId>
             <version>${revision}</version>
             <scope>compile</scope>

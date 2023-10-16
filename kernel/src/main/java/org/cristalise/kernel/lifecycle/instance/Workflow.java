@@ -165,7 +165,7 @@ public class Workflow extends CompositeActivity implements C2KLocalObject {
 
     public void initialise(ItemPath itemPath, AgentPath agent, TransactionKey transactionKey) throws InvalidDataException {
         setItemPath(itemPath);
-        runFirst(agent, itemPath, transactionKey);
+        runFirst(transactionKey);
     }
 
     public ItemPath getItemPath() {

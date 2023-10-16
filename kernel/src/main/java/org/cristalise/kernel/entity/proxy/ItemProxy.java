@@ -89,7 +89,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * It is a wrapper for the connection and communication with Item. It relies on the
+ * It is a immutable wrapper for the connection and communication with Item and its data. It relies on the
  * ClusterStorage mechanism to retrieve and to cache data, i.e. it does not do any cashing itself.
  */
 @Slf4j @Immutable @EqualsAndHashCode

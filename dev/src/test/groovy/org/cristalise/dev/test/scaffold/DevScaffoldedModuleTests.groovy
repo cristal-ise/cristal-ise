@@ -260,7 +260,7 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
     }
 
     @Test
-    public void 'Create Carc and add them to ClubMember and remove Car'() {
+    public void 'Create Cars and add them to ClubMember and remove Car'() {
         def car = creator.createItemWithUpdate(
             Name: "Car-$timeStamp",
             RegistrationPlate: 'IG 94-11',
