@@ -24,6 +24,7 @@ import static org.apache.commons.lang3.StringUtils.equalsAny;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.leftPad;
+import static org.cristalise.kernel.SystemProperties.CreateItemFromDescription_Cache_enable;
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE;
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
@@ -109,13 +110,16 @@ public class CreateItemFromDescription extends PredefinedStep {
 
     private void addToCache(String key, Object obj) {
         try {
-            cache.put(key, Gateway.getMarshaller().marshall(obj));
+            if (CreateItemFromDescription_Cache_enable.getBoolean()) {
+                String xml = Gateway.getMarshaller().marshall(obj);
+                cache.put(key, xml);
+            }
         }
         catch (InvalidDataException e) {
             log.warn("getFromCache() - key:{}", key, e);
         }
     }
-    
+
     private Object getFromCache(String key) {
         String xml = cache.get(key);
 
@@ -159,8 +163,8 @@ public class CreateItemFromDescription extends PredefinedStep {
     {
         String[] inputs = getDataList(requestData);
 
-        ItemProxy descItem = Gateway.getProxy(descItemPath, transactionKey);
-        AgentProxy agent = Gateway.getAgentProxy(agentPath, transactionKey);
+        ItemProxy descItem = descItemPath.getProxy(transactionKey);
+        AgentProxy agent = agentPath.getProxy(transactionKey);
 
         log.debug("Called by {} on {} with parameters {}", agent, descItem, (Object)inputs);
 
