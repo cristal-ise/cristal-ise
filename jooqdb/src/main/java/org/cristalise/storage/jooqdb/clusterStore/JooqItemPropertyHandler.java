@@ -185,7 +185,7 @@ public class JooqItemPropertyHandler extends JooqHandler {
         .column(VALUE,   TEXT_TYPE.nullable(true))
         .column(MUTABLE, SQLDataType.BOOLEAN.nullable(false))
         .constraints(
-                constraint("PK_"+ITEM_PROPERTY_TABLE).primaryKey(UUID, NAME))
+                constraint("PK_"+ITEM_PROPERTY_TABLE.getName()).primaryKey(UUID, NAME))
         .execute();
     }
 

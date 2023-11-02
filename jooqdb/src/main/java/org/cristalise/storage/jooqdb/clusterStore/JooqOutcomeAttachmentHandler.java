@@ -154,7 +154,8 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
                 .column(EVENT_ID, ID_TYPE.nullable(false))
                 .column(ATTACHMENT, ATTACHMENT_TYPE.nullable(false))
                 .column(FILE_NAME, NAME_TYPE.nullable(true))
-                .constraints(constraint("PK_" + OUTCOME_ATTACHMENT_TABLE).primaryKey(UUID,SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
+                .constraints(
+                        constraint("PK_" + OUTCOME_ATTACHMENT_TABLE.getName()).primaryKey(UUID,SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
                 .execute();
     }
 

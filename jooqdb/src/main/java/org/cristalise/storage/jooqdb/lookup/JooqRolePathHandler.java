@@ -65,7 +65,7 @@ public class JooqRolePathHandler {
         .column(AGENT,   JooqHandler.UUID_TYPE   .nullable(false))
         .column(JOBLIST, SQLDataType.BOOLEAN     .nullable(false))
         .constraints(
-                constraint("PK_"+ROLE_PATH_TABLE).primaryKey(PATH, AGENT)
+                constraint("PK_"+ROLE_PATH_TABLE.getName()).primaryKey(PATH, AGENT)
                 // constraint("FK_"+ROLE_PATH_TABLE).foreignKey(AGENT).references(JooqItemHandler.ITEM_TABLE, JooqItemHandler.UUID)
                 )
         .execute();

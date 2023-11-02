@@ -153,7 +153,7 @@ public class JooqCollectionHadler extends JooqHandler {
         .column(VERSION, NAME_TYPE.nullable(false))
         .column(XML,     xmlType  .nullable(false))
         .constraints(
-                constraint("PK_"+COLLECTION_TABLE).primaryKey(UUID, NAME, VERSION))
+                constraint("PK_"+COLLECTION_TABLE.getName()).primaryKey(UUID, NAME, VERSION))
         .execute();
     }
 
