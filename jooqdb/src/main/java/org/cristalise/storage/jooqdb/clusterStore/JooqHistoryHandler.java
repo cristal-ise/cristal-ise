@@ -198,7 +198,8 @@ public class JooqHistoryHandler extends JooqHandler {
         .column(VIEW_NAME,            NAME_TYPE      .nullable(true))
         .column(HAS_ATTACHMENT,       BOOLEAN        .nullable(false).defaultValue(false))
         .column(TIMESTAMP,            TIMESTAMP_TYPE .nullable(false))
-        .constraints(constraint("PK_"+EVENT_TABLE).primaryKey(UUID, ID))
+        .constraints(
+                constraint("PK_"+EVENT_TABLE.getName()).primaryKey(UUID, ID))
         .execute();
     }
 

@@ -138,7 +138,8 @@ public class JooqLifecycleHandler extends JooqHandler {
         .column(UUID, UUID_TYPE.nullable(false))
         .column(NAME, NAME_TYPE.nullable(false))
         .column(XML,  xmlType  .nullable(false))
-        .constraints(constraint("PK_"+LIFECYCLE_TABLE).primaryKey(UUID, NAME))
+        .constraints(
+                constraint("PK_"+LIFECYCLE_TABLE.getName()).primaryKey(UUID, NAME))
         .execute();
     }
 

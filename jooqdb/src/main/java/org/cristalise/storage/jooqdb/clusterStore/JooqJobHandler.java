@@ -165,7 +165,8 @@ public class JooqJobHandler extends JooqHandler {
         .column(TRANSITION,         STRING_TYPE   .nullable(false))
         .column(ROLE_OVERRIDE,      NAME_TYPE     .nullable(true))
         .column(ACT_PROPERTIES,     xmlType       .nullable(false))
-        .constraints(constraint("PK_"+JOB_TABLE).primaryKey(UUID, STEP_NAME, TRANSITION))
+        .constraints(
+                constraint("PK_"+JOB_TABLE.getName()).primaryKey(UUID, STEP_NAME, TRANSITION))
         .execute();
     }
 

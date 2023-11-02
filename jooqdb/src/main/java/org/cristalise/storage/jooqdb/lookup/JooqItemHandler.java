@@ -65,7 +65,7 @@ public class JooqItemHandler {
         .column(IS_PASSWORD_TEMPORARY, SQLDataType.BOOLEAN      .nullable(true))
         .column(PASSWORD,              JooqHandler.PASSWORD_TYPE.nullable(true))
         .constraints(
-                constraint("PK_"+ITEM_TABLE).primaryKey(UUID))
+                constraint("PK_"+ITEM_TABLE.getName()).primaryKey(UUID))
         .execute();
     }
 
