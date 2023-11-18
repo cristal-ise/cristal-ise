@@ -40,6 +40,7 @@ import org.junit.Test;
 public class ListOfValuesTest extends XMLUtils {
 
     String dir = "src/test/data/outcomeBuilder/dynamicForms";
+    String type = "EmployeeShiftSchedule";
 
     @Before
     public void setUp() throws Exception {
@@ -54,7 +55,6 @@ public class ListOfValuesTest extends XMLUtils {
 
     @Test
     public void employeeShiftSchedule() throws Exception {
-        String type = "EmployeeShiftSchedule";
         OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
 
         String[] names = {"AAA", "BBBB", "CCCCC"};
@@ -65,21 +65,24 @@ public class ListOfValuesTest extends XMLUtils {
         inputs.put("memberNames", itemNames);
 
         JSONArray actual = builder.generateNgDynamicFormsJson(inputs);
-
         JSONArray expected = new JSONArray(getJSON(dir, type));
+        assertJsonEquals(expected, actual);
 
+        actual = builder.generateNgDynamicFormsJson(inputs, false);
+        expected = new JSONArray(getJSON(dir, type+"Model"));
         assertJsonEquals(expected, actual);
     }
 
     @Test
     public void employeeShiftSchedule_emptyInputs() throws Exception {
-        String type = "EmployeeShiftSchedule";
         OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
 
         JSONArray actual   = builder.generateNgDynamicFormsJson();
-
         JSONArray expected = new JSONArray(getJSON(dir, type+"_emptyInputs"));
+        assertJsonEquals(expected, actual);
 
+        actual   = builder.generateNgDynamicFormsJson(false);
+        expected = new JSONArray(getJSON(dir, type+"Model_emptyInputs"));
         assertJsonEquals(expected, actual);
     }
 }

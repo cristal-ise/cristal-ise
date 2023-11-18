@@ -40,9 +40,6 @@ import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
 import org.mvel2.templates.TemplateRuntime;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class NgDynamicFormsTest extends XMLUtils {
 
     String dir = "src/test/data/outcomeBuilder/dynamicForms";
@@ -62,30 +59,36 @@ public class NgDynamicFormsTest extends XMLUtils {
     public void ngForm_PatientDetails() throws Exception {
         OutcomeBuilder builder = new OutcomeBuilder("PatientDetails", new Schema("PatientDetails", 0, getXSD(dir, "PatientDetails")), false);
 
-        // Update the JSON file (MVEL template) to set the current date
         Map<String, String> args = new HashMap<>();
         args.put("CURRENTDATE", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-        CompiledTemplate expr = TemplateCompiler.compileTemplate(getJSON(dir, "PatientDetailsNGForms"));
-        String expectedJson = (String)TemplateRuntime.execute(expr, args);
 
+        // genetate model & layout
+        CompiledTemplate expr = TemplateCompiler.compileTemplate(getJSON(dir, "PatientDetailsNGForms"));
+        // Update the JSON file (MVEL template) to set the current date
+        String expectedJson = (String)TemplateRuntime.execute(expr, args);
         JSONArray expected = new JSONArray(expectedJson);
         JSONArray actual   = builder.generateNgDynamicFormsJson();
+        assertJsonEquals(expected, actual);
 
-        log.info(actual.toString(2));
-
+        // genetate model only
+        expr = TemplateCompiler.compileTemplate(getJSON(dir, "PatientDetailsNGFormsModel"));
+        // Update the JSON file (MVEL template) to set the current date
+        expectedJson = (String)TemplateRuntime.execute(expr, args);
+        expected = new JSONArray(expectedJson);
+        actual   = builder.generateNgDynamicFormsJson(false);
         assertJsonEquals(expected, actual);
     }
-    
+
     @Test
     public void ngForm_Storage() throws Exception {
         OutcomeBuilder builder = new OutcomeBuilder("Storage", new Schema("Storage", 0, getXSD(dir, "Storage")), false);
 
         JSONArray actual   = builder.generateNgDynamicFormsJson();
-
-        log.info(actual.toString(2));
-
         JSONArray expected = new JSONArray(getJSON(dir, "StorageNGForms"));
+        assertJsonEquals(expected, actual);
 
+        actual   = builder.generateNgDynamicFormsJson(false);
+        expected = new JSONArray(getJSON(dir, "StorageNGFormsModel"));
         assertJsonEquals(expected, actual);
     }
 
@@ -94,11 +97,11 @@ public class NgDynamicFormsTest extends XMLUtils {
         OutcomeBuilder builder = new OutcomeBuilder("Details", new Schema("Table", 0, getXSD(dir, "Table")), false);
 
         JSONArray actual   = builder.generateNgDynamicFormsJson();
-
-        log.info(actual.toString(2));
-
         JSONArray expected = new JSONArray(getJSON(dir, "TableNGForms"));
+        assertJsonEquals(expected, actual);
 
+        actual   = builder.generateNgDynamicFormsJson(false);
+        expected = new JSONArray(getJSON(dir, "TableNGFormsModel"));
         assertJsonEquals(expected, actual);
     }
 
@@ -107,11 +110,11 @@ public class NgDynamicFormsTest extends XMLUtils {
         OutcomeBuilder builder = new OutcomeBuilder("Employee", new Schema("ShowSeconds", 0, getXSD(dir, "ShowSeconds")), false);
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
-
-        log.info(actual.toString(2));
-
         JSONArray expected = new JSONArray(getJSON(dir, "ShowSeconds"));
+        assertJsonEquals(expected, actual);
 
+        actual = builder.generateNgDynamicFormsJson(false);
+        expected = new JSONArray(getJSON(dir, "ShowSecondsModel"));
         assertJsonEquals(expected, actual);
     }
     
@@ -120,13 +123,11 @@ public class NgDynamicFormsTest extends XMLUtils {
         OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsWidthConfiguration", 0, getXSD(dir, "DynamicFormsWidthConfiguration")), false);
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
-
-        log.info(actual.toString(2));
-
         JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsWidthConfiguration"));
+        assertJsonEquals(expected, actual);
 
-        log.info(expected.toString(2));
-
+        actual = builder.generateNgDynamicFormsJson(false);
+        expected = new JSONArray(getJSON(dir, "DynamicFormsWidthConfigurationModel"));
         assertJsonEquals(expected, actual);
     }
 
@@ -136,11 +137,11 @@ public class NgDynamicFormsTest extends XMLUtils {
         OutcomeBuilder builder = new OutcomeBuilder("TestData", new Schema(testName, 0, getXSD(dir, testName)), false);
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
-
-        log.info(actual.toString(2));
-
         JSONArray expected = new JSONArray(getJSON(dir, testName+"NgForms"));
+        assertJsonEquals(expected, actual);
 
+        actual = builder.generateNgDynamicFormsJson(false);
+        expected = new JSONArray(getJSON(dir, testName+"NgFormsModel"));
         assertJsonEquals(expected, actual);
     }
 
@@ -150,41 +151,37 @@ public class NgDynamicFormsTest extends XMLUtils {
         OutcomeBuilder builder = new OutcomeBuilder("PatientDetails", new Schema(testName, 0, getXSD(dir, testName)), false);
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
-
-        log.info(actual.toString(2));
-
         JSONArray expected = new JSONArray(getJSON(dir, testName+"NgForms"));
+        assertJsonEquals(expected, actual);
 
+        actual = builder.generateNgDynamicFormsJson(false);
+        expected = new JSONArray(getJSON(dir, testName+"NgFormsModel"));
         assertJsonEquals(expected, actual);
     }
     
     @Test
     public void ngForm_Label() throws Exception {
-          OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsGroupLabel", 0, getXSD(dir, "DynamicFormsGroupLabel")), false);
-    
-          JSONArray actual = builder.generateNgDynamicFormsJson();
-    
-          log.info(actual.toString(2));
-    
-          JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsGroupLabel"));
-          
-          log.info(expected.toString(2));
-    
-          assertJsonEquals(expected, actual);
+        OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsGroupLabel", 0, getXSD(dir, "DynamicFormsGroupLabel")), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+        JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsGroupLabel"));
+        assertJsonEquals(expected, actual);
+
+        actual = builder.generateNgDynamicFormsJson(false);
+        expected = new JSONArray(getJSON(dir, "DynamicFormsGroupLabelModel"));
+        assertJsonEquals(expected, actual);
     }
-    
+
     @Test
     public void ngForm_FormContainer() throws Exception {
         OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsContainer", 0, getXSD(dir, "DynamicFormsContainer")), false);
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
-
-        log.info(actual.toString(2));
-
         JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsContainer"));
+        assertJsonEquals(expected, actual);
 
-        log.info(expected.toString(2));
-
+        actual = builder.generateNgDynamicFormsJson(false);
+        expected = new JSONArray(getJSON(dir, "DynamicFormsContainerModel"));
         assertJsonEquals(expected, actual);
     }
     
@@ -193,28 +190,25 @@ public class NgDynamicFormsTest extends XMLUtils {
         OutcomeBuilder builder = new OutcomeBuilder("Form", new Schema("DynamicFormsGroupContainer", 0, getXSD(dir, "DynamicFormsGroupContainer")), false);
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
-
-        log.info(actual.toString(2));
-
         JSONArray expected = new JSONArray(getJSON(dir, "DynamicFormsGroupContainer"));
+        assertJsonEquals(expected, actual);
 
-        log.info(expected.toString(2));
-
+        actual = builder.generateNgDynamicFormsJson(false);
+        expected = new JSONArray(getJSON(dir, "DynamicFormsGroupContainerModel"));
         assertJsonEquals(expected, actual);
     }
 
     @Test
     public void ngForm_AutoComplete() throws Exception {
         Gateway.getProperties().remove(Webui_autoComplete_default.toString());
-
         OutcomeBuilder builder = new OutcomeBuilder("PatientDetails", new Schema("AutoComplete", 0, getXSD(dir, "AutoComplete")), false);
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
-
-        log.info(actual.toString(2));
-
         JSONArray expected = new JSONArray(getJSON(dir, "AutoComplete"));
+        assertJsonEquals(expected, actual);
 
+        actual = builder.generateNgDynamicFormsJson(false);
+        expected = new JSONArray(getJSON(dir, "AutoCompleteModel"));
         assertJsonEquals(expected, actual);
     }
 
@@ -223,11 +217,11 @@ public class NgDynamicFormsTest extends XMLUtils {
         OutcomeBuilder builder = new OutcomeBuilder("Additional", new Schema("Additional", 0, getXSD(dir, "Additional")), false);
 
         JSONArray actual = builder.generateNgDynamicFormsJson();
-
-        log.info(actual.toString(2));
-
         JSONArray expected = new JSONArray(getJSON(dir, "Additional"));
+        assertJsonEquals(expected, actual);
 
+        actual = builder.generateNgDynamicFormsJson(false);
+        expected = new JSONArray(getJSON(dir, "AdditionalModel"));
         assertJsonEquals(expected, actual);
     }
 }

@@ -1,0 +1,38 @@
+[{
+  "name": "Additional",
+  "id": "Additional",
+  "type": "GROUP",
+  "group": [{
+    "filterable": true,
+    "validators": {"required": null},
+    "additional": {
+      "editable": false,
+      "something": "toto",
+      "filterBy": "label"
+    },
+    "options": [
+      {"label": "Select value"},
+      {
+        "label": "v1",
+        "value": "v1"
+      },
+      {
+        "label": "v2",
+        "value": "v2"
+      },
+      {
+        "label": "v3",
+        "value": "v3"
+      },
+      {
+        "label": "v4",
+        "value": "v4"
+      }
+    ],
+    "id": "ComboField",
+    "label": "Combo Field *",
+    "placeholder": "Combo Field",
+    "type": "SELECT",
+    "required": true
+  }]
+}]

@@ -305,6 +305,10 @@ public class OutcomeBuilder {
         return generateNgDynamicFormsJson(null, true);
     }
 
+    public JSONArray generateNgDynamicFormsJson(boolean withLayout) {
+        return generateNgDynamicFormsJson(null, withLayout);
+    }
+
     public JSONArray generateNgDynamicFormsJson(Map<String, Object> inputs) {
         return generateNgDynamicFormsJson(inputs, true);
     }
