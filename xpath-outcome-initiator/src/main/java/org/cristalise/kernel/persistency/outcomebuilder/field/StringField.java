@@ -400,7 +400,7 @@ public class StringField extends StructureWithAppInfo {
         //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING or label can be provided
         setAppInfoDynamicFormsJson(model, field, false);
 
-        field.put("cls", generateNgDynamicFormsCls());
+//        field.put("cls", generateNgDynamicFormsCls());
 
         JSONObject validators = new JSONObject();
         field.put("validators", validators);

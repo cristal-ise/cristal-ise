@@ -234,7 +234,7 @@ public class DataRecord extends OutcomeStructure {
     public Object generateNgDynamicForms(Map<String, Object> inputs) {
         JSONObject dr = new JSONObject();
         
-        dr.put("cls", generateNgDynamicFormsCls());
+//        dr.put("cls", generateNgDynamicFormsCls());
         dr.put("type",  "GROUP");
         dr.put("id",    model.getName());
         dr.put("name",  model.getName());

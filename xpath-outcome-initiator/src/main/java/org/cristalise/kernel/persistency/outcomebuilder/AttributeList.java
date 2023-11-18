@@ -196,6 +196,7 @@ public class AttributeList extends OutcomeStructure {
     @Override
     public void exportViewTemplate(Writer template) {}
 
+    @Override
     public JSONObject generateNgDynamicFormsCls() { return null; }
 
 }

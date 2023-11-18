@@ -257,7 +257,8 @@ public class Field extends OutcomeStructure {
 
     @Override
     public JSONObject generateNgDynamicFormsCls() {
-        return myFieldInstance.generateNgDynamicFormsCls();
+//        return myFieldInstance.generateNgDynamicFormsCls();
+        return null;
     }
 
     @Override
