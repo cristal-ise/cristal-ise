@@ -63,8 +63,8 @@ public class DateField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
-        JSONObject date = getCommonFieldsNgDynamicForms();
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout) {
+        JSONObject date = getCommonFieldsNgDynamicForms(withLayout);
 
         date.put("format", Webui_format_date_default.getString());
 

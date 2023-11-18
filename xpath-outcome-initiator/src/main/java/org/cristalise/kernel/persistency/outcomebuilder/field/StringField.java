@@ -388,7 +388,7 @@ public class StringField extends StructureWithAppInfo {
      * 
      * @return
      */
-    public JSONObject getCommonFieldsNgDynamicForms() {
+    public JSONObject getCommonFieldsNgDynamicForms(boolean withLayout) {
         JSONObject field = new JSONObject();
         
         field.put("id",       name);
@@ -400,7 +400,7 @@ public class StringField extends StructureWithAppInfo {
         //This can overwrite values set earlier, for example 'type' can be changed from INPUT to RATING or label can be provided
         setAppInfoDynamicFormsJson(model, field, false);
 
-//        field.put("cls", generateNgDynamicFormsCls());
+        if (withLayout) field.put("cls", generateNgDynamicFormsCls());
 
         JSONObject validators = new JSONObject();
         field.put("validators", validators);
@@ -444,8 +444,8 @@ public class StringField extends StructureWithAppInfo {
         return field;
     }
 
-    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
-        JSONObject input = getCommonFieldsNgDynamicForms();
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout) {
+        JSONObject input = getCommonFieldsNgDynamicForms(withLayout);
 
         // AppInfo could set the 'inputType' to password already
         if (!input.has("inputType")) input.put("inputType", "text");

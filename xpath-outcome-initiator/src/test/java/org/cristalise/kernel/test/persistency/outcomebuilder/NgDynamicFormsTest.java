@@ -45,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class NgDynamicFormsTest extends XMLUtils {
 
-    String dir = "src/test/data/outcomeBuilder";
+    String dir = "src/test/data/outcomeBuilder/dynamicForms";
 
     @Before
     public void setUp() throws Exception {

@@ -152,10 +152,10 @@ public class AttributeList extends OutcomeStructure {
     }
 
     @Override
-    public JSONArray generateNgDynamicForms(Map<String, Object> inputs) {
+    public JSONArray generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout) {
         JSONArray attrs = new JSONArray();
 
-        for (StringField attr: attrMap.values()) attrs.put(attr.generateNgDynamicForms(inputs));
+        for (StringField attr: attrMap.values()) attrs.put(attr.generateNgDynamicForms(inputs, withLayout));
 
         return attrs;
     }
