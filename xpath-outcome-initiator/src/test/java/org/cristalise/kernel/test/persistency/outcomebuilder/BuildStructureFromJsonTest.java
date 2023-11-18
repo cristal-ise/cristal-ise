@@ -141,4 +141,15 @@ public class BuildStructureFromJsonTest extends XMLUtils {
         checkJson2XmlOutcome("optionalStructWithOptionalFields", "EnvironmentDetails", "");
         checkJson2XmlOutcome("optionalStructWithOptionalFields", "EnvironmentDetails", "WithAdminUser");
     }
+
+    @Test
+    public void employeeShiftScheduleFromJson() throws Exception {
+        String type = "EmployeeShiftSchedule";
+        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
+
+        builder.addJsonInstance(new JSONObject("{'EmployeeShiftSchedule': {'CollectionName': 'Shift','MemberID': '0','ShiftName': 'shift1','MemberUUID': null,}}"));
+        String actual = builder.getXml();
+        assert compareXML(getXML(dir, type), actual);
+    }
+
 }
