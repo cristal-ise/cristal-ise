@@ -189,7 +189,7 @@ public interface SystemPropertyOperations {
     default String getString(String defaultOverwrite, Object... nameArgs) {
         Object actualValue = getObject(defaultOverwrite, nameArgs);
 
-        if (enumLogger.isDebugEnabled()) enumLogger.debug("getString() - {} => {}", getActualName(nameArgs), actualValue);
+        if (enumLogger.isDebugEnabled()) enumLogger.trace("getString() - {} => {}", getActualName(nameArgs), actualValue);
 
         if (actualValue != null) return new StringConverter(null).convert(String.class, actualValue).trim();
         else                     return null;
@@ -253,7 +253,7 @@ public interface SystemPropertyOperations {
     default Integer getInteger(Integer defaultOverwrite, Object... args) {
         Object actualValue = getObject(defaultOverwrite, args);
 
-        if (enumLogger.isDebugEnabled()) enumLogger.debug("getInteger() - {} => {}", getActualName(args), actualValue);
+        if (enumLogger.isDebugEnabled()) enumLogger.trace("getInteger() - {} => {}", getActualName(args), actualValue);
 
         if (actualValue != null) return new IntegerConverter(null).convert(Integer.class, actualValue);
         else                     return null;
@@ -317,7 +317,7 @@ public interface SystemPropertyOperations {
     default Boolean getBoolean(Boolean defaultOverwrite, Object... args) {
         Object actualValue = getObject(defaultOverwrite, args);
 
-        if (enumLogger.isDebugEnabled()) enumLogger.debug("getBoolean() - {} => {}", getActualName(args), actualValue);
+        if (enumLogger.isDebugEnabled()) enumLogger.trace("getBoolean() - {} => {}", getActualName(args), actualValue);
 
         if (actualValue != null) return new BooleanConverter(null).convert(Boolean.class, actualValue);
         else                     return null;
@@ -343,7 +343,7 @@ public interface SystemPropertyOperations {
     default Object getInstance(Object... nameArgs) throws ReflectiveOperationException {
         String actualValue = getString(nameArgs);
 
-        if (enumLogger.isDebugEnabled()) enumLogger.debug("getInstance() - {} => {}", getActualName(nameArgs), actualValue);
+        if (enumLogger.isDebugEnabled()) enumLogger.trace("getInstance() - {} => {}", getActualName(nameArgs), actualValue);
 
         if (StringUtils.isBlank(actualValue)) {
             throw new InstantiationException("SystemProperty '" + getActualName(nameArgs) + "' was not defined.");
