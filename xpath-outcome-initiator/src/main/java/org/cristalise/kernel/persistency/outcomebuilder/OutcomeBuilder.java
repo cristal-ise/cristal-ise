@@ -20,6 +20,9 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
+import static org.cristalise.kernel.persistency.outcomebuilder.GeneratedFormType.NgDynamicFormLayout;
+import static org.cristalise.kernel.persistency.outcomebuilder.GeneratedFormType.NgDynamicFormTemplate;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -27,6 +30,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
@@ -285,36 +289,25 @@ public class OutcomeBuilder {
         outcome.setField(name, data);
     }
 
-    public String generateNgDynamicForms() {
-        return generateNgDynamicForms(null, true);
+    public JSONArray generateNgDynamicFormsJson() throws InvalidDataException {
+        return generateNgDynamicFormsJson(null, NgDynamicFormTemplate);
     }
 
-    public String generateNgDynamicForms(Map<String, Object> inputs) {
-        return generateNgDynamicForms(inputs, true);
+    public JSONArray generateNgDynamicFormsJson(GeneratedFormType formType) throws InvalidDataException {
+        return generateNgDynamicFormsJson(null, formType);
     }
 
-    public String generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout) {
-        String json = generateNgDynamicFormsJson(inputs, withLayout).toString(2);
-
-        log.debug("generateNgDynamicForms() - json:%s", json);
-
-        return json;
+    public JSONArray generateNgDynamicFormsJson(Map<String, Object> inputs) throws InvalidDataException {
+        return generateNgDynamicFormsJson(inputs, NgDynamicFormTemplate);
     }
 
-    public JSONArray generateNgDynamicFormsJson() {
-        return generateNgDynamicFormsJson(null, true);
-    }
-
-    public JSONArray generateNgDynamicFormsJson(boolean withLayout) {
-        return generateNgDynamicFormsJson(null, withLayout);
-    }
-
-    public JSONArray generateNgDynamicFormsJson(Map<String, Object> inputs) {
-        return generateNgDynamicFormsJson(inputs, true);
-    }
-
-    public JSONArray generateNgDynamicFormsJson(Map<String, Object> inputs, boolean withLayout) {
+    public JSONArray generateNgDynamicFormsJson(Map<String, Object> inputs, GeneratedFormType formType) 
+            throws InvalidDataException
+    {
+        if (formType == NgDynamicFormLayout) throw new InvalidDataException();
+        
         JSONArray array = new JSONArray();
+        boolean withLayout = formType == NgDynamicFormTemplate;
         array.put(modelRoot.generateNgDynamicForms(inputs, withLayout));
         return array;
     }

@@ -21,6 +21,7 @@
 package org.cristalise.kernel.test.persistency.outcomebuilder;
 
 import static net.javacrumbs.jsonunit.JsonAssert.assertJsonEquals;
+import static org.cristalise.kernel.persistency.outcomebuilder.GeneratedFormType.NgDynamicFormModel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -68,7 +69,7 @@ public class ListOfValuesTest extends XMLUtils {
         JSONArray expected = new JSONArray(getJSON(dir, type));
         assertJsonEquals(expected, actual);
 
-        actual = builder.generateNgDynamicFormsJson(inputs, false);
+        actual = builder.generateNgDynamicFormsJson(inputs, NgDynamicFormModel);
         expected = new JSONArray(getJSON(dir, type+"Model"));
         assertJsonEquals(expected, actual);
     }
@@ -81,7 +82,7 @@ public class ListOfValuesTest extends XMLUtils {
         JSONArray expected = new JSONArray(getJSON(dir, type+"_emptyInputs"));
         assertJsonEquals(expected, actual);
 
-        actual   = builder.generateNgDynamicFormsJson(false);
+        actual   = builder.generateNgDynamicFormsJson(NgDynamicFormModel);
         expected = new JSONArray(getJSON(dir, type+"Model_emptyInputs"));
         assertJsonEquals(expected, actual);
     }
