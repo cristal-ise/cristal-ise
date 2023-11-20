@@ -222,8 +222,8 @@ public class Dimension extends OutcomeStructure {
     }
 
     @Override
-    public Object generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout) {
-        if (mode == Mode.TABLE) {
+    public Object generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
+        if (mode == Mode.TABLE && withModel) {
             JSONObject table = new JSONObject();
             table.put("type",  "TABLE");
             table.put("id",    model.getName());
@@ -232,7 +232,7 @@ public class Dimension extends OutcomeStructure {
             JSONArray columns = new JSONArray();
             table.put("columns",  columns);
             for (Entry<String, Field> entry: tableModel.columns.entrySet()) {
-                columns.put(entry.getValue().generateNgDynamicForms(inputs, withLayout));
+                columns.put(entry.getValue().generateNgDynamicForms(inputs, withModel, withLayout));
             }
 
             JSONArray rows = new JSONArray();

@@ -20,8 +20,7 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
-import static org.cristalise.kernel.persistency.outcomebuilder.GeneratedFormType.NgDynamicFormLayout;
-import static org.cristalise.kernel.persistency.outcomebuilder.GeneratedFormType.NgDynamicFormTemplate;
+import static org.cristalise.kernel.persistency.outcomebuilder.GeneratedFormType.*;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -304,11 +303,12 @@ public class OutcomeBuilder {
     public JSONArray generateNgDynamicFormsJson(Map<String, Object> inputs, GeneratedFormType formType) 
             throws InvalidDataException
     {
-        if (formType == NgDynamicFormLayout) throw new InvalidDataException();
-        
+        boolean withLayout = formType == NgDynamicFormTemplate || formType == NgDynamicFormLayout;
+        boolean withModel  = formType == NgDynamicFormTemplate || formType == NgDynamicFormModel;
+
         JSONArray array = new JSONArray();
-        boolean withLayout = formType == NgDynamicFormTemplate;
-        array.put(modelRoot.generateNgDynamicForms(inputs, withLayout));
+        array.put(modelRoot.generateNgDynamicForms(inputs, withModel, withLayout));
+
         return array;
     }
 

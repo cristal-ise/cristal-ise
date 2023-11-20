@@ -112,7 +112,7 @@ public abstract class OutcomeStructure {
     public abstract Element initNew(Document rootDocument);
 
     public abstract void exportViewTemplate(Writer template) throws IOException;
-    public abstract Object generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout);
+    public abstract Object generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout);
     public abstract JSONObject generateNgDynamicFormsCls();
     public abstract void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String name, Object json) 
             throws OutcomeBuilderException;

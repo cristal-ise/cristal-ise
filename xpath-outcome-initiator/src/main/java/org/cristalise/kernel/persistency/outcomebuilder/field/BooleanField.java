@@ -50,8 +50,8 @@ public class BooleanField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout) {
-        JSONObject bool = getCommonFieldsNgDynamicForms(withLayout);
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
+        JSONObject bool = getCommonFieldsNgDynamicForms(withModel, withLayout);
 
         bool.put("onLabel", "Yes");
         bool.put("offLabel", "No");

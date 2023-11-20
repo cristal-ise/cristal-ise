@@ -57,8 +57,8 @@ public class TimeField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout) {
-        JSONObject time = getCommonFieldsNgDynamicForms(withLayout);
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
+        JSONObject time = getCommonFieldsNgDynamicForms(withModel, withLayout);
 
         time.put("format", "hh:MM");
         

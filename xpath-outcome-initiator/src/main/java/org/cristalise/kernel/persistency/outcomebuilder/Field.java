@@ -259,7 +259,7 @@ public class Field extends OutcomeStructure {
     }
 
     @Override
-    public Object generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout) {
+    public Object generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
         if (isAnyType() || isAnyField()) {
             log.debug("generateNgDynamicForms() - skipping {}", (isAnyField() ? "AnyField" : "Field(name:"+getName()+") with anyType"));
             return null;
@@ -269,7 +269,7 @@ public class Field extends OutcomeStructure {
 
         String defVal = getDefaultValue();
 
-        JSONObject fieldJson = myFieldInstance.generateNgDynamicForms(inputs, withLayout);
+        JSONObject fieldJson = myFieldInstance.generateNgDynamicForms(inputs, withModel, withLayout);
 
         if (StringUtils.isNotBlank(defVal)) fieldJson.put("value", defVal);
         if (StringUtils.isNotBlank(help))   myFieldInstance.getAdditionalConfigNgDynamicForms(fieldJson).put("tooltip", help.trim());

@@ -61,8 +61,8 @@ public abstract class NumberField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout) {
-        JSONObject inputReal = getCommonFieldsNgDynamicForms(withLayout);
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
+        JSONObject inputReal = getCommonFieldsNgDynamicForms(withModel, withLayout);
 
         //inputReal.put("inputType", "number");
 

@@ -231,7 +231,7 @@ public class DataRecord extends OutcomeStructure {
     }
 
     @Override
-    public Object generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout) {
+    public Object generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
         JSONObject dr = new JSONObject();
 
         log.debug("generateNgDynamicForms() - name:{} optional:{} isAnyType:{}", model.getName(), isOptional(), isAnyType());
@@ -243,10 +243,10 @@ public class DataRecord extends OutcomeStructure {
         dr.put("name",  model.getName());
         //dr.put("required", !isOptional());
 
-        JSONArray array = myAttributes.generateNgDynamicForms(inputs, withLayout);
+        JSONArray array = myAttributes.generateNgDynamicForms(inputs, withModel, withLayout);
 
         for (String elementName : subStructureOrder) {
-            Object formFregment = subStructure.get(elementName).generateNgDynamicForms(inputs, withLayout);
+            Object formFregment = subStructure.get(elementName).generateNgDynamicForms(inputs, withModel, withLayout);
             if (formFregment != null) array.put(formFregment);
         }
 

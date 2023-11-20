@@ -44,8 +44,8 @@ public class IntegerField extends NumberField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout) {
-        JSONObject inputInt = super.generateNgDynamicForms(inputs, withLayout);
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
+        JSONObject inputInt = super.generateNgDynamicForms(inputs, withModel, withLayout);
 
         if (inputInt.getString("type").equals("RATING")) {
             // disable cancel icon for RATING

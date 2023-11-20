@@ -388,7 +388,7 @@ public class StringField extends StructureWithAppInfo {
      * 
      * @return
      */
-    public JSONObject getCommonFieldsNgDynamicForms(boolean withLayout) {
+    public JSONObject getCommonFieldsNgDynamicForms(boolean withModel, boolean withLayout) {
         JSONObject field = new JSONObject();
         
         field.put("id",       name);
@@ -444,8 +444,8 @@ public class StringField extends StructureWithAppInfo {
         return field;
     }
 
-    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout) {
-        JSONObject input = getCommonFieldsNgDynamicForms(withLayout);
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
+        JSONObject input = getCommonFieldsNgDynamicForms(withModel, withLayout);
 
         // AppInfo could set the 'inputType' to password already
         if (!input.has("inputType")) input.put("inputType", "text");
