@@ -44,7 +44,7 @@ public class LoadOutcomeXMLTest extends XMLUtils {
         assert compareXML(expected, actual.getXml());
     }
 
-    @Test @Ignore
+    @Test
     public void loadAndExportDefaultStateMachine() throws Exception {
         loadExportCheck("StateMachine", "Default");
     }

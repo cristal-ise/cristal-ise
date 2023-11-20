@@ -179,9 +179,9 @@ public class DataRecord extends OutcomeStructure {
         // populate
         for (String elementName : subStructureOrder) {
             OutcomeStructure childStructure = subStructure.get(elementName);
-            
+
             if (childStructure instanceof Field) {
-                if (((Field)childStructure).isAnyField) continue;
+                if (childStructure.isAnyField()) continue;
             }
             else if (childStructure instanceof Dimension) {
                 ((Dimension) childStructure).setParentElement(myElement);
@@ -233,6 +233,8 @@ public class DataRecord extends OutcomeStructure {
     @Override
     public Object generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout) {
         JSONObject dr = new JSONObject();
+
+        log.debug("generateNgDynamicForms() - name:{} optional:{} isAnyType:{}", model.getName(), isOptional(), isAnyType());
 
         if (withLayout) dr.put("cls", generateNgDynamicFormsCls());
 

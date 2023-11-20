@@ -34,7 +34,6 @@ import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mvel2.templates.CompiledTemplate;
 import org.mvel2.templates.TemplateCompiler;
@@ -78,7 +77,7 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
         checkEmptyOutcome("BooleanField");
     }
 
-    @Test @Ignore
+    @Test
     public void integerFieldWithUnit() throws Exception {
         checkEmptyOutcome("IntegerFieldWithUnit");
     }

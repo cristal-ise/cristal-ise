@@ -224,4 +224,30 @@ public class NgDynamicFormsTest extends XMLUtils {
         expected = new JSONArray(getJSON(dir, "AdditionalModel"));
         assertJsonEquals(expected, actual);
     }
+
+    @Test
+    public void ngForm_AnyField() throws Exception {
+        OutcomeBuilder builder = new OutcomeBuilder("AnyField", new Schema("AnyField", 0, getXSD(dir, "AnyField")), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+        JSONArray expected = new JSONArray(getJSON(dir, "AnyField"));
+        assertJsonEquals(expected, actual);
+
+        actual = builder.generateNgDynamicFormsJson(false);
+        expected = new JSONArray(getJSON(dir, "AnyFieldModel"));
+        assertJsonEquals(expected, actual);
+    }
+
+    @Test
+    public void ngForm_AnyType() throws Exception {
+        OutcomeBuilder builder = new OutcomeBuilder("AnyType", new Schema("AnyType", 0, getXSD(dir, "AnyType")), false);
+
+        JSONArray actual = builder.generateNgDynamicFormsJson();
+        JSONArray expected = new JSONArray(getJSON(dir, "AnyType"));
+        assertJsonEquals(expected, actual);
+
+        actual = builder.generateNgDynamicFormsJson(false);
+        expected = new JSONArray(getJSON(dir, "AnyTypeModel"));
+        assertJsonEquals(expected, actual);
+    }
 }

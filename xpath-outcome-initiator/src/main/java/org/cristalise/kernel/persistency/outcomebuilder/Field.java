@@ -42,11 +42,9 @@ public class Field extends OutcomeStructure {
     StringField   myFieldInstance = null;
     AttributeList myAttributes;
     Text          textNode;
-    boolean       isAnyField = false;
 
     public Field(Wildcard model) {
         super(model);
-        isAnyField = true;
     }
 
     public Field(ElementDecl model) {
@@ -262,10 +260,12 @@ public class Field extends OutcomeStructure {
 
     @Override
     public Object generateNgDynamicForms(Map<String, Object> inputs, boolean withLayout) {
-        if (isAnyType()) {
-            log.debug("generateNgDynamicForms() - skipping Field(name:{}) with anyType", getName());
+        if (isAnyType() || isAnyField()) {
+            log.debug("generateNgDynamicForms() - skipping {}", (isAnyField() ? "AnyField" : "Field(name:"+getName()+") with anyType"));
             return null;
         }
+
+        log.debug("generateNgDynamicForms() - name:{} optional:{} isAnyType:{}", model.getName(), isOptional(), isAnyType());
 
         String defVal = getDefaultValue();
 

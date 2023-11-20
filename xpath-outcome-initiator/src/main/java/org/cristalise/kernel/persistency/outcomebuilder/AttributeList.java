@@ -58,7 +58,7 @@ public class AttributeList extends OutcomeStructure {
             log.debug("attribute:{} optional:{}", thisDecl.getName(), thisDecl.isOptional());
 
             // FIXME: this will be overwritten by the help of next attributes
-            help = OutcomeStructure.extractHelp(thisDecl);
+            help = extractHelp(thisDecl);
 
             //Skipping optional attributes
             //if (thisDecl.isOptional()) continue;
