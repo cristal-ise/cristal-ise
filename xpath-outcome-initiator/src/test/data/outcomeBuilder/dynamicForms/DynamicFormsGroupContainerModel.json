@@ -27,32 +27,3 @@
     }
   ]
 }]
-[{
-  "name": "Form",
-  "id": "Form",
-  "type": "GROUP",
-  "group": [
-    {
-      "inputType": "text",
-      "id": "testField",
-      "label": "test Field",
-      "placeholder": "test Field",
-      "type": "INPUT",
-      "required": false
-    },
-    {
-      "name": "testFormGroup",
-      "id": "testFormGroup",
-      "label": "test Form Group",
-      "type": "GROUP",
-      "group": [{
-        "inputType": "text",
-        "id": "testField2",
-        "label": "test Field 2",
-        "placeholder": "test Field 2",
-        "type": "INPUT",
-        "required": false
-      }]
-    }
-  ]
-}]
