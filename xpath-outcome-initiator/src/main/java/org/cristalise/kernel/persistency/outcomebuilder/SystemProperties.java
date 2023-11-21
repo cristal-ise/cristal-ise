@@ -47,6 +47,13 @@ import lombok.Getter;
  * @see #Webui_inputField_integer_defaultValue
  * @see #Webui_inputField_string_defaultValue
  * @see #Webui_inputField_time_defaultValue
+ * @see #Webui_NgDynamicForms_FieldLayout_elementLabelClass
+ * @see #Webui_NgDynamicForms_FieldLayout_gridContainerClass
+ * @see #Webui_NgDynamicForms_FieldLayout_gridControlClass
+ * @see #Webui_NgDynamicForms_FieldLayout_gridLabelClass
+ * @see #Webui_NgDynamicForms_GroupLayout_gridContainerClass
+ * @see #Webui_NgDynamicForms_GroupLayout_elementContainerClass
+ * @see #Webui_NgDynamicForms_GroupLayout_elementLabelClass
  */
 @Getter
 public enum SystemProperties implements SystemPropertyOperations{
@@ -67,7 +74,17 @@ public enum SystemProperties implements SystemPropertyOperations{
     Webui_inputField_string_defaultValue("Webui.inputField.string.defaultValue", ""),
     Webui_inputField_time_defaultValue("Webui.inputField.time.defaultValue"),
     Webui_decimal_separator("Webui.decimal.separator", "."),
-    Webui_decimal_generateDefaultPattern("Webui.decimal.generateDefaultPattern", false);
+    Webui_decimal_generateDefaultPattern("Webui.decimal.generateDefaultPattern", false),
+
+    Webui_NgDynamicForms_FieldLayout_elementLabelClass ("Webui.NgDynamicForms.FieldLayout.elementLabelClass",  "ui-widget"),
+    Webui_NgDynamicForms_FieldLayout_gridContainerClass("Webui.NgDynamicForms.FieldLayout.gridContainerClass", "ui-g"),
+    Webui_NgDynamicForms_FieldLayout_gridControlClass  ("Webui.NgDynamicForms.FieldLayout.gridControlClass",   "ui-g-8"),
+    Webui_NgDynamicForms_FieldLayout_gridLabelClass    ("Webui.NgDynamicForms.FieldLayout.gridLabelClass",     "ui-g-4"),
+    
+    Webui_NgDynamicForms_GroupLayout_gridContainerClass   ("Webui.NgDynamicForms.GroupLayout.gridContainerClass",    "ui-g-12"),
+    Webui_NgDynamicForms_GroupLayout_elementContainerClass("Webui.NgDynamicForms.GroupLayout.elementContainerClass", "formGroupContainer"),
+    Webui_NgDynamicForms_GroupLayout_elementLabelClass    ("Webui.NgDynamicForms.GroupLayout.elementLabelClass",     "formGroupLabel"),
+    ;
 
     private Object defaultValue;
     private String systemPropertyName;

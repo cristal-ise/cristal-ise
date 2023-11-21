@@ -20,7 +20,7 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
-import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_autoComplete_default;
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.*;
 import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_inputField_string_defaultValue;
 
 import java.math.BigDecimal;
@@ -70,10 +70,10 @@ public class StringField extends StructureWithAppInfo {
     SimpleType contentType;
     String     text;
     String     defaultValue;
-    
-    String     container;
-    String     control;
-    String     labelGrid;
+
+    String     container = Webui_NgDynamicForms_FieldLayout_gridContainerClass.getString();
+    String     control   = Webui_NgDynamicForms_FieldLayout_gridControlClass.getString();
+    String     labelGrid = Webui_NgDynamicForms_FieldLayout_gridLabelClass.getString();
 
     @Getter
     Class<?> javaType = String.class;
@@ -318,22 +318,16 @@ public class StringField extends StructureWithAppInfo {
         JSONObject fieldCls = new JSONObject();
 
         JSONObject fieldElement = new JSONObject();
-        fieldElement.put("label", "ui-widget");
+        fieldElement.put("label", Webui_NgDynamicForms_FieldLayout_elementLabelClass.getString());
 
         JSONObject fieldGrid = new JSONObject();
-        fieldGrid.put("container", StringUtils.isNotBlank(container) ? container : "ui-g");
-        
-        // If either the control or the label is not defined, both are put to their default values
-        if (!StringUtils.isNotBlank(labelGrid) || !StringUtils.isNotBlank(control)) {
-           labelGrid = "ui-g-4";
-           control = "ui-g-8";
-        }
-        
+        fieldGrid.put("container", container);
         fieldGrid.put("label",     labelGrid);
         fieldGrid.put("control",   control);
 
         fieldCls.put("element", fieldElement);
-        fieldCls.put("grid", fieldGrid);
+        fieldCls.put("grid",    fieldGrid);
+
         return fieldCls;
     }
     
@@ -390,7 +384,7 @@ public class StringField extends StructureWithAppInfo {
      */
     public JSONObject getCommonFieldsNgDynamicForms(boolean withModel, boolean withLayout) {
         JSONObject field = new JSONObject();
-        
+
         field.put("id",       name);
         // appinfo/dynamicForms could update label later, so do the CamelCase splitting now
         field.put("label",    StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(name), " "));

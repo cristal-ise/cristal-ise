@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.*;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
@@ -214,7 +216,7 @@ public class DataRecord extends OutcomeStructure {
         
         // Set default value when container is not defined
         if (!drGrid.has("container")) {
-            drGrid.put("container", "ui-g-12");
+            drGrid.put("container", Webui_NgDynamicForms_GroupLayout_gridContainerClass.getString());
         }
 
         drCls.put("grid", drGrid);
@@ -222,8 +224,8 @@ public class DataRecord extends OutcomeStructure {
         if (!isRootElement)  {
             JSONObject drClass = new JSONObject();
 
-            drClass.put("label", "formGroupLabel");
-            drClass.put("container", "formGroupContainer");
+            drClass.put("label", Webui_NgDynamicForms_GroupLayout_elementLabelClass.getString());
+            drClass.put("container", Webui_NgDynamicForms_GroupLayout_elementContainerClass.getString());
 
             drCls.put("element", drClass);
         }
