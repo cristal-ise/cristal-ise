@@ -49,7 +49,7 @@ public class IntegerField extends NumberField {
 
         if (inputInt.getString("type").equals("RATING")) {
             // disable cancel icon for RATING
-            getAdditionalConfigNgDynamicForms(inputInt).put("cancel", false);
+            getNgDynamicFormsAdditional(inputInt).put("cancel", false);
         }
 
         return inputInt;

@@ -356,7 +356,7 @@ public class StringField extends StructureWithAppInfo {
      * @param field the actual config field 
      * @return the 'additional' JSONOBject attached to the config field
      */
-    public JSONObject getAdditionalConfigNgDynamicForms(JSONObject field) {
+    public JSONObject getNgDynamicFormsAdditional(JSONObject field) {
         if (field.has("additional")) {
             return (JSONObject) field.get("additional");
         }
@@ -373,7 +373,7 @@ public class StringField extends StructureWithAppInfo {
      */
     public void updateWithAdditional(JSONObject field) {
         if (additional != null) {
-            JSONObject fieldAdditional = getAdditionalConfigNgDynamicForms(field);
+            JSONObject fieldAdditional = getNgDynamicFormsAdditional(field);
             for (String key: additional.keySet()) fieldAdditional.put(key, additional.get(key));
         }
     }
@@ -382,7 +382,7 @@ public class StringField extends StructureWithAppInfo {
      * 
      * @return
      */
-    public JSONObject getCommonFieldsNgDynamicForms(boolean withModel, boolean withLayout) {
+    public JSONObject getNgDynamicFormsCommonFields(boolean withModel, boolean withLayout) {
         JSONObject field = new JSONObject();
 
         field.put("id",       name);
@@ -439,7 +439,7 @@ public class StringField extends StructureWithAppInfo {
     }
 
     public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
-        JSONObject input = getCommonFieldsNgDynamicForms(withModel, withLayout);
+        JSONObject input = getNgDynamicFormsCommonFields(withModel, withLayout);
 
         // AppInfo could set the 'inputType' to password already
         if (!input.has("inputType")) input.put("inputType", "text");

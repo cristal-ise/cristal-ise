@@ -265,14 +265,14 @@ public class Field extends OutcomeStructure {
             return null;
         }
 
-        log.debug("generateNgDynamicForms() - name:{} optional:{} isAnyType:{}", model.getName(), isOptional(), isAnyType());
+        log.debug("generateNgDynamicForms() - name:{} optional:{}", model.getName(), isOptional());
 
         String defVal = getDefaultValue();
 
         JSONObject fieldJson = myFieldInstance.generateNgDynamicForms(inputs, withModel, withLayout);
 
         if (StringUtils.isNotBlank(defVal)) fieldJson.put("value", defVal);
-        if (StringUtils.isNotBlank(help))   myFieldInstance.getAdditionalConfigNgDynamicForms(fieldJson).put("tooltip", help.trim());
+        if (StringUtils.isNotBlank(help))   myFieldInstance.getNgDynamicFormsAdditional(fieldJson).put("tooltip", help.trim());
 
         // dynamicForms.additional fields provided in the schema can overwrite default values (check ListOfValues.editable)
         myFieldInstance.updateWithAdditional(fieldJson);
