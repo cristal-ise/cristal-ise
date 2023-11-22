@@ -42,11 +42,9 @@ public class Field extends OutcomeStructure {
     StringField   myFieldInstance = null;
     AttributeList myAttributes;
     Text          textNode;
-    boolean       isAnyField = false;
 
     public Field(Wildcard model) {
         super(model);
-        isAnyField = true;
     }
 
     public Field(ElementDecl model) {
@@ -261,18 +259,20 @@ public class Field extends OutcomeStructure {
     }
 
     @Override
-    public Object generateNgDynamicForms(Map<String, Object> inputs) {
-        if (isAnyType()) {
-            log.debug("generateNgDynamicForms() - skipping Field(name:{}) with anyType", getName());
+    public Object generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
+        if (isAnyType() || isAnyField()) {
+            log.debug("generateNgDynamicForms() - skipping {}", (isAnyField() ? "AnyField" : "Field(name:"+getName()+") with anyType"));
             return null;
         }
 
+        log.debug("generateNgDynamicForms() - name:{} optional:{}", model.getName(), isOptional());
+
         String defVal = getDefaultValue();
 
-        JSONObject fieldJson = myFieldInstance.generateNgDynamicForms(inputs);
+        JSONObject fieldJson = myFieldInstance.generateNgDynamicForms(inputs, withModel, withLayout);
 
         if (StringUtils.isNotBlank(defVal)) fieldJson.put("value", defVal);
-        if (StringUtils.isNotBlank(help))   myFieldInstance.getAdditionalConfigNgDynamicForms(fieldJson).put("tooltip", help.trim());
+        if (StringUtils.isNotBlank(help))   myFieldInstance.getNgDynamicFormsAdditional(fieldJson).put("tooltip", help.trim());
 
         // dynamicForms.additional fields provided in the schema can overwrite default values (check ListOfValues.editable)
         myFieldInstance.updateWithAdditional(fieldJson);

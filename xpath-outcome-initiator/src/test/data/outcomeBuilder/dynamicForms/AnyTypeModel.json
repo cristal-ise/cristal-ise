@@ -1,0 +1,14 @@
+[{
+  "name": "AnyType",
+  "id": "AnyType",
+  "type": "GROUP",
+  "group": [{
+    "validators": {"required": null},
+    "inputType": "text",
+    "id": "StringField",
+    "label": "String Field *",
+    "placeholder": "String Field",
+    "type": "INPUT",
+    "required": true
+  }]
+}]

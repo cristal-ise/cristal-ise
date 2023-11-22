@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.*;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Map;
@@ -179,9 +181,9 @@ public class DataRecord extends OutcomeStructure {
         // populate
         for (String elementName : subStructureOrder) {
             OutcomeStructure childStructure = subStructure.get(elementName);
-            
+
             if (childStructure instanceof Field) {
-                if (((Field)childStructure).isAnyField) continue;
+                if (childStructure.isAnyField()) continue;
             }
             else if (childStructure instanceof Dimension) {
                 ((Dimension) childStructure).setParentElement(myElement);
@@ -214,7 +216,7 @@ public class DataRecord extends OutcomeStructure {
         
         // Set default value when container is not defined
         if (!drGrid.has("container")) {
-            drGrid.put("container", "ui-g-12");
+            drGrid.put("container", Webui_NgDynamicForms_GroupLayout_gridContainerClass.getString());
         }
 
         drCls.put("grid", drGrid);
@@ -222,8 +224,8 @@ public class DataRecord extends OutcomeStructure {
         if (!isRootElement)  {
             JSONObject drClass = new JSONObject();
 
-            drClass.put("label", "formGroupLabel");
-            drClass.put("container", "formGroupContainer");
+            drClass.put("label", Webui_NgDynamicForms_GroupLayout_elementLabelClass.getString());
+            drClass.put("container", Webui_NgDynamicForms_GroupLayout_elementContainerClass.getString());
 
             drCls.put("element", drClass);
         }
@@ -231,19 +233,22 @@ public class DataRecord extends OutcomeStructure {
     }
 
     @Override
-    public Object generateNgDynamicForms(Map<String, Object> inputs) {
+    public Object generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
         JSONObject dr = new JSONObject();
-        
-        dr.put("cls", generateNgDynamicFormsCls());
+
+        log.debug("generateNgDynamicForms() - name:{} optional:{} isAnyType:{}", model.getName(), isOptional(), isAnyType());
+
+        if (withLayout) dr.put("cls", generateNgDynamicFormsCls());
+
         dr.put("type",  "GROUP");
         dr.put("id",    model.getName());
         dr.put("name",  model.getName());
         //dr.put("required", !isOptional());
 
-        JSONArray array = myAttributes.generateNgDynamicForms(inputs);
+        JSONArray array = myAttributes.generateNgDynamicForms(inputs, withModel, withLayout);
 
         for (String elementName : subStructureOrder) {
-            Object formFregment = subStructure.get(elementName).generateNgDynamicForms(inputs);
+            Object formFregment = subStructure.get(elementName).generateNgDynamicForms(inputs, withModel, withLayout);
             if (formFregment != null) array.put(formFregment);
         }
 

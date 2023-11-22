@@ -94,7 +94,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .then()
                 .cookie('cauth')
                 .statusCode(STATUS_OK)
-                .extract().response()
+            .extract().response()
 
         log.debug('login() - response:{}', loginResp.body().asString())
 
@@ -164,6 +164,32 @@ class RestapiTestBase extends KernelScenarioTestBase {
         }
     }
 
+    private String getJobForm(String urlPostFix, String uuid, String activityPath, String transition) {
+        def responseBody = given().log().all()
+            .accept(JSON)
+                .cookie(cauthCookie)
+                .queryParam('transition', transition)
+            .when()
+                .get("${apiUri}/item/$uuid/job/form${urlPostFix}/${activityPath}".toString())
+            .then()
+                .statusCode(STATUS_OK)
+            .extract().response().body().asString()
+
+        return responseBody
+    }
+
+    String getJobFormTemplate(String uuid, String activityPath, String transition) {
+        return getJobForm('Template', uuid, activityPath, transition)
+    }
+    
+    String getJobFormModel(String uuid, String activityPath, String transition) {
+        return getJobForm('Model', uuid, activityPath, transition)
+    }
+    
+    String getJobFormLayout(String uuid, String activityPath, String transition) {
+        return getJobForm('Layout', uuid, activityPath, transition)
+    }
+
     String executePredefStep(String uuid,  Class<?> predefStep, ContentType contentType = JSON, String...params) {
         def inputs = ""
         def predefStepName = predefStep.getSimpleName()
@@ -190,7 +216,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .post(apiUri+"/item/$uuid/workflow/predefined/"+predefStepName)
         .then()
             .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+        .extract().response().body().asString()
 
         return responseBody
     }
@@ -205,7 +231,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
         .then()
             .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+        .extract().response().body().asString()
     }
 
     String checkAttachment(String uuid, String schema, int version, int event) {
@@ -262,7 +288,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .post(apiUri+"/item/$uuid/scriptResult/?script=${scriptName}&version=0")
         .then()
             .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+        .extract().response().body().asString()
     }
 
     String resolveDomainPath(String path) {
@@ -276,7 +302,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .get(apiUri+"/domain/$path")
         .then()
             .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+        .extract().response().body().asString()
 
         return new JSONObject(responseBody).getString("uuid")
     }
@@ -290,7 +316,8 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .get(apiUri+"/role/$name")
         .then()
             .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+        .extract()
+            .response().body().asString()
 
         return new JSONArray(responseBody)
     }

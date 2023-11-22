@@ -57,12 +57,12 @@ public class TimeField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
-        JSONObject time = getCommonFieldsNgDynamicForms();
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
+        JSONObject time = getNgDynamicFormsCommonFields(withModel, withLayout);
 
         time.put("format", "hh:MM");
         
-        JSONObject additional = getAdditionalConfigNgDynamicForms(time);
+        JSONObject additional = getNgDynamicFormsAdditional(time);
 
         additional.put("icon", "fa-clock-o");
         additional.put("stepMinute", 5); //TODO: refactor to be read from appInfo/dynamicForms element

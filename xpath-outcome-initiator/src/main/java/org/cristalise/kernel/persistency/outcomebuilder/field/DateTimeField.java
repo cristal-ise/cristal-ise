@@ -51,10 +51,10 @@ public class DateTimeField extends DateField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
-        JSONObject date = super.generateNgDynamicForms(inputs);
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
+        JSONObject date = super.generateNgDynamicForms(inputs, withModel, withLayout);
 
-        JSONObject additional = getAdditionalConfigNgDynamicForms(date);
+        JSONObject additional = getNgDynamicFormsAdditional(date);
         additional.put("showTime", true);
         
         return date;

@@ -53,6 +53,7 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.json.JSONArray;
 
 @Path("/item/{uuid}/collection")
 public class ItemCollection extends ItemUtils {
@@ -177,7 +178,8 @@ public class ItemCollection extends ItemUtils {
             String[] schemaInfo = ((String) dep.getProperties().get("MemberUpdateSchema")).split(":");
 
             Schema schema = LocalObjectLoader.getSchema(schemaInfo[0], Integer.valueOf(schemaInfo[1]));
-            return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms(inputs)).cookie(cookie).build();
+            JSONArray formJson = new OutcomeBuilder(schema, false).generateNgDynamicFormsJson(inputs);
+            return Response.ok(formJson.toString()).cookie(cookie).build();
         }
         catch (ObjectNotFoundException | NumberFormatException | InvalidDataException | OutcomeBuilderException | ScriptingEngineException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();

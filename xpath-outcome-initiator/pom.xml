@@ -116,6 +116,7 @@
                         <exclude>**/src/test/data/**</exclude>
                         <exclude>**/*.gpg.enc</exclude>
                         <exclude>**/*.ini</exclude>
+                        <exclude>**/castor.properties</exclude>
                     </excludes>
                 </configuration>
                 <executions>

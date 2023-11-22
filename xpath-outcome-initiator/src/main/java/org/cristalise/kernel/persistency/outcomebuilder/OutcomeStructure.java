@@ -60,9 +60,7 @@ import org.w3c.dom.NodeList;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * contains child outcome elements - creates new ones
- * @author zsmyt
- *
+ * contains child outcome elements and creates new ones
  */
 @Slf4j
 public abstract class OutcomeStructure {
@@ -79,10 +77,11 @@ public abstract class OutcomeStructure {
     public OutcomeStructure() {}
 
     public OutcomeStructure(Wildcard model) {
+        // Wildcard cannot be stored in this.model
+        subStructure = new HashMap<String, OutcomeStructure>();
         log.debug("ctor() - Creating Wildcard structure as " + this.getClass().getSimpleName());
 
-        String doc = extractHelp(model);
-        if (StringUtils.isNotBlank(doc)) help = doc;
+        help = extractHelp(model);
     }
 
     public OutcomeStructure(ElementDecl model) {
@@ -91,8 +90,7 @@ public abstract class OutcomeStructure {
 
         log.debug("ctor() - Creating '" + model.getName() + "' structure as " + this.getClass().getSimpleName());
 
-        String doc = extractHelp(model);
-        if (StringUtils.isNotBlank(doc)) help = doc;
+        help = extractHelp(model);
     }
 
     /**
@@ -114,7 +112,7 @@ public abstract class OutcomeStructure {
     public abstract Element initNew(Document rootDocument);
 
     public abstract void exportViewTemplate(Writer template) throws IOException;
-    public abstract Object generateNgDynamicForms(Map<String, Object> inputs);
+    public abstract Object generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout);
     public abstract JSONObject generateNgDynamicFormsCls();
     public abstract void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String name, Object json) 
             throws OutcomeBuilderException;
@@ -123,12 +121,12 @@ public abstract class OutcomeStructure {
      * Finds the Field in the model of the actual element and returns it if it was an anyField.
      * There should be only one AnyField.
      * 
-     * @return the AnyField of the actuul element, or null
+     * @return the AnyField of the actual element, or null
      */
     private OutcomeStructure getAnyField() {
         if (subStructure != null) {
             for (OutcomeStructure childModel: subStructure.values()) {
-                if (childModel instanceof Field && ((Field)childModel).isAnyField) {
+                if (childModel instanceof Field && childModel.isAnyField()) {
                     return childModel;
                 }
             }
@@ -285,17 +283,19 @@ public abstract class OutcomeStructure {
 
                 // xs:sequences and xs:all is supported in data structures such as these
                 Order thisOrder = thisGroup.getOrder();
-                if (thisOrder == Order.sequence || thisOrder == Order.all)
+                if (thisOrder == Order.sequence || thisOrder == Order.all) {
                     enumerateElements(thisGroup);
-                else
+                }
+                else {
                     throw new StructuralException("The '" + thisGroup.getOrder() + "' group is not supported");
+                }
             }
             else if (thisParticle instanceof ElementDecl) {
                 ElementDecl thisElement = (ElementDecl) thisParticle;
                 addStructure(createStructure(thisElement));
             }
             else if (thisParticle instanceof Wildcard) {
-                log.debug("enumerateElements() - group has Wildcard representing xs:any");
+                log.debug("enumerateElements() - name:{} has group with Wildcard representing xs:any", getName());
                 addStructure(createStructure((Wildcard)thisParticle));
             }
             else {
@@ -463,8 +463,20 @@ public abstract class OutcomeStructure {
         return model.getMinOccurs() == 0;
     }
 
+    /**
+     * this,model == null indicates that the structure is AnyField (i.e. used Wildcard representing xs:any)
+     * @return true if field represents xs:any
+     */
+    public boolean isAnyField() {
+        return this.model == null;
+    }
+
+    /**
+     * @return true if field has xs:anyType
+     */
     public boolean isAnyType() {
-        return model.getType() instanceof AnyType;
+        if (model == null) return false;
+        return             model.getType() instanceof AnyType;
     }
 
     public OutcomeStructure find(String[] names) {
