@@ -132,7 +132,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <compilerId>groovy-eclipse-compiler</compilerId>
-                    <release>${java.release}</release>
+                    <compilerArguments>
+                      <javaAgentClass>lombok.launch.Agent</javaAgentClass>
+                    </compilerArguments>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -144,6 +146,11 @@
                         <groupId>org.codehaus.groovy</groupId>
                         <artifactId>groovy-eclipse-batch</artifactId>
                         <version>${groovy-eclipse-batch.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.projectlombok</groupId>
+                        <artifactId>lombok</artifactId>
+                        <version>${lombok.version}</version>
                     </dependency>
                 </dependencies>
             </plugin>
@@ -307,6 +314,11 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

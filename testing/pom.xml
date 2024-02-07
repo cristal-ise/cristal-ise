@@ -223,7 +223,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.codehaus.groovy</groupId>
-                    <artifactId>groovy-all</artifactId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -279,6 +279,12 @@
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility-groovy</artifactId>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.spockframework</groupId>
@@ -287,7 +293,11 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.codehaus.groovy</groupId>
-                    <artifactId>groovy-all</artifactId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.groovy</groupId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -295,6 +305,12 @@
             <groupId>org.spockframework</groupId>
             <artifactId>spock-unitils</artifactId>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.groovy</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.unitils</groupId>
@@ -313,7 +329,7 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>4.2.1</version>
+            <version>5.4.0</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>
