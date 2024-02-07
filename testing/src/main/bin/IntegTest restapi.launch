@@ -3,7 +3,7 @@
     <stringAttribute key="bad_container_name" value="\r"/>
     <booleanAttribute key="org.eclipse.debug.core.ATTR_FORCE_SYSTEM_CONSOLE_ENCODING" value="false"/>
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-        <listEntry value="/cristalise-restapi/src/test/java/org/cristalise/restapi/Main.java"/>
+        <listEntry value="/cristalise-testing/src/main/groovy/org/cristalise/restapi/Main.java"/>
     </listAttribute>
     <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
         <listEntry value="1"/>

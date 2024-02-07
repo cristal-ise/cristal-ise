@@ -1,5 +1,5 @@
 language: java
-jdk: openjdk17
+jdk: openjdk21
 dist: focal
 branches:
   only:

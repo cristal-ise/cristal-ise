@@ -36,7 +36,7 @@ class RoutingScriptTest_OrSplitLoop_DevIT extends KernelScenarioTestBase {
             }
         }
 
-        def vars = [:]
+        Map<String, Object> vars = [:]
         vars.WORKFLOW_NAME  = "RoutingScriptWorkflow-$timeStamp"
         vars.LOOP_SCRIPT    = "GreaterThanTenScript-$timeStamp"
         vars.ORSPLIT_SCRIPT = "CounterScript-$timeStamp"

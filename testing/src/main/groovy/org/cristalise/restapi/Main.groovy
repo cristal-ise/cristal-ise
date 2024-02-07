@@ -23,10 +23,6 @@ package org.cristalise.restapi;
 import static org.cristalise.restapi.SystemProperties.REST_URI;
 import static org.cristalise.restapi.SystemProperties.REST_addCorsHeaders;
 
-import java.io.IOException;
-import java.net.URI;
-
-import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.ShutdownHandler;
 import org.cristalise.kernel.process.StandardClient;
@@ -36,7 +32,7 @@ import org.glassfish.jersey.grizzly2.httpserver.GrizzlyHttpServerFactory;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 
-import lombok.extern.slf4j.Slf4j;
+import groovy.util.logging.Slf4j
 
 /**
  * Main class to launch the Test Restapi server. It is based on grizzly HTTP server.
@@ -82,9 +78,6 @@ public class Main extends StandardClient {
      * Very basic main method to Start HTTP server and initialise CRISTAL-iSE connection.
      * 
      * @param args input parameters
-     * @throws IOException Input was incorrect
-     * @throws BadArgumentsException Bad Arguments
-     * @throws CriseVertxException 
      */
     public static void main(String[] args) throws Exception {
         startServer(args);
