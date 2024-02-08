@@ -20,7 +20,9 @@
  */
 package org.cristalise.kernel.persistency.outcome;
 
+import static org.cristalise.kernel.SystemProperties.Outcome_Validation_useDOM;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -33,6 +35,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
+import java.util.function.Consumer;
+
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -47,6 +51,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -55,7 +60,6 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.AbstractMain;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -69,6 +73,7 @@ import org.xmlunit.diff.DefaultNodeMatcher;
 import org.xmlunit.diff.Diff;
 import org.xmlunit.diff.Difference;
 import org.xmlunit.diff.ElementSelectors;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -134,7 +139,7 @@ public class Outcome implements C2KLocalObject {
 
     /**
      * Use this constructor for XML manipulation only. This Outcome cannot be validate
-     * not it can be stored in ClusterStore.
+     * nor it can be stored in ClusterStore.
      *
      * @param xml the XML string to be manipulated
      * @throws InvalidDataException there was an error parsing the XML
@@ -329,7 +334,7 @@ public class Outcome implements C2KLocalObject {
 
         OutcomeValidator validator = OutcomeValidator.getValidator(mSchema);
 
-        if (Gateway.getProperties().getBoolean("Validation.useDOM", true))
+        if (Outcome_Validation_useDOM.getBoolean())
             return validator.validate(mDOM);
         else
             return validator.validate(getData());
@@ -647,8 +652,9 @@ public class Outcome implements C2KLocalObject {
 
             setNodeValue(elements.item(0), data);
         }
-        else
+        else {
             throw new InvalidDataException("'"+name+"' is invalid or not a single field");
+        }
     }
 
     /**
@@ -1047,23 +1053,33 @@ public class Outcome implements C2KLocalObject {
     }
 
     /**
+     * 
+     */
+    public static void traverseChildElements(Node node, Consumer<Node> action) {
+        NodeList childNodes = node.getChildNodes();
+
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            if (childNodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                action.accept(childNodes.item(i));
+            }
+        }
+    }
+
+    /**
      * Reads the all Attributes and child Elements of the given Node. Use TreeMap to keep the order of Nodes.
      *
      * @param node the node to work with
      * @return a Map as a key/value pairs of Attribute/Element names with their value
      */
-    public  Map<String, String> getRecordOfNode(Node node) {
-        Map<String, String> record = new TreeMap<>();
-        NodeList elements = node.getChildNodes();
+    public Map<String, String> getRecordOfNode(Node node) {
+        final Map<String, String> record = new TreeMap<>();
 
-        for (int i = 0; i < elements.getLength(); i++) {
-            if (elements.item(i).getNodeType() == Node.ELEMENT_NODE) {
-                String name = elements.item(i).getNodeName();
-                String value = elements.item(i).getTextContent();
+        traverseChildElements(node, (element) -> {
+            String name = element.getNodeName();
+            String value = element.getTextContent();
 
-                record.put(name, value);
-            }
-        }
+            record.put(name, value);
+        });
 
         NamedNodeMap attrs = node.getAttributes();
 

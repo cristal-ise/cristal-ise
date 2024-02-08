@@ -284,7 +284,7 @@ class CSVGroovyParser implements TabularGroovyParser {
             while ((nextLine = reader.readNext()) != null) {
                 assert header.size() == nextLine.size() - (skipLeftCols + skipRightCols), "Header size must be equal with the size of data line"
 
-                def map = [:]
+                Map<String, Object> map = [:]
 
                 //header is a List of Lists
                 header.eachWithIndex { List<String> names, int i ->

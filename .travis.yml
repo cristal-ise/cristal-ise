@@ -1,6 +1,6 @@
 language: java
-jdk: openjdk11
-dist: bionic
+jdk: openjdk21
+dist: focal
 branches:
   only:
     - master
@@ -10,6 +10,10 @@ branches:
     - /^hotfix\/.*$/
 services:
   - docker
+
+install:
+  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip -B -V
+
 script:
   - |
     if [[ $TRAVIS_PULL_REQUEST == false ]] && ([[ $TRAVIS_BRANCH == develop ]] || [[ $TRAVIS_BRANCH == master ]] || [[ $TRAVIS_BRANCH == support/* ]] || [[ $TRAVIS_BRANCH == hotfix/* ]]); then
@@ -27,6 +31,7 @@ script:
     else
       mvn -e clean install --settings .maven.xml -Dgpg.skip -B -V
     fi
+
 cache:
   directories:
     - $HOME/.m2

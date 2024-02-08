@@ -29,17 +29,27 @@ URI scriptUri
 setModuleDir scriptUri
 
 Module(ns: 'dev', name: 'CristaliseDev', version: 0) {
-    Info(description: 'CRISTAL-iSE Development Items to implement CRUD functionality.', version: '${version}') {
-    }
-    Config(name: 'OutcomeInit.Dev',               value: 'org.cristalise.dev.DevObjectOutcomeInitiator')
-    Config(name: 'OverrideScriptLang.javascript', value: 'rhino')
-    Config(name: 'OverrideScriptLang.JavaScript', value: 'rhino')
-    Config(name: 'OverrideScriptLang.js',         value: 'rhino')
-    Config(name: 'OverrideScriptLang.JS',         value: 'rhino')
-    Config(name: 'OverrideScriptLang.ECMAScript', value: 'rhino')
-    Config(name: 'OverrideScriptLang.ecmascript', value: 'rhino')
+    Info(description: 'CRISTAL-iSE Development Items to implement CRUD functionality.', version: '${version}') {}
+
+    Config(name: 'OutcomeInit.Dev', value: 'org.cristalise.dev.DevObjectOutcomeInitiator')
+    Config(name: 'OutcomeInit.dev', value: 'org.cristalise.dev.DevObjectOutcomeInitiator')
 
     Url('org/cristalise/dev/resources/')
+
+    Contexts {
+        DomainContext('/desc/dev', 0)
+        DomainContext('/desc/ActivityDesc/dev', 0)
+        DomainContext('/desc/PropertyDesc/dev', 0)
+        DomainContext('/desc/Module/dev', 0)
+        DomainContext('/desc/Schema/dev', 0)
+        DomainContext('/desc/Script/dev', 0)
+        DomainContext('/desc/Query/dev', 0)
+        DomainContext('/desc/StateMachine/dev', 0)
+        DomainContext('/desc/ItemDesc/dev', 0)
+        DomainContext('/desc/AgentDesc/dev', 0)
+        DomainContext('/desc/RoleDesc/dev', 0)
+        DomainContext('/desc/DomainContext/dev', 0)
+    }
 
     include(moduleDir+'/Property.groovy')
     include(moduleDir+'/CrudState.groovy')
@@ -50,4 +60,5 @@ Module(ns: 'dev', name: 'CristaliseDev', version: 0) {
     include(moduleDir+'/Activity.groovy')
     include(moduleDir+'/Workflow.groovy')
     include(moduleDir+'/Item.groovy')
+    include(moduleDir+'/Description.groovy')
 }

@@ -20,7 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_VERSION;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
@@ -28,12 +28,13 @@ import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPathExpressionException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
@@ -47,14 +48,13 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
+import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer;
-import org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
@@ -80,9 +80,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class PredefinedStep extends Activity {
 
-    private boolean         isPredefined = false;
-    public static final int DONE         = 0;
-    public static final int AVAILABLE    = 0;
+    public static final int DONE      = 0;
+    public static final int AVAILABLE = 0;
 
     /**
      * Order is important
@@ -90,50 +89,47 @@ public abstract class PredefinedStep extends Activity {
     @Getter
     private Map<ItemPath, String> autoUpdates = new  LinkedHashMap<ItemPath, String>();
 
-    public PredefinedStep() {
+
+    public PredefinedStep(String schemaName, String description) {
         super();
         setBuiltInProperty(STATE_MACHINE_NAME, StateMachine.getDefaultStateMachine("Predefined"));
-        setBuiltInProperty(SCHEMA_NAME, "PredefinedStepOutcome");
-        setBuiltInProperty(SCHEMA_VERSION, "0");
 
-        addAdminAgentRole();
+        if (StringUtils.isBlank(schemaName)) schemaName = "PredefinedStepOutcome"; 
+
+        try {
+            LocalObjectLoader.getSchema(schemaName, 0); // checks if the Schema is available
+            setBuiltInProperty(SCHEMA_NAME, schemaName);
+            setBuiltInProperty(SCHEMA_VERSION, "0");
+        }
+        catch (ObjectNotFoundException | InvalidDataException e) {
+            throw new TypeNotPresentException("Cannot find Schema:"+schemaName, e);
+        }
+
+        if (StringUtils.isNotBlank(description)) setBuiltInProperty(DESCRIPTION, description);
+
+        setName(this.getClass().getSimpleName());
+        setType(this.getClass().getSimpleName());
+
+        setCentrePoint(new GraphPoint());
+    }
+
+    public PredefinedStep(String description) {
+        this(null, description);
     }
 
     @Override
     public boolean getActive() {
-        if (isPredefined) return true;
-        else              return super.getActive();
+        return true;
     }
 
     @Override
     public String getErrors() {
-        if (isPredefined) return getName();
-        else              return super.getErrors();
+        return super.getErrors();
     }
 
     @Override
     public boolean verify() {
-        if (isPredefined) return true;
-        else              return super.verify();
-    }
-
-    /**
-     * Returns the isPredefined.
-     *
-     * @return boolean
-     */
-    public boolean getIsPredefined() {
-        return isPredefined;
-    }
-
-    /**
-     * Sets the isPredefined.
-     *
-     * @param isPredefined
-     *            The isPredefined to set
-     */
-    public void setIsPredefined(boolean isPredefined) {
-        this.isPredefined = isPredefined;
+        return true;
     }
 
     @Override
@@ -167,20 +163,27 @@ public abstract class PredefinedStep extends Activity {
         return null;
     }
 
-    /**
-     * Check if the Outcome contains the data required to execute it. Uses its own simple name.
-     * 
-     * @param outcome 
-     * @return
-     */
-    public boolean outcomeHasValidData(Outcome outcome) {
-        try {
-            return outcome.getNodeByXPath("//" + this.getClass().getSimpleName()) != null;
+    public Node getPredefStepOutcomeNode(Node predefStepNode) throws InvalidDataException {
+        final List<Node> found = new ArrayList<>();
+
+        if (log.isDebugEnabled()) log.debug("getPredefStepOutcomeNode() - node:{}", Outcome.serialize(predefStepNode, false));
+
+        Outcome.traverseChildElements(predefStepNode, (outcomeNode) -> {
+            String schemaName = (String) getBuiltInProperty(SCHEMA_NAME);
+            if (outcomeNode.getNodeName().equals(schemaName)) {
+                found.add(outcomeNode);
+            }
+        });
+
+        if (found.size() == 0) {
+            return null;
         }
-        catch (XPathExpressionException e) {
-            log.error("outcomeHasValidData()", e);
+        else if (found.size() > 1) {
+            throw new InvalidDataException("Umbiguious input data found in outcome:"+Outcome.serialize(predefStepNode, false));
         }
-        return false;
+        else {
+            return found.get(0);
+        }
     }
 
     /**
@@ -263,17 +266,6 @@ public abstract class PredefinedStep extends Activity {
             log.error("", ex);
         }
         return null;
-    }
-
-    /**
-     * @deprecated use {@link RolePath#setPermissions(java.util.List)} instead
-     */
-    @Deprecated
-    protected void addAdminAgentRole() {
-        if (Gateway.getProperties().getBoolean("PredefinedStep.AgentRole.enableAdmin", false)) {
-            String extraRoles = Gateway.getProperties().getString("PredefinedStep."+ this.getClass().getSimpleName() +".roles");
-            getProperties().setBuiltInProperty(AGENT_ROLE, ADMIN_ROLE.getName() + (StringUtils.isNotBlank(extraRoles) ? ","+extraRoles : ""));
-        }
     }
 
     /********************************
@@ -363,7 +355,7 @@ public abstract class PredefinedStep extends Activity {
             CannotManageException, 
             InvalidCollectionModification
     {
-        log.info("request(item:{}) - class:{}", itemPath.getItemName(transactionKey), getType());
+        log.info("request({}) - class:{}", itemPath.getItemName(transactionKey), getType());
         this.setActive(true);
         return request(agent, itemPath, PredefinedStep.DONE, requestData, null, new byte[0], true, transactionKey);
     }
@@ -375,18 +367,17 @@ public abstract class PredefinedStep extends Activity {
      * @param inputOutcome
      * @param transactionKey
      */
-    public void computeUpdates(ItemPath currentItem, Activity currentActivity, Outcome inputOutcome, TransactionKey transactionKey)
+    public void computeUpdates(ItemPath currentItem, Activity currentActivity, Node outcomeNode, TransactionKey transactionKey)
             throws InvalidDataException, PersistencyException, ObjectNotFoundException, ObjectAlreadyExistsException, InvalidCollectionModification
     {
-        //empty implementation
-        log.debug("computeUpdates() - UNIMPLEMENTED!");
+        getAutoUpdates().put(currentItem, Outcome.serialize(outcomeNode, false));
     };
 
     public void mergeProperties(CastorHashMap newProps) {
         for (KeyValuePair kvPair : newProps.getKeyValuePairs()) {
             BuiltInVertexProperties key = BuiltInVertexProperties.getValue((String)kvPair.getKey());
 
-          //only check built-in properties
+            // only check built-in properties
             if (key == null) continue;
 
             switch (key) {

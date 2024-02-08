@@ -1,0 +1,77 @@
+[{
+  "name": "EmployeeShiftSchedule",
+  "id": "EmployeeShiftSchedule",
+  "type": "GROUP",
+  "group": [
+    {
+      "filterable": true,
+      "validators": {"required": null},
+      "additional": {"filterBy": "label"},
+      "options": [
+        {"label": "Select value"},
+        {
+          "label": "AAA",
+          "value": "AAA"
+        },
+        {
+          "label": "BBBB",
+          "value": "BBBB"
+        },
+        {
+          "label": "CCCCC",
+          "value": "CCCCC"
+        }
+      ],
+      "id": "ShiftName",
+      "label": "Shift Name *",
+      "placeholder": "Shift Name",
+      "type": "SELECT",
+      "required": true
+    },
+    {
+      "filterable": true,
+      "additional": {
+        "editable": true,
+        "filterBy": "label"
+      },
+      "options": [
+        {"label": "Select value"},
+        {
+          "label": "Billing",
+          "value": "Billing"
+        },
+        {
+          "label": "Shipping",
+          "value": "Shipping"
+        },
+        {
+          "label": "Head Office",
+          "value": "Head Office"
+        }
+      ],
+      "id": "CollectionName",
+      "label": "Collection Name",
+      "placeholder": "Collection Name",
+      "type": "SELECT",
+      "required": false
+    },
+    {
+      "hidden": true,
+      "inputType": "text",
+      "id": "MemberUUID",
+      "label": "Member UUID",
+      "placeholder": "Member UUID",
+      "type": "INPUT",
+      "required": false
+    },
+    {
+      "hidden": true,
+      "id": "MemberID",
+      "label": "Member ID",
+      "placeholder": "Member ID",
+      "type": "INPUT",
+      "value": "0",
+      "required": false
+    }
+  ]
+}]

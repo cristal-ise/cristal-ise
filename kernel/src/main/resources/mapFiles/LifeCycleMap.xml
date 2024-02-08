@@ -121,7 +121,7 @@
   <class name="org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer" extends="org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer">
     <map-to xml="ServerPredefinedStepContainer" />
   </class>
-  <class name="org.cristalise.kernel.lifecycle.instance.predefined.item.ItemPredefinedStepContainer" extends="org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer">
+  <class name="org.cristalise.kernel.lifecycle.instance.predefined.ItemPredefinedStepContainer" extends="org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer">
     <map-to xml="PredefinedStepContainer" />
   </class>
   <class name="org.cristalise.kernel.lifecycle.instance.predefined.agent.AgentPredefinedStepContainer" extends="org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer">

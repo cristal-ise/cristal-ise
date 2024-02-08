@@ -1,0 +1,13 @@
+[{
+	"name": "Form",
+	"id": "Form",
+	"type": "GROUP",
+	"group": [{
+		"inputType": "text",
+		"id": "testField",
+		"label": "test Field",
+		"placeholder": "test Field",
+		"type": "INPUT",
+		"required": false
+	}]
+}]

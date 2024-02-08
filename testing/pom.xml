@@ -59,8 +59,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>${source.version}</source>
-                    <target>${target.version}</target>
+                    <compilerId>groovy-eclipse-compiler</compilerId>
+                    <release>${java.release}</release>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -175,6 +175,12 @@
         </dependency>
         <dependency>
             <groupId>org.cristalise</groupId>
+            <artifactId>cristalise-jooqdb</artifactId>
+            <version>${revision}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.cristalise</groupId>
             <artifactId>cristalise-gui</artifactId>
             <version>${revision}</version>
             <scope>compile</scope>
@@ -217,7 +223,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.codehaus.groovy</groupId>
-                    <artifactId>groovy-all</artifactId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -234,8 +240,8 @@
             <artifactId>h2</artifactId>
         </dependency>
         <dependency>
-          <groupId>mysql</groupId>
-          <artifactId>mysql-connector-java</artifactId>
+          <groupId>com.mysql</groupId>
+          <artifactId>mysql-connector-j</artifactId>
           <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -278,6 +284,12 @@
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility-groovy</artifactId>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.groovy</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.spockframework</groupId>
@@ -286,7 +298,11 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.codehaus.groovy</groupId>
-                    <artifactId>groovy-all</artifactId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.groovy</groupId>
+                    <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -294,6 +310,12 @@
             <groupId>org.spockframework</groupId>
             <artifactId>spock-unitils</artifactId>
             <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.groovy</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.unitils</groupId>
@@ -312,7 +334,7 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>4.2.1</version>
+            <version>5.4.0</version>
             <scope>compile</scope>
             <exclusions>
                 <exclusion>

@@ -22,8 +22,16 @@ package org.cristalise.kernel.persistency;
 
 import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
 import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
-import static org.cristalise.kernel.persistency.ClusterType.*;
+import static org.cristalise.kernel.persistency.ClusterType.ATTACHMENT;
+import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
+import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
+import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
+import static org.cristalise.kernel.persistency.ClusterType.PATH;
+import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.SystemProperties;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -72,20 +81,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ClusterStorageManager {
 
-    /**
-     * 
-     */
-    public static final String INSTANCESPEC_PROPERTY = "ClusterStorage";
-    /**
-     * 
-     */
-    public static final String CACHESPEC_PROPERTY = "ClusterStorage.cacheSpec";
-    /**
-     * default value:{@value}
-     */
-    public static final String defaultCacheSpec = "expireAfterAccess = 600s, recordStats";
-
-
     HashMap<String, ClusterStorage>                 allStores           = new HashMap<String, ClusterStorage>();
     String[]                                        clusterPriority     = new String[0];
     HashMap<ClusterType, ArrayList<ClusterStorage>> clusterWriters      = new HashMap<ClusterType, ArrayList<ClusterStorage>>();
@@ -115,7 +110,7 @@ public class ClusterStorageManager {
      * @param auth the Authenticator to be used to initialise all the handlers
      */
     public ClusterStorageManager(Authenticator auth) throws PersistencyException {
-        Object clusterStorageProp = Gateway.getProperties().getObject(INSTANCESPEC_PROPERTY);
+        Object clusterStorageProp = SystemProperties.ClusterStorage.getObject();
 
         if (clusterStorageProp == null || "".equals(clusterStorageProp)) {
             throw new PersistencyException("No persistency, no ClusterStorage defined!");
@@ -156,7 +151,7 @@ public class ClusterStorageManager {
         clusterReaders.put(ClusterType.ROOT, rootStores); // all storages are queried for clusters at the root level
 
         cache = CacheBuilder
-                .from(Gateway.getProperties().getString(CACHESPEC_PROPERTY, defaultCacheSpec))
+                .from(SystemProperties.ClusterStorage_cacheSpec.getString())
                 .build();
     }
 
@@ -176,9 +171,9 @@ public class ClusterStorageManager {
             String newStorageClass = tok.nextToken();
             try {
                 if (!newStorageClass.contains(".")) newStorageClass = "org.cristalise.storage."+newStorageClass;
-                newStorage = (ClusterStorage)(Class.forName(newStorageClass).newInstance());
+                newStorage = (ClusterStorage)(Class.forName(newStorageClass).getDeclaredConstructor().newInstance());
             }
-            catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+            catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
                 throw new PersistencyException("init() - The cluster storage handler class "+newStorageClass+" could not be found.");
             }
             rootStores.add(newStorage);
@@ -372,7 +367,7 @@ public class ClusterStorageManager {
                 }
             }
             catch (PersistencyException e) {
-                log.debug( "retrive() - reader {} could not retrieve {}/{}", thisReader, itemPath, path, e);
+                log.warn( "retrive() - reader {} could not retrieve {}/{}", thisReader, itemPath, path, e);
             }
         }
 

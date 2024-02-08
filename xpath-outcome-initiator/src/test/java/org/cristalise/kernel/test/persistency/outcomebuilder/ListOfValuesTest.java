@@ -21,6 +21,7 @@
 package org.cristalise.kernel.test.persistency.outcomebuilder;
 
 import static net.javacrumbs.jsonunit.JsonAssert.assertJsonEquals;
+import static org.cristalise.kernel.persistency.outcomebuilder.GeneratedFormType.NgDynamicFormModel;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,13 +35,13 @@ import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.persistency.XMLUtils;
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 
 public class ListOfValuesTest extends XMLUtils {
 
-    String dir = "src/test/data/outcomeBuilder";
+    String dir = "src/test/data/outcomeBuilder/dynamicForms";
+    String type = "EmployeeShiftSchedule";
 
     @Before
     public void setUp() throws Exception {
@@ -55,7 +56,6 @@ public class ListOfValuesTest extends XMLUtils {
 
     @Test
     public void employeeShiftSchedule() throws Exception {
-        String type = "EmployeeShiftSchedule";
         OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
 
         String[] names = {"AAA", "BBBB", "CCCCC"};
@@ -66,31 +66,24 @@ public class ListOfValuesTest extends XMLUtils {
         inputs.put("memberNames", itemNames);
 
         JSONArray actual = builder.generateNgDynamicFormsJson(inputs);
-
         JSONArray expected = new JSONArray(getJSON(dir, type));
+        assertJsonEquals(expected, actual);
 
+        actual = builder.generateNgDynamicFormsJson(inputs, NgDynamicFormModel);
+        expected = new JSONArray(getJSON(dir, type+"Model"));
         assertJsonEquals(expected, actual);
     }
 
     @Test
     public void employeeShiftSchedule_emptyInputs() throws Exception {
-        String type = "EmployeeShiftSchedule";
         OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
 
         JSONArray actual   = builder.generateNgDynamicFormsJson();
-
         JSONArray expected = new JSONArray(getJSON(dir, type+"_emptyInputs"));
-
         assertJsonEquals(expected, actual);
-    }
 
-    @Test
-    public void employeeShiftScheduleFromJson() throws Exception {
-        String type = "EmployeeShiftSchedule";
-        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
-
-        builder.addJsonInstance(new JSONObject("{'EmployeeShiftSchedule': {'CollectionName': 'Shift','MemberID': '0','ShiftName': 'shift1','MemberUUID': null,}}"));
-        String actual = builder.getXml();
-        assert compareXML(getXML(dir, type), actual);
+        actual   = builder.generateNgDynamicFormsJson(NgDynamicFormModel);
+        expected = new JSONArray(getJSON(dir, type+"Model_emptyInputs"));
+        assertJsonEquals(expected, actual);
     }
 }

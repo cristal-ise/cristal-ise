@@ -3,7 +3,7 @@ package org.cristalise.restapi.test
 import static io.restassured.RestAssured.*
 import static net.javacrumbs.jsonunit.JsonAssert.assertJsonEquals
 
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import groovy.transform.CompileStatic
 import io.restassured.http.ContentType
@@ -14,9 +14,9 @@ class PathAccessTest extends RestapiTestBase {
     @Test
     public void getBulkAliases() throws Exception {
         login()
-        
+
         //Thread.sleep(31000); //response cookie is added when 30s is passed between the cookie creation and the request
-        
+
         Response aliasesResp =
             given()
                 .accept(ContentType.JSON)
@@ -50,5 +50,42 @@ class PathAccessTest extends RestapiTestBase {
                           }]""".toString()
 
         assertJsonEquals(expected, aliasesResp.body.asString());
+    }
+
+    @Test
+    public void getContextTree() throws Exception {
+        login()
+
+        Response contextTreeResp =
+            given()
+                .accept(ContentType.JSON)
+                .cookie(cauthCookie)
+                .params('search', 'tree')
+            .when()
+                .get(apiUri+"/domain/desc")
+            .then()
+                .statusCode(STATUS_OK)
+                .extract().response()
+
+        def json = contextTreeResp.body.jsonPath().getJsonObject('rows[0]') as Map
+
+        assert json.type == 'domain'
+        assert json.name == 'ActivityDesc'
+        assert json.path == '/domain/desc/ActivityDesc'
+        assert json.url == 'http://localhost:8081/api/domain/desc/ActivityDesc'
+
+        json = contextTreeResp.body.jsonPath().getJsonObject('rows[1]') as Map
+
+        assert json.type == 'domain'
+        assert json.name == 'dev'
+        assert json.path == '/domain/desc/ActivityDesc/dev'
+        assert json.url == 'http://localhost:8081/api/domain/desc/ActivityDesc/dev'
+
+        json = contextTreeResp.body.jsonPath().getJsonObject('rows[2]') as Map
+
+        assert json.type == 'domain'
+        assert json.name == 'integTest'
+        assert json.path == '/domain/desc/ActivityDesc/integTest'
+        assert json.url == 'http://localhost:8081/api/domain/desc/ActivityDesc/integTest'
     }
 }

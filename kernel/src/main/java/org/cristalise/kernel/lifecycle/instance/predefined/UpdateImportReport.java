@@ -20,7 +20,6 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
 
 import org.cristalise.kernel.common.AccessRightsException;
@@ -46,8 +45,7 @@ public class UpdateImportReport extends PredefinedStep {
     public static final String description = "Store the ModuleChanges report in Server Item and Modules. Can only be used during bootstrap.";
 
     public UpdateImportReport() {
-        super();
-        setBuiltInProperty(SCHEMA_NAME, "ModuleChanges");
+        super("ModuleChanges", description);
         setBuiltInProperty(VIEW_POINT, "xpath://ModuleName");
     }
 

@@ -68,4 +68,15 @@
             <bind-xml name="RecordsFound" node="element" />
         </field>
     </class>
+
+    <class name="org.cristalise.kernel.entity.DomainContext">
+        <map-to xml="DomainContext" />
+        <field name="name" type="string" direct="false" get-method="getName" set-method="setName">
+            <bind-xml name="name" node="attribute" />
+        </field>
+        <field name="domainPath" type="string" direct="false" get-method="getDomainPath" set-method="setDomainPath">
+            <bind-xml node="text" />
+        </field>
+    </class>
+
 </mapping>

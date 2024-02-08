@@ -34,11 +34,11 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class RoleBuilder {
 
-    public static ArrayList<ImportRole> build(@DelegatesTo(RoleDelegate) Closure cl) {
+    public static List<ImportRole> build(@DelegatesTo(RoleDelegate) Closure cl) {
         return build('', cl)
     }
 
-    public static ArrayList<ImportRole> build(String ns, @DelegatesTo(RoleDelegate) Closure cl) {
+    public static List<ImportRole> build(String ns, @DelegatesTo(RoleDelegate) Closure cl) {
         def roleDelegate = new RoleDelegate(ns)
 
         roleDelegate.processClosure(cl)

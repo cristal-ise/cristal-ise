@@ -78,21 +78,6 @@
             <archive>https://groups.cern.ch/group/cristal-users/default.aspx</archive>
         </mailingList>
     </mailingLists>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <additionalparam>-Xdoclint:none</additionalparam>
-        <maven-compiler-plugin.version>3.7.0</maven-compiler-plugin.version>
-        <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
-        <maven-release-plugin.version>2.4.1</maven-release-plugin.version>
-        <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
-        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <source.version>1.8</source.version>
-        <target.version>1.8</target.version>
-        <additionalparam>-Xdoclint:none</additionalparam>
-        <commons-lang.version>2.6</commons-lang.version>
-        <maven.deploy.skip>false</maven.deploy.skip>
-    </properties>
     <build>
         <plugins>
             <plugin>
@@ -132,9 +117,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${maven-compiler-plugin.version}</version>
                 <configuration>
-                    <source>${source.version}</source>
-                    <target>${target.version}</target>
                     <compilerId>groovy-eclipse-compiler</compilerId>
+                    <release>${java.release}</release>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -174,16 +158,10 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.groovy</groupId>
+            <groupId>org.apache.groovy</groupId>
             <artifactId>groovy-all</artifactId>
             <version>${groovy.version}</version>
             <type>pom</type>
-        </dependency>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>${commons-lang.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

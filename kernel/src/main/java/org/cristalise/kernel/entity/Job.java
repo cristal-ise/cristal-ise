@@ -20,15 +20,18 @@
  */
 package org.cristalise.kernel.entity;
 
+import static org.cristalise.kernel.SystemProperties.OutcomeInit_$name;
+import static org.cristalise.kernel.SystemProperties.OutcomeInit_jobUseViewpoint;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.OUTCOME_INIT;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.PropertyUtility.getPropertyValue;
-import java.io.IOException;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -53,9 +56,7 @@ import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -290,7 +291,7 @@ public class Job implements C2KLocalObject {
             setOutcome(Gateway.getMarshaller().marshall(error));
         }
         catch (Exception e) {
-            log.error("Error marshalling ErrorInfo in job", e);
+            log.error("Error marshalling ErrorInfo in job:{}", this, e);
         } 
     }
 
@@ -352,25 +353,20 @@ public class Job implements C2KLocalObject {
         String ocInitName = getActPropString(OUTCOME_INIT);
 
         if (StringUtils.isNotBlank(ocInitName)) {
-            String ocConfigPropName = OUTCOME_INIT.getName()+"."+ocInitName;
             OutcomeInitiator ocInit;
 
             synchronized (ocInitCache) {
-                log.debug("Job.getOutcomeInitiator() - ocConfigPropName:{}", ocConfigPropName);
-                ocInit = ocInitCache.get(ocConfigPropName);
+                log.debug("Job.getOutcomeInitiator() - ocInitName:{}", ocInitName);
+                ocInit = ocInitCache.get(ocInitName);
 
                 if (ocInit == null) {
-                    if (!Gateway.getProperties().containsKey(ocConfigPropName)) {
-                        throw new InvalidDataException("Property OutcomeInstantiator "+ocConfigPropName+" isn't defined. Check module.xml");
-                    }
-
                     try {
-                        ocInit = (OutcomeInitiator)Gateway.getProperties().getInstance(ocConfigPropName);
-                        ocInitCache.put(ocConfigPropName, ocInit);
+                        ocInit = (OutcomeInitiator)OutcomeInit_$name.getInstance(ocInitName);
+                        ocInitCache.put(ocInitName, ocInit);
                     }
-                    catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                        log.error("OutcomeInstantiator {} couldn't be instantiated", ocConfigPropName, e);
-                        throw new InvalidDataException("OutcomeInstantiator "+ocConfigPropName+" couldn't be instantiated:"+e.getMessage());
+                    catch (ReflectiveOperationException e) {
+                        log.trace("getOutcomeInitiator() - cannot instantiate {} ", ocInitName, e);
+                        throw new InvalidDataException("OutcomeInitiator "+ocInitName+" couldn't be instantiated:", e);
                     }
                 }
             }
@@ -409,7 +405,7 @@ public class Job implements C2KLocalObject {
      */
     public Outcome getOutcome() throws InvalidDataException, ObjectNotFoundException {
         if (outcome == null && hasOutcome()) {
-            boolean useViewpoint = Gateway.getProperties().getBoolean("OutcomeInit.jobUseViewpoint", false);
+            boolean useViewpoint = OutcomeInit_jobUseViewpoint.getBoolean();
             ItemProxy item = Gateway.getProxy(itemPath);
 
             // check viewpoint first if exists
@@ -591,7 +587,7 @@ public class Job implements C2KLocalObject {
                     Gateway.getVertx().eventBus().send(ebAddress+"/"+role, jobXml);
                 }
             }
-            catch (MarshalException | ValidationException | IOException | MappingException e) {
+            catch (InvalidDataException e) {
                 log.error("sendToRoleChannel() - could not sends job:{}", this, e);
             }
         }

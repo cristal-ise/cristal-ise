@@ -28,6 +28,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Properties;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.cristalise.kernel.SystemProperties;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -51,7 +52,7 @@ public class HistoryTest {
         Gateway.init(props);
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mStorage", new ClusterStorageManager(null), true);
         itemPath = new ItemPath(uuid);
-        storageDir = Gateway.getProperties().getString("XMLStorage.root") + "/" + uuid;
+        storageDir = SystemProperties.XMLStorage_root.getString() + "/" + uuid;
     }
 
     @AfterClass

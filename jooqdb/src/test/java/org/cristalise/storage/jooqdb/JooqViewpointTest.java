@@ -51,7 +51,6 @@ public class JooqViewpointTest extends StorageTestBase {
     @After
     public void after() throws Exception {
         jooq.delete(context, uuid);
-        context.close();
 
         if (dbType == MYSQL || dbType == PostgreSQL) jooq.dropTables(context);
     }

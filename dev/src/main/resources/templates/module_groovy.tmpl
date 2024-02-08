@@ -1,3 +1,5 @@
+package @{rootPackage}
+
 @BaseScript(org.cristalise.dsl.module.ModuleScriptBase)
 import groovy.transform.BaseScript
 import groovy.transform.SourceURI
@@ -14,22 +16,21 @@ setResourceRoot @if{resourceRootDir != null} '@{resourceRootDir}' @else{} '@{roo
 
 Module(ns: '@{moduleNs}', name: '@{moduleName}', version: @{version}) {
 
-    Info(description: '@{moduleName}', version: '@{version}'){
-        Dependencies:['CristaliseDev']
+  Info(description: '@{moduleName}', version: '@{version}'){
+    Dependencies:['CristaliseDev']
+  }
+
+  Url('@{resourceURL}')
+
+  Agent(name: '@{moduleNs}', version: @{version}, password: 'test', folder:'/@{moduleNs}/Agents') {
+    Roles {
+      Role(name: 'Admin')
     }
+  }
 
-    Url('@{resourceURL}')
-
-    Agent(name: '@{moduleNs}', version: @{version}, password: 'test', folder:'/@{moduleNs}/Agents') {
-        Roles {
-            Role(name: 'Admin')
-        }
-    }
-
-    include(moduleDir+'/CommonDefs.groovy')
-
+  include(moduleDir+'/CommonDefs.groovy')
 @foreach{fileName : moduleFiles}
-    @code{itemName = fileName.substring(0, fileName.lastIndexOf('.'))}
-    include(moduleDir+'/@{itemName}/@{fileName}')
+  @code{folderName = org.apache.commons.lang3.StringUtils.uncapitalize(fileName.substring(0, fileName.lastIndexOf('.')))}
+  include(moduleDir+'/@{folderName}/@{fileName}')
 @end{}
 }

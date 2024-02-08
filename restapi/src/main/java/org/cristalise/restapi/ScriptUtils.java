@@ -20,6 +20,8 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.kernel.SystemProperties.Module_Versioning_strict;
+
 import java.net.URLDecoder;
 import java.util.Date;
 import java.util.Map;
@@ -33,7 +35,6 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -85,7 +86,7 @@ public class ScriptUtils extends ItemUtils {
                 throws ObjectNotFoundException, UnsupportedOperationException, InvalidDataException
     {
         if (scriptVersion == null) {
-            if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+            if (Module_Versioning_strict.getBoolean()) {
                 throw new InvalidDataException("Version for Script '" + scriptName + "' cannot be null");
             }
             else {

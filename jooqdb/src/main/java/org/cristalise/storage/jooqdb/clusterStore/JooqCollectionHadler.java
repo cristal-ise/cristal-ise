@@ -104,7 +104,7 @@ public class JooqCollectionHadler extends JooqHandler {
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException(e.getMessage());
+            throw new PersistencyException(e);
         }
     }
 
@@ -122,7 +122,7 @@ public class JooqCollectionHadler extends JooqHandler {
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException(e.getMessage());
+            throw new PersistencyException(e);
         }
     }
 
@@ -137,7 +137,7 @@ public class JooqCollectionHadler extends JooqHandler {
             }
             catch (Exception e) {
                 log.error("", e);
-                throw new PersistencyException(e.getMessage());
+                throw new PersistencyException(e);
             }
         }
         return null;
@@ -153,7 +153,7 @@ public class JooqCollectionHadler extends JooqHandler {
         .column(VERSION, NAME_TYPE.nullable(false))
         .column(XML,     xmlType  .nullable(false))
         .constraints(
-                constraint("PK_"+COLLECTION_TABLE).primaryKey(UUID, NAME, VERSION))
+                constraint("PK_"+COLLECTION_TABLE.getName()).primaryKey(UUID, NAME, VERSION))
         .execute();
     }
 

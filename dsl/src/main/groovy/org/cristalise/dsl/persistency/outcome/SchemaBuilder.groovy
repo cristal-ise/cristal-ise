@@ -109,7 +109,8 @@ class SchemaBuilder {
         schema.namespace = module
 
         if (errors) {
-            log.error "generateSchema() - xsd:\n{}", schemaD.xsdString
+            log.error "generateSchema() - validation errors:\n{}", errors
+            log.error "generateSchema() - validation error xsd:\n{}", schemaD.xsdString
             throw new InvalidDataException(errors)
         }
 

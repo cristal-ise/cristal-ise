@@ -20,9 +20,6 @@
  */
 package org.cristalise.kernel.property;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -31,19 +28,15 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.CastorArrayList;
 import org.cristalise.kernel.utils.DescriptionObject;
-import org.cristalise.kernel.utils.FileStringUtility;
 
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 
-@Getter @Setter @Slf4j
+@Getter @Setter
 public class PropertyDescriptionList extends CastorArrayList<PropertyDescription> implements DescriptionObject {
     String   namespace;
     String   name;
@@ -128,10 +121,13 @@ public class PropertyDescriptionList extends CastorArrayList<PropertyDescription
         HashMap<String, String> validatedInitProps = new HashMap<>();
 
         for (Property initProp : initProps.list) {
-            if (!definesProperty(initProp.getName()))
-                throw new InvalidDataException("Property '"+initProp.getName()+"' has not been declared in the PropertyDescriptions");
-            else
+            if (definesProperty(initProp.getName())) {
                 validatedInitProps.put(initProp.getName(), initProp.getValue());
+            }
+            else {
+                throw new InvalidDataException("Initial Property '" + initProp.getName()
+                    + "' has not been declared in the PropertyDescriptions:" + getName() + ":" + getVersion());
+            }
         }
 
         PropertyArrayList propInst = new PropertyArrayList();
@@ -159,37 +155,7 @@ public class PropertyDescriptionList extends CastorArrayList<PropertyDescription
     }
 
     @Override
-    public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
-        String xml;
-        String typeCode = BuiltInResources.PROPERTY_DESC_RESOURCE.getTypeCode();
-        String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
-
-        try {
-            xml = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
-        }
-        catch (Exception e) {
-            log.error("", e);
-            throw new InvalidDataException("Couldn't marshall PropertyDescriptionList name:" + getName());
-        }
-
-        FileStringUtility.string2File(new File(new File(dir, typeCode), fileName), xml);
-
-        if (imports == null) return;
-
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
-            imports.write("<Resource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
-                    + "type='" + typeCode + "'>boot/" + typeCode + "/" + fileName
-                    + "</Resource>\n");
-        }
-        else {
-            imports.write("<PropertyDescriptionResource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
-                    + "/>\n");
-        }
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.PROPERTY_DESC_RESOURCE;
     }
 }

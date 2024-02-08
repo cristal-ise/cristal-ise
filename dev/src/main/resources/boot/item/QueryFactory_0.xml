@@ -1,6 +1,7 @@
-<Item initialPath="/desc/dev" name="QueryFactory" ns="dev" version="0" workflow="QueryFactoryWf" workflowVer="0">
+<Item initialPath="/desc/Query" name="QueryFactory" ns="dev" version="0" workflow="CrudFactory_Workflow" workflowVer="0">
   <Property mutable="false" name="Type">Factory</Property>
-  <Property mutable="false" name="LocalObjectType">Query</Property>
+  <Property mutable="false" name="Root">/desc/Query</Property>
+  <Property mutable="false" name="UpdateSchema">Query:0</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/Query_0.xml</Outcome>
   <Outcome schema="Query" version="0" viewname="last">boot/query/New_0.xml</Outcome>
   <Dependency classProps="" isDescription="false" name="workflow">

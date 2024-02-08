@@ -20,6 +20,7 @@
  */
 package org.cristalise.storage;
 
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_autoCommit;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -32,7 +33,6 @@ import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.StandardServer;
-import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -54,7 +54,7 @@ public class JooqTransactionTest extends JooqTestConfigurationBase {
         props.put("Gateway.clusteredVertx", false);
 
         setUpStorage(props);
-        props.remove(JooqDataSourceHandler.JOOQ_AUTOCOMMIT);
+        props.remove(JOOQ_autoCommit.getSystemPropertyName());
 
         StandardServer.standardInitialisation(props, null);
     }

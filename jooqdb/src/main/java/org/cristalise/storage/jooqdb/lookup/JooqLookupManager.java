@@ -24,6 +24,7 @@ import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
 import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
 import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.WILDCARD_MATCH;
 import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.retrieveContext;
+import static org.cristalise.storage.jooqdb.SystemProperties.JooqLookupManager_domainTreeSearches_specialCharsToEscape;
 import static org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler.ITEM_PROPERTY_TABLE;
 import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.DOMAIN_PATH_TABLE;
 import static org.cristalise.storage.jooqdb.lookup.JooqDomainPathHandler.TARGET;
@@ -69,6 +70,7 @@ import org.jooq.JoinType;
 import org.jooq.Operator;
 import org.jooq.Record;
 import org.jooq.Result;
+import org.jooq.SQLDialect;
 import org.jooq.SelectQuery;
 import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
@@ -153,18 +155,15 @@ public class JooqLookupManager implements LookupManager {
     public boolean exists(Path path, TransactionKey transactionKey) {
         if (path == null) return false;
 
-        List<Boolean> itemExists = new ArrayList<>();
+        Boolean isExists = false;
 
         try {
             DSLContext context = retrieveContext(transactionKey);
-            boolean isExist = false;
 
-            if      (path instanceof ItemPath)   isExist = items.exists(context, path.getUUID());
-            else if (path instanceof AgentPath)  isExist = items.exists(context, path.getUUID());
-            else if (path instanceof DomainPath) isExist = domains.exists(context, (DomainPath)path);
-            else if (path instanceof RolePath)   isExist = roles.exists(context, (RolePath)path,null);
-
-            if (isExist) itemExists.add(isExist);
+            if      (path instanceof ItemPath)   isExists = items.exists(context, path.getUUID());
+            else if (path instanceof AgentPath)  isExists = items.exists(context, path.getUUID());
+            else if (path instanceof DomainPath) isExists = domains.exists(context, (DomainPath)path);
+            else if (path instanceof RolePath)   isExists = roles.exists(context, (RolePath)path,null);
 
             JooqDataSourceHandler.logConnectionCount("JooqLookupManager.exists()", context);
         }
@@ -172,7 +171,7 @@ public class JooqLookupManager implements LookupManager {
             log.error("exists()", e);
         }
 
-        return itemExists.size() > 0 ? true : false;
+        return isExists;
     }
 
     @Override
@@ -185,17 +184,13 @@ public class JooqLookupManager implements LookupManager {
             DSLContext context = retrieveContext(transactionKey);
 
             int rows = 0;
-            if (newPath instanceof AgentPath) {
-                rows = items.insert(context, (AgentPath) newPath, properties);
-            } else if  (newPath instanceof ItemPath) {
-                rows = items.insert(context, (ItemPath) newPath);
-            } else if (newPath instanceof DomainPath) {
-                rows = domains.insert(context, (DomainPath)newPath);
-            } else if (newPath instanceof RolePath) {
-                rows = (createRole((RolePath)newPath, transactionKey) != null) ? 1 : 0;
-            }
 
-            if (rows == 0) throw new ObjectCannotBeUpdated("JOOQLookupManager must insert some records:"+rows);
+            if      (newPath instanceof AgentPath)  rows = items.insert(context, (AgentPath) newPath, properties);
+            else if (newPath instanceof ItemPath)   rows = items.insert(context, (ItemPath) newPath);
+            else if (newPath instanceof DomainPath) rows = domains.insert(context, (DomainPath)newPath);
+            else if (newPath instanceof RolePath)   rows = (createRole((RolePath)newPath, transactionKey) != null) ? 1 : 0;
+
+            if (rows == 0) throw new ObjectCannotBeUpdated("nothing was inserted - rows:"+rows);
             else           log.debug("add() - path:"+newPath+" rows inserted:"+rows);
 
             if (newPath instanceof DomainPath) {
@@ -373,17 +368,64 @@ public class JooqLookupManager implements LookupManager {
         }
     }
 
-    private String getChildrenPattern(Path path, DSLContext context) {
-        //after the path match everything except '/'
-        if (context.dialect().equals(POSTGRES)) {
-            return convertToPostgresPattern(path.getStringPath());
+    public String getFullRegexPattern(Path path, String pattern, SQLDialect dialect) {
+        String begin = "^";
+        String end = "$";
+        String pathString = path.getStringPath();
+
+        if (! pathString.endsWith("/")) pathString = pathString + "/";
+
+        if (dialect.equals(POSTGRES)) {
+            begin = "(?e)" + begin;
+            pathString = escapeSpecialChars(pathString);
         }
-        return "^" + path.getStringPath() + "/[^/]*$";
+
+        return begin + pathString + pattern + end;
     }
 
-    public String convertToPostgresPattern(String path) {
-        String specialCharsToReplace = Gateway.getProperties().getString("JooqLookupManager.getChildrenPattern.specialCharsToReplace", "[^a-zA-Z0-9 ]");
-        return "(?e)^" + path.replaceAll("(" + specialCharsToReplace + ")", "\\\\$1") + "/[^/]*$";
+    /**
+     * use regex to match everything except '/' after the Path 
+     * 
+     * @param path
+     * @param dialect
+     * @return
+     */
+    public String getChildrenPattern(Path path, SQLDialect dialect) {
+        return getFullRegexPattern(path, "[^/]*", dialect);
+    }
+
+    /**
+     * use regex to match everything after the Path
+     * 
+     * @param path
+     * @param dialect
+     * @return
+     */
+    public String getContextTreePattern(Path path, SQLDialect dialect) {
+        return getFullRegexPattern(path, ".*", dialect);
+    }
+
+    private String escapeSpecialChars(String s) {
+        String specialCharsToReplace = JooqLookupManager_domainTreeSearches_specialCharsToEscape.getString();
+        return s.replaceAll("(" + specialCharsToReplace + ")", "\\\\$1");
+    }
+
+    @Override
+    public PagedResult getContextTree(DomainPath path, TransactionKey transactionKey) {
+        try {
+            DSLContext context = retrieveContext(transactionKey);
+
+            String pattern = getContextTreePattern(path, context.dialect());
+            log.info("getContextTree() - pattern:" + pattern);
+
+            List<Path> result = domains.findByRegex(context, pattern, -1, 0, true);
+
+            return new PagedResult(result.size(), result);
+        }
+        catch (Exception e) {
+            log.error("getContextTree()", e);
+        }
+        return new PagedResult();
     }
 
     @Override
@@ -391,12 +433,12 @@ public class JooqLookupManager implements LookupManager {
         try {
             DSLContext context = retrieveContext(transactionKey);
 
-            String pattern = getChildrenPattern(path, context);
+            String pattern = getChildrenPattern(path, context.dialect());
             log.debug("getChildren() - pattern:" + pattern);
 
             if      (path instanceof ItemPath) return new ArrayList<Path>().iterator(); //empty iterator
             else if (path instanceof RolePath) return roles  .findByRegex(context, pattern).iterator();
-            else                               return domains.findByRegex(context, pattern).iterator();
+            else                               return domains.findByRegex(context, pattern, -1, 0, false).iterator();
         }
         catch (Exception e) {
             log.error("getChildren()", e);
@@ -405,7 +447,7 @@ public class JooqLookupManager implements LookupManager {
     }
 
     @Override
-    public PagedResult getChildren(Path path, int offset, int limit, TransactionKey transactionKey) {
+    public PagedResult getChildren(Path path, int offset, int limit, boolean contextOnly, TransactionKey transactionKey) {
         if (path instanceof ItemPath) return new PagedResult();
 
         int maxRows = 0;
@@ -419,7 +461,7 @@ public class JooqLookupManager implements LookupManager {
             return new PagedResult();
         }
 
-        String pattern = getChildrenPattern(path, context);
+        String pattern = getChildrenPattern(path, context.dialect());
         log.debug("getChildren() - pattern:{} offset:{} limit:{}", pattern, offset, limit);
 
         if      (path instanceof RolePath)   maxRows = roles  .countByRegex(context, pattern);
@@ -430,7 +472,7 @@ public class JooqLookupManager implements LookupManager {
         List<Path> pathes = null;
 
         if      (path instanceof RolePath)   pathes = roles  .findByRegex(context, pattern, offset, limit);
-        else if (path instanceof DomainPath) pathes = domains.findByRegex(context, pattern, offset, limit);
+        else if (path instanceof DomainPath) pathes = domains.findByRegex(context, pattern, offset, limit, contextOnly);
 
         JooqDataSourceHandler.logConnectionCount("JooqLookupManager.getChildren()", context);
 
@@ -596,10 +638,8 @@ public class JooqLookupManager implements LookupManager {
         select.addSelect(
                 field(name("item", "UUID"), UUID.class),
                 JooqItemHandler.IS_AGENT,
-                JooqItemPropertyHandler.VALUE.as("Name"));
-
-        if (Gateway.getProperties().getBoolean("JOOQ.TemporaryPwdFieldImplemented", true))
-            select.addSelect(JooqItemHandler.IS_PASSWORD_TEMPORARY);
+                JooqItemPropertyHandler.VALUE.as("Name"),
+                JooqItemHandler.IS_PASSWORD_TEMPORARY);
 
         select.addOrderBy(field(name("Name")));
 

@@ -20,10 +20,6 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
-
-import java.io.IOException;
-
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -36,13 +32,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 /**
  * {@value #description}
  */
@@ -50,8 +40,11 @@ public class ImportImportItem extends PredefinedStep {
     public static final String description = "Creates or updates the Item created using ImportItem object";
 
     public ImportImportItem() {
-        super();
-        setBuiltInProperty(SCHEMA_NAME, "Item");
+        super("Item", description);
+    }
+
+    public ImportImportItem(String desc) {
+        super(desc);
     }
 
     @Override
@@ -59,15 +52,9 @@ public class ImportImportItem extends PredefinedStep {
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException,
             InvalidCollectionModification, PersistencyException
     {
-        try {
-            ImportItem importItem = (ImportItem) Gateway.getMarshaller().unmarshall(requestData);
-            importItem.create(agent, true, transactionKey);
+        ImportItem importItem = (ImportItem) Gateway.getMarshaller().unmarshall(requestData);
+        importItem.create(agent, true, transactionKey);
 
-            return Gateway.getMarshaller().marshall(importItem);
-        }
-        catch (MarshalException | ValidationException | IOException | MappingException e) {
-            log.error("Couldn't unmarshall Item: " + requestData, e);
-            throw new InvalidDataException("Couldn't unmarshall Item: " + requestData);
-        }
+        return Gateway.getMarshaller().marshall(importItem);
     }
 }

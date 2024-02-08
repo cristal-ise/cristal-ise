@@ -7,7 +7,7 @@ import io.restassured.specification.RequestSpecification
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.process.Gateway
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic

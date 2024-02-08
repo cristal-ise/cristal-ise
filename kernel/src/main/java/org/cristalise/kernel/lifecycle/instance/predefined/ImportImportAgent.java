@@ -23,8 +23,6 @@ package org.cristalise.kernel.lifecycle.instance.predefined;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
 
-import java.io.IOException;
-
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
@@ -35,13 +33,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 /**
  * {@value #description}
  */
@@ -49,24 +41,21 @@ public class ImportImportAgent extends PredefinedStep {
     public static final String description = "Creates or updates the Agent created using ImportAgent object";
 
     public ImportImportAgent() {
-        super();
-        setBuiltInProperty(SCHEMA_NAME, "Agent");
+        super("Agent", description);
+    }
+
+    public ImportImportAgent(String desc) {
+        super(desc);
     }
 
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, ObjectAlreadyExistsException
     {
-        try {
-            ImportAgent importAgent = (ImportAgent) Gateway.getMarshaller().unmarshall(requestData);
-            importAgent.create(agent, true, transactionKey);
-            importAgent.setPassword(REDACTED);
+        ImportAgent importAgent = (ImportAgent) Gateway.getMarshaller().unmarshall(requestData);
+        importAgent.create(agent, true, transactionKey);
+        importAgent.setPassword(REDACTED);
 
-            return Gateway.getMarshaller().marshall(importAgent);
-        }
-        catch (MarshalException | ValidationException | IOException | MappingException e) {
-            log.error("Couldn't unmarshall Agent: " + requestData, e);
-            throw new InvalidDataException("Couldn't unmarshall Agent: " + requestData);
-        }
+        return Gateway.getMarshaller().marshall(importAgent);
     }
 }

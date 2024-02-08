@@ -25,25 +25,31 @@ import org.cristalise.dev.dsl.item.CRUDItem
 import org.cristalise.dev.scaffold.CRUDGenerator
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.Status
-import org.junit.AfterClass
-import org.junit.Before
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.MethodOrderer
+import org.junit.jupiter.api.Order
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
+import org.junit.jupiter.api.TestMethodOrder
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
 @CompileStatic @Slf4j
+@TestInstance(Lifecycle.PER_CLASS)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CRUDGeneratorTest {
     static Git gitRepo
     CRUDGenerator generator
 
-    @BeforeClass
-    public static void setup() throws Exception {
+    @BeforeAll
+    public void setup() throws Exception {
         gitRepo = Git.open(new File('..'));
     }
 
-    @Before
+    @BeforeEach
     public void before() {
         generator = new CRUDGenerator(
             rootDir:         'src/test',
@@ -52,8 +58,6 @@ class CRUDGeneratorTest {
         )
     }
 
-    @AfterClass
-    public static void teardown() {}
 
     public boolean checkGitStatus() {
         Status gitStatus = gitRepo.status().call()
@@ -61,12 +65,13 @@ class CRUDGeneratorTest {
         return gitStatus.isClean()
     } 
 
-    @Test
+    @Test @Order(1)
     void generateTestItem() throws Exception {
         Map<String, Object> inputs = [
             item:           new CRUDItem(name: 'TestItem'),
             version:        0,
             moduleNs:       'devtest',
+            rootPackage:    'org.cristalise.devtest',
             useConstructor: false,
             isAgent:        false,
             generatedName:  false,
@@ -77,12 +82,13 @@ class CRUDGeneratorTest {
         generator.generateItemDSL(inputs)
     }
 
-    @Test
+    @Test @Order(1)
     void generateTestItemExcel() throws Exception {
         Map<String, Object> inputs = [
             item:           new CRUDItem(name: 'TestItemExcel'),
             version:        0,
             moduleNs:       'devtest',
+            rootPackage:    'org.cristalise.devtest',
             useConstructor: false,
             isAgent:        false,
             generatedName:  false,
@@ -92,12 +98,13 @@ class CRUDGeneratorTest {
         generator.generateItemDSL(inputs)
     }
 
-    @Test
+    @Test @Order(1)
     void generateTestItemUseConstructor() throws Exception {
         Map<String, Object> inputs = [
             item:           new CRUDItem(name: 'TestItemUseConstructor'),
             version:        0,
             moduleNs:       'devtest',
+            rootPackage:    'org.cristalise.devtest',
             useConstructor: true,
             isAgent:        false,
             generatedName:  false,
@@ -107,13 +114,13 @@ class CRUDGeneratorTest {
         generator.generateItemDSL(inputs)
     }
 
-    
-    @Test
+    @Test @Order(1)
     void generateTestAgentUseConstructor() throws Exception {
         Map<String, Object> inputs = [
             item:           new CRUDItem(name: 'TestAgentUseConstructor'),
             version:        0,
             moduleNs:       'devtest',
+            rootPackage:    'org.cristalise.devtest',
             useConstructor: true,
             isAgent:        true,
             generatedName:  false,
@@ -123,12 +130,13 @@ class CRUDGeneratorTest {
         generator.generateItemDSL(inputs)
     }
 
-    @Test
+    @Test @Order(1)
     void generateTestAgent() throws Exception {
         Map<String, Object> inputs = [
             item:           new CRUDItem(name: 'TestAgent'),
             version:        0,
             moduleNs:       'devtest',
+            rootPackage:    'org.cristalise.devtest',
             useConstructor: false,
             isAgent:        true,
             generatedName:  false,
@@ -138,12 +146,13 @@ class CRUDGeneratorTest {
         generator.generateItemDSL(inputs)
     }
 
-    @Test
+    @Test @Order(1)
     void generateTestItemGeneratedName() throws Exception {
         Map<String, Object> inputs = [
             item:           new CRUDItem(name: 'TestItemGeneratedName'),
             version:        0,
             moduleNs:       'devtest',
+            rootPackage:    'org.cristalise.devtest',
             useConstructor: false,
             isAgent:        false,
             generatedName:  true,
@@ -153,12 +162,13 @@ class CRUDGeneratorTest {
         generator.generateItemDSL(inputs)
     }
 
-    @Test
+    @Test @Order(1)
     void generateTestItemUseConstructorGeneratedName() throws Exception {
         Map<String, Object> inputs = [
             item:           new CRUDItem(name: 'TestItemUseConstructorGeneratedName'),
             version:        0,
             moduleNs:       'devtest',
+            rootPackage:    'org.cristalise.devtest',
             useConstructor: true,
             isAgent:        false,
             generatedName:  true,
@@ -168,7 +178,7 @@ class CRUDGeneratorTest {
         generator.generateItemDSL(inputs)
     }
 
-    @Test
+    @Test @Order(1)
     void generateCRUDModule() throws Exception {
         def generator  = new CRUDGenerator(rootDir: 'src/test')
         def scriptText = new File('src/test/data/CRUDTestModule.groovy').text
@@ -176,23 +186,27 @@ class CRUDGeneratorTest {
         generator.generateCRUDModule(scriptText)
     }
 
-    @Test
+    @Test @Order(2)
     void generateModule() throws Exception {
         Map<String, Object> inputs = [
             moduleName:  'DEV Scaffold Test module',
             version:     0,
-            resourceURL: 'org/cristalise/devtest/resources/',
+            rootPackage: 'org.cristalise.devtest',
             moduleNs:    'devtest',
             inputFile:   null
         ]
 
         generator.generateModuleDSL(inputs)
+    }
 
+    @Test @Order(3)
+    void generateModuleXMLs() throws Exception {
         CompilerConfiguration cc = new CompilerConfiguration()
         cc.setScriptBaseClass(DelegatingScript.class.getName())
 
+        def scriptFile = new File("src/test/module/org/cristalise/devtest/Module.groovy")
+
         GroovyShell shell = new GroovyShell(this.class.classLoader, new Binding(), cc)
-        def scriptFile = new File(inputs['rootDir'].toString()+'/module/Module.groovy')
         DelegatingScript script = (DelegatingScript) shell.parse(scriptFile)
 
         script.setDelegate(this)

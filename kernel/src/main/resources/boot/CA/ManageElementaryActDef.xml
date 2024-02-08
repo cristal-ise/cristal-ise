@@ -89,7 +89,7 @@
 					<KeyValuePair Key="Viewpoint" String="Query" isAbstract="false"/>
 					<KeyValuePair Key="Name" String="AssignQuery" isAbstract="false"/>
 				</Properties>
-				<activityDef>00000000-0000-0000-0000-000000000306</activityDef>
+				<activityDef>SetDescriptionObject</activityDef>
 			</ActivitySlotDef>
 			<ActivitySlotDef Height="60" ID="63" IsComposite="false" IsLayoutable="true" Name="AssignScript" Width="130">
 				<CentrePoint x="791" y="298"/>
@@ -105,7 +105,7 @@
 					<KeyValuePair Key="Viewpoint" String="Script" isAbstract="false"/>
 					<KeyValuePair Key="Name" String="AssignScript" isAbstract="false"/>
 				</Properties>
-				<activityDef>00000000-0000-0000-0000-000000000306</activityDef>
+				<activityDef>SetDescriptionObject</activityDef>
 			</ActivitySlotDef>
 			<ActivitySlotDef Height="60" ID="62" IsComposite="false" IsLayoutable="true" Name="OverrideStateMachine" Width="130">
 				<CentrePoint x="938" y="300"/>
@@ -121,7 +121,7 @@
 					<KeyValuePair Key="Viewpoint" String="StateMachine" isAbstract="false"/>
 					<KeyValuePair Key="Name" String="OverrideStateMachine" isAbstract="false"/>
 				</Properties>
-				<activityDef>00000000-0000-0000-0000-000000000306</activityDef>
+				<activityDef>SetDescriptionObject</activityDef>
 			</ActivitySlotDef>
 			<LoopDef Height="24" ID="30" IsComposite="false" IsLayoutable="true" Name="" Width="60" isNext="0">
 				<CentrePoint x="512" y="396"/>
@@ -200,7 +200,7 @@
 					<KeyValuePair Key="ViewName" String="ElementaryActivityDef" isAbstract="false"/>
 					<KeyValuePair Key="Name" String="AssignNewActivityVersionFromLast" isAbstract="false"/>
 				</Properties>
-				<activityDef>00000000-0000-0000-0000-000000000303</activityDef>
+				<activityDef>AssignNewVersionFromLast</activityDef>
 			</ActivitySlotDef>
 			<LoopDef Height="24" ID="42" IsComposite="false" IsLayoutable="true" Name="" Width="60" isNext="0">
 				<CentrePoint x="839" y="395"/>
@@ -280,7 +280,7 @@
 					<KeyValuePair Key="Viewpoint" String="Schema" isAbstract="false"/>
 					<KeyValuePair Key="Name" String="SetSchema" isAbstract="false"/>
 				</Properties>
-				<activityDef>00000000-0000-0000-0000-000000000306</activityDef>
+				<activityDef>SetDescriptionObject</activityDef>
 			</ActivitySlotDef>
 			<JoinDef Height="24" ID="27" IsComposite="false" IsLayoutable="true" Name="" Width="60">
 				<CentrePoint x="472" y="200"/>
@@ -308,7 +308,7 @@
 					<KeyValuePair Key="ViewName" String="ElementaryActivityDef" isAbstract="false"/>
 					<KeyValuePair Key="Name" String="MoveLatestActivityVersionToLast" isAbstract="false"/>
 				</Properties>
-				<activityDef>00000000-0000-0000-0000-000000000304</activityDef>
+				<activityDef>MoveLatestVersionToLast</activityDef>
 			</ActivitySlotDef>
 			<JoinDef Height="24" ID="4" IsComposite="false" IsLayoutable="true" Name="" Width="60">
 				<CentrePoint x="610" y="503"/>
@@ -356,7 +356,7 @@
 					<KeyValuePair Key="Type" String="Join" isAbstract="false"/>
 				</Properties>
 			</JoinDef>
-			<ActivitySlotDef Height="60" ID="22" IsComposite="false" IsLayoutable="true" Name="EditDefinition" Width="130">
+			<ActivitySlotDef Height="60" ID="22" IsComposite="false" IsLayoutable="true" Name="Update" Width="130">
 				<CentrePoint x="100" y="300"/>
 				<OutlinePoint x="35" y="270"/>
 				<OutlinePoint x="165" y="270"/>
@@ -367,9 +367,9 @@
 				<Properties>
 					<KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
 					<KeyValuePair Key="SchemaType" String="ElementaryActivityDef" isAbstract="false"/>
-					<KeyValuePair Key="Name" String="EditDefinition" isAbstract="false"/>
+					<KeyValuePair Key="Name" String="Update" isAbstract="false"/>
 				</Properties>
-				<activityDef>00000000-0000-0000-0000-000000000305</activityDef>
+				<activityDef>EditDefinition</activityDef>
 			</ActivitySlotDef>
 			<NextDef ID="67" OriginVertexId="62" TerminusVertexId="42">
 				<OriginPoint x="938" y="300"/>

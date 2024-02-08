@@ -5,13 +5,20 @@
   </Info>
   <ResourceURL>org/cristalise/dev/resources/</ResourceURL>
   <Config name="OutcomeInit.Dev">org.cristalise.dev.DevObjectOutcomeInitiator</Config>
-  <Config name="OverrideScriptLang.javascript">rhino</Config>
-  <Config name="OverrideScriptLang.JavaScript">rhino</Config>
-  <Config name="OverrideScriptLang.js">rhino</Config>
-  <Config name="OverrideScriptLang.JS">rhino</Config>
-  <Config name="OverrideScriptLang.ECMAScript">rhino</Config>
-  <Config name="OverrideScriptLang.ecmascript">rhino</Config>
+  <Config name="OutcomeInit.dev">org.cristalise.dev.DevObjectOutcomeInitiator</Config>
   <Imports>
+    <DomainContextResource name="DescDevContext" version="0"/>
+    <DomainContextResource name="DescActivityDescDevContext" version="0"/>
+    <DomainContextResource name="DescPropertyDescDevContext" version="0"/>
+    <DomainContextResource name="DescModuleDevContext" version="0"/>
+    <DomainContextResource name="DescSchemaDevContext" version="0"/>
+    <DomainContextResource name="DescScriptDevContext" version="0"/>
+    <DomainContextResource name="DescQueryDevContext" version="0"/>
+    <DomainContextResource name="DescStateMachineDevContext" version="0"/>
+    <DomainContextResource name="DescItemDescDevContext" version="0"/>
+    <DomainContextResource name="DescAgentDescDevContext" version="0"/>
+    <DomainContextResource name="DescRoleDescDevContext" version="0"/>
+    <DomainContextResource name="DescDomainContextDevContext" version="0"/>
     <PropertyDescriptionResource name="ActivityDesc" version="0"/>
     <PropertyDescriptionResource name="Agent" version="0"/>
     <PropertyDescriptionResource name="CompositeActivityDesc" version="0"/>
@@ -26,6 +33,7 @@
     <PropertyDescriptionResource name="AgentDesc" version="0"/>
     <PropertyDescriptionResource name="ItemDesc" version="0"/>
     <PropertyDescriptionResource name="RoleDesc" version="0"/>
+    <PropertyDescriptionResource name="DomainContext" version="0"/>
     <Activity name="CrudState_Activate" version="0"/>
     <Activity name="CrudState_Deactivate" version="0"/>
     <Workflow name="CrudState_Manage" version="0">
@@ -48,17 +56,12 @@
     <Workflow name="CrudFactory_Workflow" version="0">
       <Activity name="CrudFactory_InstantiateItem" version="0"/>
     </Workflow>
-    <SchemaResource name="ChooseWorkflow" version="0"/>
     <SchemaResource name="New" version="0"/>
     <SchemaResource name="NewAgent" version="0"/>
-    <SchemaResource name="NewCollection" version="0"/>
     <SchemaResource name="NewDevObjectDef" version="0"/>
-    <ScriptResource name="CollDescCreator" version="0"/>
     <ScriptResource name="InstantiateAgent" version="0"/>
-    <ScriptResource name="InstantiateItem" version="0"/>
     <ScriptResource name="LocalObjectDefCreator" version="0"/>
     <ScriptResource name="New" version="0"/>
-    <ScriptResource name="SetWorkflow" version="0"/>
     <Activity name="CreateNewLocalObjectDef" version="0">
       <Schema name="NewDevObjectDef" version="0"/>
       <Script name="LocalObjectDefCreator" version="0"/>
@@ -67,6 +70,28 @@
       <Schema name="NewAgent" version="0"/>
       <Script name="InstantiateAgent" version="0"/>
     </Activity>
+    <Workflow name="AgentFactoryWf" version="0">
+      <Activity name="CreateAgent" version="0"/>
+    </Workflow>
+    <ItemResource name="ScriptFactory" version="0"/>
+    <ItemResource name="QueryFactory" version="0"/>
+    <ItemResource name="SchemaFactory" version="0"/>
+    <ItemResource name="StateMachineFactory" version="0"/>
+    <ItemResource name="ElementaryActivityDefFactory" version="0"/>
+    <ItemResource name="ActivityDefType" version="0"/>
+    <ItemResource name="CompositeActivityDefFactory" version="0"/>
+    <ItemResource name="ModuleFactory" version="0"/>
+    <ItemResource name="AgentFactory" version="0"/>
+    <ItemResource name="PropertyDescriptionFactory" version="0"/>
+    <ItemResource name="AgentDescFactory" version="0"/>
+    <ItemResource name="ItemDescFactory" version="0"/>
+    <ItemResource name="RoleDescFactory" version="0"/>
+    <ItemResource name="DomainContextFactory" version="0"/>
+    <SchemaResource name="ChooseWorkflow" version="0"/>
+    <SchemaResource name="NewCollection" version="0"/>
+    <ScriptResource name="CollDescCreator" version="0"/>
+    <ScriptResource name="SetWorkflow" version="0"/>
+    <ScriptResource name="InstantiateItem" version="0"/>
     <Activity name="CreateItem" version="0">
       <Schema name="NewDevObjectDef" version="0"/>
       <Script name="InstantiateItem" version="0"/>
@@ -82,70 +107,12 @@
       <Schema name="ChooseWorkflow" version="0"/>
       <Script name="SetWorkflow" version="0"/>
     </Activity>
-    <Workflow name="CompositeActivityFactory" version="0">
-      <Activity name="CreateNewLocalObjectDef" version="0"/>
-    </Workflow>
-    <Workflow name="ElementaryActivityFactory" version="0">
-      <Activity name="CreateNewLocalObjectDef" version="0"/>
-    </Workflow>
-    <Workflow name="SchemaFactoryWf" version="0">
-      <Activity name="EditDefinition" version="0"/>
-      <Activity name="CreateNewLocalObjectDef" version="0"/>
-    </Workflow>
-    <Workflow name="ScriptFactoryWf" version="0">
-      <Activity name="EditDefinition" version="0"/>
-      <Activity name="CreateNewLocalObjectDef" version="0"/>
-    </Workflow>
-    <Workflow name="QueryFactoryWf" version="0">
-      <Activity name="EditDefinition" version="0"/>
-      <Activity name="CreateNewLocalObjectDef" version="0"/>
-    </Workflow>
-    <Workflow name="StateMachineFactoryWf" version="0">
-      <Activity name="CreateNewLocalObjectDef" version="0"/>
-    </Workflow>
-    <Workflow name="PropertyDescriptionFactoryWf" version="0">
-      <Activity name="CreateNewLocalObjectDef" version="0"/>
-    </Workflow>
-    <Workflow name="ItemDescriptionWf" version="0">
+    <Workflow name="Description_Workflow" version="0">
       <Activity name="EditPropertyDescription" version="0"/>
       <Activity name="SetInstanceWorkflow" version="0"/>
       <Activity name="CreateItem" version="0"/>
       <Activity name="DefineNewCollection" version="0"/>
     </Workflow>
-    <Workflow name="ItemDescriptionFactoryWf" version="0">
-      <Activity name="CreateItem" version="0"/>
-    </Workflow>
-    <Workflow name="ReadOnlyItemDescriptionWf" version="0">
-      <Activity name="CreateItem" version="0"/>
-    </Workflow>
-    <Workflow name="ModuleFactory" version="0">
-      <Activity name="CreateItem" version="0"/>
-    </Workflow>
-    <Workflow name="AgentFactoryWf" version="0">
-      <Activity name="CreateAgent" version="0"/>
-    </Workflow>
-    <Workflow name="AgentDescFactoryWf" version="0">
-      <Activity name="CreateNewLocalObjectDef" version="0"/>
-    </Workflow>
-    <Workflow name="ItemDescFactoryWf" version="0">
-      <Activity name="CreateNewLocalObjectDef" version="0"/>
-    </Workflow>
-    <Workflow name="RoleDescFactoryWf" version="0">
-      <Activity name="CreateNewLocalObjectDef" version="0"/>
-    </Workflow>
-    <ItemResource name="ScriptFactory" version="0"/>
-    <ItemResource name="QueryFactory" version="0"/>
-    <ItemResource name="SchemaFactory" version="0"/>
-    <ItemResource name="StateMachineFactory" version="0"/>
-    <ItemResource name="ElementaryActivityDefFactory" version="0"/>
-    <ItemResource name="ActivityDefType" version="0"/>
-    <ItemResource name="CompositeActivityDefFactory" version="0"/>
     <ItemResource name="DescriptionFactory" version="0"/>
-    <ItemResource name="ModuleFactory" version="0"/>
-    <ItemResource name="AgentFactory" version="0"/>
-    <ItemResource name="PropertyDescriptionFactory" version="0"/>
-    <ItemResource name="AgentDescFactory" version="0"/>
-    <ItemResource name="ItemDescFactory" version="0"/>
-    <ItemResource name="RoleDescFactory" version="0"/>
   </Imports>
 </CristalModule>

@@ -52,5 +52,9 @@ Activity('CrudFactory_InstantiateItem', 0) {
 }
 
 Workflow('CrudFactory_Workflow', 0) {
-    ElemActDef($crudFactory_InstantiateItem_ActivityDef)
+    Layout {
+        LoopInfinitive {
+            Act('InstantiateItem', $crudFactory_InstantiateItem_ActivityDef)
+        }
+    }
 }

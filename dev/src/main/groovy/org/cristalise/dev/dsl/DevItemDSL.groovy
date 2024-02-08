@@ -21,7 +21,7 @@
 package org.cristalise.dev.dsl
 
 import static org.cristalise.kernel.process.resource.BuiltInResources.*
-
+import org.cristalise.dev.scaffold.DevItemCreator
 import org.cristalise.dsl.entity.AgentBuilder
 import org.cristalise.dsl.entity.AgentDelegate
 import org.cristalise.dsl.entity.ItemBuilder
@@ -39,9 +39,11 @@ import org.cristalise.dsl.querying.QueryDelegate
 import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.dsl.scripting.ScriptDelegate
 import org.cristalise.kernel.common.ObjectNotFoundException
+import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportRole
+import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
@@ -49,35 +51,74 @@ import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportAgent
 import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportItem
 import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportRole
 import org.cristalise.kernel.lifecycle.instance.predefined.ReplaceDomainWorkflow
+import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.DefaultResourceImportHandler
 import org.cristalise.kernel.querying.Query
 import org.cristalise.kernel.scripting.Script
-
+import org.cristalise.kernel.utils.DescriptionObject
+import org.cristalise.kernel.utils.ItemDescCache
 import groovy.transform.CompileStatic
-
+import groovy.util.logging.Slf4j
 
 /**
  *
  */
-@CompileStatic
-class DevItemDSL extends DevItemUtility {
-    public List<ImportRole> Roles(@DelegatesTo(RoleDelegate) Closure cl) {
-        def newRoles = RoleBuilder.build(cl)
-        def resultRoles = new ArrayList<ImportRole>()
+@CompileStatic @Slf4j
+class DevItemDSL {
+    public AgentProxy agent = null
+    public DevItemCreator creator = null
 
-        newRoles.each { role ->
-            def result = agent.execute(agent.getItem('/servers/localhost'), ImportImportRole.class, agent.marshall(role))
-            resultRoles.add((ImportRole) Gateway.getMarshaller().unmarshall(result))
-        }
-
-        return resultRoles
+    public Job getDoneJob(ItemProxy proxy, String actName) {
+        log.info('getDoneJob() - proxy:{} actName:{}', proxy, actName)
+        Job j = proxy.getJobByName(actName, agent)
+        assert j && j.getStepName() == actName && j.transition.name == "Done"
+        return j
     }
 
-    // name parameter is not used, method is only kept for backward compatibility
-    public List<ImportRole> Role(String name, @DelegatesTo(RoleDelegate) Closure cl) {
-        return Roles(cl)
+    public Job executeDoneJob(ItemProxy proxy, String actName, String outcomeXML) {
+        def job = getDoneJob(proxy, actName)
+
+        if (outcomeXML)            job.outcome = outcomeXML
+        else if (job.hasOutcome()) job.outcome = job.getOutcome() //this calls outcome initiator if defined
+
+        String resultOutcome = agent.execute(job)
+        if (job.hasOutcome()) assert resultOutcome
+
+        return job
+    }
+
+    public Job executeDoneJob(ItemProxy proxy, String actName, Outcome outcome = null) {
+        def job = getDoneJob(proxy, actName)
+
+        if (outcome)               job.outcome = outcome
+        else if (job.hasOutcome()) job.outcome = job.getOutcome() //this calls outcome initiator if defined
+
+        String resultOutcome = agent.execute(job)
+        if (job.hasOutcome()) assert resultOutcome
+
+        return job
+    }
+
+//    public List<ImportRole> Roles(@DelegatesTo(RoleDelegate) Closure cl) {
+//        def newRoles = RoleBuilder.build(cl)
+//        def resultRoles = new ArrayList<ImportRole>()
+//
+//        newRoles.each { role ->
+//            def result = agent.execute(agent.getItem('/servers/localhost'), ImportImportRole.class, agent.marshall(role))
+//            resultRoles.add((ImportRole) Gateway.getMarshaller().unmarshall(result))
+//        }
+//
+//        return resultRoles
+//    }
+
+    public ImportRole Role(String name, @DelegatesTo(RoleDelegate) Closure cl) {
+        def roleD = new RoleDelegate(null)
+        roleD.Role(name: name, cl)
+        assert roleD.roles.size() == 1
+        def result = agent.execute(agent.getItem('/servers/localhost'), ImportImportRole.class, agent.marshall(roleD.roles[0]))
+        return (ImportRole) Gateway.getMarshaller().unmarshall(result)
     }
 
     public ImportAgent Agent(String name, @DelegatesTo(AgentDelegate) Closure cl) {
@@ -99,55 +140,95 @@ class DevItemDSL extends DevItemUtility {
         return (ImportItem) Gateway.getMarshaller().unmarshall(result)
     }
 
+    private ItemProxy createOrUpdate(String namespace, DescriptionObject descObj) {
+        if (namespace) descObj.namespace = namespace
+
+        if (descObj.exists(null)) {
+            return creator.updateItemAndMoveLatestVersion(descObj)
+        }
+        else {
+            return creator.createItemWithUpdateAndAssignNewVersion(descObj)
+        }
+    }
+
+    public ImportItem ItemDesc(String name, String folder, @DelegatesTo(ItemDelegate) Closure cl) {
+        def itemDesc = ItemBuilder.build(name: name, version: 0, cl)
+        createOrUpdate(folder, itemDesc)
+        return itemDesc
+    }
+
+    public ImportAgent AgentDesc(String name, String folder, @DelegatesTo(AgentDelegate) Closure cl) {
+        def agentDesc = AgentBuilder.build(name: name, version: 0, cl)
+        createOrUpdate(folder, agentDesc)
+        return agentDesc
+    }
+
+    public List<ImportRole> RoleDescList(String name, String folder, @DelegatesTo(RoleDelegate) Closure cl) {
+        def roleDescList = RoleBuilder.build(cl)
+        roleDescList.each { roleDesc ->
+            createOrUpdate(folder, roleDesc)
+        }
+        return roleDescList
+    }
+
+    public Schema Schema(String name, String folder, String xsd) {
+        def schema = new Schema(name, 0, xsd)
+        createOrUpdate(folder, schema)
+        return schema
+    }
+        
     public Schema Schema(String name, String folder, @DelegatesTo(SchemaDelegate) Closure cl) {
-        createNewSchema(name, folder)
         def schema = SchemaBuilder.build(name, 0, cl).schema
-        editSchema(name, folder, schema.XSD)
+        createOrUpdate(folder, schema)
         return schema
     }
 
     public Query Query(String name, String folder, @DelegatesTo(QueryDelegate) Closure cl) {
-        createNewQuery(name, folder)
         def query = QueryBuilder.build("", name, 0, cl)
-        editQuery(name, folder, query.queryXML)
+        createOrUpdate(folder, query)
         return query
+    }
+
+    public Script Script(String name, String folder, String xml) {
+        def script = new Script(name, 0, null, xml)
+        createOrUpdate(folder, script)
+        return script
     }
 
     public Script Script(String name, String folder, @DelegatesTo(ScriptDelegate) Closure cl) {
         Script script = ScriptBuilder.build("", name, 0, cl).script
-
-        try {
-            def resHandler = new DefaultResourceImportHandler(SCRIPT_RESOURCE)
-            agent.getItem("${resHandler.typeRoot}/$folder/$name")
-            editExistingScript(name, folder, script.scriptXML)
-        }
-        catch(ObjectNotFoundException e) {
-            createNewScript(name, folder)
-            editScript(name, folder, script.scriptXML)
-        }
-
+        createOrUpdate(folder, script)
         return script
     }
 
     public ActivityDef ElementaryActivityDef(String actName, String folder, @DelegatesTo(ElemActDefDelegate) Closure cl) {
-        createNewElemActDesc(actName, folder)
         def eaDef = ElemActDefBuilder.build(name: (Object)actName, version: 0, cl)
-        editElemActDesc(actName, folder, eaDef)
+        createOrUpdate(folder, eaDef)
         return eaDef
     }
 
+    public CompositeActivityDef CompositeActivityDef(String actName, String folder, String xml) {
+        def caDef = (CompositeActivityDef)Gateway.getMarshaller().unmarshall(xml)
+        caDef.version = 0
+        createOrUpdate(folder, caDef)
+        return caDef
+    }
+
     public CompositeActivityDef CompositeActivityDef(String actName, String folder, @DelegatesTo(CompActDefDelegate) Closure cl) {
-        createNewCompActDesc(actName, folder)
         def caDef = CompActDefBuilder.build(name: (Object)actName, version: 0, cl)
-        editCompActDesc(actName, folder, caDef)
+        createOrUpdate(folder, caDef)
         return caDef
     }
 
     public ItemProxy DescriptionItem(String itemName, String folder, @DelegatesTo(DescriptionItemFactoryDelegate) Closure cl) {
-        def descItem = createNewDescriptionItem(itemName, folder)
+        def descItem = creator.createItem(itemName, '/desc/dev/DescriptionFactory')
+
         def difd = new DescriptionItemFactoryDelegate()
         difd.processClosure(cl)
-        editDescriptionItem(descItem, difd.propDescList, difd.chooseWorkflowXML)
+
+        executeDoneJob(descItem, "SetPropertyDescription", Gateway.getMarshaller().marshall(difd.propDescList) )
+        executeDoneJob(descItem, "SetInstanceWorkflow",    difd.chooseWorkflowXML)
+
         return descItem
     }
 }

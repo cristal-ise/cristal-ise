@@ -34,10 +34,8 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
-import org.jooq.CreateTableColumnStep;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.InsertSetMoreStep;
@@ -56,8 +54,6 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
     static final Field<Integer> EVENT_ID        = field(name("EVENT_ID"),       Integer.class);
     static final Field<String>  FILE_NAME       = field(name("FILE_NAME"),      String.class);
     static final Field<byte[]>  ATTACHMENT      = field(name("ATTACHMENT"),     byte[].class);
-
-    private boolean enableFileName = Gateway.getProperties().getBoolean("JOOQ.OutcomeAttachment.enableFileName", true);
 
     @Override
     protected Table<?> getTable() {
@@ -120,9 +116,8 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
                        .set(SCHEMA_NAME,    attachment.getSchemaName())
                        .set(SCHEMA_VERSION, attachment.getSchemaVersion())
                        .set(EVENT_ID,       attachment.getEventId())
-                       .set(ATTACHMENT,     attachment.getBinaryData());
-
-        if (enableFileName) insert.set(FILE_NAME, attachment.getFileName());
+                       .set(ATTACHMENT,     attachment.getBinaryData())
+                       .set(FILE_NAME,      attachment.getFileName());
 
         return insert.execute();
     }
@@ -132,10 +127,6 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
         Record result = fetchRecord(context, uuid, primaryKeys);
 
         if(result != null) {
-            String fileName = null;
-
-            if (enableFileName) fileName = result.get(FILE_NAME);
-
             try {
                 byte[] binaryData = (byte[]) result.get(ATTACHMENT);
                 return new OutcomeAttachment(
@@ -143,7 +134,7 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
                         result.get(SCHEMA_NAME),
                         result.get(SCHEMA_VERSION),
                         result.get(EVENT_ID),
-                        fileName,
+                        result.get(FILE_NAME),
                         binaryData);
             }
             catch (Exception e) {
@@ -156,20 +147,16 @@ public class JooqOutcomeAttachmentHandler extends JooqHandler {
 
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
-        CreateTableColumnStep create = 
-                context.createTableIfNotExists(OUTCOME_ATTACHMENT_TABLE)
-                    .column(UUID,           UUID_TYPE      .nullable(false))
-                    .column(SCHEMA_NAME,    NAME_TYPE      .nullable(false))
-                    .column(SCHEMA_VERSION, VERSION_TYPE   .nullable(false))
-                    .column(EVENT_ID,       ID_TYPE        .nullable(false))
-                    .column(ATTACHMENT,     ATTACHMENT_TYPE.nullable(false));
-
-        if (enableFileName) create.column(FILE_NAME, NAME_TYPE.nullable(true));
-
-        create
-            .constraints(
-                constraint("PK_"+OUTCOME_ATTACHMENT_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
-            .execute();
+        context.createTableIfNotExists(OUTCOME_ATTACHMENT_TABLE)
+                .column(UUID, UUID_TYPE.nullable(false))
+                .column(SCHEMA_NAME, NAME_TYPE.nullable(false))
+                .column(SCHEMA_VERSION, VERSION_TYPE.nullable(false))
+                .column(EVENT_ID, ID_TYPE.nullable(false))
+                .column(ATTACHMENT, ATTACHMENT_TYPE.nullable(false))
+                .column(FILE_NAME, NAME_TYPE.nullable(true))
+                .constraints(
+                        constraint("PK_" + OUTCOME_ATTACHMENT_TABLE.getName()).primaryKey(UUID,SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
+                .execute();
     }
 
     @Override

@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.querying;
 
+import static org.cristalise.kernel.SystemProperties.Resource_useOldImportFormat;
 import static org.cristalise.kernel.process.resource.BuiltInResources.QUERY_RESOURCE;
 
 import java.io.File;
@@ -41,6 +42,7 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeValidator;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.scripting.ParameterException;
 import org.cristalise.kernel.scripting.ScriptParsingException;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -256,7 +258,7 @@ public class Query implements DescriptionObject {
 
         if (imports == null) return;
 
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
+        if (Resource_useOldImportFormat.getBoolean()) {
             imports.write("<Resource name='"+getName()+"' "
                     + (getItemPath()==null?"":"id='"+getItemID()+"' ")
                     + (getVersion()==null?"":"version='"+getVersion()+"' ")
@@ -270,5 +272,16 @@ public class Query implements DescriptionObject {
                     + "/>\n");
             
         }
+    }
+
+    @Override
+    public String getXml(boolean prettyPrint) throws InvalidDataException {
+        if (prettyPrint) return new Outcome(getQueryXML()).getData(true);
+        else             return getQueryXML();
+    }
+
+    @Override
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.QUERY_RESOURCE;
     }
 }

@@ -20,15 +20,31 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.SystemProperties.Resource_useOldImportFormat;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
+import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 
+import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.CollectionArrayList;
+import org.cristalise.kernel.collection.Dependency;
+import org.cristalise.kernel.collection.DependencyMember;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.process.resource.BuiltInResources;
+import org.exolab.castor.mapping.MappingException;
+import org.exolab.castor.xml.MarshalException;
+import org.exolab.castor.xml.ValidationException;
 
 public interface DescriptionObject {
 
@@ -43,9 +59,77 @@ public interface DescriptionObject {
     public void setItemPath(ItemPath path);
 
     public String getItemID();
+    public BuiltInResources getResourceType();
+
+    default public String getXml(boolean prettyPrint) throws InvalidDataException {
+        String xml = Gateway.getMarshaller().marshall(this);
+
+        if (prettyPrint) return new Outcome(xml).getData(true);
+        else             return xml;
+    }
+
+    default public String getXml() throws InvalidDataException {
+        return getXml(true);
+    }
 
     public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException;
 
-    public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException;
+    default public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
+        BuiltInResources type = getResourceType();
+        String versionPostfix = getVersion() == null ? "" : "_" + getVersion();
+        String extention = type == SCHEMA_RESOURCE ? ".xsd" : ".xml";
 
+        String fileName = getName() + versionPostfix + extention;
+        File newFile = new File(new File(dir, type.getTypeCode()), fileName);
+        FileStringUtility.string2File(newFile, getXml());
+
+        if (imports == null) return;
+
+        if (Resource_useOldImportFormat.getBoolean()) {
+            imports.write("<Resource "
+                    + "name='" + getName() + "' "
+                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
+                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
+                    + "type='" + type.getTypeCode() + "'>boot/" + type.getTypeCode() + "/" + fileName
+                    + "</Resource>\n");
+        }
+        else {
+            imports.write("<" + type.getSchemaName() + "Resource "
+                    + "name='" + getName() + "' "
+                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
+                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
+                    + "/>\n");
+        }
+    }
+
+    default public Dependency makeDescCollection(BuiltInCollections collection, TransactionKey transactionKey, DescriptionObject... descs) throws InvalidDataException {
+        //TODO: restrict membership based on kernel property desc
+        Dependency descDep = new Dependency(collection.getName());
+        if (getVersion() != null && this.getVersion() > -1) {
+            descDep.setVersion(this.getVersion());
+        }
+
+        for (DescriptionObject thisDesc : descs) {
+            if (thisDesc == null) continue;
+            try {
+                DependencyMember descMem = descDep.addMember(thisDesc.getItemPath(), transactionKey);
+                descMem.setBuiltInProperty(VERSION, thisDesc.getVersion());
+            }
+            catch (Exception e) {
+                throw new InvalidDataException(e);
+            }
+        }
+        return descDep;
+    }
+
+    default public Outcome toOutcome() throws CriseVertxException, MarshalException, ValidationException, IOException, MappingException {
+        String schemaName = getResourceType().getSchemaName();
+        Schema schema = LocalObjectLoader.getSchema(schemaName, 0);
+        return new Outcome(getXml(false), schema);
+    }
+
+    default public boolean exists(TransactionKey transactionKey) {
+        String path = getResourceType().getTypeRoot() + "/" + getNamespace() + "/" + getName();
+        return new DomainPath(path).exists(transactionKey);
+    }
 }

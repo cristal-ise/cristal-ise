@@ -21,6 +21,10 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+import static org.cristalise.restapi.SystemProperties.REST_allowWeakKey;
+import static org.cristalise.restapi.SystemProperties.REST_requireLoginCookie;
+import static org.cristalise.restapi.SystemProperties.REST_Roles_withoutTimeout;
+import static org.cristalise.restapi.SystemProperties.REST_loginCookieLife;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -74,7 +78,7 @@ abstract public class RestHandler {
     public static final String PASSWORD   = "password";
 
     static {
-        int keySize = Gateway.getProperties().getBoolean("REST.allowWeakKey", false) ? 128 : 256;
+        int keySize = REST_allowWeakKey.getBoolean() ? 128 : 256;
 
         aesCipherService = new AesCipherService();
         cookieKey = aesCipherService.generateNewKey(keySize);
@@ -82,7 +86,7 @@ abstract public class RestHandler {
 
     public RestHandler() {
         mapper = new ObjectMapper();
-        requireLogin = Gateway.getProperties().getBoolean("REST.requireLoginCookie", true);
+        requireLogin = REST_requireLoginCookie.getBoolean();
     }
 
     /**
@@ -363,7 +367,7 @@ abstract public class RestHandler {
 
     private boolean isUserNoTimeout ( AgentPath agent ) {
         RolePath[] roles = agent.getRoles();
-        String roleWithoutTimeout = Gateway.getProperties().getString("REST.role.withoutTimeout");
+        String roleWithoutTimeout = REST_Roles_withoutTimeout.getString();
 
         boolean userNoTimeout = false;
 
@@ -422,7 +426,7 @@ abstract public class RestHandler {
             ByteBuffer buf = ByteBuffer.wrap(bytes);
             agent = new AgentPath(new ItemPath(new UUID(buf.getLong(), buf.getLong())));
             timestamp = new Date(buf.getLong());
-            int cookieLife = Gateway.getProperties().getInt("REST.loginCookieLife", 0);
+            int cookieLife = REST_loginCookieLife.getInteger();
 
             boolean userNoTimeout = isUserNoTimeout( this.agent );
 

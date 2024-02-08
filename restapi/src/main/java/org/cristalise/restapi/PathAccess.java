@@ -20,6 +20,9 @@
  */
 package org.cristalise.restapi;
 
+import static org.cristalise.restapi.SystemProperties.REST_DefaultBatchSize;
+import static org.cristalise.restapi.SystemProperties.REST_Path_DefaultBatchSize;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -72,8 +75,7 @@ public class PathAccess extends PathUtils {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         DomainPath domPath = new DomainPath(path);
 
-        if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.Path.DefaultBatchSize",
-                Gateway.getProperties().getInt("REST.DefaultBatchSize", 75));
+        if (batchSize == null) batchSize = REST_Path_DefaultBatchSize.getInteger(REST_DefaultBatchSize.getInteger());
 
         if (path.equals("aliases") && search != null && search.startsWith("[") && search.endsWith("]")) {
             return getAliases(search, cookie).build();
@@ -94,13 +96,20 @@ public class PathAccess extends PathUtils {
 
             PagedResult childSearch;
 
-            if (search == null) childSearch = Gateway.getLookup().getChildren(domPath, start, batchSize);
-            else                childSearch = Gateway.getLookup().search(domPath, getPropertiesFromQParams(search), start, batchSize);
+            if (search == null)             childSearch = Gateway.getLookup().getChildren(domPath, start, batchSize);
+            else if ("tree".equals(search)) childSearch = Gateway.getLookup().getContextTree(domPath);
+            else                            childSearch = Gateway.getLookup().search(domPath, getPropertiesFromQParams(search), start, batchSize);
 
             ArrayList<Map<String, Object>> pathDataArray = new ArrayList<>();
 
             for (org.cristalise.kernel.lookup.Path p: childSearch.rows) {
-                    pathDataArray.add(makeLookupData(path, p, uri));
+                pathDataArray.add(makeLookupData(path, p, uri));
+            }
+
+            // Lookup.getContextTree() does not use paging
+            if ("tree".equals(search)) {
+                start = 0;
+                batchSize = childSearch.maxRows;
             }
 
             return toJSON(getPagedResult(uri, start, batchSize, childSearch.maxRows, pathDataArray), cookie).build();

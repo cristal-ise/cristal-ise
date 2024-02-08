@@ -61,6 +61,12 @@ class Struct {
         structs[s.name] = s
         orderOfElements.add(s.name)
     }
+    
+    public setAnyField(AnyField any) {
+        if (anyField) throw new InvalidDataException('Struct can conatian one anyField only')
+
+        anyField = any
+    }
 
     private String getMultiplicityVal(String m) {
         def dec = /^\d+$/

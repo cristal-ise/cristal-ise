@@ -42,9 +42,8 @@ public class CreateNewCollectionVersion extends PredefinedStep {
      * Constructor for Castor
      */
     public CreateNewCollectionVersion() {
-        super();
+        super("Creates a new numbered collection version in this Item from the current one.");
     }
-
 
     /**
      * Generates a new snapshot of a collection from its current state. 

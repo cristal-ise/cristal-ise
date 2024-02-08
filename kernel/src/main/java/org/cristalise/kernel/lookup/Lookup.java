@@ -135,6 +135,24 @@ public interface Lookup {
     public boolean exists(Path path, TransactionKey transactionKey);
 
     /**
+     * Read the full context tree from the given Domainath
+     * 
+     * @param start
+     * @return the 
+     */
+    public default PagedResult getContextTree(DomainPath start) {
+        return getContextTree(start, null);
+    };
+
+    /**
+     * 
+     * @param start
+     * @param transactionKey
+     * @return
+     */
+    public PagedResult getContextTree(DomainPath start, TransactionKey transactionKey);
+
+    /**
      * List the next-level-deep children of a Path
      *
      * @param path The parent Path
@@ -159,7 +177,7 @@ public interface Lookup {
      *
      * @param path The parent Path
      * @param offset the number of records to be skipped from the result
-     * @param limit the max number of records to be returned
+     * @param limit the max number of records to be returned, use 0 to retrieve all records
      * @return A List of child Paths
      */
     public default PagedResult getChildren(Path path, int offset, int limit) {
@@ -167,16 +185,31 @@ public interface Lookup {
     }
 
     /**
-     * List the next-level-deep children of a Path
+     * List the next-level-deep children (items and contexts) of the given path
      * This method can be used in server side code or Script to find uncommitted changes during the active transaction.
      *
      * @param path The parent Path
      * @param offset the number of records to be skipped from the result
-     * @param limit the max number of records to be returned
+     * @param limit the max number of records to be returned, use 0 to retrieve all records
      * @param transactionKey identifier of the active transaction
      * @return A List of child Paths
      */
-    public PagedResult getChildren(Path path, int offset, int limit, TransactionKey transactionKey);
+    public default PagedResult getChildren(Path path, int offset, int limit, TransactionKey transactionKey) {
+        return getChildren(path, offset, limit, false, null);
+    }
+
+    /**
+     * List the next-level-deep children (items or contexts) of the given path
+     * This method can be used in server side code or Script to find uncommitted changes during the active transaction.
+     *
+     * @param path The parent Path
+     * @param offset the number of records to be skipped from the result
+     * @param limit the max number of records to be returned, use 0 to retrieve all records
+     * @param contextOnly get only the contexts
+     * @param transactionKey identifier of the active transaction
+     * @return A List of child Paths
+     */
+    public PagedResult getChildren(Path path, int offset, int limit, boolean contextOnly, TransactionKey transactionKey);
 
     /**
      * Find a path with a particular name (last component).  Uses WILDCARD_MATCH as default constraints.
@@ -229,7 +262,7 @@ public interface Lookup {
      * @param start Search root
      * @param props list of Properties
      * @param offset the number of records to be skipped from the result
-     * @param limit the max number of records to be returned
+     * @param limit the max number of records to be returned, use 0 to retrieve all records
      * @return PagedResult of matching Paths
      */
     public default PagedResult search(Path start, List<Property> props, int offset, int limit) {
@@ -243,7 +276,7 @@ public interface Lookup {
      * @param start Search root
      * @param props list of Properties
      * @param offset the number of records to be skipped from the result
-     * @param limit the max number of records to be returned
+     * @param limit the max number of records to be returned, use 0 to retrieve all records
      * @param transactionKey identifier of the active transaction
      * @return PagedResult of matching Paths
      */
@@ -277,7 +310,7 @@ public interface Lookup {
      * @param start Search root
      * @param props Properties unmarshalled from an ItemDescription's property description outcome.
      * @param offset the number of records to be skipped from the result
-     * @param limit the max number of records to be returned
+     * @param limit the max number of records to be returned, use 0 to retrieve all records
      * @return An PagedResult of matching Paths
      */
     public default PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit) {
@@ -291,7 +324,7 @@ public interface Lookup {
      * @param start Search root
      * @param props Properties unmarshalled from an ItemDescription's property description outcome.
      * @param offset the number of records to be skipped from the result
-     * @param limit the max number of records to be returned
+     * @param limit the max number of records to be returned, use 0 to retrieve all records
      * @param transactionKey identifier of the active transaction
      * @return An PagedResult of matching Paths
      */
@@ -322,7 +355,7 @@ public interface Lookup {
      *
      * @param itemPath The ItemPath
      * @param offset the number of records to be skipped from the result
-     * @param limit the max number of records to be returned
+     * @param limit the max number of records to be returned, use 0 to retrieve all records
      * @return An PagedResult of DomainPaths that are aliases for that Item
      */
     public default PagedResult searchAliases(ItemPath itemPath, int offset, int limit) {
@@ -335,7 +368,7 @@ public interface Lookup {
      *
      * @param itemPath The ItemPath
      * @param offset the number of records to be skipped from the result
-     * @param limit the max number of records to be returned
+     * @param limit the max number of records to be returned, use 0 to retrieve all records
      * @param transactionKey identifier of the active transaction
      * @return An PagedResult of DomainPaths that are aliases for that Item
      */
@@ -406,7 +439,7 @@ public interface Lookup {
      *
      * @param rolePath the path representing the given Role
      * @param offset the number of records to be skipped from the result
-     * @param limit the max number of records to be returned
+     * @param limit the max number of records to be returned, use 0 to retrieve all records
      * @return the PagedResult of Agents
      */
     public default PagedResult getAgents(RolePath rolePath, int offset, int limit) throws ObjectNotFoundException {
@@ -419,7 +452,7 @@ public interface Lookup {
      *
      * @param rolePath the path representing the given Role
      * @param offset the number of records to be skipped from the result
-     * @param limit the max number of records to be returned
+     * @param limit the max number of records to be returned, use 0 to retrieve all records
      * @param transactionKey identifier of the active transaction
      * @return the PagedResult of Agents
      */
@@ -450,7 +483,7 @@ public interface Lookup {
      *
      * @param agentPath the path representing the given Agent
      * @param offset the number of records to be skipped from the result
-     * @param limit the max number of records to be returned
+     * @param limit the max number of records to be returned, use 0 to retrieve all records
      * @return the PagedResult of Roles
      */
     public default PagedResult getRoles(AgentPath agentPath, int offset, int limit) {
@@ -463,7 +496,7 @@ public interface Lookup {
      *
      * @param agentPath the path representing the given Agent
      * @param offset the number of records to be skipped from the result
-     * @param limit the max number of records to be returned
+     * @param limit the max number of records to be returned, use 0 to retrieve all records
      * @param transactionKey identifier of the active transaction
      * @return the PagedResult of Roles
      */

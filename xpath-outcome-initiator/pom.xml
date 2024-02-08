@@ -116,6 +116,7 @@
                         <exclude>**/src/test/data/**</exclude>
                         <exclude>**/*.gpg.enc</exclude>
                         <exclude>**/*.ini</exclude>
+                        <exclude>**/castor.properties</exclude>
                     </excludes>
                 </configuration>
                 <executions>
@@ -162,7 +163,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>[2.0,)</version>
+            <version> 5.3.1</version>
             <scope>test</scope>
         </dependency>
         <dependency>

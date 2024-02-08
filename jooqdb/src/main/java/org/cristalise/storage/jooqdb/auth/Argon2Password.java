@@ -23,8 +23,10 @@ package org.cristalise.storage.jooqdb.auth;
 import static de.mkammerer.argon2.Argon2Factory.Argon2Types.ARGON2d;
 import static de.mkammerer.argon2.Argon2Factory.Argon2Types.ARGON2i;
 import static de.mkammerer.argon2.Argon2Factory.Argon2Types.ARGON2id;
-
-import org.cristalise.kernel.process.Gateway;
+import static org.cristalise.storage.jooqdb.SystemProperties.JooqAuth_Argon2_iterations;
+import static org.cristalise.storage.jooqdb.SystemProperties.JooqAuth_Argon2_memory;
+import static org.cristalise.storage.jooqdb.SystemProperties.JooqAuth_Argon2_parallelism;
+import static org.cristalise.storage.jooqdb.SystemProperties.JooqAuth_Argon2_type;
 
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Constants;
@@ -59,10 +61,10 @@ public class Argon2Password {
         saltLenght = Argon2Constants.DEFAULT_SALT_LENGTH;
         hashLenght = Argon2Constants.DEFAULT_HASH_LENGTH;
 
-        argon2Type  = Argon2Types.valueOf(Gateway.getProperties().getString("JooqAuth.Argon2.type", "ARGON2id"));
-        iterations  = Gateway.getProperties().getInt("JooqAuth.Argon2.iterations", 2);
-        memory      = Gateway.getProperties().getInt("JooqAuth.Argon2.memory", 65536);
-        parallelism = Gateway.getProperties().getInt("JooqAuth.Argon2.parallelism", 1);
+        argon2Type  = Argon2Types.valueOf(JooqAuth_Argon2_type.getString());
+        iterations  = JooqAuth_Argon2_iterations.getInteger();
+        memory      = JooqAuth_Argon2_memory.getInteger();
+        parallelism = JooqAuth_Argon2_parallelism.getInteger();
 
         argon2 = Argon2Factory.create(argon2Type, saltLenght, hashLenght);
     }

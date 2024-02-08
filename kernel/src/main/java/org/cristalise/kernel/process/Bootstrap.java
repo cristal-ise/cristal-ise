@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.process;
 
+import static org.cristalise.kernel.SystemProperties.ItemServer_name;
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.cristalise.kernel.property.BuiltInItemProperties.KERNEL_VERSION;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
@@ -35,6 +37,7 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
@@ -274,7 +277,7 @@ public class Bootstrap {
 
     private static ItemPath createServerItem(TransactionKey transactionKey) throws Exception {
         LookupManager lookupManager = Gateway.getLookupManager();
-        String serverName = Gateway.getProperties().getString("ItemServer.name", InetAddress.getLocalHost().getHostName());
+        String serverName = ItemServer_name.getString(InetAddress.getLocalHost().getHostName());
         thisServerPath = new DomainPath("/servers/"+serverName);
         ItemPath serverItem;
         try {
@@ -292,20 +295,34 @@ public class Bootstrap {
         Gateway.getStorage().put(serverItem, new Property(TYPE,           "Server",                    false), transactionKey);
         Gateway.getStorage().put(serverItem, new Property(KERNEL_VERSION, Gateway.getKernelVersion(),  true),  transactionKey);
 
-        initServerItemWf(transactionKey);
+        initServerItemWfAndJobs(transactionKey);
 
         return serverItem;
     }
 
     private static void storeSystemProperties(ItemPath serverItem, TransactionKey transactionKey) throws Exception {
-        Outcome newOutcome = Gateway.getProperties().convertToOutcome("ItemServer");
+        Outcome newOutcome = Gateway.getProperties().convertToOutcome("Bootstrap");
+        newOutcome.validateAndCheck();
         PredefinedStep.storeOutcomeEventAndViews(serverItem, newOutcome, transactionKey);
     }
 
-    private static void initServerItemWf(TransactionKey transactionKey) throws Exception {
+    private static void initServerItemWfAndJobs(TransactionKey transactionKey) throws Exception {
+        AgentPath systemAgent = (AgentPath)SYSTEM_AGENT.getPath(transactionKey);
+        ItemPath serverItem = thisServerPath.getItemPath(transactionKey);
+
         CompositeActivityDef serverWfCa = (CompositeActivityDef)LocalObjectLoader.getCompActDef("ServerItemWorkflow", 0, transactionKey);
         Workflow wf = new Workflow((CompositeActivity)serverWfCa.instantiate(transactionKey), new ServerPredefinedStepContainer());
-        wf.initialise(thisServerPath.getItemPath(), (AgentPath)SYSTEM_AGENT.getPath(transactionKey), transactionKey);
-        Gateway.getStorage().put(thisServerPath.getItemPath(), wf, transactionKey);
+
+        wf.initialise(serverItem, systemAgent, transactionKey);
+
+        Gateway.getStorage().removeCluster(serverItem, JOB, transactionKey);
+
+        ArrayList<Job> newJobs = ((CompositeActivity)wf.search("workflow/domain")).calculateJobs(systemAgent, serverItem, true);
+        for (Job newJob: newJobs) {
+            Gateway.getStorage().put(serverItem, newJob, transactionKey);
+            if (StringUtils.isNotBlank(newJob.getRoleOverride())) newJob.sendToRoleChannel();
+        }
+
+        Gateway.getStorage().put(serverItem, wf, transactionKey);
     }
 }

@@ -37,10 +37,10 @@ class SchemaBuilderAttributeSpecs extends Specification implements CristalTestSe
     def cleanup() {}
 
     def 'Attribute accepts a number of types: string, boolean, integer, decimal, date, time, dateTime'() {
-        expect: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Attribute.types}"
+        expect: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Attribute.types.findAll { it != 'anyType' }}"
         SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData') {
-                Attribute.types.each {
+                Attribute.types.findAll { it != 'anyType' }.each {
                     attribute(name:"${it}Attribute", type: it)
                 }
             }
@@ -58,7 +58,6 @@ class SchemaBuilderAttributeSpecs extends Specification implements CristalTestSe
                           </xs:element>
                         </xs:schema>""")
     }
-
 
     def 'Unknown Attribute type throws InvalidDataException'() {
         when: "Accepted types are ${org.cristalise.dsl.persistency.outcome.Attribute.types}"

@@ -23,6 +23,7 @@
  */
 package org.cristalise.kernel.utils;
 
+import static org.cristalise.kernel.SystemProperties.LocalObjectLoader_lookupUseProperties;
 import static org.cristalise.kernel.lookup.Lookup.SearchConstraints.EXACT_NAME_MATCH;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 
@@ -172,7 +173,9 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
         else {
             Iterator<Path> searchResult = null;
 
-            if (Gateway.getProperties().getBoolean("LocalObjectLoader.lookupUseProperties", false) || StringUtils.isBlank(getTypeRoot())) {
+            boolean lookupUseProperties = LocalObjectLoader_lookupUseProperties.getBoolean();
+
+            if (lookupUseProperties || StringUtils.isBlank(getTypeRoot())) {
                 // search for it in the whole tree using properties
                 Property[] searchProps = new Property[classIdProps.length + 1];
                 searchProps[0] = new Property(NAME, id);
@@ -181,7 +184,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
                 searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), transactionKey, searchProps);
             }
             else {
-                // or search for it in the subtree using name
+                // or search for it in the subtree using name - this is faster
                 searchResult = Gateway.getLookup().search(new DomainPath(getTypeRoot()), id, EXACT_NAME_MATCH, transactionKey);
             }
 
@@ -260,7 +263,7 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
 
     /**
      * 
-     * @param id Name or UUID or DomainPath of the resource Item
+     * @param id could be either the Name or UUID or DomainPath of the resource Item
      * @param version the Version of the resource Item
      * @param transactionKey
      * @return

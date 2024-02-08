@@ -12,12 +12,18 @@ import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.Ignore;
-import org.junit.Test
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
+
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 
 /**
  *
  */
+@CompileStatic
 class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
 
     Schema warningSchema, timeoutSchema, triggerTestActSchema
@@ -28,6 +34,7 @@ class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
     ItemProxy        triggerable
     AgentTestBuilder triggerAgent
 
+    @CompileDynamic
     public void bootstrap(boolean warningOn, boolean timeoutOn) {
         Awaitility.setDefaultTimeout(10, SECONDS)
         Awaitility.setDefaultPollInterval(500, MILLISECONDS)
@@ -103,16 +110,16 @@ class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
 
         triggerAgent.checkJobList([])
         checkJobs(triggerable, [[stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Start"],
-                                [stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Done"]])
+                                [stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Done"]] as List)
 
         startActivity()
 
         await("TriggerTestAct started").until { triggerAgent.jobList.size() == 1 }
 
-        triggerAgent.checkJobList([[stepName: "TriggerTestAct", agentRole: "TriggerAdmin", transitionName: "Warning"]])
+        triggerAgent.checkJobList([[stepName: "TriggerTestAct", agentRole: "TriggerAdmin", transitionName: "Warning"]] as List)
         checkJobs(triggerable, [[stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Complete"],
                                 [stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Suspend" ],
-                                [stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Warning" ]])
+                                [stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Warning" ]] as List)
 
         await("Warning trigger fired first time" ).with()
             .conditionEvaluationListener(new ConditionEvaluationLogger())
@@ -124,10 +131,10 @@ class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
             .pollDelay(2, SECONDS)
             .until { triggerable.getContents("Outcome/WarningSchema-$timeStamp/0").length >= 2 }
 
-        triggerAgent.checkJobList([[stepName: "TriggerTestAct", agentRole: "TriggerAdmin", transitionName: "Warning"]])
+        triggerAgent.checkJobList([[stepName: "TriggerTestAct", agentRole: "TriggerAdmin", transitionName: "Warning"]]  as List)
         checkJobs(triggerable, [[stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Complete"],
                                 [stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Suspend" ],
-                                [stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Warning" ]])
+                                [stepName: "TriggerTestAct", agentRole: "Admin", transitionName: "Warning" ]] as List)
         
         finishActivity()
 
@@ -135,12 +142,12 @@ class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
         checkJobs(triggerable, [])
     }
 
-    @Ignore("not ready yet") @Test
+    @Disabled("not ready yet") @Test
     public void 'Timeout Transition is Enabled'() {
         //bootstrap(false, true)
     }
 
-    @Ignore("not ready yet") @Test
+    @Disabled("not ready yet") @Test
     public void 'Both Warning and Timeout Transitions are Enabled'() {
         //bootstrap(true, true)
     }

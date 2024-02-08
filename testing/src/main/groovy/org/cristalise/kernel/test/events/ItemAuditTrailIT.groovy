@@ -1,14 +1,11 @@
 package org.cristalise.kernel.test.events
 
-import org.cristalise.dsl.lifecycle.definition.CompActDefBuilder
 import org.cristalise.kernel.entity.proxy.ItemProxy
-import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
-
 
 /**
  *

@@ -20,14 +20,25 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
+
+import static org.cristalise.kernel.collection.Collection.Type.Bidirectional;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_TO;
+import static org.cristalise.kernel.SystemProperties.Erase_force;
+
 import java.util.Collections;
 import java.util.ListIterator;
 
+import org.cristalise.kernel.collection.Dependency;
+import org.cristalise.kernel.collection.DependencyMember;
 import org.cristalise.kernel.common.CannotManageException;
+import org.cristalise.kernel.common.CriseVertxException;
+import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -35,17 +46,28 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.CastorHashMap;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Erase extends PredefinedStep {
     public static final String description =  "Deletes all domain paths (aliases), roles (if agent) and clusters for this item or agent.";
+    private static final boolean FORCE_FLAG = Erase_force.getBoolean();
+
+    public Erase(String schema, String desc) {
+        super(schema, desc);
+    }
+
+    public Erase(String desc) {
+        this(null, desc);
+    }
 
     public Erase() {
-        super();
+        this(null, description);
     }
 
     /**
@@ -55,29 +77,85 @@ public class Erase extends PredefinedStep {
      */
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
-            throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
+            throws InvalidDataException, InvalidCollectionModification, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException, ObjectAlreadyExistsException
     {
         //read name before it is erased, so it can be logged
         String itemName = item.getItemName(transactionKey);
 
-        eraseOneItem(item, transactionKey);
+        eraseOneItem(agent, item, FORCE_FLAG, transactionKey);
 
         log.info("runActivityLogic() - DONE agent:{} item:{}", agent.getAgentName(transactionKey), itemName);
 
         return requestData;
     }
 
-    protected void eraseOneItem(ItemPath item, TransactionKey transactionKey) 
-            throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, InvalidDataException, PersistencyException
+    protected void eraseOneItem(AgentPath agentP, ItemPath itemP, boolean forceFlag, TransactionKey transactionKey) 
+            throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, InvalidDataException, PersistencyException, InvalidCollectionModification, ObjectAlreadyExistsException
     {
         //read name before it is erased, so it can be logged
-        String itemName = item.getItemName(transactionKey);
+        String itemName = itemP.getItemName(transactionKey);
 
-        removeAliases(item, transactionKey);
-        removeRolesIfAgent(item, transactionKey);
-        Gateway.getStorage().removeCluster(item, transactionKey);
+        removeBidirectionalReferences(agentP, itemP, forceFlag, transactionKey);
+        removeAliases(itemP, transactionKey);
+        removeRolesIfAgent(itemP, transactionKey);
+        Gateway.getStorage().removeCluster(itemP, transactionKey);
 
-        log.trace("eraseOneItem() - DONE uuid:{} name:{}", item, itemName);
+        log.trace("eraseOneItem() - DONE uuid:{} name:{}", itemP, itemName);
+    }
+
+    protected void removeBidirectionalReferences(AgentPath agentP, ItemPath itemP, boolean forceFlag, TransactionKey transactionKey) 
+            throws InvalidDataException, ObjectNotFoundException, InvalidCollectionModification, ObjectAlreadyExistsException
+    {
+        ItemProxy item = Gateway.getProxy(itemP, transactionKey);
+
+        String[] collNames = item.getContents(ClusterType.COLLECTION, transactionKey);
+
+        for (String collName : collNames) {
+            Dependency myDep = (Dependency) item.getCollection(collName, transactionKey);
+            
+            if (myDep.getType() == Bidirectional) {
+                triggerRemoveMembersFromCollection(agentP, itemP, myDep, forceFlag, transactionKey);
+            }
+        }
+    }
+
+    private void triggerRemoveMembersFromCollection(AgentPath agentP, ItemPath itemP, Dependency myDep, boolean forceFlag, TransactionKey transactionKey) 
+            throws InvalidDataException, InvalidCollectionModification, ObjectAlreadyExistsException
+    {
+        for (DependencyMember member: myDep.getMembers().list) {
+            String toDependencyName = myDep.getToDependencyName(member.getItemPath(), transactionKey);
+            Dependency toDep = new Dependency(toDependencyName);
+
+            String dependencyString;
+
+            CastorHashMap memberProps = member.getProperties();
+            memberProps.setBuiltInProperty(DEPENDENCY_TO, myDep.getName());
+            DependencyMember newMember = toDep.addMember(itemP, memberProps, member.getClassProps(), null);
+            newMember.setID(-1); // forces the RemoveMembersFromCollection to use ItemPath instead of slotID
+
+            dependencyString = Gateway.getMarshaller().marshall(toDep);
+
+            // Special error handling due to the forceFalg 
+            try {
+                new RemoveMembersFromCollection().request(agentP, member.getItemPath(), dependencyString, transactionKey);
+            }
+            catch (InvalidDataException | InvalidCollectionModification e) {
+                if (forceFlag) {
+                    log.info("triggerRemoveMembersFromCollection()", e);
+                }
+                else {
+                    throw e;
+                }
+            }
+            catch (CriseVertxException e) {
+                if (forceFlag) {
+                    log.info("triggerRemoveMembersFromCollection()", e);
+                }
+                else {
+                    throw new InvalidDataException(e);
+                }
+            }
+        }
     }
 
     /**
@@ -87,12 +165,8 @@ public class Erase extends PredefinedStep {
      * @throws ObjectCannotBeUpdated
      * @throws CannotManageException
      */
-    protected void removeAliases(ItemPath item, TransactionKey transactionKey) throws ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException {
-        PagedResult domPaths = Gateway.getLookup().searchAliases(item, 0, 100, transactionKey);
-
-        if (domPaths.maxRows > domPaths.rows.size()) {
-            throw new CannotManageException("Item:"+item.getItemName()+" has more than 100 DomainPath aliases");
-        }
+    protected void removeAliases(ItemPath item, TransactionKey transactionKey) throws ObjectCannotBeUpdated, CannotManageException {
+        PagedResult domPaths = Gateway.getLookup().searchAliases(item, 0, 0, transactionKey);
 
         // sort DomainPathes alphabetically
         Collections.sort(domPaths.rows, (o1, o2) -> (o1.getStringPath().compareTo(o2.getStringPath())));
@@ -110,15 +184,14 @@ public class Erase extends PredefinedStep {
     /**
      * 
      * @param item
-     * @throws InvalidDataException
      * @throws ObjectCannotBeUpdated
      * @throws ObjectNotFoundException
      * @throws CannotManageException
      */
-    protected void removeRolesIfAgent(ItemPath item, TransactionKey transactionKey) throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException, CannotManageException {
+    protected void removeRolesIfAgent(ItemPath item, TransactionKey transactionKey) throws ObjectCannotBeUpdated, ObjectNotFoundException, CannotManageException {
         try {
             AgentPath targetAgent = new AgentPath(item);
-            
+
             //This check if the item is an agent or not
             if (targetAgent.getAgentName(transactionKey) != null) {
                 for (RolePath role : targetAgent.getRoles(transactionKey)) {

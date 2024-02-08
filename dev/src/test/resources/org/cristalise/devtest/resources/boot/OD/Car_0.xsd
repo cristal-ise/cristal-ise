@@ -5,8 +5,9 @@
       <xs:documentation>Car aggregated data</xs:documentation>
     </xs:annotation>
     <xs:complexType>
-      <xs:all minOccurs='0'>
+      <xs:sequence>
         <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='RegistrationPlate' type='xs:string' minOccurs='1' maxOccurs='1' />
         <xs:element name='State' minOccurs='1' maxOccurs='1'>
           <xs:simpleType>
             <xs:restriction base='xs:string'>
@@ -15,8 +16,17 @@
             </xs:restriction>
           </xs:simpleType>
         </xs:element>
-        <xs:element name='RegistrationPlate' type='xs:string' minOccurs='1' maxOccurs='1' />
-      </xs:all>
+        <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <hidden>true</hidden>
+                <required>false</required>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
 </xs:schema>

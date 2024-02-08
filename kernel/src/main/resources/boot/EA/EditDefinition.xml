@@ -20,7 +20,7 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<ActivityDef ID="23" Name="EditActivityDef" Height="0" Width="0" IsLayoutable="false" IsComposite="false">
+<ActivityDef ID="23" Name="EditDefinition" Height="0" Width="0" IsLayoutable="false" IsComposite="false">
 	<Properties>
 		<KeyValuePair Key="Description" String="Edit this Definition"/>
 		<KeyValuePair Key="Show time" Boolean="true"/>

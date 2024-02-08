@@ -2,17 +2,17 @@ package org.cristalise.dev.test.scenario;
 
 import org.cristalise.dsl.persistency.outcome.OutcomeBuilder
 import org.cristalise.dsl.property.PropertyDescriptionBuilder
-import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 
-/**
- * 
- * 
- */
+@CompileStatic
 class RoutingScriptTest_OrSplitLoop_DevIT extends KernelScenarioTestBase {
+    
+    private static final String baseDir = 'src/main/data/RoutingScriptTest'
 
     @Test
     public void execute() {
@@ -22,53 +22,36 @@ class RoutingScriptTest_OrSplitLoop_DevIT extends KernelScenarioTestBase {
         String compActName = "RoutingScriptWorkflow"
         String factoryName = "RoutingScriptFactory"
 
-        createNewSchema(schemaName+"-$timeStamp", folder)
-        //TODO: use SchemaBuilder instead
-        editSchema(schemaName+"-$timeStamp", folder, new File("src/main/data/RoutingScriptTest/OD/${schemaName}.xsd").text)
+        //TODO: use SchemaBuilder
+        def schema = Schema("$schemaName-$timeStamp", folder, new File("$baseDir/OD/${schemaName}.xsd").text)
 
         routingScriptNames.each { String name ->
-            createNewScript(name+"-$timeStamp", folder)
-            //TODO: use ScriptBuilder instead
-            editScript(name+"-$timeStamp", folder, new File("src/main/data/RoutingScriptTest/SC/${name}.xml").text)
+            //TODO: use ScriptBuilder
+            Script("$name-$timeStamp", folder, new File("$baseDir/SC/${name}.xml").text)
         }
 
-        elemActNames.each { String name, String schema ->
-            createNewElemActDesc(name+"-$timeStamp", folder)
-            editElemActDesc(name+"-$timeStamp", folder, "Admin", (schema==null ? null : schema+"-$timeStamp"), 0)
+        elemActNames.each { String actName, String actSchema ->
+            ElementaryActivityDef("$actName-$timeStamp", folder) {
+                if (actSchema) Schema(schema)
+            }
         }
 
-        createNewCompActDesc(compActName+"-$timeStamp", folder)
-
-        def vars = [:]
+        Map<String, Object> vars = [:]
         vars.WORKFLOW_NAME  = "RoutingScriptWorkflow-$timeStamp"
         vars.LOOP_SCRIPT    = "GreaterThanTenScript-$timeStamp"
         vars.ORSPLIT_SCRIPT = "CounterScript-$timeStamp"
         vars.ACT_COUNTER    = "ActCounter-$timeStamp"
         vars.ACT_EMPTY      = "EmptyAct-$timeStamp"
 
-        def caXML = evalMVELTemplate("src/main/data/RoutingScriptTest/CA/${compActName}.xml", vars)
+        def caXML = evalMVELTemplate("$baseDir/CA/${compActName}.xml", vars)
+        def caDef = CompositeActivityDef("$compActName-$timeStamp", folder, caXML)
 
-        //println "-----------------------------------------------------------------------------------"
-        //println caXML
-        //println "-----------------------------------------------------------------------------------"
-        
-        editCompActDesc(compActName+"-$timeStamp", folder, caXML)
+        def descItem = DescriptionItem("$factoryName-$timeStamp", folder) {
+            PropertyDesc(name: "Type", defaultValue: "RoutingScriptTest", isMutable: false, isClassIdentifier: true)
+            Workflow(caDef)
+        }
 
-        ItemProxy instance = editDescriptionAndCreateItem( 
-            createNewDescriptionItem(factoryName+"-$timeStamp", folder), 
-            PropertyDescriptionBuilder.build {
-                PropertyDesc("Name")
-                PropertyDesc(name: "Type", defaultValue: "RoutingScriptTest", isMutable: false, isClassIdentifier: true)
-            },
-            OutcomeBuilder.build("ChooseWorkflow") { 
-                WorkflowDefinitionName(compActName+"-$timeStamp")
-                WorkflowDefinitionVersion("0")
-            },
-            OutcomeBuilder.build("NewDevObjectDef") {
-                ObjectName("RoutingScriptTest_OrSplitLoop_DevIT-$timeStamp")
-                SubFolder(folder)
-            }
-        );
+        def instance = createItemFromDescription(descItem, "RoutingScriptTest_OrSplitLoop_DevIT-$timeStamp", folder)
 
         executeCounterJob(instance, "ActCounter", 3);
         executeJob(instance, "ActOdd")
@@ -79,6 +62,7 @@ class RoutingScriptTest_OrSplitLoop_DevIT extends KernelScenarioTestBase {
         executeJob(instance, "Last")
     }
 
+    @CompileDynamic
     private void executeCounterJob(ItemProxy proxy, String actName, int number) {
         def job = proxy.getJobByName(actName, agent)
         assert job.transition.name == "Done"

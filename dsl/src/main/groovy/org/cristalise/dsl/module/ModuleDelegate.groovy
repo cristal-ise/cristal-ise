@@ -20,15 +20,15 @@
  */
 package org.cristalise.dsl.module
 
+import static org.cristalise.dsl.SystemProperties.*
 import static org.cristalise.dsl.lifecycle.definition.CompActDefBuilder.generateWorkflowSVG
 import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE
-
-import java.nio.file.Files
-import java.nio.file.Path
 
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.cristalise.dsl.entity.AgentBuilder
 import org.cristalise.dsl.entity.AgentDelegate
+import org.cristalise.dsl.entity.DomainContextBuilder
+import org.cristalise.dsl.entity.DomainContextDelegate
 import org.cristalise.dsl.entity.ItemBuilder
 import org.cristalise.dsl.entity.ItemDelegate
 import org.cristalise.dsl.entity.RoleBuilder
@@ -48,16 +48,13 @@ import org.cristalise.dsl.querying.QueryDelegate
 import org.cristalise.dsl.scripting.ScriptBuilder
 import org.cristalise.dsl.scripting.ScriptDelegate
 import org.cristalise.kernel.common.InvalidDataException
-import org.cristalise.kernel.entity.Job
+import org.cristalise.kernel.entity.DomainContext
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportRole
-import org.cristalise.kernel.entity.proxy.AgentProxy
-import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
-import org.cristalise.kernel.lifecycle.instance.predefined.Erase
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.process.Gateway
@@ -66,6 +63,7 @@ import org.cristalise.kernel.process.module.ModuleActivity
 import org.cristalise.kernel.process.module.ModuleAgent
 import org.cristalise.kernel.process.module.ModuleConfig
 import org.cristalise.kernel.process.module.ModuleDescRef
+import org.cristalise.kernel.process.module.ModuleDomainContext
 import org.cristalise.kernel.process.module.ModuleImport
 import org.cristalise.kernel.process.module.ModuleInfo
 import org.cristalise.kernel.process.module.ModuleItem
@@ -94,9 +92,12 @@ import groovy.xml.XmlUtil
 @CompileStatic @Slf4j
 class ModuleDelegate implements BindingConvention {
 
-    private final boolean generateResourceXml = Gateway.properties.getBoolean('DSL.Module.generateResourceXml', true)
-    private final boolean generateModuleXml   = Gateway.properties.getBoolean('DSL.Module.generateModuleXml', true)
-    private final boolean updateChangedItems  = Gateway.properties.getBoolean('Gateway.clusteredVertx', true)
+    private final boolean generateResourceXml      = DSL_Module_generateResourceXml.getBoolean()
+    private final boolean generateModuleXml        = DSL_Module_generateModuleXml.getBoolean()
+    private final boolean strictUpdate             = DSL_Module_strictUpdate.getBoolean()
+    private final boolean generateAllResourceItems = DSL_Module_generateAllResourceItems.getBoolean()
+
+    private Boolean updateChangedItems  = null
 
     String uploadAgentName = null
     String uploadAgentPwd = null
@@ -159,6 +160,8 @@ class ModuleDelegate implements BindingConvention {
         newModule.ns = args.ns
         newModule.name = args.name
         newModule.info.version = args.version
+
+        if (args.updateChangedItems != null) updateChangedItems = args.updateChangedItems as Boolean
 
         if (args.bindings) bindings = (Binding) args.bindings
         else               bindings = new Binding()
@@ -312,6 +315,33 @@ class ModuleDelegate implements BindingConvention {
         return eaDef
     }
 
+    public DomainContext DomainContext(String path, Integer version) {
+        log.info('DomainContext() - path:{} version:{}', path, version)
+
+        DomainContext context
+
+        if (path.startsWith('/')) context = new DomainContext(path, newModule.ns, version)
+        else                      context = LocalObjectLoader.getDomainContext(path, version)
+
+        if (generateResourceXml) context.export(null, resourceBootDir, true)
+        addDomainContext(context)
+
+        return context
+    }
+
+    public List<DomainContext> Contexts(@DelegatesTo(DomainContextDelegate) Closure cl) {
+        log.info('Contexts()')
+
+        def domainContexts = DomainContextBuilder.build(newModule.ns, cl)
+
+        domainContexts.each { context ->
+            if (generateResourceXml) context.export(null, resourceBootDir, true)
+            addDomainContext(context)
+        }
+
+        return domainContexts
+    }
+
     /**
      * 
      * @param name
@@ -417,7 +447,7 @@ class ModuleDelegate implements BindingConvention {
         def agent = AgentBuilder.build(args, cl)
         agent.roles.each { it.jobList = null }
 
-        if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
+        if (generateAllResourceItems) {
             if (generateResourceXml) agent.export(null, resourceBootDir, true)
             addImportAgent(agent)
         }
@@ -442,7 +472,7 @@ class ModuleDelegate implements BindingConvention {
         def item = ItemBuilder.build(args, cl)
         item.properties.removeAll { it.value == args.name }
 
-        if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
+        if (generateAllResourceItems) {
             if (generateResourceXml) item.export(null, resourceBootDir, true)
             addImportItem(item)
         }
@@ -464,7 +494,7 @@ class ModuleDelegate implements BindingConvention {
         def importRoles = RoleBuilder.build(newModule.ns, cl)
 
         importRoles.each { role ->
-            if (Gateway.getProperties().getBoolean('DSL.Module.generateAllResourceItems', true)) {
+            if (generateAllResourceItems) {
                 if (generateResourceXml) role.export(null, resourceBootDir, true)
                 addImportRole(role)
             }
@@ -623,6 +653,18 @@ class ModuleDelegate implements BindingConvention {
 
         updateImports(moduleScript)
     }
+    
+    private void addDomainContext(DomainContext context) {
+        addToBingings(bindings, context)
+        
+        def moduleContext = new  ModuleDomainContext()
+
+        moduleContext.setNamespace(context.namespace)
+        moduleContext.setName(context.name)
+        moduleContext.setVersion(context.version)
+        
+        updateImports(moduleContext)
+    }
 
     /**
      * Validate if the activity is existing and has been updated.  If not existing it will be added, if updated it will update the details.
@@ -715,7 +757,7 @@ class ModuleDelegate implements BindingConvention {
         moduleRole.setName(role.name)
         moduleRole.setVersion(role.version)
         moduleRole.setNamespace(role.namespace)
-        
+
         updateImports(moduleRole)
     }
 
@@ -724,11 +766,11 @@ class ModuleDelegate implements BindingConvention {
             ModuleImport mi -> (mi.name == mImport.name) && (mi.getClass() == mImport.getClass())
         }
 
-        if (index > -1 && Gateway.properties.getBoolean('DSL.GenerateModuleXml', true)) {
+        if (index > -1 && generateModuleXml) {
             def msg = "Cannot update existing import:$mImport.name, class:${mImport.getClass().getSimpleName()}"
 
-            if (Gateway.properties.getBoolean('DSL.ModuleImport.strictUpdate', true)) throw new InvalidDataException(msg)
-            else                                                                      log.warn(msg)
+            if (strictUpdate) throw new InvalidDataException(msg)
+            else              log.warn(msg)
         }
 
         if (index > -1) newModule.imports.list.set(index, mImport)

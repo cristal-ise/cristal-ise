@@ -98,7 +98,7 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
         checkEmptyOutcome("RootWithOptionalAttr");
     }
 
-    @Test @Ignore
+    @Test
     public void patientDetails() throws Exception {
         String type = "PatientDetails";
         String xsd  = getXSD(dir, type);
@@ -108,7 +108,7 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
         CompiledTemplate expr = TemplateCompiler.compileTemplate(getXML(dir, type));
         String expected = (String)TemplateRuntime.execute(expr, args);
 
-        OutcomeBuilder actual = new OutcomeBuilder(new Schema(type, 0, xsd));
+        OutcomeBuilder actual = new OutcomeBuilder(new Schema(type, 0, xsd), expected);
 
         log.info(actual.getXml());
 

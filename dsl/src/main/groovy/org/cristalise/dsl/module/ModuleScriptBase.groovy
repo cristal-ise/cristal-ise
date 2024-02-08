@@ -20,7 +20,8 @@
  */
 package org.cristalise.dsl.module
 
-import java.nio.file.Path
+import static org.cristalise.dsl.SystemProperties.DSL_Module_lineSeparator
+
 import java.nio.file.Paths
 
 import org.cristalise.kernel.common.InvalidDataException
@@ -28,7 +29,6 @@ import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 
 import groovy.transform.CompileStatic
-import groovy.transform.SourceURI
 import groovy.util.logging.Slf4j
 
 @CompileStatic @Slf4j
@@ -52,9 +52,9 @@ abstract class ModuleScriptBase extends DelegatingScript {
         moduleDir = Paths.get(uri).parent.toString()
     }
 
-    public void init() {
-        //This solution is used because getString('...') trims the value which will trim new line characters as well
-        String lineSepType = Gateway.getProperties().getString('ModuleScript.lineSeparator', 'linux');
+    public boolean init() {
+        //This solution is used because ObjectProperties.getString('...') trims the value which will trim new line characters as well.
+        String lineSepType = DSL_Module_lineSeparator.getString();
         System.setProperty('line.separator', lineSepType == 'linux' ? '\n' : '\r\n' )
 
         if (configDir && (connect || config)) throw new InvalidDataException('Specify only configDir or connect/config')
@@ -65,33 +65,39 @@ abstract class ModuleScriptBase extends DelegatingScript {
         }
 
         if (!connect || !config) {
-            log.info('init() - generation only mode')
+            log.info('init() - NO config files => generation ONLY mode')
 
-            // Runs the dsl scripts in the generation only mode, no connection to database
             Gateway.init(new Properties())
+
+            // Runs the dsl scripts in the generation only mode, no connection to database/vertx
+            return false
         }
         else {
             log.info('init() - config:{}, connect:{}', config, connect)
 
             Gateway.init(AbstractMain.readPropertyFiles(config, connect, null))
             Gateway.connect()
+
+            // if true it runs the dsl scripts with connection to database/vertx
+            return Gateway.vertx ? Gateway.vertx.clustered : false
         }
     }
 
     public void Module(Map args, @DelegatesTo(ModuleDelegate) Closure cl) {
-        init()
+        def updateChangedItems = init()
 
         args.resourceRoot = resourceRoot
         args.moduleDir = moduleDir
         args.moduleXmlDir = moduleXmlDir
         args.bindings = this.binding
+        args.updateChangedItems = updateChangedItems
 
         if (userName)     args['userName']     = userName
         if (userPassword) args['userPassword'] = userPassword
 
         ModuleDelegate md = new ModuleDelegate(args)
 
-        if(cl) md.processClosure(cl)
+        if (cl) md.processClosure(cl)
 
         Gateway.close()
     }

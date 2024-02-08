@@ -21,6 +21,9 @@
 package org.cristalise.kernel.entity.proxy;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.cristalise.kernel.SystemProperties.Module_Versioning_strict;
+import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
@@ -29,6 +32,7 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+import static org.cristalise.kernel.property.BuiltInItemProperties.UPDATE_SCHEMA;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,6 +44,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.Collection;
+import org.cristalise.kernel.collection.DependencyMember;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.CriseVertxException;
@@ -84,7 +89,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * It is a wrapper for the connection and communication with Item. It relies on the
+ * It is a immutable wrapper for the connection and communication with Item and its data. It relies on the
  * ClusterStorage mechanism to retrieve and to cache data, i.e. it does not do any cashing itself.
  */
 @Slf4j @Immutable @EqualsAndHashCode
@@ -121,10 +126,18 @@ public class ItemProxy {
 
     /**
      * Return the ItemPath object of the Item this proxy is linked with
-     * @return the ItemPath of the Item this proxy is linked with
+     * @return the ItemPath of the Item
      */
     public ItemPath getPath() {
         return mItemPath;
+    }
+
+    /**
+     * Returns the UUID string of the Item this proxy is linked with
+     * @return UUID string of the Item
+     */
+    public String getUuid() {
+        return mItemPath.getName();
     }
 
     /**
@@ -296,7 +309,7 @@ public class ItemProxy {
 //                }
 //                catch (AccessRightsException e) {
 //                    // AccessRightsException is thrown if Job requires specific Role that agent does not have
-//                    log.info("getJobsForAgent()", e);
+//                    log.debug("checkJobForAgent()", e);
 //                }
             }
         }
@@ -319,20 +332,13 @@ public class ItemProxy {
      */
     private List<Job> getJobsForAgent(AgentPath agentPath) throws CriseVertxException {
         List<Job> jobBag = new ArrayList<Job>();
-        SecurityManager secMan = Gateway.getSecurityManager();
 
         // Make sure that the latest Jobs and Workflow is used for this calculation
         Gateway.getStorage().clearCache(getPath(), ClusterType.JOB);
         Gateway.getStorage().clearCache(getPath(), ClusterType.LIFECYCLE);
 
-        if (secMan.isShiroEnabled()) {
-            for (Job j: getJobs().values()) {
-                if (checkJobForAgent(j, agentPath)) jobBag.add(j);
-            }
-        }
-        else {
-            log.warn("checkJobForAgent() - ENABLE Shiro to work with permissions.");
-            jobBag = (List<Job>) getJobs().values();
+        for (Job j: getJobs().values()) {
+            if (checkJobForAgent(j, agentPath)) jobBag.add(j);
         }
 
         log.debug("getJobsForAgent() - {} returning #{} jobs for agent:{}", this, jobBag.size(), agentPath.getAgentName());
@@ -353,7 +359,7 @@ public class ItemProxy {
      * Get the list of active Jobs of the Item for the given Activity that can be executed by the Agent.
      * 
      * @param agent requesting the job
-     * @param stepPath of the Activity
+     * @param stepPath the path of the Activity instance
      * @return list of active Jobs of the Item for the given Activity that can be executed by the Agent
      * @throws CriseVertxException
      */
@@ -1484,7 +1490,7 @@ public class ItemProxy {
 
         if (schemaVersion == null) {
             if (StringUtils.isBlank(masterSchemaUrn)) {
-                if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+                if (Module_Versioning_strict.getBoolean()) {
                     throw new InvalidDataException("Version for Schema '" + schemaName + "' cannot be null");
                 }
                 else {
@@ -1501,11 +1507,43 @@ public class ItemProxy {
     }
 
     /**
+     * Returns the so called UpdateSchema which is used while creating new Items. It can be either 
+     * the "constructor" Schema retrieved from the 'SchemaInitialise' dependency 
+     * or the Schema used by the Update Activity
+     * 
+     * @return schema
+     * @throws InvalidDataException the Schema could not be constructed
+     * @throws ObjectNotFoundException no Schema was found
+     */
+    public Schema getUpdateSchema() throws ObjectNotFoundException, InvalidDataException {
+        String schemaName = null;
+        Integer schemaVersion = null;
+
+        if (checkCollection(SCHEMA_INITIALISE)) {
+            Collection<?> initSchemaCollection = getCollection(SCHEMA_INITIALISE);
+            DependencyMember member = (DependencyMember) initSchemaCollection.getMembers().list.get(0);
+
+            schemaName = member.getChildUUID();
+            Object initSchemaVersion = member.getProperties().getBuiltInProperty(VERSION);
+
+            if (initSchemaVersion instanceof String) schemaVersion = Integer.parseInt((String)initSchemaVersion);
+            else                                     schemaVersion = (Integer)initSchemaVersion;
+        }
+        else {
+            String[] nameAndVersion = getProperty(UPDATE_SCHEMA).split(":");
+            schemaName = nameAndVersion[0];
+            schemaVersion = Integer.parseInt(nameAndVersion[1]);
+        }
+
+        return LocalObjectLoader.getSchema(schemaName, schemaVersion);
+    }
+
+    /**
      * Returns the so called Aggregate Script which can be used to construct master outcome.
      * 
-     * @return the script or null
-     * @throws InvalidDataException 
-     * @throws ObjectNotFoundException 
+     * @return the script
+     * @throws InvalidDataException something was wrong with the provided data
+     * @throws ObjectNotFoundException no Script can be found
      */
     public Script getAggregateScript() throws InvalidDataException, ObjectNotFoundException {
         return getAggregateScript(null, null);
@@ -1531,7 +1569,7 @@ public class ItemProxy {
 
         if (scriptVersion == null) {
             if (StringUtils.isBlank(aggregateScriptUrn)) {
-                if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+                if (Module_Versioning_strict.getBoolean()) {
                     throw new InvalidDataException("Version for Script '" + scriptName + "' cannot be null");
                 }
                 else {
@@ -1553,6 +1591,10 @@ public class ItemProxy {
 
     public Object unmarshall(String obj) throws Exception {
         return Gateway.getMarshaller().unmarshall(obj);
+    }
+
+    public void clearCache() {
+        Gateway.getStorage().clearCache(mItemPath);
     }
 
     @Override

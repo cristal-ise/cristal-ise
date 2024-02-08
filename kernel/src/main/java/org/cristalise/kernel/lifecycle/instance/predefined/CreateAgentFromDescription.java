@@ -29,7 +29,8 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -44,7 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 public class CreateAgentFromDescription extends CreateItemFromDescription {
 
     public CreateAgentFromDescription() {
-        super();
+        super("Create a new agent using this item as its description");
     }
 
     /**
@@ -63,7 +64,7 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
      * @throws CannotManageException The Agent could not be created
      * @throws ObjectCannotBeUpdated The addition of the new entries into the LookupManager failed
      * @throws PersistencyException
-     * @see org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription#runActivityLogic(AgentPath, ItemPath, int, String, Object)
+     * @see org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription#runActivityLogic(AgentPath, ItemPath, int, String, Object)
      */
     @Override
     protected String runActivityLogic(AgentPath agentPath, ItemPath descItemPath, int transitionID, String requestData, TransactionKey transactionKey)
@@ -84,22 +85,22 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
         PropertyArrayList initProps = input.length > 5 && StringUtils.isNotBlank(input[5]) ? unmarshallInitProperties(input[5]) : new PropertyArrayList();
         String            outcome   = input.length > 6 && StringUtils.isNotBlank(input[6]) ? input[6] : "";
 
+        ItemProxy descItem = Gateway.getProxy(descItemPath, transactionKey);
+        AgentProxy agent = Gateway.getAgentProxy(agentPath, transactionKey);
+
         // generate new agent path with new UUID
-        log.debug("Called by {} on {} with parameters {}", agentPath.getAgentName(transactionKey), descItemPath, (Object)input);
+        log.debug("Called by {} on {} with parameters {}", agent, descItem, (Object)input);
 
         AgentPath newAgentPath = new AgentPath(new ItemPath(), newName);
 
         // check if the agent's name is already taken
-        if (Gateway.getLookup().exists(newAgentPath, transactionKey) )
-            throw new ObjectAlreadyExistsException("The agent name " + newName + " exists already.");
-
         DomainPath context = new DomainPath(new DomainPath(contextS), newName);
 
         if (context.exists(transactionKey)) throw new ObjectAlreadyExistsException("The path " +context+ " exists already.");
 
         createAgentAddRoles(newAgentPath, roles, pwd, transactionKey);
 
-        initialiseItem(newAgentPath, agentPath, descItemPath, initProps, outcome, newName, descVer, context, newAgentPath, transactionKey);
+        initialiseItem(newAgentPath, agent, descItem, initProps, outcome, newName, descVer, context, newAgentPath, transactionKey);
 
         if (input.length > 3) input[3] = REDACTED; // censor password from outcome
 

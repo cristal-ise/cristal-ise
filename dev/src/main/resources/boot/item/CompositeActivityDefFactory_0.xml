@@ -1,6 +1,7 @@
-<Item initialPath="/desc/dev" name="CompositeActivityDefFactory" ns="dev" version="0" workflow="CompositeActivityFactory" workflowVer="0">
+<Item initialPath="/desc/ActivityDesc" name="CompositeActivityDefFactory" ns="dev" version="0" workflow="CrudFactory_Workflow" workflowVer="0">
   <Property mutable="false" name="Type">Factory</Property>
-  <Property mutable="false" name="LocalObjectType">CompositeActivityDef</Property>
+  <Property mutable="false" name="Root">/desc/ActivityDesc</Property>
+  <Property mutable="false" name="UpdateSchema">CompositeActivityDef:0</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/CompositeActivityDesc_0.xml</Outcome>
   <Dependency classProps="" isDescription="false" name="workflow">
     <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageCompositeActDef">
@@ -10,32 +11,40 @@
     </DependencyMember>
     <CollectionProperties/>
   </Dependency>
+  <Dependency classProps="" isDescription="false" name="MasterSchema">
+    <DependencyMember itemPath="/desc/Schema/kernel/CompositeActivityDef">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
   <Dependency classProps="" isDescription="true" name="Activity">
-    <DependencyMember itemPath="/desc/dev/ActivityDefType">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/ActivityDesc">
       <MemberProperties/>
     </DependencyMember>
     <CollectionProperties/>
   </Dependency>
   <Dependency classProps="" isDescription="true" name="Schema">
-    <DependencyMember itemPath="/desc/dev/SchemaFactory">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/Schema">
       <MemberProperties/>
     </DependencyMember>
     <CollectionProperties/>
   </Dependency>
   <Dependency classProps="" isDescription="true" name="Script">
-    <DependencyMember itemPath="/desc/dev/ScriptFactory">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/Script">
       <MemberProperties/>
     </DependencyMember>
     <CollectionProperties/>
   </Dependency>
   <Dependency classProps="" isDescription="true" name="Query">
-    <DependencyMember itemPath="/desc/dev/QueryFactory">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/Query">
       <MemberProperties/>
     </DependencyMember>
     <CollectionProperties/>
   </Dependency>
   <Dependency classProps="" isDescription="true" name="StateMachine">
-    <DependencyMember itemPath="/desc/dev/StateMachineFactory">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/StateMachine">
       <MemberProperties/>
     </DependencyMember>
     <CollectionProperties/>

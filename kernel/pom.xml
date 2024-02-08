@@ -97,7 +97,6 @@
             <groupId>io.vertx</groupId>
             <artifactId>vertx-codegen</artifactId>
             <classifier>processor</classifier>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
@@ -131,11 +130,6 @@
                     <groupId>stax</groupId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.python</groupId>
-            <artifactId>jython</artifactId>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.shiro</groupId>
@@ -175,17 +169,19 @@
                 <filtering>true</filtering>
                 <excludes>
                     <exclude>shiro.ini</exclude>
+                    <exclude>castor.properties</exclude>
                 </excludes>
             </resource>
             <resource>
                 <directory>.</directory>
+                <targetPath>.</targetPath>
+                <filtering>false</filtering>
                 <includes>
                     <include>shiro.ini</include>
+                    <include>castor.properties</include>
                     <include>log4j.properties</include>
                     <include>LICENSE</include>
                 </includes>
-                <targetPath>.</targetPath>
-                <filtering>false</filtering>
             </resource>
         </resources>
 
@@ -208,6 +204,7 @@
                         <exclude>**/*.example</exclude>
                         <exclude>**/*.workflow</exclude>
                         <exclude>**/*index</exclude>
+                        <exclude>castor.properties</exclude>
                     </excludes>
                 </configuration>
                 <executions>

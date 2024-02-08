@@ -302,7 +302,7 @@ public class Module extends ImportItem {
     @Override
     public Integer getVersion() {
         try {
-            return new Integer(info.version);
+            return Integer.valueOf(info.version);
         }
         catch (NumberFormatException e) {
             log.warn("getVersion() - failed to convert module version to integer", e);

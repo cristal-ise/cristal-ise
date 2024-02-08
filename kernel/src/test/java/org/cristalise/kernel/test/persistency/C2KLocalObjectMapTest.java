@@ -21,16 +21,24 @@
 package org.cristalise.kernel.test.persistency;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.cristalise.kernel.persistency.ClusterType.*;
+import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
+import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
+import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
+import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.cristalise.kernel.SystemProperties;
 import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
@@ -59,7 +67,7 @@ public class C2KLocalObjectMapTest {
         Gateway.init(props);
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mStorage", new ClusterStorageManager(null), true);
         itemPath = new ItemPath(uuid);
-        storageDir = Gateway.getProperties().getString("XMLStorage.root") + "/" + uuid;
+        storageDir = SystemProperties.XMLStorage_root.getString() + "/" + uuid;
     }
 
     @AfterClass

@@ -20,8 +20,7 @@
  */
 package org.cristalise.kernel.property;
 
-import java.util.ArrayList;
-
+import java.util.List;
 import org.cristalise.kernel.utils.CastorArrayList;
 
 public class PropertyArrayList extends CastorArrayList<Property> {
@@ -35,7 +34,7 @@ public class PropertyArrayList extends CastorArrayList<Property> {
      * 
      * @param aList the list to initialise this list
      */
-    public PropertyArrayList(ArrayList<Property> aList) {
+    public PropertyArrayList(List<Property> aList) {
         super();
         for (Property property : aList) {
             put(property);

@@ -112,7 +112,7 @@ public class JooqJobHandler extends JooqHandler {
         }
         catch (Exception ex) {
             log.error("insert()", ex);
-            throw new PersistencyException(ex.getMessage());
+            throw new PersistencyException(ex);
         }
 
         return context
@@ -146,7 +146,7 @@ public class JooqJobHandler extends JooqHandler {
             }
             catch (Exception ex) {
                 log.error("fetch()", ex);
-                throw new PersistencyException(ex.getMessage());
+                throw new PersistencyException(ex);
             }
         }
         else
@@ -161,11 +161,12 @@ public class JooqJobHandler extends JooqHandler {
         .column(UUID,               UUID_TYPE     .nullable(false))
         .column(STEP_NAME,          NAME_TYPE     .nullable(false))
         .column(STEP_PATH,          STRING_TYPE   .nullable(false))
-        .column(STEP_TYPE,          NAME_TYPE     .nullable(false))
+        .column(STEP_TYPE,          NAME_TYPE     .nullable(true)) //steps in adhoc workflow do not have type (i.e. ActivityDefinition)
         .column(TRANSITION,         STRING_TYPE   .nullable(false))
         .column(ROLE_OVERRIDE,      NAME_TYPE     .nullable(true))
         .column(ACT_PROPERTIES,     xmlType       .nullable(false))
-        .constraints(constraint("PK_"+JOB_TABLE).primaryKey(UUID, STEP_NAME, TRANSITION))
+        .constraints(
+                constraint("PK_"+JOB_TABLE.getName()).primaryKey(UUID, STEP_NAME, TRANSITION))
         .execute();
     }
 

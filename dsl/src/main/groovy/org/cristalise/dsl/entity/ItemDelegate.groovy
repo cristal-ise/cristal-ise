@@ -29,6 +29,7 @@ import org.cristalise.kernel.collection.BuiltInCollections
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.collection.DependencyDescription
 import org.cristalise.kernel.collection.DependencyMember
+import org.cristalise.kernel.entity.DomainContext
 import org.cristalise.kernel.entity.imports.ImportDependency
 import org.cristalise.kernel.entity.imports.ImportDependencyMember
 import org.cristalise.kernel.entity.imports.ImportItem
@@ -56,14 +57,28 @@ class ItemDelegate extends PropertyDelegate {
 
         log.debug 'constructor() - args:{}', args
 
-        newItem.namespace   = args.ns
-        newItem.name        = args.name
-        newItem.initialPath = args.folder
-
+        newItem.namespace = args.ns
+        newItem.name      = args.name
         if (args.version != null) newItem.version = (Integer)args.version
 
+        initNewItemFolder(args)
+        initNewItemWorkflow(args)
+
+        if (args.workflowVer != null) newItem.workflowVer = (Integer)args.workflowVer
+    }
+
+    private void initNewItemFolder(Map<String, Object> args) {
+        if (args.folder instanceof DomainContext) {
+            newItem.initialPath = ((DomainContext)args.folder).getDomainPath()
+        }
+        else {
+            newItem.initialPath = args.folder
+        }
+    }
+
+    private void initNewItemWorkflow(Map<String, Object> args) {
         if (args.workflow == null) {
-            log.debug 'constructor() - item:{} will be created without workflow', args.name
+            log.debug 'initNewItemWorkflow() - item:{} will be created without workflow', args.name
         }
         else if (args.workflow instanceof String) {
             newItem.workflow = (String)args.workflow
@@ -80,10 +95,8 @@ class ItemDelegate extends PropertyDelegate {
             newItem.wf = (Workflow)args.workflow
         }
         else {
-            log.warn 'constructor() - UNKNOWN class:{} item:{} will be created without workflow', args.workflow.class.getSimpleName(), args.name
+            log.warn 'initNewItemWorkflow() - UNKNOWN class:{} item:{} will be created without workflow', args.workflow.class.getSimpleName(), args.name
         }
-
-        if (args.workflowVer != null) newItem.workflowVer = (Integer)args.workflowVer
     }
 
     public ItemDelegate(String name, String folder, String workflow, Integer workflowVer = null) {

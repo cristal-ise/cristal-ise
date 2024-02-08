@@ -152,12 +152,12 @@ abstract public class Aggregation extends Collection<AggregationMember> {
     }
 
     @Override
-    public void removeMember(int memberId) throws ObjectNotFoundException {
+    public AggregationMember removeMember(int memberId) throws ObjectNotFoundException {
         for (AggregationMember element : mMembers.list) {
             if (element.getID() == memberId) {
                 element.clearItem();
                 mLayout.removeVertex(getLayout().getVertexById(memberId));
-                return;
+                return element;
             }
         }
         throw new ObjectNotFoundException("Member " + memberId + " not found");

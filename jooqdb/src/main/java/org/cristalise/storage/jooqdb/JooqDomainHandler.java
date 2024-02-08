@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.jooq.DSLContext;
 
@@ -59,12 +60,12 @@ public interface JooqDomainHandler {
      * 
      * @param context The configured DSLContext of jooq
      * @param uuid the Item's UUID
+     * @param primaryKeys the identifiers of the C2KLocalObject within the Item
      * @param transactionKey transaction key
-     * @param primaryKeys the identifiers of the Outcome withing the Item
      * @return the number of rows deleted
      * @throws PersistencyException throw this exception in case of any error that requires to abort a transaction
      */
-    public int delete(DSLContext context, UUID uuid, TransactionKey transactionKey, String...primaryKeys) throws PersistencyException;
+    public int delete(DSLContext context, UUID uuid, ClusterType cluster, String[] primaryKeys, TransactionKey transactionKey) throws PersistencyException;
 
     /**
      * Called each time the cristal-ise transaction is comitted

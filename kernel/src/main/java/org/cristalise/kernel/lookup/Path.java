@@ -103,8 +103,16 @@ public abstract class Path implements C2KLocalObject {
     }
 
     public String getStringPath() {
-        if (mPath.length == 0) return delim + getRoot();
-        else                   return delim + getRoot() + delim + StringUtils.join(mPath, delim);
+        return getStringPath(true);
+    }
+
+    public String getStringPath(boolean addRoot) {
+        String rootSegment = "";
+
+        if (addRoot) rootSegment = delim + getRoot();
+
+        if (mPath.length == 0) return rootSegment;
+        else                   return rootSegment + delim + StringUtils.join(mPath, delim);
     }
 
     /**
