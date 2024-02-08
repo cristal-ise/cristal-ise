@@ -204,7 +204,7 @@ class CRUDGenerator {
 
         new File(configItemDir, 'toolbarMain.json')      .write(toolbarMain.encodePrettily())
         new File(configItemDir, 'masterOutcomeView.json').write(masterOutcomeView.encodePrettily())
-        new File(configItemDir, 'itemList.json')         .write(masterOutcomeView.encodePrettily())
+        new File(configItemDir, 'itemList.json')         .write(itemList.encodePrettily())
         new File(configItemDir, 'itemCollection.json')   .write(itemCollection.encodePrettily())
 
         item.dependencies.values().each { currentDependency ->
@@ -218,12 +218,7 @@ class CRUDGenerator {
 
     private boolean checkIncludeRequiredInModule(File file) {
         if (file.name.endsWith('.groovy')) {
-            if (file.path.contains('/script') || ['Module.groovy', 'CommonDefs.groovy'].contains(file.name)) {
-                return false
-            }
-            else {
-                return true
-            }
+            return !(file.path.contains('/script') || ['Module.groovy', 'CommonDefs.groovy'].contains(file.name))
         }
         return false
     }
@@ -347,7 +342,7 @@ class CRUDGenerator {
                 inputFile:    null,
                 moduleXmlDir: null,
                 puml:         crudModule.plantUml,
-            ]
+            ] as Map<String, Object>
 
             generateModuleDSL(inputs)
         }
