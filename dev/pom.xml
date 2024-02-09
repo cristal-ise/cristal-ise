@@ -280,8 +280,9 @@
                   <APP_NAME>${project.artifactId}</APP_NAME>
                 </environment>
                 <jvmFlags>
-                  <jvmFlag>-Dlogback.configurationFile=/app/config/logback.xml</jvmFlag>
                   <jvmFlag>-DAPP_NAME=${project.artifactId}</jvmFlag>
+                  <jvmFlag>-Dlogback.configurationFile=/app/config/logback.xml</jvmFlag>
+                  <jvmFlag>-Dvertx.hazelcast.config=/app/config/cluster-config.xml</jvmFlag>
                   <jvmFlag>-Xms1024m</jvmFlag>
                   <jvmFlag>-Xdebug</jvmFlag>
                 </jvmFlags>
