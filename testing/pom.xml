@@ -75,83 +75,47 @@
                     </dependency>
                 </dependencies>
             </plugin>
+
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>appassembler-maven-plugin</artifactId>
-                <version>2.1.0</version>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
                 <configuration>
-                    <repositoryLayout>flat</repositoryLayout>
-                    <configurationSourceDirectory>src/main/bin</configurationSourceDirectory>
-                    <copyConfigurationDirectory>true</copyConfigurationDirectory>
-                    <configurationDirectory>bin</configurationDirectory>
-                    <useTimestampInSnapshotFileName>false</useTimestampInSnapshotFileName>
-                    <includeConfigurationDirectoryInClasspath>true</includeConfigurationDirectoryInClasspath>
-                    <assembleDirectory>${project.build.directory}/dist</assembleDirectory>
-                    <showConsoleWindow>true</showConsoleWindow>
-                    <repositoryName>lib</repositoryName>
-                    <defaultJvmSettings>
-                        <maxMemorySize>1024M</maxMemorySize>
-                    </defaultJvmSettings>
-                    <programs>
-                        <program>
-                            <mainClass>org.cristalise.kernel.process.StandardServer</mainClass>
-                            <id>cristalise-server</id>
-                            <commandLineArguments>
-                                <commandLineArgument>-config</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/bin/server.conf</commandLineArgument>
-                                <commandLineArgument>-connect</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/bin/integTest.clc</commandLineArgument>
-                                <commandLineArgument>-Shiro.iniFile</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/bin/shiro.ini</commandLineArgument>
-                            </commandLineArguments>
-                        </program>
-                        <program>
-                            <mainClass>org.cristalise.gui.Main</mainClass>
-                            <id>cristalise-gui</id>
-                            <commandLineArguments>
-                                <commandLineArgument>-config</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/bin/gui.conf</commandLineArgument>
-                                <commandLineArgument>-connect</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/bin/integTest.clc</commandLineArgument>
-                                <commandLineArgument>-Shiro.iniFile</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/bin/shiro.ini</commandLineArgument>
-                            </commandLineArguments>
-                        </program>
-                        <program>
-                            <mainClass>org.cristalise.kernel.process.UserCodeProcess</mainClass>
-                            <id>cristalise-usercode</id>
-                            <commandLineArguments>
-                                <commandLineArgument>-config</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/bin/client.conf</commandLineArgument>
-                                <commandLineArgument>-connect</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/bin/integTest.clc</commandLineArgument>
-                                <commandLineArgument>-Shiro.iniFile</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/bin/shiro.ini</commandLineArgument>
-                            </commandLineArguments>
-                        </program>
-                        <program>
-                            <mainClass>org.cristalise.restapi.Main</mainClass>
-                            <id>cristalise-restapi</id>
-                            <commandLineArguments>
-                                <commandLineArgument>-config</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/bin/client.conf</commandLineArgument>
-                                <commandLineArgument>-connect</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/bin/integTest.clc</commandLineArgument>
-                                <commandLineArgument>-Shiro.iniFile</commandLineArgument>
-                                <commandLineArgument>@BASEDIR@/bin/shiro.ini</commandLineArgument>
-                            </commandLineArguments>
-                        </program>
-                    </programs>
+                    <from>
+                        <image>${docker-from-image}</image>
+                    </from>
+                    <to>
+                        <image>cristalise/testing:${revision}</image>
+                    </to>
+                    <container>
+                        <creationTime>${maven.build.timestamp}</creationTime>
+                        <environment>
+                            <APP_NAME>${project.artifactId}</APP_NAME>
+                        </environment>
+                        <jvmFlags>
+                            <jvmFlag>-DAPP_NAME=${project.artifactId}</jvmFlag>
+                            <jvmFlag>-Dlogback.configurationFile=/app/config/logback.xml</jvmFlag>
+                            <jvmFlag>-Dvertx.hazelcast.config=/app/config/cluster-config.xml</jvmFlag>
+                            <jvmFlag>-Xms1024m</jvmFlag>
+                            <jvmFlag>-Xdebug</jvmFlag>
+                        </jvmFlags>
+                        <mainClass>org.cristalise.kernel.process.StandardServer</mainClass>
+                        <args>
+                            <arg>-config</arg>
+                            <arg>/app/config/server.conf</arg>
+                            <arg>-connect</arg>
+                            <arg>/app/config/local.clc</arg>
+                            <arg>-Shiro.iniFile</arg>
+                            <arg>/app/config/shiro.ini</arg>
+                        </args>
+                        <ports>
+                            <port>7000</port>
+                        </ports>
+                        <volumes>
+                            <volume>/app/config</volume>
+                            <volume>/app/log</volume>
+                        </volumes>
+                    </container>
                 </configuration>
-                <executions>
-                    <execution>
-                        <id>generate-distribution</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>assemble</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
     </build>
@@ -256,9 +220,9 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>org.xmlunit</groupId>
-            <artifactId>xmlunit-core</artifactId>
-            <scope>compile</scope>
+            <groupId>org.codehaus.janino</groupId>
+            <artifactId>janino</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>net.javacrumbs.json-unit</groupId>

@@ -1,0 +1,31 @@
+version: "3"
+
+services:
+  postgres:
+    image: postgres:16
+    network_mode: host
+    volumes:
+      - $APP_VOLUMES_ROOT/src/main/docker/database:/var/lib/postgresql/data:rw
+    environment:
+      - POSTGRES_DB=integtest
+      - POSTGRES_PASSWORD=cristal
+
+  module:
+    image: cristalise/testing:6.0.0-SNAPSHOT
+    network_mode: host
+    depends_on:
+      - postgres
+    volumes:
+      - $APP_VOLUMES_ROOT/src/main/docker/config:/app/config
+      - $APP_VOLUMES_ROOT/src/main/docker/log:/app/log
+      - $APP_VOLUMES_ROOT/src/main/docker/data:/app/data
+
+  restapi:
+    image: cristalise/restapi:6.0.0-SNAPSHOT
+    network_mode: host
+    depends_on:
+      - module
+    volumes:
+      - $APP_VOLUMES_ROOT/src/main/docker/config:/app/config
+      - $APP_VOLUMES_ROOT/src/main/docker/log:/app/log
+      - $APP_VOLUMES_ROOT/src/main/docker/data:/app/data

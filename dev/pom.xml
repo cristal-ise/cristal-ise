@@ -362,11 +362,11 @@
       <artifactId>spock-unitils</artifactId>
       <scope>test</scope>
     </dependency>
-<!--         <dependency> -->
-<!--             <groupId>com.athaydes</groupId> -->
-<!--             <artifactId>spock-reports</artifactId> -->
-<!--             <scope>test</scope> -->
-<!--         </dependency> -->
+<!--    <dependency> -->
+<!--      <groupId>com.athaydes</groupId> -->
+<!--      <artifactId>spock-reports</artifactId> -->
+<!--      <scope>test</scope> -->
+<!--    </dependency> -->
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-inmemory-lookup</artifactId>
@@ -388,10 +388,5 @@
       <artifactId>h2</artifactId>
       <scope>test</scope>
     </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
   </dependencies>
 </project>

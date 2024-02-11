@@ -1,0 +1,45 @@
+// This name appears on the login box of swingui
+Name=Functional testing Cristal-ise Server
+
+Environment=integTest
+
+// REST params
+REST.URI=http://localhost:8081/api
+REST.allowWeakKey=true
+REST.requireLoginCookie=true
+REST.loginCookieLife=300
+// default batch sizes. Each batch may be configured individually or fall back to the global size
+REST.Job.DefaultBatchSize=50
+REST.Event.DefaultBatchSize=50
+REST.Path.DefaultBatchSize=75
+REST.DefaultBatchSize=50
+REST.addCorsHeaders=true
+
+//Use only for debugging! Set it to true for server to return exception details about the error
+REST.Debug.errorsWithBody=true
+
+// JOOQ (postgresql) config
+JOOQ.URI=jdbc:postgresql://localhost:5432/integtest
+JOOQ.user=postgres
+JOOQ.password=cristal
+JOOQ.dialect=POSTGRES
+
+// JOOQ (mysql56) config
+//JOOQ.URI=jdbc:mysql://localhost:3306/integtest
+//JOOQ.user=root
+//JOOQ.password=cristal
+//JOOQ.dialect=MYSQL
+//JOOQ.StringType.length=255
+
+JOOQ.autoCommit=false
+
+//JOOQ.TemporaryPwdFieldImplemented=false
+
+Authenticator = Shiro
+Shiro.iniFile = src/main/bin/shiro.ini
+
+// set the default string value for EmptyOutcomeInitiator
+SimpleType.DefaultValues = 12:string
+
+Resource.moduleUseFileNameWithVersion = dev,integTest
+UserCode.permissions=*
