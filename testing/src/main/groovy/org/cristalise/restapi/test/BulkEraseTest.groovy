@@ -29,7 +29,7 @@ class BulkEraseTest extends RestapiTestBase {
         sf.setSearchRoot('/restapiTests')
         sf.properties.add(new Property('Type', 'Dummy'))
 
-        def uid = resolveDomainPath('/servers/localhost')
+        def uid = resolveDomainPath(serverPath)
         executePredefStep(uid, BulkErase.class, ContentType.XML, Gateway.getMarshaller().marshall(sf))
 
         def vpString = checkViewpoint(uid, 'SearchFilter', 'last')

@@ -26,6 +26,7 @@ services:
     network_mode: host
     depends_on:
       - module
+    restart: always
     volumes:
       - $APP_VOLUMES_ROOT/src/main/config:/app/config
       - $APP_VOLUMES_ROOT/src/main/docker/log:/app/log
