@@ -81,6 +81,7 @@
 
     <properties>
         <unitils-core.version>3.4.6</unitils-core.version>
+        <poi.version>5.2.5</poi.version>
         <maven.deploy.skip>false</maven.deploy.skip>
     </properties>
 
@@ -190,14 +191,9 @@
             <artifactId>commons-lang3</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.xmlunit</groupId>
-            <artifactId>xmlunit-core</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
-            <version>5.1</version>
+            <version>5.9</version>
         </dependency>
         <dependency>
             <groupId>org.mvel</groupId>
@@ -206,12 +202,16 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
-            <version>4.1.2</version>
+            <version>${poi.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>4.1.2</version>
+            <version>${poi.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.xmlbeans</groupId>
+            <artifactId>xmlbeans</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jfree</groupId>

@@ -23,13 +23,9 @@ package org.cristalise.restapi;
 import static org.cristalise.restapi.SystemProperties.REST_URI;
 import static org.cristalise.restapi.SystemProperties.REST_addCorsHeaders;
 
-import java.io.IOException;
 import java.net.URI;
 
-import org.cristalise.kernel.common.CriseVertxException;
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.process.AbstractMain;
 import org.cristalise.kernel.process.ShutdownHandler;
 import org.cristalise.kernel.process.StandardClient;
@@ -53,52 +49,53 @@ public class Main extends StandardClient {
      * Initialise standard CRISTAL-iSE client process.
      * Creates ResourceConfig that scans for JAX-RS resources and providers in 'org.cristalise.restapi' package
      * Creates Grizzly HTTP server exposing the Jersey application at the given URI.
-     * @throws Exception 
-     * 
-     * @throws InvalidDataException Invalid Data
-     * @throws PersistencyException Persistency problem
-     * @throws ObjectNotFoundException Object Not Found
+     * @throws Exception
      */
     public static void startServer(String[] args) throws Exception {
         setShutdownHandler(new ShutdownHandler() {
             @Override
             public void shutdown(int errCode, boolean isServer) {
-                if (server != null) server.shutdown();
+                if (server != null) server.shutdownNow();
             }
         });
 
         standardInitialisation(args);
 
-        String uri = REST_URI.getString();
+        String uri = REST_URI.getString();;
 
-        if (uri == null || uri.length() == 0) 
+        if (StringUtils.isBlank(uri)) {
             throw new BadArgumentsException("Please specify REST.URI on which to listen in config.");
+        }
 
         final ResourceConfig rc = new ResourceConfig().packages("org.cristalise.restapi");
-        
+
         rc.register(MultiPartFeature.class);
 
         if (REST_addCorsHeaders.getBoolean()) rc.register(CORSResponseFilter.class);
 
-        log.info("startServer() - Jersey app started with WADL available at "+uri+"application.wadl");
-
         server = GrizzlyHttpServerFactory.createHttpServer(URI.create(uri), rc);
+        log.info("startServer() - Jersey app started with WADL available at {}/application.wadl", uri);
+
+        server.start();
+        log.info("startServer() - DONE");
+
+        Thread.currentThread().join();
     }
 
     /**
      * Very basic main method to Start HTTP server and initialise CRISTAL-iSE connection.
-     * 
+     *
      * @param args input parameters
-     * @throws IOException Input was incorrect
-     * @throws BadArgumentsException Bad Arguments
-     * @throws CriseVertxException 
      */
-    public static void main(String[] args) throws Exception {
-        startServer(args);
+    public static void main(String[] args) {
+        try {
+            startServer(args);
+        }
+        catch (Exception e) {
+            log.error("main()", e);
+            AbstractMain.shutdown(1);
+        }
 
-        System.out.println(String.format("Hit enter to stop it..."));
-
-        System.in.read();
         AbstractMain.shutdown(0);
     }
 }

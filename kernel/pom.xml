@@ -32,7 +32,7 @@
     </parent>
 
     <artifactId>cristalise-kernel</artifactId>
-    <name>cristalise-kernel</name>
+    <name>CRISTAL-iSE Kernel</name>
 
     <description>Cristal-ise is a description-driven software platform originally developed to track the construction of 
 	the CMS ECAL detector of the LHC at CERN. This is its core library, known as the kernel, which manages 
@@ -112,37 +112,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.codehaus.castor</groupId>
-            <artifactId>castor-xml-schema</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>stax</artifactId>
-                    <groupId>stax</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.codehaus.castor</groupId>
-            <artifactId>castor-xml</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>stax</artifactId>
-                    <groupId>stax</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.shiro</groupId>
-            <artifactId>shiro-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.mvel</groupId>
             <artifactId>mvel2</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
