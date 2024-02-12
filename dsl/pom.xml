@@ -210,6 +210,10 @@
             <version>${poi.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.xmlbeans</groupId>
+            <artifactId>xmlbeans</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.jfree</groupId>
             <artifactId>jfreesvg</artifactId>
         </dependency>
