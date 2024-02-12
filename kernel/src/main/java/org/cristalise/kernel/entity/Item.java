@@ -40,7 +40,7 @@ public interface Item {
      * such as script execution and schema validation.
      *
      * @param itemUuid The UUID of the Item to be requested.
-     * @param agentKey The UUID of the Agent. Some activities may be restricted in which roles may execute them. 
+     * @param agentUuid The UUID of the Agent. Some activities may be restricted in which roles may execute them.
      *                 Some transitions cause the activity to be assigned to the executing Agent.
      * @param stepPath The path in the Workflow to the desired Activity
      * @param transitionID The transition to be performed 
