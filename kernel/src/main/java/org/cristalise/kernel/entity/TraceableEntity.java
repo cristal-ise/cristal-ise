@@ -105,14 +105,14 @@ public class TraceableEntity implements Item {
             String fileName,
             List<Byte> attachment)
     {
-        ItemPath item;
-        AgentPath agent;
+        ItemProxy item;
+        AgentProxy agent;
         TransactionKey transactionKey;
 
         try {
-            item  = Gateway.getLookup().getItemPath(itemUuid);
-            agent = (AgentPath) Gateway.getLookup().getItemPath(agentUuid);
-            transactionKey = new TransactionKey(item);
+            item  = Gateway.getProxy(Gateway.getLookup().getItemPath(itemUuid));
+            agent = Gateway.getAgentProxy(Gateway.getLookup().getAgentPath(agentUuid));
+            transactionKey = new TransactionKey(item.getPath());
         }
         catch (Throwable t) {
             log.error("requestAction()", t);
@@ -125,7 +125,7 @@ public class TraceableEntity implements Item {
 
             try {
                 mStorage.begin(transactionKey);
-                String finalOutcome = requestAction(Gateway.getProxy(item), Gateway.getAgentProxy(agent), stepPath, transitionID, requestData, fileName, attachment, transactionKey);
+                String finalOutcome = requestAction(item, agent, stepPath, transitionID, requestData, fileName, attachment, transactionKey);
                 mStorage.commit(transactionKey);
 
                 return Future.succeededFuture(finalOutcome);
@@ -226,8 +226,8 @@ public class TraceableEntity implements Item {
      * @param agent
      * @param cause
      */
-    private void handleError(String stepPath, ItemPath item, AgentPath agent, Throwable cause) {
-        TransactionKey errorTransactionKey = new TransactionKey(item);
+    private void handleError(String stepPath, ItemProxy item, AgentProxy agent, Throwable cause) {
+        TransactionKey errorTransactionKey = new TransactionKey(item.getPath());
 
         try {
             // Start a new transaction
@@ -265,26 +265,26 @@ public class TraceableEntity implements Item {
      * @param transactionKey
      * @return
      */
-    private String requestErrorAction(ItemPath itemPath, AgentPath agent, String stepPath, Throwable cause, TransactionKey transactionKey) {
+    private String requestErrorAction(ItemProxy item, AgentProxy agent, String stepPath, Throwable cause, TransactionKey transactionKey) {
         try {
-            Workflow lifeCycle = (Workflow) mStorage.get(itemPath, ClusterType.LIFECYCLE + "/workflow", transactionKey);
+            Workflow lifeCycle = (Workflow) mStorage.get(item.getPath(), ClusterType.LIFECYCLE + "/workflow", transactionKey);
 
             int errorTransitionId = ((Activity) lifeCycle.search(stepPath)).getErrorTransitionId();
 
             if (errorTransitionId == -1) {
-                log.debug("requestErrorAction({}) - StateMachine does not define error transition for step:{}", itemPath, stepPath);
+                log.debug("requestErrorAction({}) - StateMachine does not define error transition for step:{}", item, stepPath);
                 return null;
             }
 
             log.info("---------------------------------------------------------------------------------------");
-            log.info("requestErrorAction({}) - transitionId {} on {} by {}", itemPath, errorTransitionId, stepPath, agent);
+            log.info("requestErrorAction({}) - transitionId {} on {} by {}", item, errorTransitionId, stepPath, agent);
 
             String errorOutcome = Gateway.getMarshaller().marshall(new ErrorInfo(cause));
 
-            errorOutcome = lifeCycle.requestAction(agent, stepPath, itemPath, errorTransitionId, errorOutcome, "", null, transactionKey);
+            errorOutcome = lifeCycle.requestAction(agent.getPath(), stepPath, item.getPath(), errorTransitionId, errorOutcome, "", null, transactionKey);
 
             // store the workflow if we've changed the state of the domain wf
-            mStorage.put(itemPath, lifeCycle, transactionKey);
+            mStorage.put(item.getPath(), lifeCycle, transactionKey);
 
             return errorOutcome;
         }
