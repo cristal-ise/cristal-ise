@@ -25,6 +25,7 @@ import static org.cristalise.kernel.common.CriseVertxException.FailureCodes.Inte
 import java.io.Serial;
 import java.util.concurrent.ExecutionException;
 
+import io.vertx.core.Future;
 import lombok.Getter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -114,6 +115,20 @@ public class CriseVertxException extends Exception {
     public CriseVertxException(FailureCodes code, String msg, Throwable cause) {
         super(msg, cause);
         failureCode = code.getId();
+    }
+
+    public ServiceException toServiceException() {
+        return new ServiceException(failureCode, getMessage(), getDebugInfo());
+    }
+
+    public static ServiceException toServiceException(Throwable t) {
+        if (t instanceof CriseVertxException criseEx) {
+            return criseEx.toServiceException();
+        }
+        else {
+            JsonObject debugInfo = convertToDebugInfo(t);
+            return new ServiceException(InternalServerError.getId(), t.getMessage(), debugInfo);
+        }
     }
 
     public <T> AsyncResult<T> failService() {

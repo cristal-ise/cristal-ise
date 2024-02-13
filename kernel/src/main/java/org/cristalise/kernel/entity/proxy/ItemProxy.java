@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import io.vertx.core.Future;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
@@ -168,22 +169,6 @@ public class ItemProxy {
 
     /**
      * 
-     * @param result
-     * @param futureResult
-     */
-    private void asyncHandleRequestAction(AsyncResult<String> result, CompletableFuture<String> futureResult) {
-        if (result.succeeded()) {
-            String returnString = result.result();
-            log.trace("handleRequestAction() - return:{}", returnString);
-            futureResult.complete(returnString);
-        }
-        else {
-            futureResult.completeExceptionally(result.cause());
-        }
-    }
-
-    /**
-     * 
      * @param itemUuid
      * @param agentUuid
      * @param stepPath
@@ -211,16 +196,17 @@ public class ItemProxy {
 
             Thread thread = new Thread("requestAction-"+this) {
                 public void run() {
-                    getItem().requestAction(
-                            itemUuid,
-                            agentUuid,
-                            stepPath,
-                            transitionID,
-                            requestData,
-                            fileName,
-                            attachment,
-                            (result) -> { asyncHandleRequestAction(result, futureResult); }
-                    );
+                    Future<String> fResult = getItem().requestAction(
+                                    itemUuid,
+                                    agentUuid,
+                                    stepPath,
+                                    transitionID,
+                                    requestData,
+                                    fileName,
+                                    attachment);
+
+                    fResult.onSuccess(futureResult::complete)
+                           .onFailure(futureResult::completeExceptionally);
                 }
             };
 
@@ -331,7 +317,7 @@ public class ItemProxy {
      * @throws ObjectNotFoundException data was invalid
      */
     private List<Job> getJobsForAgent(AgentPath agentPath) throws CriseVertxException {
-        List<Job> jobBag = new ArrayList<Job>();
+        List<Job> jobBag = new ArrayList<>();
 
         // Make sure that the latest Jobs and Workflow is used for this calculation
         Gateway.getStorage().clearCache(getPath(), ClusterType.JOB);
@@ -1048,7 +1034,7 @@ public class ItemProxy {
      * Check if the data of the Item located by the ClusterStorage path is exist. This method can be used
      * in server side Script to find uncommitted changes during the active transaction.
      *
-     * @param cluster the type of the cluster
+     * @param path the type of the cluster
      * @param name the name of the content to be checked
      * @param transKey the transaction key
      * @return true if there is content false otherwise
