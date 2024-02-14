@@ -54,7 +54,7 @@ public class SystemPropertiesTest {
     void getString() throws Exception {
         assertNull(Lookup.getString());
         assertEquals("10", ItemVerticle_requestTimeoutSeconds.getString());
-        assertEquals("true", ItemVerticle_isWorker.getString());
+        assertEquals("true", LocalChangeVerticle_publishLocalMessage.getString());
 
         assertEquals("LDAP", Lookup.getString("LDAP"));
         assertEquals("Shiro", Authenticator.getString());

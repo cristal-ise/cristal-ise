@@ -73,7 +73,6 @@ import lombok.Getter;
  * @see #ItemVerticle_ebAddress
  * @see #ItemVerticle_includeDebugInfo
  * @see #ItemVerticle_instances
- * @see #ItemVerticle_isWorker
  * @see #ItemVerticle_requestTimeoutSeconds
  * @see #Lifecycle_Sign_agentNameField
  * @see #Lifecycle_Sign_passwordField
@@ -227,10 +226,6 @@ public enum SystemProperties implements SystemPropertyOperations {
      * The number of deployed ItemVerticle instances. Default value is 8
      */
     ItemVerticle_instances("ItemVerticle.instances", 8),
-    /**
-     * Specifies if the ItemVerticle is a worker verticle or not. Default value is 'true'
-     */
-    ItemVerticle_isWorker("ItemVerticle.isWorker", true),
     /**
      * The number of seconds before a request to an Item times out. Default value is 10
      */

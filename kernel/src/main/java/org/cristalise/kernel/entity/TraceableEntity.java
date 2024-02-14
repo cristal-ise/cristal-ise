@@ -111,7 +111,7 @@ public class TraceableEntity implements Item {
 
         try {
             item  = Gateway.getProxy(Gateway.getLookup().getItemPath(itemUuid));
-            agent = Gateway.getAgentProxy(Gateway.getLookup().getAgentPath(agentUuid));
+            agent = Gateway.getAgentProxy((AgentPath)Gateway.getLookup().getItemPath(agentUuid));
             transactionKey = new TransactionKey(item.getPath());
         }
         catch (Throwable t) {
