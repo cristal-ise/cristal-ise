@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import io.vertx.core.Context;
 import io.vertx.core.Future;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -168,7 +169,7 @@ public class ItemProxy {
     }
 
     /**
-     * 
+     *
      * @param itemUuid
      * @param agentUuid
      * @param stepPath
@@ -191,26 +192,57 @@ public class ItemProxy {
     {
         log.debug("requestAction() - item:{} agent:{} stepPath:{}", this, agentUuid, stepPath);
 
+        if (Context.isOnVertxThread()) {
+            Future<String> resultF = getItem().requestAction(itemUuid, agentUuid, stepPath, transitionID, requestData, fileName, attachment);
+            return Future.await(resultF);
+        }
+        else {
+            return awaitRequest(itemUuid, agentUuid, stepPath, transitionID, requestData, fileName, attachment);
+        }
+    }
+
+    /**
+     * Creates a virtual thread to call the requestAction() service and waits for the result.
+     *
+     * @param itemUuid
+     * @param agentUuid
+     * @param stepPath
+     * @param transitionID
+     * @param requestData
+     * @param fileName
+     * @param attachment
+     * @return
+     * @throws CriseVertxException
+     */
+    private String awaitRequest(
+            String     itemUuid,
+            String     agentUuid,
+            String     stepPath,
+            int        transitionID,
+            String     requestData,
+            String     fileName,
+            List<Byte> attachment
+        ) throws CriseVertxException
+    {
         try {
             CompletableFuture<String> futureResult = new CompletableFuture<>();
 
-            Thread thread = new Thread("requestAction-"+this) {
-                public void run() {
-                    Future<String> fResult = getItem().requestAction(
-                                    itemUuid,
-                                    agentUuid,
-                                    stepPath,
-                                    transitionID,
-                                    requestData,
-                                    fileName,
-                                    attachment);
+            Thread.ofVirtual().name("requestAction-"+this).start(() -> {
+                log.trace("awaitRequest() - item:{} agent:{} stepPath:{}", this, agentUuid, stepPath);
 
-                    fResult.onSuccess(futureResult::complete)
-                           .onFailure(futureResult::completeExceptionally);
-                }
-            };
+                Future<String> fResult = getItem().requestAction(
+                        itemUuid,
+                        agentUuid,
+                        stepPath,
+                        transitionID,
+                        requestData,
+                        fileName,
+                        attachment
+                );
 
-            thread.start();
+                fResult.onSuccess(futureResult::complete)
+                       .onFailure(futureResult::completeExceptionally);
+            });
 
             return futureResult.get(ItemVerticle.requestTimeout, SECONDS);
         }
@@ -229,13 +261,7 @@ public class ItemProxy {
      *
      * @param thisJob the Job to be executed
      * @return the result of the execution
-     * @throws AccessRightsException Agent does not the rights to execute this operation
-     * @throws PersistencyException there was a database problems during this operations
-     * @throws InvalidDataException data was invalid
-     * @throws InvalidTransitionException the Transition cannot be executed
-     * @throws ObjectNotFoundException Object not found
-     * @throws ObjectAlreadyExistsException Object already exists
-     * @throws InvalidCollectionModification Invalid collection
+     * @throws CriseVertxException if the operation failed
      */
     public String requestAction(Job thisJob) throws CriseVertxException {
         if (thisJob.getAgentPath() == null) throw new InvalidDataException("No Agent specified.");

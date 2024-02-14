@@ -30,7 +30,7 @@
   </appender>
 
 <!--   <logger name="org.jooq" level="DEBUG" /> -->
-  <logger name="org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription" level="DEBUG" />
+  <!--logger name="org.cristalise.kernel.entity.proxy.ItemProxy" level="TRACE" /-->
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />
