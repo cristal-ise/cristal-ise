@@ -29,9 +29,12 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
+import javax.annotation.concurrent.Immutable;
+
 /**
  * Extends ItemPath with Agent specific codes
  **/
+@Immutable
 public class AgentPath extends ItemPath {
 
     private String mAgentName = null;
