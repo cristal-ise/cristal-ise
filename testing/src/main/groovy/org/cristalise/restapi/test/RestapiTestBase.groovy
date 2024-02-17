@@ -325,9 +325,9 @@ class RestapiTestBase extends KernelScenarioTestBase {
         return new JSONArray(responseBody)
     }
 
-    String createNewItem(String name, ContentType type) {
+    String createNewItem(String name, String itemType = 'Dummy', ContentType type) {
         def newItem = new ImportItem(name, '/restapiTests', null, 'NoWorkflow')
-        newItem.getProperties().add(new Property('Type', 'Dummy', false))
+        newItem.getProperties().add(new Property('Type', itemType, false))
         def serverItemUUID = resolveDomainPath(serverPath)
 
         def param = Gateway.marshaller.marshall(newItem)
