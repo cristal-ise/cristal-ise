@@ -308,4 +308,34 @@
       </exclusions>
     </dependency>
   </dependencies>
+
+  <profiles>
+    <profile>
+      <id>integtest</id>
+      <build>
+        <pluginManagement>
+          <plugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-surefire-plugin</artifactId>
+              <version>3.2.5</version>
+              <configuration>
+                <testSourceDirectory>${project.basedir}/src/main/groovy</testSourceDirectory>
+                <testClassesDirectory>${project.build.directory}/classes/</testClassesDirectory>
+                <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                <reuseForks>false</reuseForks>
+                <includes>
+                  <include>**/*Specs.*</include>
+                  <include>**/*Spec.*</include>
+                  <include>**/*Tests.*</include>
+                  <include>**/*Test.*</include>
+                </includes>
+                <argLine>-Dvertx.hazelcast.config=src/main/config/cluster-config.xml -Dlogback.configurationFile=src/main/config/logback.xml</argLine>
+              </configuration>
+            </plugin>
+          </plugins>
+        </pluginManagement>
+      </build>
+    </profile>
+  </profiles>
 </project>
