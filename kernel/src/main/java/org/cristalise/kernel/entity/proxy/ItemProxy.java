@@ -122,7 +122,6 @@ public class ItemProxy {
 
     public Item getItem() {
         if (mItem == null) mItem = new ItemVertxEBProxy(Gateway.getVertx(), ItemVerticle.ebAddress);
-
         return mItem;
     }
 
@@ -192,72 +191,50 @@ public class ItemProxy {
     {
         log.debug("requestAction() - item:{} agent:{} stepPath:{}", this, agentUuid, stepPath);
 
-        if (Context.isOnVertxThread()) {
-            Future<String> resultF = getItem().requestAction(itemUuid, agentUuid, stepPath, transitionID, requestData, fileName, attachment);
-            return Future.await(resultF);
-        }
-        else {
-            return awaitRequest(itemUuid, agentUuid, stepPath, transitionID, requestData, fileName, attachment);
-        }
-    }
-
-    /**
-     * Creates a virtual thread to call the requestAction() service and waits for the result.
-     *
-     * @param itemUuid
-     * @param agentUuid
-     * @param stepPath
-     * @param transitionID
-     * @param requestData
-     * @param fileName
-     * @param attachment
-     * @return
-     * @throws CriseVertxException
-     */
-    private String awaitRequest(
-            String     itemUuid,
-            String     agentUuid,
-            String     stepPath,
-            int        transitionID,
-            String     requestData,
-            String     fileName,
-            List<Byte> attachment
-        ) throws CriseVertxException
-    {
         try {
-            CompletableFuture<String> futureResult = new CompletableFuture<>();
-
-            Thread.ofVirtual().name("requestAction-"+this).start(() -> {
-                log.trace("awaitRequest() - item:{} agent:{} stepPath:{}", this, agentUuid, stepPath);
-
-                Future<String> fResult = getItem().requestAction(
-                        itemUuid,
-                        agentUuid,
-                        stepPath,
-                        transitionID,
-                        requestData,
-                        fileName,
-                        attachment
-                );
-
-                fResult.onSuccess(futureResult::complete)
-                       .onFailure(futureResult::completeExceptionally);
-            });
-
-            return futureResult.get(ItemVerticle.requestTimeout, SECONDS);
+            Future<String> future = getItem().requestAction(itemUuid, agentUuid, stepPath, transitionID, requestData, fileName, attachment);
+            return await(future);
         }
         catch (ExecutionException e) {
             log.error("requestAction() - item:{} agent:{}", this, agentUuid, e);
             throw CriseVertxException.convertFutureException(e);
         }
+        catch (CriseVertxException e) {
+            throw e;
+        }
         catch (Exception e) {
-            log.error("requestAction() - item:{} agent:{}", itemUuid, agentUuid, e);
+            log.error("requestAction() - item:{} agent:{} stepPath:{}", itemUuid, agentUuid, stepPath, e);
             throw new CannotManageException("Error while waiting for the requestAction() return value item:"+itemUuid+" agent:"+agentUuid+"", e);
         }
     }
 
     /**
-     * Executes the given Job
+     * Waits for the future to complete, and returns the result.
+     *
+     * @param future the future to wait for
+     * @return the result of the future
+     * @param <T> the class of the result
+     * @throws Exception anything that can go wrong
+     */
+    private <T> T await(Future<T> future) throws Exception {
+        if (Context.isOnVertxThread()) {
+            // We are on the Vert.x event loop thread using virtual threads, so we can block
+            return Future.await(future);
+        }
+        else {
+            // We are on a platform thread, so we need to wait asynchronously
+            CompletableFuture<T> futureResult = new CompletableFuture<>();
+
+            future.onSuccess(futureResult::complete)
+                  .onFailure(futureResult::completeExceptionally);
+
+            // blocks until the future is complete or the timeout is reached
+            return futureResult.get(ItemVerticle.requestTimeout, SECONDS);
+        }
+    }
+
+    /**
+     * Executes the given Job of this Item
      *
      * @param thisJob the Job to be executed
      * @return the result of the execution
@@ -265,6 +242,7 @@ public class ItemProxy {
      */
     public String requestAction(Job thisJob) throws CriseVertxException {
         if (thisJob.getAgentPath() == null) throw new InvalidDataException("No Agent specified.");
+        if (thisJob.getItemPath() != getPath()) throw new InvalidDataException("Job is not for this Item:"+this);
 
         String outcome = thisJob.getOutcomeString();
 
