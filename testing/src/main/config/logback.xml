@@ -19,8 +19,8 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
           <!--  daily rollover  -->
           <fileNamePattern>/app/log/${APP_NAME}-${LOG_HISTORY_DAILY_PATTERN}.log </fileNamePattern>
-          <!--  keep 365 days' worth of history capped at 2GB total size  -->
-          <maxHistory>365</maxHistory>
+          <!-- keep some days worth of history capped at 2GB total size -->
+          <maxHistory>7</maxHistory>
           <totalSizeCap>2GB</totalSizeCap>
         </rollingPolicy>
         <encoder>

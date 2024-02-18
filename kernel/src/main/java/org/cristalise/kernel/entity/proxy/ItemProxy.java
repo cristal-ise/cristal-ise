@@ -242,7 +242,7 @@ public class ItemProxy {
      */
     public String requestAction(Job thisJob) throws CriseVertxException {
         if (thisJob.getAgentPath() == null) throw new InvalidDataException("No Agent specified.");
-        if (thisJob.getItemPath() != getPath()) throw new InvalidDataException("Job is not for this Item:"+this);
+        if (!thisJob.getItemPath().equals(getPath())) throw new InvalidDataException("Job:"+thisJob+" is not for this Item:"+this);
 
         String outcome = thisJob.getOutcomeString();
 

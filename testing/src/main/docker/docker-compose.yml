@@ -6,7 +6,7 @@ services:
     image: postgres:16
     network_mode: host
     volumes:
-      - $APP_VOLUMES_ROOT/src/main/docker/database:/var/lib/postgresql/data:rw
+      - $TRAVIS_BUILD_DIR/testing/src/main/docker/database:/var/lib/postgresql/data:rw
     environment:
       - POSTGRES_DB=integtest
       - POSTGRES_PASSWORD=cristal
@@ -17,9 +17,9 @@ services:
     depends_on:
       - postgres
     volumes:
-      - $APP_VOLUMES_ROOT/src/main/config:/app/config
-      - $APP_VOLUMES_ROOT/src/main/docker/log:/app/log
-      - $APP_VOLUMES_ROOT/src/main/docker/data:/app/data
+      - $TRAVIS_BUILD_DIR/testing/src/main/config:/app/config
+      - $TRAVIS_BUILD_DIR/testing/src/main/docker/log:/app/log
+      - $TRAVIS_BUILD_DIR/testing/src/main/docker/data:/app/data
 
   restapi:
     image: cristalise/restapi:6.0.0-SNAPSHOT
@@ -28,6 +28,6 @@ services:
       - module
     restart: always
     volumes:
-      - $APP_VOLUMES_ROOT/src/main/config:/app/config
-      - $APP_VOLUMES_ROOT/src/main/docker/log:/app/log
-      - $APP_VOLUMES_ROOT/src/main/docker/data:/app/data
+      - $TRAVIS_BUILD_DIR/testing/src/main/config:/app/config
+      - $TRAVIS_BUILD_DIR/testing/src/main/docker/log:/app/log
+      - $TRAVIS_BUILD_DIR/testing/src/main/docker/data:/app/data
