@@ -1,6 +1,6 @@
 language: java
 jdk: openjdk21
-dist: focal
+dist: jammy
 branches:
   only:
     - master
