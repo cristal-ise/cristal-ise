@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionMemberList;
 import org.cristalise.kernel.collection.Dependency;
@@ -58,6 +59,7 @@ import org.cristalise.kernel.property.PropertyUtility;
 /**
  * {@value #description}
  */
+@Slf4j
 public class UpdateCollectionsFromDescription extends PredefinedStep {
 
     public static final String description = "Updates the Collections of the Item from its description";
@@ -86,7 +88,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
 
         log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)inputs);
 
-        ItemProxy descItem = Gateway.getProxy(new DomainPath(inputs[0]));
+        ItemProxy descItem = Gateway.getProxy(new DomainPath(inputs[0])); // very likely the factory item
         String descVer  = inputs[1];
 
         //use this 3rd parameter to update the members that cannot be calculate from the description
@@ -95,8 +97,6 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         if (inputs.length == 3) { //optional parameter
             newMembers = (CollectionMemberList<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
         }
-
-        ItemProxy descItem = Gateway.getProxy(new DomainPath(descPath)); // very likely the factory item
 
         PropertyArrayList newItemProps = new PropertyArrayList();
         List<String> currentCollNames = new ArrayList<>(Arrays.asList(Gateway.getStorage().getClusterContents(item, COLLECTION, transactionKey)));
@@ -115,11 +115,6 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
                 Dependency itemColl = updateDependencyProperties(item, descItem.getPath(), descVer, collName, transactionKey);
 
                 if (inputs.length == 3) { //optional parameter
-                    //use this 3rd parameter to update the members that cannot be calculate from the description
-                    @SuppressWarnings("unchecked")
-                    CollectionMemberList<DependencyMember> newMembers =
-                        (CollectionMemberList<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
-
                     updateDependencyMembers(itemColl, newMembers);
                 }
 

@@ -374,14 +374,14 @@ public class CreateItemFromDescription extends PredefinedStep {
             if (wfDefName == null) throw new InvalidDataException("No workflow given or defined");
 
             String cacheKey = LIFECYCLE + "/" + wfDefName + ':' + wfDefVer;
-            CompositeActivity ca = (CompositeActivity) getFromCache(cacheKey);
+            CompositeActivity ca = null; // (CompositeActivity) getFromCache(cacheKey);
 
             if (ca == null) {
                 // load workflow def
                 CompositeActivityDef wfDef = (CompositeActivityDef) LocalObjectLoader.getActDef(wfDefName, wfDefVer, transactionKey);
                 ca = (CompositeActivity) wfDef.instantiate(transactionKey);
 
-                addToCache(cacheKey, ca);
+                //addToCache(cacheKey, ca);
             }
 
             return ca;
@@ -398,7 +398,7 @@ public class CreateItemFromDescription extends PredefinedStep {
     /**
      * Copies the CollectionDescriptions of the Item requesting this predefined step.
      *
-     * @param descItemPath
+     * @param descItem
      * @param descVer
      * @param transactionKey
      * @return the new collection

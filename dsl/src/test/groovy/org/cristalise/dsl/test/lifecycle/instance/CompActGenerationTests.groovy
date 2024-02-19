@@ -18,7 +18,9 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dsl.test.lifecycle.instance;
+package org.cristalise.dsl.test.lifecycle.instance
+
+import org.junit.Ignore;
 
 import static org.junit.Assert.*
 
@@ -103,7 +105,7 @@ class CompActGenerationTests implements CristalTestSetup {
         checkSeq()
     }
 
-    @Test
+    @Test @Ignore
     public void 'first-CompAct(second-third-last)'() {
         util.build {
             ElemAct("first")

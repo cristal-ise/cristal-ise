@@ -87,7 +87,7 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
         currentWf.initChild(newDomainCA, true, new GraphPoint(150, 100));
 
         // if new workflow, activate it, otherwise refresh the jobs
-        if (!newDomainCA.active) currentWf.run(agent, item, transactionKey);
+        if (!newDomainCA.active) currentWf.run(transactionKey);
 
         // store new wf
         Gateway.getStorage().put(item, currentWf, transactionKey);

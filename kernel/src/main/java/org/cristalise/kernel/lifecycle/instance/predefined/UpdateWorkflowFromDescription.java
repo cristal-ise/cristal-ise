@@ -33,6 +33,7 @@ import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
@@ -42,6 +43,7 @@ import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.process.Gateway;
 
 
 /**
@@ -59,7 +61,7 @@ public class UpdateWorkflowFromDescription extends PredefinedStep {
 
     public static final String description = "Updates the Workflow of the Item from its description.";
 
-    private List<String> actsToEnable = null;
+//    private List<String> actsToEnable = null;
 
     public UpdateWorkflowFromDescription() {
         super("WorkflowMigrationData", description);
@@ -82,7 +84,7 @@ public class UpdateWorkflowFromDescription extends PredefinedStep {
         Outcome wfMigrationData = new Outcome(requestData);
         
         String[] nameAndVersion = wfMigrationData.getField("DescItemUrn").split(":");
-        ItemPath descItem = ItemPath.getItemPath(nameAndVersion[0], transactionKey);
+        ItemProxy descItem = Gateway.getProxy(ItemPath.getItemPath(nameAndVersion[0], transactionKey), transactionKey);
 
 //      String descType = Gateway.getProxy(itemP).getType();
 //      actsToEnable = Arrays.asList(Gateway.getProperties().getString(descType+".Activity", "").split(","));
