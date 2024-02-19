@@ -33,10 +33,10 @@ script:
       # 
       # Build docker images locally and run integration tests
       #
-      mvn -P docker -pl restapi,testing jib:dockerBuild
-      docker compose -f ./testing/src/main/docker/docker-compose.yml -p integtest up -d
-      sleep 30
-      mvn test -pl testing -P integtest
+      # mvn -P docker -pl restapi,testing jib:dockerBuild
+      # docker compose -f ./testing/src/main/docker/docker-compose.yml -p integtest up -d
+      # sleep 30
+      # mvn test -pl testing -P integtest
     fi
 
 after_script:

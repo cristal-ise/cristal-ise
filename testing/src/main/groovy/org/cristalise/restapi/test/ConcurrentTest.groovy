@@ -102,6 +102,7 @@ class ConcurrentTest extends RestapiTestBase {
     @Test @CompileDynamic
     public void createPatients_RunAggrageScripts_ParseScript_Concurrently() {
         init('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
+        def clearCacheScriptName = 'ClearCache'+timeStamp
 
         def patientCount = 10
         def uuids = setupPatients(patientCount)
@@ -110,12 +111,12 @@ class ConcurrentTest extends RestapiTestBase {
 
         def pool = Executors.newFixedThreadPool(patientCount+1)
 
-        Script('ClearCache', folder) {
+        Script(clearCacheScriptName, folder) {
             script(language: 'groovy') {
                 'org.cristalise.kernel.process.Gateway.getStorage().clearCache(); System.gc();'
             }
         }
-        log.info 'finished creating Script: ClearCache'
+        log.info 'finished creating Script: ' + clearCacheScriptName
 
         patientCount.times { int idx ->
             pool.submit {
@@ -124,8 +125,7 @@ class ConcurrentTest extends RestapiTestBase {
                     log.info "${uuids[idx]} - $result"
                 }
             }
-            executeScript(uuids[idx], 'ClearCache', '{}')
-            log.info("Clearing cache...");
+            executeScript(uuids[idx], clearCacheScriptName, '{}')
             Thread.sleep(2000)
         }
 

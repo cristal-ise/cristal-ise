@@ -203,7 +203,7 @@ public class ItemProxy {
             throw e;
         }
         catch (Exception e) {
-            log.error("requestAction() - item:{} agent:{} stepPath:{}", itemUuid, agentUuid, stepPath, e);
+            log.error("requestAction() - item:{} agent:{} stepPath:{}", this, agentUuid, stepPath, e);
             throw new CannotManageException("Error while waiting for the requestAction() return value item:"+itemUuid+" agent:"+agentUuid+"", e);
         }
     }

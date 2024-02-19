@@ -329,6 +329,7 @@
                   <include>**/*Spec.*</include>
                   <include>**/*Tests.*</include>
                   <include>**/*Test.*</include>
+                  <include>**/*IT.*</include>
                 </includes>
                 <argLine>-Dvertx.hazelcast.config=src/main/config/cluster-config.xml -Dlogback.configurationFile=src/main/config/logback.xml</argLine>
               </configuration>
