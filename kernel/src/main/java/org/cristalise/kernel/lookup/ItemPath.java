@@ -110,17 +110,13 @@ public class ItemPath extends Path {
     public static ItemPath getItemPath(String pathOrUUID, TransactionKey transactionKey) throws ObjectNotFoundException {
         Validate.notBlank(pathOrUUID);
 
-        ItemPath ip = null;
-
         try {
-            if (ItemPath.isUUID(pathOrUUID)) ip = Gateway.getLookup().getItemPath(pathOrUUID, transactionKey);
-            else                             ip = Gateway.getLookup().resolvePath(new DomainPath(pathOrUUID), transactionKey);
+            if (isUUID(pathOrUUID)) return Gateway.getLookup().getItemPath(pathOrUUID, transactionKey);
+            else                    return Gateway.getLookup().resolvePath(new DomainPath(pathOrUUID), transactionKey);
         }
         catch (InvalidItemPathException e) {
             throw new ObjectNotFoundException(e);
         }
-
-        return ip;
     }
 
     public byte[] getOID() {
