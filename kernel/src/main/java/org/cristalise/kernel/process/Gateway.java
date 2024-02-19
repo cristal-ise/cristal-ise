@@ -39,6 +39,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import io.vertx.core.ThreadingModel;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.CriseVertxException;
@@ -248,14 +249,14 @@ public class Gateway extends ProxyManager
      */
     static private void createServerVerticles() {
         DeploymentOptions options = new DeploymentOptions()
-                .setWorker(ItemVerticle.isWorker)
+                .setThreadingModel(ThreadingModel.VIRTUAL_THREAD)
                 .setInstances(ItemVerticle.instances);
         mVertx.deployVerticle(ItemVerticle.class, options);
 
         options.setInstances(getProperties().getInt("JobPusherVerticle.instances", 2));
 
         options.setInstances(1);
-        options.setWorker(false);
+        options.setThreadingModel(ThreadingModel.EVENT_LOOP);
         mVertx.deployVerticle(TcpBridgeVerticle.class, options);
     }
 

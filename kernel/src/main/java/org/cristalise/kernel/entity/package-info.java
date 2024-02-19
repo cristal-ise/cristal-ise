@@ -18,7 +18,7 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-@ModuleGen(groupPackage = "org.cristalise.kernel.entity", name = "item-services")
+@ModuleGen(groupPackage = "org.cristalise.kernel.entity", name = "item-services", useFutures = true)
 
 package org.cristalise.kernel.entity;
 

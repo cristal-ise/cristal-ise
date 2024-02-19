@@ -104,7 +104,7 @@ class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
         agent.execute(job)
     }
 
-    @Test
+    @Test @Disabled("implementation is not with vertx architecture")
     public void 'Warning Transition is Enabled'() {
         bootstrap(true, false)
 

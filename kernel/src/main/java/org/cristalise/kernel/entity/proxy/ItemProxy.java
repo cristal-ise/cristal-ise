@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import io.vertx.core.Context;
+import io.vertx.core.Future;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
@@ -120,7 +122,6 @@ public class ItemProxy {
 
     public Item getItem() {
         if (mItem == null) mItem = new ItemVertxEBProxy(Gateway.getVertx(), ItemVerticle.ebAddress);
-
         return mItem;
     }
 
@@ -167,23 +168,7 @@ public class ItemProxy {
     }
 
     /**
-     * 
-     * @param result
-     * @param futureResult
-     */
-    private void asyncHandleRequestAction(AsyncResult<String> result, CompletableFuture<String> futureResult) {
-        if (result.succeeded()) {
-            String returnString = result.result();
-            log.trace("handleRequestAction() - return:{}", returnString);
-            futureResult.complete(returnString);
-        }
-        else {
-            futureResult.completeExceptionally(result.cause());
-        }
-    }
-
-    /**
-     * 
+     *
      * @param itemUuid
      * @param agentUuid
      * @param stepPath
@@ -207,52 +192,57 @@ public class ItemProxy {
         log.debug("requestAction() - item:{} agent:{} stepPath:{}", this, agentUuid, stepPath);
 
         try {
-            CompletableFuture<String> futureResult = new CompletableFuture<>();
-
-            Thread thread = new Thread("requestAction-"+this) {
-                public void run() {
-                    getItem().requestAction(
-                            itemUuid,
-                            agentUuid,
-                            stepPath,
-                            transitionID,
-                            requestData,
-                            fileName,
-                            attachment,
-                            (result) -> { asyncHandleRequestAction(result, futureResult); }
-                    );
-                }
-            };
-
-            thread.start();
-
-            return futureResult.get(ItemVerticle.requestTimeout, SECONDS);
+            Future<String> future = getItem().requestAction(itemUuid, agentUuid, stepPath, transitionID, requestData, fileName, attachment);
+            return await(future);
         }
         catch (ExecutionException e) {
             log.error("requestAction() - item:{} agent:{}", this, agentUuid, e);
             throw CriseVertxException.convertFutureException(e);
         }
+        catch (CriseVertxException e) {
+            throw e;
+        }
         catch (Exception e) {
-            log.error("requestAction() - item:{} agent:{}", itemUuid, agentUuid, e);
+            log.error("requestAction() - item:{} agent:{} stepPath:{}", this, agentUuid, stepPath, e);
             throw new CannotManageException("Error while waiting for the requestAction() return value item:"+itemUuid+" agent:"+agentUuid+"", e);
         }
     }
 
     /**
-     * Executes the given Job
+     * Waits for the future to complete, and returns the result.
+     *
+     * @param future the future to wait for
+     * @return the result of the future
+     * @param <T> the class of the result
+     * @throws Exception anything that can go wrong
+     */
+    private <T> T await(Future<T> future) throws Exception {
+        if (Context.isOnVertxThread()) {
+            // We are on the Vert.x event loop thread using virtual threads, so we can block
+            return Future.await(future);
+        }
+        else {
+            // We are on a platform thread, so we need to wait asynchronously
+            CompletableFuture<T> futureResult = new CompletableFuture<>();
+
+            future.onSuccess(futureResult::complete)
+                  .onFailure(futureResult::completeExceptionally);
+
+            // blocks until the future is complete or the timeout is reached
+            return futureResult.get(ItemVerticle.requestTimeout, SECONDS);
+        }
+    }
+
+    /**
+     * Executes the given Job of this Item
      *
      * @param thisJob the Job to be executed
      * @return the result of the execution
-     * @throws AccessRightsException Agent does not the rights to execute this operation
-     * @throws PersistencyException there was a database problems during this operations
-     * @throws InvalidDataException data was invalid
-     * @throws InvalidTransitionException the Transition cannot be executed
-     * @throws ObjectNotFoundException Object not found
-     * @throws ObjectAlreadyExistsException Object already exists
-     * @throws InvalidCollectionModification Invalid collection
+     * @throws CriseVertxException if the operation failed
      */
     public String requestAction(Job thisJob) throws CriseVertxException {
         if (thisJob.getAgentPath() == null) throw new InvalidDataException("No Agent specified.");
+        if (!thisJob.getItemPath().equals(getPath())) throw new InvalidDataException("Job:"+thisJob+" is not for this Item:"+this);
 
         String outcome = thisJob.getOutcomeString();
 
@@ -331,7 +321,7 @@ public class ItemProxy {
      * @throws ObjectNotFoundException data was invalid
      */
     private List<Job> getJobsForAgent(AgentPath agentPath) throws CriseVertxException {
-        List<Job> jobBag = new ArrayList<Job>();
+        List<Job> jobBag = new ArrayList<>();
 
         // Make sure that the latest Jobs and Workflow is used for this calculation
         Gateway.getStorage().clearCache(getPath(), ClusterType.JOB);
@@ -1048,7 +1038,7 @@ public class ItemProxy {
      * Check if the data of the Item located by the ClusterStorage path is exist. This method can be used
      * in server side Script to find uncommitted changes during the active transaction.
      *
-     * @param cluster the type of the cluster
+     * @param path the type of the cluster
      * @param name the name of the content to be checked
      * @param transKey the transaction key
      * @return true if there is content false otherwise

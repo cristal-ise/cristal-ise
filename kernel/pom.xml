@@ -21,171 +21,173 @@
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.cristalise</groupId>
-        <artifactId>cristalise</artifactId>
-        <version>${revision}</version>
-    </parent>
+  <parent>
+    <groupId>org.cristalise</groupId>
+    <artifactId>cristalise</artifactId>
+    <version>${revision}</version>
+  </parent>
 
-    <artifactId>cristalise-kernel</artifactId>
-    <name>CRISTAL-iSE Kernel</name>
+  <artifactId>cristalise-kernel</artifactId>
+  <name>CRISTAL-iSE Kernel</name>
 
-    <description>Cristal-ise is a description-driven software platform originally developed to track the construction of 
-	the CMS ECAL detector of the LHC at CERN. This is its core library, known as the kernel, which manages 
-	business objects called Items. Items are entirely configured from data, called descriptions, held in other Items. 
-	Every change of a state in an Item is a consequence of an execution of an activity in that Item's lifecycle, 
-	meaning that Cristal-ise applications are completely traceable, even in their design. It also supports extensive 
-	versioning of Item description data, giving the system a high level of flexibility.</description>
+  <description>Cristal-ise is a description-driven software platform originally developed to track the construction of
+    the CMS ECAL detector of the LHC at CERN. This is its core library, known as the kernel, which manages
+    business objects called Items. Items are entirely configured from data, called descriptions, held in other Items.
+    Every change of a state in an Item is a consequence of an execution of an activity in that Item's lifecycle,
+    meaning that Cristal-ise applications are completely traceable, even in their design. It also supports extensive
+    versioning of Item description data, giving the system a high level of flexibility.
+  </description>
+  <url>https://github.com/cristal-ise/kernel</url>
+  <inceptionYear>1997</inceptionYear>
+  <licenses>
+    <license>
+      <name>GNU Library or Lesser General Public License v3 (LGPL3)</name>
+      <url>http://www.gnu.org/licenses/lgpl.html</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>Zsolt Kovács</name>
+      <email>zs.myth@gmail.com</email>
+      <organization>UWE CCCS</organization>
+      <organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
+      <roles>
+        <role>Pinky/Brain/CTO</role>
+      </roles>
+    </developer>
+  </developers>
+  <issueManagement>
+    <url>https://github.com/cristal-ise/kernel/issues</url>
+    <system>GitHub</system>
+  </issueManagement>
+  <organization>
+    <name>CRISTAL-iSE</name>
+    <url>http://cristal-ise.github.io/</url>
+  </organization>
+  <ciManagement>
+    <system>Travis</system>
+    <url>https://travis-ci.org/cristal-ise/kernel</url>
+  </ciManagement>
+  <scm>
+    <developerConnection>scm:https://github.com/cristal-ise/kernel.git</developerConnection>
     <url>https://github.com/cristal-ise/kernel</url>
-    <inceptionYear>1997</inceptionYear>
-    <licenses>
-        <license>
-            <name>GNU Library or Lesser General Public License v3 (LGPL3)</name>
-            <url>http://www.gnu.org/licenses/lgpl.html</url>
-        </license>
-    </licenses>
-    <developers>
-        <developer>
-            <name>Zsolt Kovács</name>
-            <email>zs.myth@gmail.com</email>
-            <organization>UWE CCCS</organization>
-            <organizationUrl>http://www.cccs.uwe.ac.uk/et/research/cccs</organizationUrl>
-            <roles>
-                <role>Pinky/Brain/CTO</role>
-            </roles>
-        </developer>
-    </developers>
-    <issueManagement>
-        <url>https://github.com/cristal-ise/kernel/issues</url>
-        <system>GitHub</system>
-    </issueManagement>
-    <organization>
-        <name>CRISTAL-iSE</name>
-        <url>http://cristal-ise.github.io/</url>
-    </organization>
-    <ciManagement>
-        <system>Travis</system>
-        <url>https://travis-ci.org/cristal-ise/kernel</url>
-    </ciManagement>
-    <scm>
-        <developerConnection>scm:https://github.com/cristal-ise/kernel.git</developerConnection>
-        <url>https://github.com/cristal-ise/kernel</url>
-        <tag>master</tag>
-    </scm>
-    <mailingLists>
-        <mailingList>
-            <name>User List</name>
-            <post>cristal-ise@googlegroups.com</post>
-            <archive>https://groups.google.com/d/forum/cristal-ise</archive>
-        </mailingList>
-    </mailingLists>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.deploy.skip>false</maven.deploy.skip>
-    </properties>
+    <tag>master</tag>
+  </scm>
+  <mailingLists>
+    <mailingList>
+      <name>User List</name>
+      <post>cristal-ise@googlegroups.com</post>
+      <archive>https://groups.google.com/d/forum/cristal-ise</archive>
+    </mailingList>
+  </mailingLists>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.deploy.skip>false</maven.deploy.skip>
+  </properties>
 
-    <dependencies>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-service-proxy</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-codegen</artifactId>
-            <classifier>processor</classifier>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-hazelcast</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-shell</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.vertx</groupId>
-            <artifactId>vertx-tcp-eventbus-bridge</artifactId>
-        </dependency>
+  <dependencies>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-service-proxy</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-codegen</artifactId>
+      <classifier>processor</classifier>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-hazelcast</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-shell</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-tcp-eventbus-bridge</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.mvel</groupId>
-            <artifactId>mvel2</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
+    <dependency>
+      <groupId>org.mvel</groupId>
+      <artifactId>mvel2</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
 
-        <dependency>
-            <groupId>org.jfree</groupId>
-            <artifactId>jfreesvg</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+    <dependency>
+      <groupId>org.jfree</groupId>
+      <artifactId>jfreesvg</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
 
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <targetPath>org/cristalise/kernel/utils/resources</targetPath>
-                <filtering>true</filtering>
-                <excludes>
-                    <exclude>shiro.ini</exclude>
-                    <exclude>castor.properties</exclude>
-                </excludes>
-            </resource>
-            <resource>
-                <directory>.</directory>
-                <targetPath>.</targetPath>
-                <filtering>false</filtering>
-                <includes>
-                    <include>shiro.ini</include>
-                    <include>castor.properties</include>
-                    <include>log4j.properties</include>
-                    <include>LICENSE</include>
-                </includes>
-            </resource>
-        </resources>
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <targetPath>org/cristalise/kernel/utils/resources</targetPath>
+        <filtering>true</filtering>
+        <excludes>
+          <exclude>shiro.ini</exclude>
+          <exclude>castor.properties</exclude>
+        </excludes>
+      </resource>
+      <resource>
+        <directory>.</directory>
+        <targetPath>.</targetPath>
+        <filtering>false</filtering>
+        <includes>
+          <include>shiro.ini</include>
+          <include>castor.properties</include>
+          <include>log4j.properties</include>
+          <include>LICENSE</include>
+        </includes>
+      </resource>
+    </resources>
 
-        <plugins>
-            <plugin>
-                <groupId>com.mycila</groupId>
-                <artifactId>license-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>pom.xml</exclude>
-                        <exclude>**/src/main/resources/textFiles/**</exclude>
-                        <exclude>**/src/test/resources/**</exclude>
-                        <exclude>**/src/test/data/**</exclude>
-                        <exclude>bin/**</exclude>
-                        <exclude>src/main/resources/boot/allbootitems.txt</exclude>
-                        <exclude>.flattened-pom.xml</exclude>
-                        <exclude>**/*LICENSE</exclude>
-                        <exclude>**/*README</exclude>
-                        <exclude>**/*.gpg.enc</exclude>
-                        <exclude>**/*.example</exclude>
-                        <exclude>**/*.workflow</exclude>
-                        <exclude>**/*index</exclude>
-                        <exclude>castor.properties</exclude>
-                    </excludes>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
+    <plugins>
+      <plugin>
+        <groupId>com.mycila</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <configuration>
+          <excludes>
+            <exclude>pom.xml</exclude>
+            <exclude>**/src/main/resources/textFiles/**</exclude>
+            <exclude>**/src/test/resources/**</exclude>
+            <exclude>**/src/test/data/**</exclude>
+            <exclude>bin/**</exclude>
+            <exclude>src/main/resources/boot/allbootitems.txt</exclude>
+            <exclude>.flattened-pom.xml</exclude>
+            <exclude>**/*LICENSE</exclude>
+            <exclude>**/*README</exclude>
+            <exclude>**/*.gpg.enc</exclude>
+            <exclude>**/*.example</exclude>
+            <exclude>**/*.workflow</exclude>
+            <exclude>**/*index</exclude>
+            <exclude>castor.properties</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>

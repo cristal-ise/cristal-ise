@@ -34,9 +34,12 @@ import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.PropertyUtility;
 
+import javax.annotation.concurrent.Immutable;
+
 /**
  * Extends Path to enforce SystemKey structure and support UUID form
  */
+@Immutable
 public class ItemPath extends Path {
     
     String itemName;

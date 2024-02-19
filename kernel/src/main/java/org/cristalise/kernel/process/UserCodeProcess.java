@@ -30,6 +30,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.List;
 
+import io.vertx.core.ThreadingModel;
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportRole;
 import org.cristalise.kernel.lookup.RolePath;
@@ -111,7 +112,7 @@ public class UserCodeProcess extends StandardClient {
     static public void main(String[] args) throws Exception {
         standardInitialisation(args);
 
-        DeploymentOptions options = new DeploymentOptions().setWorker(true).setInstances(4);
+        DeploymentOptions options = new DeploymentOptions().setThreadingModel(ThreadingModel.VIRTUAL_THREAD).setInstances(4);
         Gateway.getVertx().deployVerticle(UserCodeVerticle.class, options);
     }
 }

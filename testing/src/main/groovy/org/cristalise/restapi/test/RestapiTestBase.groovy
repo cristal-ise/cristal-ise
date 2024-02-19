@@ -40,6 +40,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
 
     String userUuid
     Cookie cauthCookie
+    String serverPath = '/servers/localhost'
 
     static final int STATUS_OK = 200
 
@@ -47,6 +48,8 @@ class RestapiTestBase extends KernelScenarioTestBase {
     public void init() {
         Properties props = AbstractMain.readPropertyFiles("src/main/bin/client.conf", "src/main/bin/integTest.clc", null)
         apiUri = props.get('REST.URI')
+
+        serverPath = '/servers/' + InetAddress.getLocalHost().getHostName()
     }
 
     public static String encodeString(String s) {
@@ -322,10 +325,10 @@ class RestapiTestBase extends KernelScenarioTestBase {
         return new JSONArray(responseBody)
     }
 
-    String createNewItem(String name, ContentType type) {
+    String createNewItem(String name, String itemType = 'Dummy', ContentType type) {
         def newItem = new ImportItem(name, '/restapiTests', null, 'NoWorkflow')
-        newItem.getProperties().add(new Property('Type', 'Dummy', false))
-        def serverItemUUID = resolveDomainPath('/servers/localhost')
+        newItem.getProperties().add(new Property('Type', itemType, false))
+        def serverItemUUID = resolveDomainPath(serverPath)
 
         def param = Gateway.marshaller.marshall(newItem)
         if (type == JSON) param = XML.toJSONObject(param).toString()
@@ -342,7 +345,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         def newAgent = new ImportAgent(name, pwd)
         newAgent.addRole(ADMIN_ROLE)
         def param = Gateway.marshaller.marshall(newAgent)
-        def serverItemUUID = resolveDomainPath('/servers/localhost')
+        def serverItemUUID = resolveDomainPath(serverPath)
 
         if (type == JSON) param = XML.toJSONObject(param).toString()
         executePredefStep(serverItemUUID, ImportImportAgent.class, type, param)
@@ -365,7 +368,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         def newRole = new ImportRole(name)
         newRole.jobList = false
         def param = Gateway.marshaller.marshall(newRole)
-        def serverItemUUID = resolveDomainPath('/servers/localhost')
+        def serverItemUUID = resolveDomainPath(serverPath)
 
         if (type == JSON) param = XML.toJSONObject(param).toString()
 

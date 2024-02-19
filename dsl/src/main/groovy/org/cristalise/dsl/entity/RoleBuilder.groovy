@@ -59,7 +59,9 @@ class RoleBuilder {
         List<RolePath> rolePathes = []
 
         //Creating roles does not require an Agent during bootstrap and import
-        roles.each { ImportRole newRole -> rolePathes.add((RolePath)newRole.create(null, false, null)) }
+        roles.each { ImportRole newRole ->
+            rolePathes.add((RolePath)newRole.create(null, false, null))
+        }
 
         return rolePathes
     }
