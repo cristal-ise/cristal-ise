@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
+import static org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription.instantiateCollection;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 
 import java.util.ArrayList;
@@ -54,12 +55,9 @@ import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * {@value #description}
  */
-@Slf4j
 public class UpdateCollectionsFromDescription extends PredefinedStep {
 
     public static final String description = "Updates the Collections of the Item from its description";
@@ -71,6 +69,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
     /**
      * 
      */
+    @Override @SuppressWarnings("unchecked")
     protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws  InvalidDataException,
                     InvalidCollectionModification,
@@ -90,13 +89,22 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
         ItemProxy descItem = Gateway.getProxy(new DomainPath(inputs[0]));
         String descVer  = inputs[1];
 
+        //use this 3rd parameter to update the members that cannot be calculate from the description
+        CollectionMemberList<DependencyMember> newMembers = null; //inputs[2]
+
+        if (inputs.length == 3) { //optional parameter
+            newMembers = (CollectionMemberList<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
+        }
+
+        ItemProxy descItem = Gateway.getProxy(new DomainPath(descPath)); // very likely the factory item
+
         PropertyArrayList newItemProps = new PropertyArrayList();
         List<String> currentCollNames = new ArrayList<>(Arrays.asList(Gateway.getStorage().getClusterContents(item, COLLECTION, transactionKey)));
 
         //Loop through collection desc names and create new ones
         for (String collName: descItem.getContents(COLLECTION, transactionKey)) {
             if (! currentCollNames.contains(collName)) {
-                Collection<?> newColl = CreateItemFromDescription.instantiateCollection(collName, descItem.getPath(), descVer, newItemProps, transactionKey);
+                Collection<?> newColl = instantiateCollection(collName, descItem, descVer, newItemProps, transactionKey);
 
                 if (newColl != null) Gateway.getStorage().put(item, newColl, transactionKey);
             }
@@ -109,7 +117,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
                 if (inputs.length == 3) { //optional parameter
                     //use this 3rd parameter to update the members that cannot be calculate from the description
                     @SuppressWarnings("unchecked")
-                    CollectionMemberList<DependencyMember> newMembers = 
+                    CollectionMemberList<DependencyMember> newMembers =
                         (CollectionMemberList<DependencyMember>)Gateway.getMarshaller().unmarshall(inputs[2]);
 
                     updateDependencyMembers(itemColl, newMembers);
@@ -139,7 +147,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
      * @throws ObjectNotFoundException
      * @throws InvalidCollectionModification
      */
-    private static void updateDependencyMembers(Dependency itemColl, CollectionMemberList<DependencyMember> newMembers)
+    private void updateDependencyMembers(Dependency itemColl, CollectionMemberList<DependencyMember> newMembers)
             throws ObjectNotFoundException, InvalidCollectionModification
     {
         for (DependencyMember currentMember: itemColl.getMembers().list) {
@@ -167,7 +175,7 @@ public class UpdateCollectionsFromDescription extends PredefinedStep {
      * @throws PersistencyException
      * @throws ObjectNotFoundException
      */
-    private static Dependency updateDependencyProperties(ItemPath item, ItemPath descItemPath, String descVer, String collName, TransactionKey transactionKey)
+    private Dependency updateDependencyProperties(ItemPath item, ItemPath descItemPath, String descVer, String collName, TransactionKey transactionKey)
             throws PersistencyException, ObjectNotFoundException
     {
         Map<String, Object> newCollProps = new HashMap<>(); // place holder for all properties from the factory

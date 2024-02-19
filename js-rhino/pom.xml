@@ -21,54 +21,54 @@
 
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <groupId>org.cristalise</groupId>
-        <artifactId>cristalise</artifactId>
-        <version>${revision}</version>
-    </parent>
+  <parent>
+    <groupId>org.cristalise</groupId>
+    <artifactId>cristalise</artifactId>
+    <version>${revision}</version>
+  </parent>
 
-    <artifactId>cristalise-js-rhino</artifactId>
-    <name>js-rhino</name>
-    <description>Rhino Javascript Module</description>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-    <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <targetPath>META-INF/cristal</targetPath>
-                <filtering>true</filtering>
-                <includes>
-                    <include>module.xml</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <targetPath>org/cristalise/js_rhino/resources</targetPath>
-                <excludes>
-                    <exclude>module.xml</exclude>
-                </excludes>
-            </resource>
-        </resources>
-    </build>
+  <artifactId>cristalise-js-rhino</artifactId>
+  <name>js-rhino</name>
+  <description>Rhino Javascript Module</description>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+  <build>
+    <resources>
+      <resource>
+        <directory>src/main/resources</directory>
+        <targetPath>META-INF/cristal</targetPath>
+        <filtering>true</filtering>
+        <includes>
+          <include>module.xml</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+        <targetPath>org/cristalise/js_rhino/resources</targetPath>
+        <excludes>
+          <exclude>module.xml</exclude>
+        </excludes>
+      </resource>
+    </resources>
+  </build>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.mozilla</groupId>
-            <artifactId>rhino</artifactId>
-            <version>1.7.6</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>de.christophkraemer</groupId>
-            <artifactId>rhino-script-engine</artifactId>
-            <version>1.1.1</version>
-            <scope>runtime</scope>
-        </dependency>
-    </dependencies>
+  <dependencies>
+    <dependency>
+      <groupId>org.mozilla</groupId>
+      <artifactId>rhino</artifactId>
+      <version>1.7.6</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>de.christophkraemer</groupId>
+      <artifactId>rhino-script-engine</artifactId>
+      <version>1.1.1</version>
+      <scope>runtime</scope>
+    </dependency>
+  </dependencies>
 </project>

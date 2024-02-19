@@ -29,14 +29,18 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.PropertyUtility;
 
+import javax.annotation.concurrent.Immutable;
+
 /**
  * Extends Path to enforce SystemKey structure and support UUID form
  */
+@Immutable
 public class ItemPath extends Path {
     
     String itemName;
@@ -148,7 +152,7 @@ public class ItemPath extends Path {
      */
     @Override
     public String getName() {
-        return mPath[0]; //originally it was 'return getUUID().toString()';
+        return mPath[0];
     }
 
     @Override
@@ -177,5 +181,13 @@ public class ItemPath extends Path {
         }
 
         return itemName;
+    }
+
+    public ItemProxy getProxy() throws ObjectNotFoundException {
+        return getProxy(null);
+    }
+
+    public ItemProxy getProxy(TransactionKey transactionKey) throws ObjectNotFoundException {
+        return Gateway.getProxy(this, transactionKey);
     }
 }

@@ -21,6 +21,9 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
+import static org.cristalise.kernel.persistency.outcomebuilder.GeneratedFormType.NgDynamicFormLayout;
+import static org.cristalise.kernel.persistency.outcomebuilder.GeneratedFormType.NgDynamicFormModel;
+import static org.cristalise.kernel.persistency.outcomebuilder.GeneratedFormType.NgDynamicFormTemplate;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -58,6 +61,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.persistency.outcomebuilder.GeneratedFormType;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.querying.Query;
@@ -67,6 +71,7 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.json.JSONArray;
 import org.json.XML;
 
 import com.google.common.collect.ImmutableMap;
@@ -531,6 +536,34 @@ public class ItemRoot extends ItemUtils {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Path("job/formModel/{activityPath: .*}")
+    public Response getJobFormModel(
+            @Context                    HttpHeaders headers,
+            @PathParam("uuid")          String      uuid,
+            @PathParam("activityPath")  String      actPath,
+            @QueryParam("transition")   String      transition,
+            @CookieParam(COOKIENAME)    Cookie      authCookie,
+            @Context                    UriInfo     uri)
+    {
+        return getJobForm(uuid, actPath, transition, authCookie, uri, NgDynamicFormModel);
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("job/formLayout/{activityPath: .*}")
+    public Response getJobFormLayout(
+            @Context                    HttpHeaders headers,
+            @PathParam("uuid")          String      uuid,
+            @PathParam("activityPath")  String      actPath,
+            @QueryParam("transition")   String      transition,
+            @CookieParam(COOKIENAME)    Cookie      authCookie,
+            @Context                    UriInfo     uri)
+    {
+        return getJobForm(uuid, actPath, transition, authCookie, uri, NgDynamicFormLayout);
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("job/formTemplate/{activityPath: .*}")
     public Response getJobFormTemplate(
             @Context                    HttpHeaders headers,
@@ -538,7 +571,27 @@ public class ItemRoot extends ItemUtils {
             @PathParam("activityPath")  String      actPath,
             @QueryParam("transition")   String      transition,
             @CookieParam(COOKIENAME)    Cookie      authCookie,
-            @Context                    UriInfo     uri)
+            @Context                    UriInfo     uri) 
+    {
+        return getJobForm(uuid, actPath, transition, authCookie, uri, NgDynamicFormTemplate);
+    }
+
+    /**
+     * 
+     * @param uuid
+     * @param actPath
+     * @param transition
+     * @param authCookie
+     * @param uri
+     * @return
+     */
+    private Response getJobForm(
+            String uuid, 
+            String actPath, 
+            String transition, 
+            Cookie authCookie, 
+            UriInfo uri, 
+            GeneratedFormType formType)
     {
         NewCookie cookie = checkAndCreateNewCookie(checkAuthCookie(authCookie));
         ItemProxy item = getProxy(uuid, cookie);
@@ -547,39 +600,41 @@ public class ItemRoot extends ItemUtils {
             throw new WebAppExceptionBuilder().message("Must specify activity path")
                     .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
         }
+        if (actPath.startsWith(PREDEFINED_PATH)) {
+            throw new WebAppExceptionBuilder().message("getJobFormTemplate() is unimplemented for PredefinedSteps")
+                    .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
+        }
+
+        log.debug("getJobForm() - item:{} activityPath:{} formType:{}", item, actPath, formType);
 
         try {
-            if (actPath.startsWith(PREDEFINED_PATH)) {
-                throw new WebAppExceptionBuilder().message("Unimplemented")
-                        .status(Response.Status.BAD_REQUEST).newCookie(cookie).build();
+            transition = extractAndCheckTransitionName(transition, uri);
+            AgentProxy agent = Gateway.getAgentProxy(getAgentPath(authCookie));
+
+            Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
+
+            if (thisJob == null) {
+                throw new WebAppExceptionBuilder().message("Job not found for actPath:"+actPath+" transition:"+transition)
+                        .status(Response.Status.NOT_FOUND).newCookie(cookie).build();
+            }
+            
+            CastorHashMap inputs = (CastorHashMap) thisJob.getActProps().clone();
+
+            inputs.put(Script.PARAMETER_AGENT, agent);
+            inputs.put(Script.PARAMETER_ITEM, item);
+            inputs.put(Script.PARAMETER_JOB, thisJob);
+
+            // set outcome if required
+            if (thisJob.hasOutcome()) {
+                JSONArray formTemplate = new OutcomeBuilder(thisJob.getSchema(), false).generateNgDynamicFormsJson(inputs, formType);
+                return Response.ok(formTemplate.toString()).cookie(cookie).build();
             }
             else {
-                transition = extractAndCheckTransitionName(transition, uri);
-                AgentProxy agent = Gateway.getAgentProxy(getAgentPath(authCookie));
-
-                Job thisJob = item.getJobByTransitionName(actPath, transition, agent);
-
-                if (thisJob == null) {
-                    throw new WebAppExceptionBuilder().message("Job not found for actPath:"+actPath+" transition:"+transition)
-                            .status(Response.Status.NOT_FOUND).newCookie(cookie).build();
-                }
-                
-                CastorHashMap inputs = (CastorHashMap) thisJob.getActProps().clone();
-
-                inputs.put(Script.PARAMETER_AGENT, agent);
-                inputs.put(Script.PARAMETER_ITEM, item);
-                inputs.put(Script.PARAMETER_JOB, thisJob);
-
-                // set outcome if required
-                if (thisJob.hasOutcome()) {
-                    return Response.ok(new OutcomeBuilder(thisJob.getSchema(), false).generateNgDynamicForms(inputs))
-                            .cookie(cookie).build();
-                } else {
-                    log.debug("getJobFormTemplate() - no outcome needed for job:{}", thisJob);
-                    return Response.noContent().cookie(cookie).build();
-                }
+                log.debug("getJobForm() - no outcome needed for job:{}", thisJob);
+                return Response.noContent().cookie(cookie).build();
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }

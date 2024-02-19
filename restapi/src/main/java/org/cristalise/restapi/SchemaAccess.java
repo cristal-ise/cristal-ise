@@ -44,6 +44,7 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilderException;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.json.JSONArray;
 
 @Path("/schema")
 public class SchemaAccess extends ResourceAccess {
@@ -116,7 +117,8 @@ public class SchemaAccess extends ResourceAccess {
 
         try {
             Schema schema = LocalObjectLoader.getSchema(name,version);
-            return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms()).cookie(cookie).build();
+            JSONArray form = new OutcomeBuilder(schema, false).generateNgDynamicFormsJson();
+            return Response.ok(form.toString()).cookie(cookie).build();
         }
         catch (ObjectNotFoundException | InvalidDataException | OutcomeBuilderException e) {
             throw new WebAppExceptionBuilder()

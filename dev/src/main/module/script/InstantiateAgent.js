@@ -36,8 +36,4 @@ params[1] = domPath;
 params[2] = roles;
 params[3] = pwd;
 
-try {
-    agent.execute(item, "CreateAgentFromDescription", params);
-} catch (e) {
-    throw "Could not create "+name+": "+e.message;
-}
+agent.execute(item, "CreateAgentFromDescription", params);

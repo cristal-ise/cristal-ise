@@ -34,7 +34,6 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Path;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.BuiltInItemProperties;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.storage.jooqdb.JooqHandler;
@@ -66,7 +65,7 @@ public class JooqItemHandler {
         .column(IS_PASSWORD_TEMPORARY, SQLDataType.BOOLEAN      .nullable(true))
         .column(PASSWORD,              JooqHandler.PASSWORD_TYPE.nullable(true))
         .constraints(
-                constraint("PK_"+ITEM_TABLE).primaryKey(UUID))
+                constraint("PK_"+ITEM_TABLE.getName()).primaryKey(UUID))
         .execute();
     }
 

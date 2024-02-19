@@ -59,6 +59,7 @@ import lombok.Getter;
  * @see #BulkImport_useDirectories
  * @see #ClusterStorage
  * @see #ClusterStorage_cacheSpec
+ * @see #CreateItemFromDescription_Cache_enable
  * @see #DataHelper
  * @see #Dependency_addStateMachineURN
  * @see #Dependency_addWorkflowURN
@@ -72,7 +73,6 @@ import lombok.Getter;
  * @see #ItemVerticle_ebAddress
  * @see #ItemVerticle_includeDebugInfo
  * @see #ItemVerticle_instances
- * @see #ItemVerticle_isWorker
  * @see #ItemVerticle_requestTimeoutSeconds
  * @see #Lifecycle_Sign_agentNameField
  * @see #Lifecycle_Sign_passwordField
@@ -162,6 +162,11 @@ public enum SystemProperties implements SystemPropertyOperations {
      */
     ClusterStorage_cacheSpec("ClusterStorage.cacheSpec", "expireAfterAccess = 600s, recordStats"),
     /**
+     * Enable the experimental cache in CreateItemFromDescription predefined step to speed up item creation.
+     * Default is false.
+     */
+    CreateItemFromDescription_Cache_enable("CreateItemFromDescription.Cache.enable", false),
+    /**
      * Define the java classname that implements the {@link DataHelper} interface. No default value.
      * 
      * @apiNote $Name means that it will be replaced with name of the {@link DataHelper} when 
@@ -222,10 +227,6 @@ public enum SystemProperties implements SystemPropertyOperations {
      */
     ItemVerticle_instances("ItemVerticle.instances", 8),
     /**
-     * Specifies if the ItemVerticle is a worker verticle or not. Default value is 'true'
-     */
-    ItemVerticle_isWorker("ItemVerticle.isWorker", true),
-    /**
      * The number of seconds before a request to an Item times out. Default value is 10
      */
     ItemVerticle_requestTimeoutSeconds("ItemVerticle.requestTimeoutSeconds", 10),
@@ -282,10 +283,11 @@ public enum SystemProperties implements SystemPropertyOperations {
      */
     Module_Versioning_strict("Module.Versioning.strict", false),
     /**
-     * Enable to use DOM instead of string during {@link Outcome#validate()}. Default value is 'true'.
-     * It was added to investigate strange Apache Xerces xml corruption issue.
+     * Enable to use DOM instead of string during {@link Outcome#validate()}. Default value is 'false'.
+     * It was added to investigate strange Apache Xerces xml corruption issue. Default value 'false' is 
+     * required since the migration to java 17 and the xerces dependency update on pom.xml
      */
-    Outcome_Validation_useDOM("Outcome.Validation.useDOM", true),
+    Outcome_Validation_useDOM("Outcome.Validation.useDOM", false),
     /**
      * Specifies an {@link OutcomeInitiator} implementation to use to create new empty Outcomes. 
      * Will be invoked from Job.getOutcome() for Activities with an 'OutcomeInit' property set to the given name.

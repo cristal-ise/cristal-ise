@@ -23,7 +23,6 @@ package org.cristalise.kernel.entity;
 import static org.cristalise.kernel.SystemProperties.ItemVerticle_ebAddress;
 import static org.cristalise.kernel.SystemProperties.ItemVerticle_includeDebugInfo;
 import static org.cristalise.kernel.SystemProperties.ItemVerticle_instances;
-import static org.cristalise.kernel.SystemProperties.ItemVerticle_isWorker;
 import static org.cristalise.kernel.SystemProperties.ItemVerticle_requestTimeoutSeconds;
 
 import io.vertx.core.AbstractVerticle;
@@ -35,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 public class ItemVerticle extends AbstractVerticle {
 
     public static final String  ebAddress      = ItemVerticle_ebAddress.getString();
-    public static final boolean isWorker       = ItemVerticle_isWorker.getBoolean();
     public static final int     instances      = ItemVerticle_instances.getInteger();
     public static final boolean includeDebug   = ItemVerticle_includeDebugInfo.getBoolean();
     public static final int     requestTimeout = ItemVerticle_requestTimeoutSeconds.getInteger();

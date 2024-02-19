@@ -121,17 +121,17 @@ public class ComboField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
         vals.createLOV(inputs);
 
-        JSONObject select = getCommonFieldsNgDynamicForms();
+        JSONObject select = getNgDynamicFormsCommonFields(withModel, withLayout);
 
         JSONArray options = getNgDynamicFormsOptions();
 
         if (options.length() != 0) {
             select.put("options", options);
 
-            JSONObject additional = getAdditionalConfigNgDynamicForms(select);
+            JSONObject additional = getNgDynamicFormsAdditional(select);
  
             if (vals.editable) {
                 additional.put("editable", true);

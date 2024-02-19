@@ -8,7 +8,6 @@ import static org.cristalise.restapi.RestHandler.USERNAME
 import static org.hamcrest.Matchers.*
 
 import java.nio.charset.StandardCharsets
-import java.time.LocalDateTime
 
 import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportItem
@@ -21,13 +20,11 @@ import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.property.Property
-import org.cristalise.kernel.security.BuiltInAuthc
 import org.cristalise.kernel.test.KernelScenarioTestBase
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.XML;
 import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.BeforeEach
 
 import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
@@ -43,6 +40,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
 
     String userUuid
     Cookie cauthCookie
+    String serverPath = '/servers/localhost'
 
     static final int STATUS_OK = 200
 
@@ -50,15 +48,8 @@ class RestapiTestBase extends KernelScenarioTestBase {
     public void init() {
         Properties props = AbstractMain.readPropertyFiles("src/main/bin/client.conf", "src/main/bin/integTest.clc", null)
         apiUri = props.get('REST.URI')
-    }
 
-    @BeforeEach
-    public void before() {
-        timeStamp = getNowString()
-    }
-
-    public static String getNowString() {
-        return LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")
+        serverPath = '/servers/' + InetAddress.getLocalHost().getHostName()
     }
 
     public static String encodeString(String s) {
@@ -106,7 +97,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .then()
                 .cookie('cauth')
                 .statusCode(STATUS_OK)
-                .extract().response()
+            .extract().response()
 
         log.debug('login() - response:{}', loginResp.body().asString())
 
@@ -116,7 +107,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         assert userUuid && ItemPath.isUUID(userUuid)
     }
 
-    def logout(String reason) {
+    def logout(String reason = null) {
         if (reason) {
             given()
                 .accept(JSON)
@@ -176,6 +167,32 @@ class RestapiTestBase extends KernelScenarioTestBase {
         }
     }
 
+    private String getJobForm(String urlPostFix, String uuid, String activityPath, String transition) {
+        def responseBody = given().log().all()
+            .accept(JSON)
+                .cookie(cauthCookie)
+                .queryParam('transition', transition)
+            .when()
+                .get("${apiUri}/item/$uuid/job/form${urlPostFix}/${activityPath}".toString())
+            .then()
+                .statusCode(STATUS_OK)
+            .extract().response().body().asString()
+
+        return responseBody
+    }
+
+    String getJobFormTemplate(String uuid, String activityPath, String transition) {
+        return getJobForm('Template', uuid, activityPath, transition)
+    }
+    
+    String getJobFormModel(String uuid, String activityPath, String transition) {
+        return getJobForm('Model', uuid, activityPath, transition)
+    }
+    
+    String getJobFormLayout(String uuid, String activityPath, String transition) {
+        return getJobForm('Layout', uuid, activityPath, transition)
+    }
+
     String executePredefStep(String uuid,  Class<?> predefStep, ContentType contentType = JSON, String...params) {
         def inputs = ""
         def predefStepName = predefStep.getSimpleName()
@@ -202,7 +219,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .post(apiUri+"/item/$uuid/workflow/predefined/"+predefStepName)
         .then()
             .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+        .extract().response().body().asString()
 
         return responseBody
     }
@@ -217,7 +234,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
         .then()
             .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+        .extract().response().body().asString()
     }
 
     String checkAttachment(String uuid, String schema, int version, int event) {
@@ -274,7 +291,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .post(apiUri+"/item/$uuid/scriptResult/?script=${scriptName}&version=0")
         .then()
             .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+        .extract().response().body().asString()
     }
 
     String resolveDomainPath(String path) {
@@ -288,7 +305,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .get(apiUri+"/domain/$path")
         .then()
             .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+        .extract().response().body().asString()
 
         return new JSONObject(responseBody).getString("uuid")
     }
@@ -302,15 +319,16 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .get(apiUri+"/role/$name")
         .then()
             .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+        .extract()
+            .response().body().asString()
 
         return new JSONArray(responseBody)
     }
 
-    String createNewItem(String name, ContentType type) {
+    String createNewItem(String name, String itemType = 'Dummy', ContentType type) {
         def newItem = new ImportItem(name, '/restapiTests', null, 'NoWorkflow')
-        newItem.getProperties().add(new Property('Type', 'Dummy', false))
-        def serverItemUUID = resolveDomainPath('/servers/localhost')
+        newItem.getProperties().add(new Property('Type', itemType, false))
+        def serverItemUUID = resolveDomainPath(serverPath)
 
         def param = Gateway.marshaller.marshall(newItem)
         if (type == JSON) param = XML.toJSONObject(param).toString()
@@ -327,7 +345,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         def newAgent = new ImportAgent(name, pwd)
         newAgent.addRole(ADMIN_ROLE)
         def param = Gateway.marshaller.marshall(newAgent)
-        def serverItemUUID = resolveDomainPath('/servers/localhost')
+        def serverItemUUID = resolveDomainPath(serverPath)
 
         if (type == JSON) param = XML.toJSONObject(param).toString()
         executePredefStep(serverItemUUID, ImportImportAgent.class, type, param)
@@ -350,7 +368,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         def newRole = new ImportRole(name)
         newRole.jobList = false
         def param = Gateway.marshaller.marshall(newRole)
-        def serverItemUUID = resolveDomainPath('/servers/localhost')
+        def serverItemUUID = resolveDomainPath(serverPath)
 
         if (type == JSON) param = XML.toJSONObject(param).toString()
 

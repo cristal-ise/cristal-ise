@@ -49,7 +49,6 @@ import org.jooq.DSLContext;
 import org.jooq.DataType;
 import org.jooq.Record;
 import org.jooq.SQLDialect;
-import org.jooq.exception.ConfigurationException;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -63,7 +62,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class JooqDataSourceHandler {
 
-    private static final ConcurrentHashMap<Object, Connection> connectionMap  = new ConcurrentHashMap<Object, Connection>();
+    private static final Map<Object, Connection> connectionMap = new ConcurrentHashMap<Object, Connection>();
 
     public static String     uri;
     public static String     user;

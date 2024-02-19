@@ -70,6 +70,14 @@ class DevItemDSL {
     public AgentProxy agent = null
     public DevItemCreator creator = null
 
+    private ItemProxy serverItemVar
+
+    public ItemProxy getServerItem() {
+        def serverPath = '/servers/' + InetAddress.getLocalHost().getHostName()
+        if (serverItemVar == null) serverItemVar = agent.getItem(serverPath)
+        return serverItemVar
+    }
+
     public Job getDoneJob(ItemProxy proxy, String actName) {
         log.info('getDoneJob() - proxy:{} actName:{}', proxy, actName)
         Job j = proxy.getJobByName(actName, agent)
@@ -106,7 +114,7 @@ class DevItemDSL {
 //        def resultRoles = new ArrayList<ImportRole>()
 //
 //        newRoles.each { role ->
-//            def result = agent.execute(agent.getItem('/servers/localhost'), ImportImportRole.class, agent.marshall(role))
+//            def result = agent.execute(serverItem, ImportImportRole.class, agent.marshall(role))
 //            resultRoles.add((ImportRole) Gateway.getMarshaller().unmarshall(result))
 //        }
 //
@@ -117,19 +125,19 @@ class DevItemDSL {
         def roleD = new RoleDelegate(null)
         roleD.Role(name: name, cl)
         assert roleD.roles.size() == 1
-        def result = agent.execute(agent.getItem('/servers/localhost'), ImportImportRole.class, agent.marshall(roleD.roles[0]))
+        def result = agent.execute(serverItem, ImportImportRole.class, agent.marshall(roleD.roles[0]))
         return (ImportRole) Gateway.getMarshaller().unmarshall(result)
     }
 
     public ImportAgent Agent(String name, @DelegatesTo(AgentDelegate) Closure cl) {
         def newAgent = AgentBuilder.build(name, "pwd", cl)
-        def result = agent.execute(agent.getItem('/servers/localhost'), ImportImportAgent.class, agent.marshall(newAgent))
+        def result = agent.execute(serverItem, ImportImportAgent.class, agent.marshall(newAgent))
         return (ImportAgent) Gateway.getMarshaller().unmarshall(result)
     }
 
     public ImportItem Item(Map<String, Object> attrs, @DelegatesTo(ItemDelegate) Closure cl) {
         def newItem = ItemBuilder.build(attrs, cl)
-        def result = agent.execute(agent.getItem('/servers/localhost'), ImportImportItem.class, agent.marshall(newItem))
+        def result = agent.execute(serverItem, ImportImportItem.class, agent.marshall(newItem))
 
         assert newItem.wf
         newItem.wf.initialise(newItem.itemPath, agent.getPath(), null)

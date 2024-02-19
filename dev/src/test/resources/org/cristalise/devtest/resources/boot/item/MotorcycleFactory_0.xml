@@ -30,8 +30,8 @@
   <Dependency classProps="" isDescription="true" name="ClubMember">
     <DependencyMember itemPath="/desc/PropertyDesc/devtest/ClubMember">
       <MemberProperties>
-        <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
         <KeyValuePair Key="DependencyTo" String="Motorcycles" isAbstract="false"/>
+        <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
         <KeyValuePair Key="DependencyCardinality" String="ManyToOne" isAbstract="false"/>
       </MemberProperties>
     </DependencyMember>

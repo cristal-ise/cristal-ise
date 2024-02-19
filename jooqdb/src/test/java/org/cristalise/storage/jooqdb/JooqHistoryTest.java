@@ -58,8 +58,6 @@ public class JooqHistoryTest extends StorageTestBase {
 
     @After
     public void after() throws Exception {
-        context.close();
-        
         if (dbType == MYSQL || dbType == PostgreSQL) jooq.dropTables(context);
     }
 

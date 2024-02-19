@@ -37,7 +37,6 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.routingHelpers.DataHelperUtility;
-import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
@@ -56,12 +55,6 @@ public abstract class Split extends WfVertex {
     }
 
     private boolean loopTested;
-
-    /**
-     * 
-     */
-    @Override
-    public abstract void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException;
 
     /**
      * Method addNext.
@@ -161,8 +154,8 @@ public abstract class Split extends WfVertex {
      * 
      */
     @Override
-    public void run(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
-        runNext(agent, itemPath, transactionKey);
+    public void run(TransactionKey transactionKey) throws InvalidDataException {
+        runNext(transactionKey);
     }
 
     /**
@@ -204,10 +197,12 @@ public abstract class Split extends WfVertex {
         return stringValue.split(",");
     }
 
-    protected String[] calculateNexts(ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+    protected String[] calculateNexts(TransactionKey transactionKey) throws InvalidDataException {
         String expr = (String) getBuiltInProperty(ROUTING_EXPR);
         String scriptName = (String) getBuiltInProperty(ROUTING_SCRIPT_NAME);
         Integer scriptVersion = deriveVersionNumber(getBuiltInProperty(ROUTING_SCRIPT_VERSION));
+
+        ItemPath itemPath = getWf().getItemPath();
 
         if (StringUtils.isNotBlank(expr)) {
             try {
@@ -315,7 +310,7 @@ public abstract class Split extends WfVertex {
     }
 
     @Override
-    public void runFirst(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
-        runNext(agent, itemPath, transactionKey);
+    public void runFirst(TransactionKey transactionKey) throws InvalidDataException {
+        runNext(transactionKey);
     }
 }

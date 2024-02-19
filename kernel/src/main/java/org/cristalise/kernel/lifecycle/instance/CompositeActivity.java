@@ -23,8 +23,10 @@ package org.cristalise.kernel.lifecycle.instance;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ABORTABLE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.REPEAT_WHEN;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -47,6 +49,8 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.security.BuiltInAuthc;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -268,7 +272,19 @@ public class CompositeActivity extends Activity {
         return finishTrans;
     }
 
-    private void autoStart(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+    private AgentPath getSystemAgent(TransactionKey transactionKey) throws InvalidDataException {
+        try {
+            return (AgentPath) BuiltInAuthc.SYSTEM_AGENT.getPath(transactionKey);
+        }
+        catch (ObjectNotFoundException e) {
+            throw new InvalidDataException("CompAct:"+getName(), e);
+        }
+    }
+
+    private void autoStart(TransactionKey transactionKey) throws InvalidDataException {
+        ItemPath itemPath = getWf().getItemPath();
+        AgentPath agent = getSystemAgent(transactionKey);
+
         Transition autoStart = getStartTransition(agent);
 
         if (autoStart != null) {
@@ -289,7 +305,10 @@ public class CompositeActivity extends Activity {
         }
     }
 
-    private void autoFinish(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+    private void autoFinish(TransactionKey transactionKey) throws InvalidDataException {
+        ItemPath itemPath = getWf().getItemPath();
+        AgentPath agent = getSystemAgent(transactionKey);
+
         Transition trans = getFinishTransition(agent);
 
         if (trans != null) {
@@ -321,13 +340,13 @@ public class CompositeActivity extends Activity {
     }
 
     @Override
-    public void run(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+    public void run(TransactionKey transactionKey) throws InvalidDataException {
         log.trace("run() - {}", this);
 
-        super.run(agent, itemPath, transactionKey);
+        super.run(transactionKey);
 
-        if (isStartable()) autoStart(agent, itemPath, transactionKey);
-        if (isFinishable()) autoFinish(agent, itemPath, transactionKey);
+        if (isStartable()) autoStart(transactionKey);
+        if (isFinishable()) autoFinish(transactionKey);
     }
 
     /**
@@ -396,11 +415,11 @@ public class CompositeActivity extends Activity {
      * 
      */
     @Override
-    public void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException  {
+    public void runNext(TransactionKey transactionKey) throws InvalidDataException  {
         log.trace("runNext() - {}", this);
 
-        if (!isFinished()) autoFinish(agent, itemPath, transactionKey);
-        super.runNext(agent, itemPath, transactionKey);
+        if (!isFinished()) autoFinish(transactionKey);
+        super.runNext(transactionKey);
     }
 
     /**
@@ -555,7 +574,7 @@ public class CompositeActivity extends Activity {
         if (initChldren) {
             Vertex startVertex = getChildrenGraphModel().getStartVertex();
             if ( startVertex != null) {
-                ((WfVertex)startVertex).runFirst(agent, itemPath, transactionKey);
+                ((WfVertex)startVertex).runFirst(transactionKey);
             }
             else {
                 log.debug("request({}) has NO start vertex", getPath());

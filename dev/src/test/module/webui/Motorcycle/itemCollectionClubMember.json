@@ -13,6 +13,12 @@
     "width" : 100
   }, {
     "source" : "itemField",
+    "field" : "Name",
+    "caption" : "Name",
+    "align" : "left",
+    "width" : 100
+  }, {
+    "source" : "itemField",
     "field" : "RegistrationPlate",
     "caption" : "Registration Plate",
     "align" : "left",

@@ -183,7 +183,7 @@ public class JooqOutcomeHandler extends JooqHandler {
         .column(EVENT_ID,       ID_TYPE     .nullable(false))
         .column(xmlField)
         .constraints(
-                constraint("PK_"+OUTCOME_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
+                constraint("PK_"+OUTCOME_TABLE.getName()).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
         .execute();
     }
 

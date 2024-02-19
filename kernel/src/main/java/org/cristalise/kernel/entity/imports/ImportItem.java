@@ -21,7 +21,6 @@
 package org.cristalise.kernel.entity.imports;
 
 import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
-import static org.cristalise.kernel.property.BuiltInItemProperties.CREATOR;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 
@@ -319,7 +318,6 @@ public class ImportItem extends ModuleImport implements DescriptionObject {
      */
     protected PropertyArrayList createItemProperties() {
         if (!properties.contains(NAME.getName()))    properties.put(new Property(NAME, name, true));
-        if (!properties.contains(CREATOR.getName())) properties.put(new Property(CREATOR, "bootstrap", true));
 
         return properties;
     }

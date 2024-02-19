@@ -289,7 +289,7 @@ public class Activity extends WfVertex {
         boolean breakPoint = (Boolean) getBuiltInProperty(BREAKPOINT, Boolean.FALSE);
 
         if (newState.isFinished() && !oldState.isFinished() && !breakPoint) {
-            runNext(agent, itemPath, transactionKey);
+            runNext(transactionKey);
         }
         else {
             DateUtility.setToNow(mStateDate);
@@ -476,21 +476,21 @@ public class Activity extends WfVertex {
      * sets the next activity available if possible
      */
     @Override
-    public void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+    public void runNext(TransactionKey transactionKey) throws InvalidDataException {
         log.trace("runNext() - {}", this);
         setActive(false);
 
         Vertex[] outVertices = getOutGraphables();
 
         //run next vertex if any, so state/status of activities is updated
-        if (outVertices.length > 0) ((WfVertex)outVertices[0]).run(agent, itemPath, transactionKey);
+        if (outVertices.length > 0) ((WfVertex)outVertices[0]).run(transactionKey);
 
         //parent is never null, because we do not call runNext() for the top level workflow (see bellow)
         CompositeActivity parent = getParentCA();
 
         //check if the CA can be finished or not
         if (parent.isFinishable(findLastVertex())) {
-            parent.runNext(agent, itemPath, transactionKey);
+            parent.runNext(transactionKey);
         }
     }
 
@@ -533,11 +533,11 @@ public class Activity extends WfVertex {
      * called by precedent Activity runNext() for setting the activity able to be executed
      */
     @Override
-    public void run(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+    public void run(TransactionKey transactionKey) throws InvalidDataException {
         log.trace("run() - {}", this);
 
         if (isFinished()) {
-            runNext(agent, itemPath, transactionKey);
+            runNext(transactionKey);
         }
         else {
             if (!getActive()) setActive(true);
@@ -551,9 +551,9 @@ public class Activity extends WfVertex {
      * composite activity (when it is the first one of the (sub)process
      */
     @Override
-    public void runFirst(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+    public void runFirst(TransactionKey transactionKey) throws InvalidDataException {
         log.trace("runFirst() - {}", this);
-        run(agent, itemPath, transactionKey);
+        run(transactionKey);
     }
 
     /**

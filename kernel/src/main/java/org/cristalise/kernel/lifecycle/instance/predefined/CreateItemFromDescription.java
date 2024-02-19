@@ -24,12 +24,14 @@ import static org.apache.commons.lang3.StringUtils.equalsAny;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.leftPad;
+import static org.cristalise.kernel.SystemProperties.CreateItemFromDescription_Cache_enable;
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE;
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 import static org.cristalise.kernel.process.Gateway.getMarshaller;
-import static org.cristalise.kernel.property.BuiltInItemProperties.CREATOR;
+import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
+import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.property.BuiltInItemProperties.ID_PREFIX;
 import static org.cristalise.kernel.property.BuiltInItemProperties.LAST_COUNT;
 import static org.cristalise.kernel.property.BuiltInItemProperties.LEFT_PAD_SIZE;
@@ -37,8 +39,12 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.PropertyUtility.getPropertyDescriptionOutcome;
 import static org.cristalise.kernel.property.PropertyUtility.getPropertyValue;
 import static org.cristalise.kernel.property.PropertyUtility.writeProperty;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionArrayList;
@@ -52,6 +58,8 @@ import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.Job;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
@@ -75,10 +83,18 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.exolab.castor.mapping.MappingException;
 import org.exolab.castor.xml.MarshalException;
 import org.exolab.castor.xml.ValidationException;
+
+import com.google.common.primitives.Ints;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CreateItemFromDescription extends PredefinedStep {
+
+    /**
+     * Cache to speed up the creation of same type of Items. It is a very crude solution, requires refinement
+     */
+    private Map<String, String> cache = new ConcurrentHashMap<>();
 
     /**
      * Use this constant to enforce the factory to generate the name
@@ -91,6 +107,35 @@ public class CreateItemFromDescription extends PredefinedStep {
 
     public CreateItemFromDescription() {
         this("Create a new item using this item as its description");
+    }
+
+    private void addToCache(String key, Object obj) {
+        try {
+            if (CreateItemFromDescription_Cache_enable.getBoolean()) {
+                String xml = Gateway.getMarshaller().marshall(obj);
+                cache.put(key, xml);
+            }
+        }
+        catch (InvalidDataException e) {
+            log.warn("getFromCache() - key:{}", key, e);
+        }
+    }
+
+    private Object getFromCache(String key) {
+        String xml = cache.get(key);
+
+        if (xml != null) {
+            log.trace("getFromCache() - found:{}", key);
+
+            try {
+                return Gateway.getMarshaller().unmarshall(xml);
+            }
+            catch (InvalidDataException e) {
+                log.warn("getFromCache() - key:{}", key, e);
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -109,7 +154,7 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @throws PersistencyException
      */
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath descItemPath, int transitionID, String requestData, TransactionKey transactionKey)
+    protected String runActivityLogic(AgentPath agentPath, ItemPath descItemPath, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException,
                    ObjectNotFoundException,
                    ObjectAlreadyExistsException,
@@ -119,7 +164,10 @@ public class CreateItemFromDescription extends PredefinedStep {
     {
         String[] inputs = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), descItemPath, (Object)inputs);
+        ItemProxy descItem = descItemPath.getProxy(transactionKey);
+        AgentProxy agent = agentPath.getProxy(transactionKey);
+
+        log.debug("Called by {} on {} with parameters {}", agent, descItem, (Object)inputs);
 
         String            newName   = getItemName(descItemPath, inputs[0], transactionKey);
         String            domPath   = inputs[1];
@@ -139,7 +187,7 @@ public class CreateItemFromDescription extends PredefinedStep {
 
         Gateway.getLookupManager().add(newItemPath, transactionKey);
 
-        initialiseItem(newItemPath, agent, descItemPath, initProps, outcome, newName, descVer, context, newItemPath, transactionKey);
+        initialiseItem(newItemPath, agent, descItem, initProps, outcome, newName, descVer, context, newItemPath, transactionKey);
 
         // in case of generated name send it back with the update requestData
         inputs[0] = newName;
@@ -196,15 +244,16 @@ public class CreateItemFromDescription extends PredefinedStep {
 
     /**
      * 
+     * @param newItem
      * @param agent
-     * @param descItemPath
-     * @param transactionKey
-     * @param input
+     * @param descItem
+     * @param initProps
+     * @param outcome
      * @param newName
      * @param descVer
      * @param context
      * @param newItemPath
-     * @param newItem
+     * @param transactionKey
      * @throws ObjectCannotBeUpdated
      * @throws CannotManageException
      * @throws InvalidDataException
@@ -213,8 +262,8 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @throws ObjectNotFoundException
      */
     protected void initialiseItem(ItemPath          newItem, 
-                                  AgentPath         agent, 
-                                  ItemPath          descItemPath, 
+                                  AgentProxy        agent,
+                                  ItemProxy         descItem,
                                   PropertyArrayList initProps,
                                   String            outcome,
                                   String            newName, 
@@ -234,12 +283,12 @@ public class CreateItemFromDescription extends PredefinedStep {
         log.info("initialiseItem() - Initializing Item:" + newName);
 
         try {
-            PropertyArrayList   newProps     = instantiateProperties (descItemPath, descVer, initProps, newName, agent, transactionKey);
-            CollectionArrayList newColls     = instantiateCollections(descItemPath, descVer, newProps, transactionKey);
-            CompositeActivity   newWorkflow  = instantiateWorkflow   (descItemPath, descVer, transactionKey);
-            Viewpoint           newViewpoint = instantiateViewpoint  (descItemPath, descVer, transactionKey);
+            PropertyArrayList   newProps     = instantiateProperties (descItem, descVer, initProps, newName, transactionKey);
+            CollectionArrayList newColls     = instantiateCollections(descItem, descVer, newProps, transactionKey);
+            CompositeActivity   newWorkflow  = instantiateWorkflow   (descItem, descVer, transactionKey);
+            Viewpoint           newViewpoint = instantiateViewpoint  (descItem, descVer, transactionKey);
 
-            storeItem(agent, newItem, newProps, newColls, newWorkflow, newViewpoint, outcome, transactionKey);
+            storeItem(agent.getPath(), newItem, newProps, newColls, newWorkflow, newViewpoint, outcome, transactionKey);
         }
         catch (InvalidDataException | ObjectNotFoundException | PersistencyException e) {
             if (log.isDebugEnabled()) log.error("initialiseItem()", e);
@@ -248,7 +297,7 @@ public class CreateItemFromDescription extends PredefinedStep {
         }
 
         // add its domain path
-        log.info("Creating " + context);
+        log.debug("initialiseItem() - Creating " + context);
         context.setItemPath(newItemPath);
         Gateway.getLookupManager().add(context, transactionKey);
     }
@@ -265,12 +314,21 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    protected PropertyArrayList instantiateProperties(ItemPath descItemPath, String descVer, PropertyArrayList initProps, String newName, AgentPath agent, TransactionKey transactionKey)
+    protected PropertyArrayList instantiateProperties(ItemProxy descItem, String descVer, PropertyArrayList initProps, String newName, TransactionKey transactionKey)
             throws ObjectNotFoundException, InvalidDataException
     {
-        // copy properties -- intend to create from propdesc
-        PropertyDescriptionList pdList = getPropertyDescriptionOutcome(descItemPath, descVer, transactionKey);
-        PropertyArrayList       props  = pdList.instantiate(initProps);
+        String  type  = descItem.getType(transactionKey);
+        String cacheKey = PROPERTY + "/" + type + ':' + descVer;
+
+        PropertyArrayList props  = (PropertyArrayList) getFromCache(cacheKey);
+
+        if (props == null) {
+            // copy properties -- intend to create from propdesc
+            PropertyDescriptionList pdList = getPropertyDescriptionOutcome(descItem.getPath(), descVer, transactionKey);
+            props  = pdList.instantiate(initProps);
+
+            addToCache(cacheKey, props);
+        }
 
         // set Name prop or create if not present
         boolean foundName = false;
@@ -283,7 +341,6 @@ public class CreateItemFromDescription extends PredefinedStep {
         }
 
         if (!foundName) props.list.add(new Property(NAME, newName, true));
-        props.list.add(new Property(CREATOR, agent.getAgentName(transactionKey), false));
 
         return props;
     }
@@ -299,14 +356,12 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @throws InvalidDataException
      * @throws PersistencyException
      */
-    public static CompositeActivity instantiateWorkflow(ItemPath descItemPath, String descVer, TransactionKey transactionKey)
+    public static CompositeActivity instantiateWorkflow(ItemProxy descItem, String descVer, TransactionKey transactionKey)
             throws ObjectNotFoundException, InvalidDataException, PersistencyException
     {
-        @SuppressWarnings("unchecked")
-        Collection<? extends CollectionMember> thisCol = (Collection<? extends CollectionMember>)
-                    Gateway.getStorage().get(descItemPath, COLLECTION + "/" + WORKFLOW + "/" + descVer, transactionKey);
+        Collection<?> wfCol = descItem.getCollection(WORKFLOW, Ints.tryParse(descVer), transactionKey);
 
-        CollectionMember wfMember  = thisCol.getMembers().list.get(0);
+        CollectionMember wfMember  = wfCol.getMembers().list.get(0);
         String           wfDefName = wfMember.resolveItem(transactionKey).getName(transactionKey);
         Object           wfVerObj  = wfMember.getProperties().getBuiltInProperty(VERSION);
 
@@ -316,12 +371,20 @@ public class CreateItemFromDescription extends PredefinedStep {
 
         try {
             Integer wfDefVer = Integer.parseInt(wfVerObj.toString());
-
             if (wfDefName == null) throw new InvalidDataException("No workflow given or defined");
 
-            // load workflow def
-            CompositeActivityDef wfDef = (CompositeActivityDef) LocalObjectLoader.getActDef(wfDefName, wfDefVer, transactionKey);
-            return (CompositeActivity) wfDef.instantiate(transactionKey);
+            String cacheKey = LIFECYCLE + "/" + wfDefName + ':' + wfDefVer;
+            CompositeActivity ca = (CompositeActivity) getFromCache(cacheKey);
+
+            if (ca == null) {
+                // load workflow def
+                CompositeActivityDef wfDef = (CompositeActivityDef) LocalObjectLoader.getActDef(wfDefName, wfDefVer, transactionKey);
+                ca = (CompositeActivity) wfDef.instantiate(transactionKey);
+
+                addToCache(cacheKey, ca);
+            }
+
+            return ca;
         }
         catch (NumberFormatException ex) {
             throw new InvalidDataException("Invalid workflow version number: " + wfVerObj.toString());
@@ -343,16 +406,29 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @throws PersistencyException
      * @throws InvalidDataException
      */
-    protected CollectionArrayList instantiateCollections(ItemPath descItemPath, String descVer, PropertyArrayList newProps , TransactionKey transactionKey)
+    protected CollectionArrayList instantiateCollections(ItemProxy descItem, String descVer, PropertyArrayList newProps , TransactionKey transactionKey)
             throws ObjectNotFoundException, PersistencyException, InvalidDataException
     {
         // loop through collections, collecting instantiated descriptions and finding the default workflow def
         CollectionArrayList colls = new CollectionArrayList();
-        String[] collNames = Gateway.getStorage().getClusterContents(descItemPath, COLLECTION, transactionKey);
+
+        String[] collNames = descItem.getContents(COLLECTION, transactionKey);
 
         for (String collName : collNames) {
-            Collection<?> newColl = instantiateCollection(collName, descItemPath, descVer, newProps, transactionKey);
-            if (newColl != null) colls.put(newColl);
+            String cacheKey = COLLECTION + "/" + collName + ':'+descVer;
+            Collection<?> aColl  = (Collection<?>) getFromCache(cacheKey);
+
+            if (aColl == null) {
+                Collection<?> newColl = instantiateCollection(collName, descItem, descVer, newProps, transactionKey);
+
+                if (newColl != null) {
+                    colls.put(newColl);
+                    addToCache(cacheKey, newColl);
+                }
+            }
+            else {
+                colls.put(aColl);
+            }
         }
         return colls;
     }
@@ -369,22 +445,20 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    public static Collection<?> instantiateCollection(String collName, ItemPath descItemPath, String descVer, PropertyArrayList newProps, TransactionKey transactionKey) 
+    public static Collection<?> instantiateCollection(String collName, ItemProxy descItem, String descVer, PropertyArrayList newProps, TransactionKey transactionKey)
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
-        @SuppressWarnings("unchecked")
-        Collection<? extends CollectionMember> collOfDesc = (Collection<? extends CollectionMember>)
-                Gateway.getStorage().get(descItemPath, COLLECTION + "/" + collName + "/" + descVer, transactionKey);
+        Collection<?> collOfDesc = descItem.getCollection(collName, Ints.tryParse(descVer), transactionKey);
 
         Collection<?> newColl = null;
 
         if (collOfDesc instanceof CollectionDescription) {
-            log.info("Instantiating CollectionDescription:"+ collName);
+            log.debug("instantiateCollection() - Instantiating CollectionDescription:"+ collName);
             CollectionDescription<?> collDesc = (CollectionDescription<?>) collOfDesc;
             newColl = collDesc.newInstance(transactionKey);
         }
         else if(collOfDesc instanceof Dependency) {
-            log.info("Instantiating Dependency:"+ collName);
+            log.debug("instantiateCollection() - Instantiating Dependency:"+ collName);
             ((Dependency) collOfDesc).addToItemProperties(newProps, transactionKey);
         }
         else {
@@ -404,16 +478,13 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @throws InvalidDataException
      * @throws PersistencyException
      */
-    protected Viewpoint instantiateViewpoint(ItemPath descItemPath, String descVer, TransactionKey transactionKey) 
+    protected Viewpoint instantiateViewpoint(ItemProxy descItem, String descVer, TransactionKey transactionKey)
             throws ObjectNotFoundException, InvalidDataException, PersistencyException
     {
-        String collPath = COLLECTION + "/" + SCHEMA_INITIALISE;
 
-        if (Gateway.getStorage().getClusterContents(descItemPath, collPath, transactionKey).length == 0) return null;
+        if (descItem.getContents(COLLECTION + "/" + SCHEMA_INITIALISE, transactionKey).length == 0) return null;
 
-        @SuppressWarnings("unchecked")
-        Collection<? extends CollectionMember> thisCol = (Collection<? extends CollectionMember>)
-                    Gateway.getStorage().get(descItemPath, collPath + "/" + descVer, transactionKey);
+        Collection<?> thisCol = descItem.getCollection(SCHEMA_INITIALISE, Ints.tryParse(descVer), transactionKey);
 
         CollectionMember schemaMember = thisCol.getMembers().list.get(0);
         String           schemaName   = schemaMember.resolveItem(transactionKey).getName();

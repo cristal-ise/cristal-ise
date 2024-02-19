@@ -44,7 +44,7 @@ class PropertyDescriptionBuilderSpecs extends Specification implements CristalTe
 
         then:
         propDescList
-        propDescList.list.size == 1
+        propDescList.list.size() == 1
         propDescList.list[0]
         propDescList.list[0].name == "Name"
         propDescList.list[0].isMutable
@@ -62,7 +62,7 @@ class PropertyDescriptionBuilderSpecs extends Specification implements CristalTe
 
         then:
         propDescList
-        propDescList.list.size == 2
+        propDescList.list.size() == 2
         propDescList.list[0].name == "Name"
         propDescList.list[1].name == "Type"
         propDescList.list[1].isMutable == false

@@ -1,12 +1,27 @@
 {
   "column" : [ {
     "field" : "Name",
-    "caption" : "Name"
+    "caption" : "Name",
+    "align" : "left",
+    "width" : 100
   }, {
     "field" : "State",
-    "caption" : "State"
+    "caption" : "State",
+    "align" : "left",
+    "width" : 100
+  }, {
+    "field" : "Name",
+    "caption" : "Name",
+    "align" : "left",
+    "width" : 100
   }, {
     "field" : "RegistrationPlate",
-    "caption" : "Registration Plate"
-  } ]
+    "caption" : "Registration Plate",
+    "align" : "left",
+    "width" : 100
+  } ],
+  "sort" : {
+    "field" : "Name",
+    "order" : "asc"
+  }
 }

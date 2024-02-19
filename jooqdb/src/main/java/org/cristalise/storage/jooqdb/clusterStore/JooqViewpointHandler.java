@@ -134,7 +134,7 @@ public class JooqViewpointHandler extends JooqHandler {
         .column(SCHEMA_VERSION, VERSION_TYPE.nullable(true))
         .column(EVENT_ID,       ID_TYPE.nullable(true))
         .constraints(
-                constraint("PK_"+VIEWPOINT_TABLE).primaryKey(UUID, SCHEMA_NAME, NAME))
+                constraint("PK_"+VIEWPOINT_TABLE.getName()).primaryKey(UUID, SCHEMA_NAME, NAME))
         .execute();
     }
 

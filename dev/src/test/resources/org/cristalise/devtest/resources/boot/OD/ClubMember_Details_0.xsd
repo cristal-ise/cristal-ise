@@ -2,9 +2,33 @@
 <xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
   <xs:element name='ClubMember_Details'>
     <xs:complexType>
-      <xs:all minOccurs='0'>
+      <xs:sequence>
         <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
-        <xs:element name='Email' type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='Email' minOccurs='1' maxOccurs='1'>
+          <xs:simpleType>
+            <xs:restriction base='xs:string'>
+              <xs:pattern value='[^@]+@[^\.]+\..+' />
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element name='FavoriteCar' type='xs:string' minOccurs='0' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <reference>
+                <itemType>Car</itemType>
+              </reference>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name='FavoriteMotorcycle' type='xs:string' minOccurs='0' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <reference>
+                <itemType>Motorcycle</itemType>
+              </reference>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
         <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
           <xs:annotation>
             <xs:appinfo>
@@ -15,7 +39,7 @@
             </xs:appinfo>
           </xs:annotation>
         </xs:element>
-      </xs:all>
+      </xs:sequence>
     </xs:complexType>
   </xs:element>
 </xs:schema>

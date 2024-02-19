@@ -1,0 +1,33 @@
+version: "3"
+name: integtest
+
+services:
+  postgres:
+    image: postgres:16
+    network_mode: host
+    volumes:
+      - $TRAVIS_BUILD_DIR/testing/src/main/docker/database:/var/lib/postgresql/data:rw
+    environment:
+      - POSTGRES_DB=integtest
+      - POSTGRES_PASSWORD=cristal
+
+  module:
+    image: cristalise/testing:6.0.0-SNAPSHOT
+    network_mode: host
+    depends_on:
+      - postgres
+    volumes:
+      - $TRAVIS_BUILD_DIR/testing/src/main/config:/app/config
+      - $TRAVIS_BUILD_DIR/testing/src/main/docker/log:/app/log
+      - $TRAVIS_BUILD_DIR/testing/src/main/docker/data:/app/data
+
+  restapi:
+    image: cristalise/restapi:6.0.0-SNAPSHOT
+    network_mode: host
+    depends_on:
+      - module
+    restart: always
+    volumes:
+      - $TRAVIS_BUILD_DIR/testing/src/main/config:/app/config
+      - $TRAVIS_BUILD_DIR/testing/src/main/docker/log:/app/log
+      - $TRAVIS_BUILD_DIR/testing/src/main/docker/data:/app/data

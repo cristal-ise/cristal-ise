@@ -41,10 +41,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 import org.cristalise.kernel.common.CriseVertxException;
-import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
-import org.jooq.DSLContext;
-import org.jooq.exception.DataAccessException;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -141,11 +137,8 @@ public class ScriptAccess extends ResourceAccess {
      * @return
      */
     private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie) {
-        try (DSLContext context = JooqDataSourceHandler.retrieveContext(null)) {
-            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, ImmutableMap.of("dsl", context)).cookie(cookie).build();
-        }
-        catch (DataAccessException | PersistencyException e) {
-            throw new WebAppExceptionBuilder("Error connecting to database, please contact support", e, Response.Status.NOT_FOUND, cookie).build();
+        try {
+            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, ImmutableMap.of()).cookie(cookie).build();
         }
         catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();

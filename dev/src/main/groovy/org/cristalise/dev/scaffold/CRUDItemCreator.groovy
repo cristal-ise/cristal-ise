@@ -20,22 +20,27 @@
  */
 package org.cristalise.dev.scaffold
 
+import static org.atteo.evo.inflector.English.plural
 import static org.cristalise.dev.dsl.DevXMLUtility.recordToXML
 import static org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode.*
 import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION
 import static org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription.FACTORY_GENERATED_NAME
 
+import org.atteo.evo.inflector.English
 import org.cristalise.dev.dsl.DevXMLUtility
 import org.cristalise.dev.utils.CrudFactoryHelper
+import org.cristalise.dev.utils.PredefinedStepsOutcomeBuilder
 import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.dsl.csv.TabularGroovyParserBuilder
 import org.cristalise.kernel.collection.DependencyMember
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.common.ObjectAlreadyExistsException
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.Erase
 import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.persistency.outcome.Schema
 import org.cristalise.kernel.persistency.outcomebuilder.Field
@@ -44,6 +49,7 @@ import org.cristalise.kernel.process.AbstractMain
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.StandardClient
 import org.cristalise.kernel.utils.LocalObjectLoader
+import org.json.JSONArray
 
 import groovy.cli.picocli.CliBuilder
 import groovy.transform.CompileDynamic
@@ -59,8 +65,7 @@ import groovy.util.logging.Slf4j
  *</pre>
  * {@link org.cristalise.dev.scaffold.CRUDItemCreator.UpdateMode}
  */
-@CompileStatic
-@Slf4j
+@CompileStatic @Slf4j
 class CRUDItemCreator extends StandardClient {
 
     /**
@@ -102,34 +107,6 @@ class CRUDItemCreator extends StandardClient {
     /**
      *
      * @param factory
-     * @return
-     */
-    protected static Schema getUpdateSchema(ItemProxy factory) {
-        String schemaName = null
-        Integer schemaVersion = null
-
-        if (factory.checkCollection(SCHEMA_INITIALISE)) {
-            def initSchemaCollection = factory.getCollection(SCHEMA_INITIALISE)
-            DependencyMember member = (DependencyMember) initSchemaCollection.getMembers().list[0]
-
-            schemaName = member.getChildUUID()
-            def initSchemaVersion = member.getProperties().getBuiltInProperty(VERSION)
-
-            if (initSchemaVersion instanceof String) schemaVersion = Integer.parseInt(initSchemaVersion)
-            else                                     schemaVersion = (Integer)initSchemaVersion
-        }
-        else {
-            def nameAndVersion = factory.getProperty('UpdateSchema').split(':')
-            schemaName = nameAndVersion[0]
-            schemaVersion = Integer.parseInt(nameAndVersion[1])
-        }
-
-        return LocalObjectLoader.getSchema(schemaName, schemaVersion)
-    }
-
-    /**
-     *
-     * @param factory
      * @param itemRoot
      * @param itemName
      * @return
@@ -155,44 +132,6 @@ class CRUDItemCreator extends StandardClient {
     }
 
     /**
-     * Uses the given schema to search the record for fields containing Item names and converts them to UUID string.
-     * 
-     * @param record the list of fields to be processed
-     * @param schema containing the meta data to find fields and the referenced Item types
-     */
-    private void convertItemNamesToUuid(Map record, Schema schema) {
-        def builder = new OutcomeBuilder(schema)
-
-        record.each { fieldName, fieldValue ->
-            def field = (Field)builder.findChildStructure((String)fieldName)
-            StringBuffer newValue = new StringBuffer()
-
-            String referencedItemType = field?.getAppInfoNodeElementValue('reference', 'itemType')
-
-            if (referencedItemType) {
-                Boolean isMultiple = field.getAppInfoNodeElementValue('dynamicForms', 'multiple') as Boolean
-
-                if (isMultiple) {
-                    newValue.append('[')
-                    fieldValue.toString().split(',').each { value ->
-                        if (newValue.toString() != '[') newValue.append(',')
-                        def referencedItem = agent.getItem("$moduleNs/${referencedItemType}s/$value")
-                        newValue.append(referencedItem.getUuid())
-                    }
-                    newValue.append(']')
-                }
-                else {
-                    def referencedItem = agent.getItem("$moduleNs/${referencedItemType}s/$fieldValue")
-                    newValue.append(referencedItem.getUuid())
-                }
-
-                log.debug('convertItemNamesToUuid() - field:{} replacing value {} with {}', fieldName, fieldValue, newValue)
-                record[fieldName] = newValue.toString()
-            }
-        }
-    }
-
-    /**
      *
      * @param newItem
      * @param itemRoot
@@ -200,29 +139,37 @@ class CRUDItemCreator extends StandardClient {
      * @param updateSchema
      * @param record
      */
-    protected void updateItem(ItemProxy newItem, Schema updateSchema, Map record) {
-        def itemUpdateJob = newItem.getJobByName('Update', agent)
-        assert itemUpdateJob, "Cannot get Job for Activity 'Update' of Item '$newItem'"
-
+    public void updateItem(ItemProxy newItem, Schema updateSchema, Map<String, Object> record) {
         Outcome outcome = null
 
         if (record.containsKey('outcome') && (record.outcome instanceof Outcome)) {
             outcome = (Outcome)record.outcome
         }
         else {
-            convertItemNamesToUuid(record, updateSchema)
-            outcome = new Outcome(DevXMLUtility.recordToXML(updateSchema.getName(), record), updateSchema)
+            outcome = new Outcome(DevXMLUtility.recordToXML(updateSchema.name, record), updateSchema)
+
+            def predefStepOBuilder = new PredefinedStepsOutcomeBuilder(newItem, outcome, updateSchema)
+            predefStepOBuilder.updateOutcomeWithAddMembersToCollection(record, moduleNs)
         }
 
-        itemUpdateJob.setOutcome(outcome)
-        agent.execute(itemUpdateJob)
-
-        log.info('updateItem() - updated:{}', newItem)
-
-        //Checks viewpoint of Update outcome
-        newItem.getViewpoint(updateSchema.getName(), 'last')
+        updateItem(newItem, outcome)
     }
 
+    /**
+     * 
+     * @param newItem
+     * @param outcome
+     */
+    public void updateItem(ItemProxy newItem, Outcome outcome) {
+        def updateJob = newItem.getJobByName('Update', agent)
+        assert updateJob, "Cannot get Job for Activity 'Update' of Item '$newItem'"
+
+        updateJob.setOutcome(outcome)
+        agent.execute(updateJob)
+
+        log.info('updateItem() - DONE item:{}', newItem)
+    }
+        
     /**
      * 
      * @param record
@@ -230,12 +177,12 @@ class CRUDItemCreator extends StandardClient {
      * @param eraseOrWhat
      * @return
      */
-    public ItemProxy createItemWithConstructor(Map record, String factoryPath) {
+    public ItemProxy createItemWithConstructor(Map<String, Object> record, String factoryPath) {
         ItemProxy factory = agent.getItem(factoryPath)
         String itemRoot = CrudFactoryHelper.getDomainRoot(factory)
         String subFolder = record.SubFolder // can be null
         String itemName = record.Name ?: FACTORY_GENERATED_NAME
-        Schema updateSchema = getUpdateSchema(factory)
+        Schema updateSchema = factory.getUpdateSchema()
 
         ItemProxy item = null
 
@@ -257,7 +204,8 @@ class CRUDItemCreator extends StandardClient {
             def createJob  = factory.getJobByTransitionName('InstantiateItem', 'Done', agent)
             assert createJob, "Cannot get Job for Activity 'InstantiateItem' of Factory '$factory'"
 
-            convertItemNamesToUuid(record, updateSchema)
+            def predefStepOBuilder = new PredefinedStepsOutcomeBuilder(item, updateSchema)
+            predefStepOBuilder.convertItemNamesToUuids(record, moduleNs)
 
             def outcome = createJob.getOutcome()
             //Name could be the generated by the Factory
@@ -289,6 +237,39 @@ class CRUDItemCreator extends StandardClient {
 
         return item
     }
+    
+    /**
+     * 
+     * @param factoryPath
+     * @return
+     */
+    private Schema getUpdateSchema(String factoryPath) {
+        ItemProxy factory = agent.getItem(factoryPath)
+        return factory.getUpdateSchema()
+    }
+
+    /**
+     * 
+     * @param factoryPath
+     * @param itemName
+     * @param subFolder
+     * @param outcome
+     * @return
+     */
+    public ItemProxy createItemWithUpdate(String factoryPath, String itemName, String subFolder = null, Outcome outcome) {
+        ItemProxy item = createItem(itemName, subFolder, factoryPath)
+
+        //Name could be the generated by the Factory
+        outcome.setField('Name', item.name)
+
+        // Make sure that the item is updated for the first time
+        def updateSchemaName = getUpdateSchema(factoryPath).name
+        boolean forceUpate = ! item.checkViewpoint(updateSchemaName, 'last')
+
+        if (updateMode != SKIP || forceUpate) updateItem(item, outcome)
+
+        return item
+    }
 
     /**
      * 
@@ -296,7 +277,7 @@ class CRUDItemCreator extends StandardClient {
      * @param factoryPath
      * @return
      */
-    public ItemProxy createItemWithUpdate(Map record, String factoryPath) {
+    public ItemProxy createItemWithUpdate(Map<String, Object> record, String factoryPath) {
         String itemName = record.Name ?: FACTORY_GENERATED_NAME
         String subFolder = record.SubFolder // can be null
 
@@ -305,8 +286,7 @@ class CRUDItemCreator extends StandardClient {
         //Name could be the generated by the Factory
         record.Name = item.name
 
-        ItemProxy factory = agent.getItem(factoryPath)
-        Schema updateSchema = getUpdateSchema(factory)
+        Schema updateSchema = getUpdateSchema(factoryPath)
 
         // Make sure that the item is updated for the first time
         boolean forceUpate = ! item.checkViewpoint(updateSchema.name, 'last')

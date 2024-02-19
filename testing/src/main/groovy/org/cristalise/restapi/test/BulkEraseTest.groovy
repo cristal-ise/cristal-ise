@@ -17,19 +17,19 @@ class BulkEraseTest extends RestapiTestBase {
     final static int numberOfItems = 27
 
     @Test
-    public void 'BulErase Items posting XML'() throws Exception {
+    public void 'BulkErase Items posting XML'() throws Exception {
         Gateway.init(readPropertyFiles('src/main/bin/client.conf', 'src/main/bin/integTest.clc', null))
         login('user', 'test')
 
         for (def idx in 1..numberOfItems) {
-            createNewItem("TestItem-${timeStamp}-${idx}", ContentType.XML)
+            createNewItem("TestItem-${timeStamp}-${idx}", 'BulkErase', ContentType.XML)
         }
 
         SearchFilter sf = new SearchFilter()
         sf.setSearchRoot('/restapiTests')
-        sf.properties.add(new Property('Type', 'Dummy'))
+        sf.properties.add(new Property('Type', 'BulkErase'))
 
-        def uid = resolveDomainPath('/servers/localhost')
+        def uid = resolveDomainPath(serverPath)
         executePredefStep(uid, BulkErase.class, ContentType.XML, Gateway.getMarshaller().marshall(sf))
 
         def vpString = checkViewpoint(uid, 'SearchFilter', 'last')

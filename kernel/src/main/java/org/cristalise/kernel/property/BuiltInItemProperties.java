@@ -31,11 +31,6 @@ public enum BuiltInItemProperties {
     AGGREGATE_SCRIPT_URN("AggregateScriptURN"),
 
     /**
-     * Store the Agent name used used to call the {@link CreateItemFromDescription} predefined Step.
-     */
-    CREATOR("Creator"),
-
-    /**
      * Used in description Items to manage Elementary or Composite Activity Definition
      */
     COMPLEXITY("Complexity"),
@@ -119,6 +114,12 @@ public enum BuiltInItemProperties {
      * instantiation of the StateMachine Dependency.
      */
     STATE_MACHINE_URN("StateMachineURN"),
+
+    /**
+     * The Name or the UUID of the Schema Item and its Version separated by colon ':'. It is specified in Factory Items
+     * is used while creating new Items.
+     */
+    UPDATE_SCHEMA("UpdateSchema"),
 
     /**
      * The UUID of the Workflow Item and its Version number separated by colon ':'

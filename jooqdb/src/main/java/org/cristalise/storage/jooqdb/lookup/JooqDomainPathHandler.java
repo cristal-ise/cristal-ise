@@ -20,6 +20,7 @@
  */
 package org.cristalise.storage.jooqdb.lookup;
 
+import static org.cristalise.storage.jooqdb.lookup.JooqItemHandler.ITEM_TABLE;
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
@@ -34,8 +35,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.Lookup.SearchConstraints;
+import org.cristalise.kernel.lookup.Path;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.DSLContext;
 import org.jooq.Field;
@@ -60,8 +61,8 @@ public class JooqDomainPathHandler {
         .column(PATH,   JooqHandler.STRING_TYPE .nullable(false))
         .column(TARGET, JooqHandler.UUID_TYPE   .nullable(true))
         .constraints(
-                constraint("PK_"+DOMAIN_PATH_TABLE).primaryKey(PATH),
-                constraint("FK_"+DOMAIN_PATH_TABLE).foreignKey(TARGET).references(JooqItemHandler.ITEM_TABLE, JooqItemHandler.UUID)
+                constraint("PK_"+DOMAIN_PATH_TABLE.getName()).primaryKey(PATH),
+                constraint("FK_"+ITEM_TABLE.getName()).foreignKey(TARGET).references(ITEM_TABLE, JooqItemHandler.UUID)
                 )
         .execute();
     }

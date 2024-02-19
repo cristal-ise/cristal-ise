@@ -307,7 +307,7 @@ class SchemaDelegate {
             if (f.reference.itemType) {
                 def itemRef = ""
 
-                if (f.reference.itemType instanceof String)  {
+                if (f.reference.itemType instanceof String) {
                     itemRef = f.reference.itemType
                 }
                 else if (f.reference.itemType instanceof PropertyDescriptionList) {
@@ -316,10 +316,16 @@ class SchemaDelegate {
 
                     if (!itemRef) throw new InvalidDataException("Property called '${BuiltInItemProperties.TYPE}' is missing")
                 }
-                else
+                else {
                     throw new InvalidDataException("itemType must be a String or PropertyDescriptionList")
+                }
 
                 itemType(itemRef)
+
+                if (f.reference.collectionName) collectionName(f.reference.collectionName)
+            }
+            else if (f.reference.collectionName) {
+                throw new InvalidDataException("itemType must be specified as well")
             }
         }
     }

@@ -39,7 +39,6 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
@@ -199,7 +198,8 @@ public class JooqHistoryHandler extends JooqHandler {
         .column(VIEW_NAME,            NAME_TYPE      .nullable(true))
         .column(HAS_ATTACHMENT,       BOOLEAN        .nullable(false).defaultValue(false))
         .column(TIMESTAMP,            TIMESTAMP_TYPE .nullable(false))
-        .constraints(constraint("PK_"+EVENT_TABLE).primaryKey(UUID, ID))
+        .constraints(
+                constraint("PK_"+EVENT_TABLE.getName()).primaryKey(UUID, ID))
         .execute();
     }
 

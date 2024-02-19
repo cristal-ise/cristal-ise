@@ -22,6 +22,8 @@ package org.cristalise.kernel.entity.proxy;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.cristalise.kernel.SystemProperties.Module_Versioning_strict;
+import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
@@ -30,6 +32,7 @@ import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+import static org.cristalise.kernel.property.BuiltInItemProperties.UPDATE_SCHEMA;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,10 +40,13 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import io.vertx.core.Context;
+import io.vertx.core.Future;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.Collection;
+import org.cristalise.kernel.collection.DependencyMember;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.CriseVertxException;
@@ -85,7 +91,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * It is a wrapper for the connection and communication with Item. It relies on the
+ * It is a immutable wrapper for the connection and communication with Item and its data. It relies on the
  * ClusterStorage mechanism to retrieve and to cache data, i.e. it does not do any cashing itself.
  */
 @Slf4j @Immutable @EqualsAndHashCode
@@ -116,7 +122,6 @@ public class ItemProxy {
 
     public Item getItem() {
         if (mItem == null) mItem = new ItemVertxEBProxy(Gateway.getVertx(), ItemVerticle.ebAddress);
-
         return mItem;
     }
 
@@ -163,23 +168,7 @@ public class ItemProxy {
     }
 
     /**
-     * 
-     * @param result
-     * @param futureResult
-     */
-    private void asyncHandleRequestAction(AsyncResult<String> result, CompletableFuture<String> futureResult) {
-        if (result.succeeded()) {
-            String returnString = result.result();
-            log.trace("handleRequestAction() - return:{}", returnString);
-            futureResult.complete(returnString);
-        }
-        else {
-            futureResult.completeExceptionally(result.cause());
-        }
-    }
-
-    /**
-     * 
+     *
      * @param itemUuid
      * @param agentUuid
      * @param stepPath
@@ -203,52 +192,57 @@ public class ItemProxy {
         log.debug("requestAction() - item:{} agent:{} stepPath:{}", this, agentUuid, stepPath);
 
         try {
-            CompletableFuture<String> futureResult = new CompletableFuture<>();
-
-            Thread thread = new Thread("requestAction-"+this) {
-                public void run() {
-                    getItem().requestAction(
-                            itemUuid,
-                            agentUuid,
-                            stepPath,
-                            transitionID,
-                            requestData,
-                            fileName,
-                            attachment,
-                            (result) -> { asyncHandleRequestAction(result, futureResult); }
-                    );
-                }
-            };
-
-            thread.start();
-
-            return futureResult.get(ItemVerticle.requestTimeout, SECONDS);
+            Future<String> future = getItem().requestAction(itemUuid, agentUuid, stepPath, transitionID, requestData, fileName, attachment);
+            return await(future);
         }
         catch (ExecutionException e) {
             log.error("requestAction() - item:{} agent:{}", this, agentUuid, e);
             throw CriseVertxException.convertFutureException(e);
         }
+        catch (CriseVertxException e) {
+            throw e;
+        }
         catch (Exception e) {
-            log.error("requestAction() - item:{} agent:{}", itemUuid, agentUuid, e);
+            log.error("requestAction() - item:{} agent:{} stepPath:{}", this, agentUuid, stepPath, e);
             throw new CannotManageException("Error while waiting for the requestAction() return value item:"+itemUuid+" agent:"+agentUuid+"", e);
         }
     }
 
     /**
-     * Executes the given Job
+     * Waits for the future to complete, and returns the result.
+     *
+     * @param future the future to wait for
+     * @return the result of the future
+     * @param <T> the class of the result
+     * @throws Exception anything that can go wrong
+     */
+    private <T> T await(Future<T> future) throws Exception {
+        if (Context.isOnVertxThread()) {
+            // We are on the Vert.x event loop thread using virtual threads, so we can block
+            return Future.await(future);
+        }
+        else {
+            // We are on a platform thread, so we need to wait asynchronously
+            CompletableFuture<T> futureResult = new CompletableFuture<>();
+
+            future.onSuccess(futureResult::complete)
+                  .onFailure(futureResult::completeExceptionally);
+
+            // blocks until the future is complete or the timeout is reached
+            return futureResult.get(ItemVerticle.requestTimeout, SECONDS);
+        }
+    }
+
+    /**
+     * Executes the given Job of this Item
      *
      * @param thisJob the Job to be executed
      * @return the result of the execution
-     * @throws AccessRightsException Agent does not the rights to execute this operation
-     * @throws PersistencyException there was a database problems during this operations
-     * @throws InvalidDataException data was invalid
-     * @throws InvalidTransitionException the Transition cannot be executed
-     * @throws ObjectNotFoundException Object not found
-     * @throws ObjectAlreadyExistsException Object already exists
-     * @throws InvalidCollectionModification Invalid collection
+     * @throws CriseVertxException if the operation failed
      */
     public String requestAction(Job thisJob) throws CriseVertxException {
         if (thisJob.getAgentPath() == null) throw new InvalidDataException("No Agent specified.");
+        if (!thisJob.getItemPath().equals(getPath())) throw new InvalidDataException("Job:"+thisJob+" is not for this Item:"+this);
 
         String outcome = thisJob.getOutcomeString();
 
@@ -327,7 +321,7 @@ public class ItemProxy {
      * @throws ObjectNotFoundException data was invalid
      */
     private List<Job> getJobsForAgent(AgentPath agentPath) throws CriseVertxException {
-        List<Job> jobBag = new ArrayList<Job>();
+        List<Job> jobBag = new ArrayList<>();
 
         // Make sure that the latest Jobs and Workflow is used for this calculation
         Gateway.getStorage().clearCache(getPath(), ClusterType.JOB);
@@ -1044,7 +1038,7 @@ public class ItemProxy {
      * Check if the data of the Item located by the ClusterStorage path is exist. This method can be used
      * in server side Script to find uncommitted changes during the active transaction.
      *
-     * @param cluster the type of the cluster
+     * @param path the type of the cluster
      * @param name the name of the content to be checked
      * @param transKey the transaction key
      * @return true if there is content false otherwise
@@ -1503,11 +1497,43 @@ public class ItemProxy {
     }
 
     /**
+     * Returns the so called UpdateSchema which is used while creating new Items. It can be either 
+     * the "constructor" Schema retrieved from the 'SchemaInitialise' dependency 
+     * or the Schema used by the Update Activity
+     * 
+     * @return schema
+     * @throws InvalidDataException the Schema could not be constructed
+     * @throws ObjectNotFoundException no Schema was found
+     */
+    public Schema getUpdateSchema() throws ObjectNotFoundException, InvalidDataException {
+        String schemaName = null;
+        Integer schemaVersion = null;
+
+        if (checkCollection(SCHEMA_INITIALISE)) {
+            Collection<?> initSchemaCollection = getCollection(SCHEMA_INITIALISE);
+            DependencyMember member = (DependencyMember) initSchemaCollection.getMembers().list.get(0);
+
+            schemaName = member.getChildUUID();
+            Object initSchemaVersion = member.getProperties().getBuiltInProperty(VERSION);
+
+            if (initSchemaVersion instanceof String) schemaVersion = Integer.parseInt((String)initSchemaVersion);
+            else                                     schemaVersion = (Integer)initSchemaVersion;
+        }
+        else {
+            String[] nameAndVersion = getProperty(UPDATE_SCHEMA).split(":");
+            schemaName = nameAndVersion[0];
+            schemaVersion = Integer.parseInt(nameAndVersion[1]);
+        }
+
+        return LocalObjectLoader.getSchema(schemaName, schemaVersion);
+    }
+
+    /**
      * Returns the so called Aggregate Script which can be used to construct master outcome.
      * 
-     * @return the script or null
-     * @throws InvalidDataException 
-     * @throws ObjectNotFoundException 
+     * @return the script
+     * @throws InvalidDataException something was wrong with the provided data
+     * @throws ObjectNotFoundException no Script can be found
      */
     public Script getAggregateScript() throws InvalidDataException, ObjectNotFoundException {
         return getAggregateScript(null, null);

@@ -24,13 +24,17 @@ import java.util.List;
 import java.util.UUID;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
+import javax.annotation.concurrent.Immutable;
+
 /**
  * Extends ItemPath with Agent specific codes
  **/
+@Immutable
 public class AgentPath extends ItemPath {
 
     private String mAgentName = null;
@@ -135,6 +139,16 @@ public class AgentPath extends ItemPath {
     @Override
     public String getClusterPath() {
         return ClusterType.PATH + "/Agent";
+    }
+
+    @Override
+    public AgentProxy getProxy() throws ObjectNotFoundException {
+        return this.getProxy(null);
+    }
+
+    @Override
+    public AgentProxy getProxy(TransactionKey transactionKey) throws ObjectNotFoundException {
+        return (AgentProxy) super.getProxy(transactionKey);
     }
 
     @Override

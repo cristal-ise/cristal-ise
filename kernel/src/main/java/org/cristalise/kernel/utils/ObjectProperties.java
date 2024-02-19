@@ -184,8 +184,7 @@ public class ObjectProperties extends Properties {
 
             if (propertiesToRedact(name)) value = REDACTED;
 
-            if (value == null) log.info("{}: 'null'", name);
-            else               log.info("{}: ({}):'{}'", name, value.getClass().getSimpleName(), value.toString());
+            log.info("{}: '{}'", name, value);
         }
     }
 

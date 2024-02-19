@@ -57,7 +57,7 @@ public class ProxyManager {
         if (path instanceof ItemPath) {
             try {
                 //issue #165: get ItemPath from Lookup to ensure it is a correct class
-                itemPath = getLookup().getItemPath(((ItemPath)path).getUUID().toString(), transactionKey);
+                itemPath = getLookup().getItemPath(((ItemPath)path).getName(), transactionKey);
             }
             catch (InvalidItemPathException e) {
                 throw new ObjectNotFoundException(e);

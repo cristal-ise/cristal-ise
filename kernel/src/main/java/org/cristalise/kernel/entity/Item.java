@@ -25,6 +25,7 @@ import java.util.List;
 import io.vertx.codegen.annotations.ProxyGen;
 import io.vertx.codegen.annotations.VertxGen;
 import io.vertx.core.AsyncResult;
+import io.vertx.core.Future;
 import io.vertx.core.Handler;
 
 @ProxyGen // Generate the proxy and handler
@@ -40,7 +41,7 @@ public interface Item {
      * such as script execution and schema validation.
      *
      * @param itemUuid The UUID of the Item to be requested.
-     * @param agentKey The UUID of the Agent. Some activities may be restricted in which roles may execute them. 
+     * @param agentUuid The UUID of the Agent. Some activities may be restricted in which roles may execute them.
      *                 Some transitions cause the activity to be assigned to the executing Agent.
      * @param stepPath The path in the Workflow to the desired Activity
      * @param transitionID The transition to be performed 
@@ -48,17 +49,17 @@ public interface Item {
      *                    though this is not verified on the server, rather in the AgentProxy in the Client API.
      * @param fileName the name of the file associated with attachment
      * @param attachment binary data associated with the Outcome (can be empty)
-     * @param returnHandler vert.x way to return the potentially updated Outcome or Exception
+     *
+     * @return a Future that will be completed with the result.
      **/
-    public void requestAction(
+    public Future<String> requestAction(
             String     itemUuid, 
             String     agentUuid, 
             String     stepPath, 
             int        transitionID, 
             String     requestData, 
             String     fileName, 
-            List<Byte> attachment,
-            Handler<AsyncResult<String>> returnHandler);
+            List<Byte> attachment);
 
     /**
      * Returns a set of Jobs for this Agent on this Item. Each Job represents a possible transition of a particular 
@@ -67,9 +68,9 @@ public interface Item {
      * @param itemUuid The UUID of the Item to be queried.
      * @param agentUuid The UUID the Agent requesting Jobs.
      * @param filter If true, then only Activities which are currently active will be included.
-     * @param returnHandler vert.x way to return the marshaled {@link org.cristalise.kernel.entity.JobArrayList JobArrayList}
-     *                      or Exception
+     * @return a Future that will be completed with the result.
+     *
      * @deprecated
      **/
-    public void queryLifeCycle(String itemUuid, String agentUuid, boolean filter, Handler<AsyncResult<String>> returnHandler);
+    public Future<String> queryLifeCycle(String itemUuid, String agentUuid, boolean filter);
 }
