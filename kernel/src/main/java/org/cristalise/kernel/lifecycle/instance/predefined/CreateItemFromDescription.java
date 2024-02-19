@@ -29,6 +29,7 @@ import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIAL
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
+import static org.cristalise.kernel.process.Gateway.getMarshaller;
 import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
 import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
 import static org.cristalise.kernel.property.BuiltInItemProperties.ID_PREFIX;
@@ -89,7 +90,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CreateItemFromDescription extends PredefinedStep {
-    
+
     /**
      * Cache to speed up the creation of same type of Items. It is a very crude solution, requires refinement
      */
@@ -171,7 +172,7 @@ public class CreateItemFromDescription extends PredefinedStep {
         String            newName   = getItemName(descItemPath, inputs[0], transactionKey);
         String            domPath   = inputs[1];
         String            descVer   = inputs.length > 2 && isNotBlank(inputs[2]) ? inputs[2] : "last";
-        PropertyArrayList initProps = inputs.length > 3 && isNotBlank(inputs[3]) ? unmarshallInitProperties(inputs[3]) : new PropertyArrayList();
+        PropertyArrayList initProps = inputs.length > 3 && isNotBlank(inputs[3]) ? (PropertyArrayList) getMarshaller().unmarshall(inputs[3]) : new PropertyArrayList();
         String            outcome   = inputs.length > 4 && isNotBlank(inputs[4]) ? inputs[4] : "";
 
         // check if the path is already taken
@@ -261,8 +262,8 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @throws ObjectNotFoundException
      */
     protected void initialiseItem(ItemPath          newItem, 
-                                  AgentProxy        agent, 
-                                  ItemProxy         descItem, 
+                                  AgentProxy        agent,
+                                  ItemProxy         descItem,
                                   PropertyArrayList initProps,
                                   String            outcome,
                                   String            newName, 
@@ -299,17 +300,6 @@ public class CreateItemFromDescription extends PredefinedStep {
         log.debug("initialiseItem() - Creating " + context);
         context.setItemPath(newItemPath);
         Gateway.getLookupManager().add(context, transactionKey);
-    }
-
-    /**
-     * Unmarshalls initial Properties
-     *
-     * @param initPropString
-     * @return unmarshalled initial PropertyArrayList
-     * @throws InvalidDataException
-     */
-    protected PropertyArrayList unmarshallInitProperties(String initPropString) throws InvalidDataException {
-        return (PropertyArrayList) Gateway.getMarshaller().unmarshall(initPropString);
     }
 
     /**
@@ -366,7 +356,7 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @throws InvalidDataException
      * @throws PersistencyException
      */
-    protected CompositeActivity instantiateWorkflow(ItemProxy descItem, String descVer, TransactionKey transactionKey)
+    public static CompositeActivity instantiateWorkflow(ItemProxy descItem, String descVer, TransactionKey transactionKey)
             throws ObjectNotFoundException, InvalidDataException, PersistencyException
     {
         Collection<?> wfCol = descItem.getCollection(WORKFLOW, Ints.tryParse(descVer), transactionKey);
@@ -384,14 +374,14 @@ public class CreateItemFromDescription extends PredefinedStep {
             if (wfDefName == null) throw new InvalidDataException("No workflow given or defined");
 
             String cacheKey = LIFECYCLE + "/" + wfDefName + ':' + wfDefVer;
-            CompositeActivity ca = (CompositeActivity) getFromCache(cacheKey);
+            CompositeActivity ca = null; // (CompositeActivity) getFromCache(cacheKey);
 
             if (ca == null) {
                 // load workflow def
                 CompositeActivityDef wfDef = (CompositeActivityDef) LocalObjectLoader.getActDef(wfDefName, wfDefVer, transactionKey);
                 ca = (CompositeActivity) wfDef.instantiate(transactionKey);
 
-                addToCache(cacheKey, ca);
+                //addToCache(cacheKey, ca);
             }
 
             return ca;
@@ -408,7 +398,7 @@ public class CreateItemFromDescription extends PredefinedStep {
     /**
      * Copies the CollectionDescriptions of the Item requesting this predefined step.
      *
-     * @param descItemPath
+     * @param descItem
      * @param descVer
      * @param transactionKey
      * @return the new collection
@@ -455,7 +445,7 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      */
-    public static Collection<?> instantiateCollection(String collName, ItemProxy descItem, String descVer, PropertyArrayList newProps, TransactionKey transactionKey) 
+    public static Collection<?> instantiateCollection(String collName, ItemProxy descItem, String descVer, PropertyArrayList newProps, TransactionKey transactionKey)
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
         Collection<?> collOfDesc = descItem.getCollection(collName, Ints.tryParse(descVer), transactionKey);
@@ -488,7 +478,7 @@ public class CreateItemFromDescription extends PredefinedStep {
      * @throws InvalidDataException
      * @throws PersistencyException
      */
-    protected Viewpoint instantiateViewpoint(ItemProxy descItem, String descVer, TransactionKey transactionKey) 
+    protected Viewpoint instantiateViewpoint(ItemProxy descItem, String descVer, TransactionKey transactionKey)
             throws ObjectNotFoundException, InvalidDataException, PersistencyException
     {
 
@@ -556,7 +546,7 @@ public class CreateItemFromDescription extends PredefinedStep {
 
         // Store an "Initialize" event and the outcome containing the initial values for properties
         Schema initSchema = LocalObjectLoader.getSchema("ItemInitialization", 0, transactionKey);
-        Outcome initOutcome = new Outcome(0, Gateway.getMarshaller().marshall(props), initSchema);
+        Outcome initOutcome = new Outcome(0, getMarshaller().marshall(props), initSchema);
         StateMachine predefSm = LocalObjectLoader.getStateMachine("PredefinedStep", 0, transactionKey);
 
         Event newEvent = hist.addEvent(agent, "", "Initialize", "", "", initSchema, predefSm, PredefinedStep.DONE, "last");

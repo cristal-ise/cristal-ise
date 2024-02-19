@@ -35,7 +35,6 @@ public class AgentPredefinedStepContainer extends ItemPredefinedStepContainer {
         predInit(Logout.class);
         predInit(SetAgentPassword.class);
         predInit(SetAgentRoles.class);
-        predInit(Login.class);
         predInit(Sign.class);
     }
 }

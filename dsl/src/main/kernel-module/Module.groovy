@@ -27,10 +27,7 @@ import groovy.transform.SourceURI
 @SourceURI
 URI scriptUri
 
-setModuletDir scriptUri
-
-setConfig  'src/test/conf/client.conf'
-setConnect 'src/test/conf/server.clc'
+setModuleDir scriptUri
 
 setResourceRoot Paths.get(scriptUri).parent.toString()+'/resources'
 

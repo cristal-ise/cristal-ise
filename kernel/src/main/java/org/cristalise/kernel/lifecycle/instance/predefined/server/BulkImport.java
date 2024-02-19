@@ -111,25 +111,29 @@ public class BulkImport extends PredefinedStep {
         return requestData;
     }
 
+    public void importAllClusters(ItemPath item, TransactionKey transactionKey) throws InvalidDataException, PersistencyException {
+        for (ClusterType type : importCluster.getClusters(item, transactionKey)) {
+            switch (type) {
+                case PATH:       importPath(item, transactionKey);       break;
+                case PROPERTY:   importProperty(item, transactionKey);   break;
+                case LIFECYCLE:  importLifeCycle(item, transactionKey);  break;
+                case HISTORY:    importHistory(item, transactionKey);    break;
+                case VIEWPOINT:  importViewPoint(item, transactionKey);  break;
+                case OUTCOME:    importOutcome(item, transactionKey);    break;
+                case COLLECTION: importCollection(item, transactionKey); break;
+                case JOB:        importJob(item, transactionKey);        break;
+
+                default:
+                    break;
+            }
+        }
+
+        //importCluster.delete(item, "");
+    }
+
     public void importAllClusters(TransactionKey transactionKey) throws InvalidDataException, PersistencyException {
         for (ItemPath item: getItemsToImport(root)) {
-            for (ClusterType type : importCluster.getClusters(item, transactionKey)) {
-                switch (type) {
-                    case PATH:       importPath(item, transactionKey);       break;
-                    case PROPERTY:   importProperty(item, transactionKey);   break;
-                    case LIFECYCLE:  importLifeCycle(item, transactionKey);  break;
-                    case HISTORY:    importHistory(item, transactionKey);    break;
-                    case VIEWPOINT:  importViewPoint(item, transactionKey);  break;
-                    case OUTCOME:    importOutcome(item, transactionKey);    break;
-                    case COLLECTION: importCollection(item, transactionKey); break;
-                    case JOB:        importJob(item, transactionKey);        break;
-
-                    default:
-                        break;
-                }
-            }
-
-            //importCluster.delete(item, "");
+            importAllClusters(item, transactionKey);
         }
     }
 
@@ -145,11 +149,18 @@ public class BulkImport extends PredefinedStep {
                         String uuid = path.getFileName().toString();
 
                         log.info("getItemsToImport()- directory:{}", uuid);
+                        
 
                         try {
-                            items.add(new ItemPath(uuid));
+                            if (ItemPath.isUUID(uuid)) {
+                                items.add(new ItemPath(uuid));
+                            }
+                            else {
+                                log.warn("getItemsToImport() - Unvalid UUID for import directory:{}", uuid);
+                            }
                         }
                         catch (InvalidItemPathException e) {
+                            // this case very likely will not happen because the usage of ItemPath.isUUID()
                             log.warn("getItemsToImport() - Unvalid UUID for import directory:{}", uuid);
                         }
                     });
@@ -158,8 +169,8 @@ public class BulkImport extends PredefinedStep {
             return items;
         }
         catch (IOException e) {
-            log.error("", e);
-            throw new InvalidDataException(e.getMessage());
+            log.debug("getItemsToImport()", e);
+            throw new InvalidDataException(e);
         }
     }
 
@@ -272,8 +283,8 @@ public class BulkImport extends PredefinedStep {
                 Gateway.getLookupManager().add( (DomainPath)importCluster.get(item, PATH+"/Domain/"+name, transactionKey), transactionKey );
             }
             catch (ObjectCannotBeUpdated | ObjectAlreadyExistsException | CannotManageException e) {
-                log.error("", e);
-                throw new PersistencyException(e.getMessage());
+                log.debug("importDomainPath()", e);
+                throw new PersistencyException(e);
             }
 
             //importCluster.delete(item, PATH+"/Domain/"+name);
@@ -292,8 +303,8 @@ public class BulkImport extends PredefinedStep {
                     if (agentPath != null) Gateway.getLookupManager().addRole(agentPath, rolePath, transactionKey);
                 }
                 catch (ObjectCannotBeUpdated | ObjectAlreadyExistsException | CannotManageException | ObjectNotFoundException e) {
-                    log.error("", e);
-                    throw new PersistencyException(e.getMessage());
+                    log.debug("importRolePath()", e);
+                    throw new PersistencyException(e);
                 }
             }
 
@@ -312,8 +323,8 @@ public class BulkImport extends PredefinedStep {
             return itemPath;
         }
         catch (ObjectCannotBeUpdated | ObjectAlreadyExistsException | CannotManageException e) {
-            log.error("", e);
-            throw new PersistencyException(e.getMessage());
+            log.debug("importItemPath()", e);
+            throw new PersistencyException(e);
         }
     }
 
@@ -329,8 +340,8 @@ public class BulkImport extends PredefinedStep {
             return agentPath;
         }
         catch (ObjectCannotBeUpdated | ObjectAlreadyExistsException | CannotManageException | ObjectNotFoundException | NoSuchAlgorithmException e) {
-            log.error("", e);
-            throw new PersistencyException(e.getMessage());
+            log.debug("importAgentPath()", e);
+            throw new PersistencyException(e);
         }
         
     }

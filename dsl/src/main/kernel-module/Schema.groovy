@@ -114,3 +114,18 @@ Schema('Dependency', 0) {
         struct(name: 'Properties', useSequence: true, multiplicity: '1..*', fieldKeyValuePair)
     }
 }
+
+Schema('WorkflowReplaceData', 0) {
+    struct(name: 'WorkflowReplaceData') {
+        field(name:'NewWorkflowXml', type: 'anyType')
+        field(name:'OldWorkflowXml', type: 'anyType')
+    }
+}
+
+Schema('WorkflowMigrationData', 0) {
+    struct(name: 'WorkflowMigrationData', useSequence: true) {
+        field(name:'DescItemUrn', type: 'string')
+        field(name: 'StepPathToEnable', multiplicity: '0..*')
+        field(name:'OldWorkflowXml', type: 'anyType')
+    }
+}

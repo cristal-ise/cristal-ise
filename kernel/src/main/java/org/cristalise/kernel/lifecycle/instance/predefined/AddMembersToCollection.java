@@ -47,7 +47,7 @@ public class AddMembersToCollection extends ManageMembersOfCollectionBase {
     public AddMembersToCollection() {
         super("Dependency", description);
     }
-    
+
     @Override
     protected void checkCardinatilyConstraint(Dependency currentDependency, Dependency inputDependency, ItemPath itemPath, TransactionKey transactionKey)
             throws InvalidDataException, InvalidCollectionModification
@@ -91,10 +91,9 @@ public class AddMembersToCollection extends ManageMembersOfCollectionBase {
 
         log.debug("runActivityLogic() - item:{} requestdata:{}", item, requestData);
 
-        Dependency inputDependency = (Dependency) Gateway.getMarshaller().unmarshall(requestData);
-        String collectionName = inputDependency.getName();
-        Dependency currentDependency =
-                (Dependency) item.getCollection(collectionName, null, transactionKey);
+        Dependency inputDependency   = (Dependency) Gateway.getMarshaller().unmarshall(requestData);
+        String     collectionName    = inputDependency.getName();
+        Dependency currentDependency = (Dependency) item.getCollection(collectionName, null, transactionKey);
 
         log.debug("runActivityLogic() - Changing {} of item:{}", currentDependency, item);
 
@@ -105,11 +104,9 @@ public class AddMembersToCollection extends ManageMembersOfCollectionBase {
             DependencyMember newMember = null;
 
             if (inputMemberProps.size() != 0) {
-                newMember = currentDependency.createMember(inputMember.getItemPath(),
-                        inputMemberProps, transactionKey);
+                newMember = currentDependency.createMember(inputMember.getItemPath(), inputMemberProps, transactionKey);
             } else {
-                newMember =
-                        currentDependency.createMember(inputMember.getItemPath(), transactionKey);
+                newMember = currentDependency.createMember(inputMember.getItemPath(), transactionKey);
             }
 
             evaluateScript(itemPath, currentDependency, newMember, transactionKey);

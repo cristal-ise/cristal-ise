@@ -50,7 +50,6 @@ import org.cristalise.kernel.entity.ItemVerticle;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ProxyManager;
 import org.cristalise.kernel.entity.proxy.ProxyMessage;
-import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.lookup.LookupManager;
@@ -197,18 +196,15 @@ public class Gateway extends ProxyManager
         String cmdName = commandLine.cli().getName();
 
         try {
-            String item = commandLine.getArgumentValue(0);
+            String pathOrUUID = commandLine.getArgumentValue(0);
 
-            if (StringUtils.isNotBlank(item)) {
-                ItemPath ip = null;
-
-                if (ItemPath.isUUID(item)) ip = getLookup().getItemPath(item);
-                else                       ip = getLookup().resolvePath(new DomainPath(item));
+            if (StringUtils.isNotBlank(pathOrUUID)) {
+                ItemPath ip = ItemPath.getItemPath(pathOrUUID, null);
 
                 if (cmdName.startsWith("storage-")) getStorage().clearCache(ip);
                 else                                ; //getProxyManager().clearCache(ip);
 
-                process.write("Command "+cmdName+" was executed for item:"+item+"\n");
+                process.write("Command "+cmdName+" was executed for item:"+pathOrUUID+"\n");
             }
             else {
                 if (cmdName.startsWith("storage-")) getStorage().clearCache();
