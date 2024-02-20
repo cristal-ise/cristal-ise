@@ -24,22 +24,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.auth.Authenticator;
 
 import com.novell.ldap.LDAPConnection;
 import com.novell.ldap.LDAPException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class LDAPAuthManager implements Authenticator {
+public class LDAPAuthManager {
 
     protected LDAPConnection mLDAPConn;
     protected LDAPProperties ldapProps;
 
     public LDAPAuthManager() {}
 
-    @Override
-    public boolean authenticate(String agentName, String password, String resource) 
+    public boolean authenticate(String agentName, String password, String resource)
             throws InvalidDataException, ObjectNotFoundException
     {
         ldapProps = new LDAPProperties(Gateway.getProperties());
@@ -52,7 +50,7 @@ public class LDAPAuthManager implements Authenticator {
                 mLDAPConn = LDAPLookupUtils.createConnection(ldapProps);
                 LDAPLookup anonLookup = new LDAPLookup();
                 anonLookup.initPaths(ldapProps);
-                anonLookup.open(this);
+                anonLookup.open();
                 String agentDN = anonLookup.getFullDN(anonLookup.getAgentPath(agentName, null));
                 anonLookup.close();
 
@@ -73,7 +71,6 @@ public class LDAPAuthManager implements Authenticator {
 
     }
 
-    @Override
     public boolean authenticate(String resource) throws InvalidDataException, ObjectNotFoundException {
         ldapProps = new LDAPProperties(Gateway.getProperties());
 
@@ -91,7 +88,6 @@ public class LDAPAuthManager implements Authenticator {
         }
     }
 
-    @Override
     public LDAPConnection getAuthObject() {
         if (mLDAPConn==null || !mLDAPConn.isConnected()) {
             try {
@@ -104,7 +100,6 @@ public class LDAPAuthManager implements Authenticator {
         return mLDAPConn;
     }
 
-    @Override
     public void disconnect() {
         if (mLDAPConn != null) {
             try {

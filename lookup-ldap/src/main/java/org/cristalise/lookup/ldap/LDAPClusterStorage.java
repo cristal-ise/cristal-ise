@@ -31,7 +31,6 @@ import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.querying.Query;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +40,7 @@ public class LDAPClusterStorage extends ClusterStorage {
     LDAPPropertyManager ldapStore;
 
     @Override
-    public void open(Authenticator auth) throws PersistencyException {
+    public void open() throws PersistencyException {
         Lookup lookup = Gateway.getLookup();
         if (lookup instanceof LDAPLookup)
             ldapStore = ((LDAPLookup) lookup).getPropManager();

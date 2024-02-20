@@ -28,7 +28,6 @@ import java.util.List;
 
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 
@@ -59,11 +58,9 @@ public interface Lookup {
     public enum SearchConstraints { EXACT_NAME_MATCH, WILDCARD_MATCH };
 
     /**
-     * Connect to the directory using the credentials supplied in the Authenticator.
-     *
-     * @param user The connected Authenticator. The Lookup implementation may use the AuthObject in this to communicate with the database.
+     * Connect to the directory using the root credentials.
      */
-    public void open(Authenticator user);
+    public void open();
 
     /**
      * Shutdown the lookup

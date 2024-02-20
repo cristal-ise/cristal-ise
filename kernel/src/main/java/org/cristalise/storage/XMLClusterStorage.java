@@ -41,7 +41,6 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.utils.FileStringUtility;
 
@@ -86,7 +85,7 @@ public class XMLClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void open(Authenticator auth) throws PersistencyException {
+    public void open() throws PersistencyException {
         if (StringUtils.isBlank(rootDir)) {
             String rootProp = XMLStorage_root.getString();
 

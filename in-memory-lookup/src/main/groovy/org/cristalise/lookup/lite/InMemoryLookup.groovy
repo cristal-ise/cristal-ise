@@ -29,11 +29,10 @@ import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.Lookup
 import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.lookup.RolePath
-import org.cristalise.kernel.lookup.Lookup.PagedResult
 import org.cristalise.kernel.persistency.ClusterStorage
 import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.persistency.TransactionKey
-import org.cristalise.kernel.process.auth.Authenticator
+
 import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.storage.MemoryOnlyClusterStorage
@@ -92,7 +91,7 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
      * @param user The connected Authenticator. The Lookup implementation may use the AuthObject in this to communicate with the database.
      */
     @Override
-    public void open(Authenticator user) {
+    public void open() {
         log.info("open(user) - Do nothing")
         clear()
     }

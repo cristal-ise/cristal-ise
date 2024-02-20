@@ -46,7 +46,6 @@ import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
@@ -109,23 +108,21 @@ public class LDAPLookup implements LookupManager {
      * @param auth A LDAPAuthManager authenticator
      */
     @Override
-    public void open(Authenticator auth) {
-        if (ldapProps == null)
-            initPaths(new LDAPProperties(Gateway.getProperties()));
+    public void open() {
+        if (ldapProps == null) initPaths(new LDAPProperties(Gateway.getProperties()));
 
-        mLDAPAuth = (LDAPAuthManager) auth;
+        //mLDAPAuth = (LDAPAuthManager) auth;
         mPropManager = new LDAPPropertyManager(this, mLDAPAuth);
-
     }
 
     @Override
     public void postStartServer() {
-        //INIMPLEMENTED
+        //UNIMPLEMENTED
     }
 
     @Override
     public void postBoostrap() {
-        //INIMPLEMENTED
+        //UNIMPLEMENTED
     }
 
     private void migrateOldRoles(TransactionKey transactionKey) {

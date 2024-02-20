@@ -53,7 +53,7 @@ public class AuthenticatorTest {
 //        auth = new JooqAuthenticator();
         lookup  = new JooqLookupManager();
 
-        lookup.open(null);
+        lookup.open();
     }
 
     @After

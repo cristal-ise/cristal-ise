@@ -61,7 +61,6 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.querying.Query;
 
@@ -106,10 +105,8 @@ public class ClusterStorageManager {
     /**
      * Initializes all ClusterStorage handlers listed by class name in the property "ClusterStorages"
      * This property is usually process specific, and so should be in the server/client.conf and not the connect file.
-     *
-     * @param auth the Authenticator to be used to initialise all the handlers
      */
-    public ClusterStorageManager(Authenticator auth) throws PersistencyException {
+    public ClusterStorageManager() throws PersistencyException {
         Object clusterStorageProp = SystemProperties.ClusterStorage.getObject();
 
         if (clusterStorageProp == null || "".equals(clusterStorageProp)) {
@@ -141,7 +138,7 @@ public class ClusterStorageManager {
 
         int clusterNo = 0;
         for (ClusterStorage newStorage : rootStores) {
-            newStorage.open(auth);
+            newStorage.open();
 
             log.debug("init() - Cluster storage " + newStorage.getClass().getName() + " initialised successfully.");
             allStores.put(newStorage.getId(), newStorage);

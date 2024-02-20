@@ -28,7 +28,6 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
 import org.cristalise.storage.jooqdb.lookup.JooqItemHandler;
@@ -40,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
  * @deprecated shiro integration should be used instead
  */
 @Slf4j @Deprecated
-public class JooqAuthenticator implements Authenticator {
+public class JooqAuthenticator {
 
     DSLContext context = null;
 
@@ -49,7 +48,6 @@ public class JooqAuthenticator implements Authenticator {
 
     private Argon2Password paswordHasher;
 
-    @Override
     public boolean authenticate(String resource) throws InvalidDataException, ObjectNotFoundException {
         try {
             context = JooqDataSourceHandler.connect();
@@ -92,7 +90,6 @@ public class JooqAuthenticator implements Authenticator {
         }
     }
 
-    @Override
     public boolean authenticate(String agentName, String password, String resource) throws InvalidDataException, ObjectNotFoundException {
         if (context == null) if (!authenticate(resource)) return false;
 
@@ -106,7 +103,6 @@ public class JooqAuthenticator implements Authenticator {
         }   
     }
 
-    @Override
     public Object getAuthObject() {
         if (context == null) {
             try {
@@ -119,7 +115,6 @@ public class JooqAuthenticator implements Authenticator {
         return context;
     }
 
-    @Override
     public void disconnect() {
     }
 }
