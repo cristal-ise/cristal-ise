@@ -70,11 +70,23 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LDAPLookup implements LookupManager {
 
-    protected LDAPAuthManager     mLDAPAuth;
+    protected LDAPConnection      mLDAPConn;
     protected LDAPPropertyManager mPropManager;
     protected LDAPProperties      ldapProps;
 
     private String mGlobalPath, mRootPath, mLocalPath, mRoleTypeRoot, mItemTypeRoot, mDomainTypeRoot;
+
+    private LDAPConnection getAuthObject() {
+        if (mLDAPConn==null || !mLDAPConn.isConnected()) {
+            try {
+                mLDAPConn = LDAPLookupUtils.createConnection(ldapProps);
+            }
+            catch (LDAPException ex) {
+                log.error("",ex);
+            }
+        }
+        return mLDAPConn;
+    }
 
     /**
      *
@@ -104,15 +116,13 @@ public class LDAPLookup implements LookupManager {
 
     /**
      * Initializes the LDAPLookup manager with the Gateway properties. This should be only done by the Gateway during initialisation.
-     *
-     * @param auth A LDAPAuthManager authenticator
      */
     @Override
     public void open() {
         if (ldapProps == null) initPaths(new LDAPProperties(Gateway.getProperties()));
 
-        //mLDAPAuth = (LDAPAuthManager) auth;
-        mPropManager = new LDAPPropertyManager(this, mLDAPAuth);
+        //mLDAPConn = (LDAPAuthManager) auth;
+        mPropManager = new LDAPPropertyManager(this, mLDAPConn);
     }
 
     @Override
@@ -136,7 +146,7 @@ public class LDAPLookup implements LookupManager {
         searchCons.setMaxResults(0);
         String[] attr = { LDAPConnection.ALL_USER_ATTRS };
         try {
-            LDAPSearchResults res = mLDAPAuth.getAuthObject().search(
+            LDAPSearchResults res = mLDAPConn.search(
                     oldAgentPath,
                     LDAPConnection.SCOPE_SUB,
                     "(objectclass=cristalrole)",
@@ -198,7 +208,7 @@ public class LDAPLookup implements LookupManager {
             }
             while (!toDelete.isEmpty()) {
                 try {
-                    LDAPLookupUtils.delete(mLDAPAuth.getAuthObject(), toDelete.pop().getDN());
+                    LDAPLookupUtils.delete(mLDAPConn, toDelete.pop().getDN());
                 }
                 catch (Exception ex) { // must be out of order, try again next time
                     log.error("Error deleting old Role. ", ex);
@@ -225,15 +235,20 @@ public class LDAPLookup implements LookupManager {
     @Override
     public void close() {
         log.info("LDAP Lookup: Shutting down LDAP connection.");
-        if (mLDAPAuth != null) {
-            mLDAPAuth.disconnect();
-            mLDAPAuth = null;
+        if (mLDAPConn != null) {
+            try {
+                mLDAPConn.disconnect();
+            }
+            catch (LDAPException e) {
+                log.error("",e);
+            }
+            mLDAPConn = null;
         }
     }
 
     @Override
     public ItemPath resolvePath(DomainPath domPath, TransactionKey transactionKey) throws InvalidItemPathException, ObjectNotFoundException {
-        LDAPEntry domEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(domPath), LDAPSearchConstraints.DEREF_ALWAYS);
+        LDAPEntry domEntry = LDAPLookupUtils.getEntry(mLDAPConn, getFullDN(domPath), LDAPSearchConstraints.DEREF_ALWAYS);
         String entityKey = LDAPLookupUtils.getFirstAttributeValue(domEntry, "cn");
 
         log.debug("LDAPLookup.resolvePath() - DomainPath " + domPath + " is a reference to " + entityKey);
@@ -252,7 +267,7 @@ public class LDAPLookup implements LookupManager {
             checkLDAPContext(path);
             LDAPAttributeSet attrSet = createAttributeSet(path);
             LDAPEntry newEntry = new LDAPEntry(getFullDN(path), attrSet);
-            LDAPLookupUtils.addEntry(mLDAPAuth.getAuthObject(), newEntry);
+            LDAPLookupUtils.addEntry(mLDAPConn, newEntry);
 
             // FIXME: Check if this is correct to call in the Lookup implementation
             if (path instanceof DomainPath)
@@ -272,7 +287,7 @@ public class LDAPLookup implements LookupManager {
     @Override
     public void delete(Path path, TransactionKey transactionKey) throws ObjectCannotBeUpdated {
         try {
-            LDAPLookupUtils.delete(mLDAPAuth.getAuthObject(), getDN(path) + mLocalPath);
+            LDAPLookupUtils.delete(mLDAPConn, getDN(path) + mLocalPath);
         }
         catch (LDAPException ex) {
             throw new ObjectCannotBeUpdated("Cannot delete Path '" + path.getStringPath() + "' - LDAPException:" + ex.getLDAPErrorMessage());
@@ -285,17 +300,17 @@ public class LDAPLookup implements LookupManager {
     // change specs, add boolean alias leaf context
     protected void checkLDAPContext(Path path) {
         String dn = getFullDN(path);
-        if (!LDAPLookupUtils.exists(mLDAPAuth.getAuthObject(), dn)) {
+        if (!LDAPLookupUtils.exists(mLDAPConn, dn)) {
             String listDN[] = path.getPath();
             String name = "cn=" + path.getRoot() + "," + mLocalPath;
             int i = 0;
             while (i < listDN.length - 1) {
                 name = "cn=" + LDAPLookupUtils.escapeDN(listDN[i]) + "," + name;
-                if (!LDAPLookupUtils.exists(mLDAPAuth.getAuthObject(), name)) {
+                if (!LDAPLookupUtils.exists(mLDAPConn, name)) {
                     try {
                         // create cristalcontext
                         log.debug("addLDAPContext() context added " + name);
-                        LDAPLookupUtils.createCristalContext(mLDAPAuth.getAuthObject(), name);
+                        LDAPLookupUtils.createCristalContext(mLDAPConn, name);
                     }
                     catch (Exception ex) {
                         log.error("addContext() ",ex);
@@ -310,18 +325,18 @@ public class LDAPLookup implements LookupManager {
         log.debug("Initializing LDAP Boot tree");
 
         // create org
-        LDAPLookupUtils.createOrganizationContext(mLDAPAuth.getAuthObject(), mGlobalPath);
+        LDAPLookupUtils.createOrganizationContext(mLDAPConn, mGlobalPath);
         // create root
-        LDAPLookupUtils.createCristalContext(mLDAPAuth.getAuthObject(), mRootPath);
+        LDAPLookupUtils.createCristalContext(mLDAPConn, mRootPath);
         // create local
-        LDAPLookupUtils.createCristalContext(mLDAPAuth.getAuthObject(), mLocalPath);
+        LDAPLookupUtils.createCristalContext(mLDAPConn, mLocalPath);
     }
 
     @Override
     public void initializeDirectory(TransactionKey transactionKey) throws ObjectNotFoundException {
         createBootTree();
-        LDAPLookupUtils.createCristalContext(mLDAPAuth.getAuthObject(), mItemTypeRoot);
-        LDAPLookupUtils.createCristalContext(mLDAPAuth.getAuthObject(), mDomainTypeRoot);
+        LDAPLookupUtils.createCristalContext(mLDAPConn, mItemTypeRoot);
+        LDAPLookupUtils.createCristalContext(mLDAPConn, mDomainTypeRoot);
         try {
             createRole(new RolePath(), transactionKey);
         }
@@ -380,7 +395,7 @@ public class LDAPLookup implements LookupManager {
         searchCons.setMaxResults(0);
         String[] attr = { LDAPConnection.ALL_USER_ATTRS };
         try {
-            LDAPSearchResults res = mLDAPAuth.getAuthObject().search(startDN, scope,
+            LDAPSearchResults res = mLDAPConn.search(startDN, scope,
                     filter, attr, false, searchCons);
             return new LDAPPathSet(res, this);
         }
@@ -409,7 +424,7 @@ public class LDAPLookup implements LookupManager {
 
     @Override
     public boolean exists(Path path, TransactionKey transactionKey) {
-        return LDAPLookupUtils.exists(mLDAPAuth.getAuthObject(), getFullDN(path));
+        return LDAPLookupUtils.exists(mLDAPConn, getFullDN(path));
     }
 
     @Override
@@ -417,7 +432,7 @@ public class LDAPLookup implements LookupManager {
         String[] attr = { LDAPConnection.ALL_USER_ATTRS };
         try {
             ItemPath item = new ItemPath(uuid);
-            LDAPEntry anEntry = mLDAPAuth.getAuthObject().read(getDN(item) + mLocalPath, attr);
+            LDAPEntry anEntry = mLDAPConn.read(getDN(item) + mLocalPath, attr);
             String type = LDAPLookupUtils.getFirstAttributeValue(anEntry, "objectClass");
 
             if (type.equals("cristalentity"))     return item;
@@ -579,7 +594,7 @@ public class LDAPLookup implements LookupManager {
         String roleDN = getFullDN(rolePath);
         LDAPEntry roleNode;
         try {
-            roleNode = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(rolePath));
+            roleNode = LDAPLookupUtils.getEntry(mLDAPConn, getFullDN(rolePath));
             throw new ObjectAlreadyExistsException("Cannot create Role '" + rolePath.getName() + "' because it exists");
         }
         catch (ObjectNotFoundException ex) {}
@@ -587,7 +602,7 @@ public class LDAPLookup implements LookupManager {
         // create CristalRole if it does not exist
         roleNode = new LDAPEntry(roleDN, createAttributeSet(rolePath));
         try {
-            LDAPLookupUtils.addEntry(mLDAPAuth.getAuthObject(), roleNode);
+            LDAPLookupUtils.addEntry(mLDAPConn, roleNode);
         }
         catch (LDAPException e) {
             throw new ObjectCannotBeUpdated("Cannot create Role '" + rolePath.getName() + "'- LDAPException:" + e.getLDAPErrorMessage());
@@ -598,7 +613,7 @@ public class LDAPLookup implements LookupManager {
 
     public void deleteRole(RolePath role) throws ObjectNotFoundException, ObjectCannotBeUpdated {
         try {
-            LDAPLookupUtils.delete(mLDAPAuth.getAuthObject(), getFullDN(role));
+            LDAPLookupUtils.delete(mLDAPConn, getFullDN(role));
         }
         catch (LDAPException ex) {
             throw new ObjectCannotBeUpdated("Could not remove role '" + role.getName() + "'");
@@ -608,19 +623,19 @@ public class LDAPLookup implements LookupManager {
     @Override
     public void addRole(AgentPath agent, RolePath role, TransactionKey transactionKey)
             throws ObjectCannotBeUpdated, ObjectNotFoundException {
-        LDAPEntry roleEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(role));
+        LDAPEntry roleEntry = LDAPLookupUtils.getEntry(mLDAPConn, getFullDN(role));
         // add memberDN to uniqueMember if it is not yet a member
         if (!LDAPLookupUtils.existsAttributeValue(roleEntry, "uniqueMember", getFullDN(agent)))
-            LDAPLookupUtils.addAttributeValue(mLDAPAuth.getAuthObject(), roleEntry, "uniqueMember", getFullDN(agent));
+            LDAPLookupUtils.addAttributeValue(mLDAPConn, roleEntry, "uniqueMember", getFullDN(agent));
         else
             throw new ObjectCannotBeUpdated("Agent " + agent.getAgentName() + " already has role " + role.getName());
     }
 
     @Override
     public void removeRole(AgentPath agent, RolePath role, TransactionKey transactionKey) throws ObjectCannotBeUpdated, ObjectNotFoundException {
-        LDAPEntry roleEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(role));
+        LDAPEntry roleEntry = LDAPLookupUtils.getEntry(mLDAPConn, getFullDN(role));
         if (LDAPLookupUtils.existsAttributeValue(roleEntry, "uniqueMember", getFullDN(agent)))
-            LDAPLookupUtils.removeAttributeValue(mLDAPAuth.getAuthObject(), roleEntry, "uniqueMember", getFullDN(agent));
+            LDAPLookupUtils.removeAttributeValue(mLDAPConn, roleEntry, "uniqueMember", getFullDN(agent));
         else
             throw new ObjectCannotBeUpdated("Agent '" + agent.getAgentName() + "' did not have role '" + role.getName() + "'");
     }
@@ -640,7 +655,7 @@ public class LDAPLookup implements LookupManager {
         // get the roleDN entry, and its uniqueMember entry pointing to
         LDAPEntry roleEntry;
         try {
-            roleEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(role));
+            roleEntry = LDAPLookupUtils.getEntry(mLDAPConn, getFullDN(role));
         }
         catch (ObjectNotFoundException e) {
             throw new ObjectNotFoundException("Role '" + role.getName() + "' does not exist");
@@ -650,7 +665,7 @@ public class LDAPLookup implements LookupManager {
         ArrayList<AgentPath> agents = new ArrayList<AgentPath>();
         for (String userDN : res) {
             try {
-                LDAPEntry userEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), userDN);
+                LDAPEntry userEntry = LDAPLookupUtils.getEntry(mLDAPConn, userDN);
                 AgentPath path = (AgentPath) nodeToPath(userEntry);
                 agents.add(path);
             }
@@ -713,7 +728,7 @@ public class LDAPLookup implements LookupManager {
             RolePath absPath = new RolePath();
             absPath.setPath(roleName);
             if (absPath.exists()) {
-                LDAPEntry entry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(absPath));
+                LDAPEntry entry = LDAPLookupUtils.getEntry(mLDAPConn, getFullDN(absPath));
                 try {
                     absPath.setHasJobList(LDAPLookupUtils.getFirstAttributeValue(entry, "jobList").equals("TRUE"));
                 }
@@ -745,13 +760,13 @@ public class LDAPLookup implements LookupManager {
         // get entry
         LDAPEntry roleEntry;
         try {
-            roleEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(role));
+            roleEntry = LDAPLookupUtils.getEntry(mLDAPConn, getFullDN(role));
         }
         catch (ObjectNotFoundException e) {
             throw new ObjectNotFoundException("Role '" + role.getName() + "' does not exist");
         }
         // set attribute
-        LDAPLookupUtils.setAttributeValue(mLDAPAuth.getAuthObject(), roleEntry, "jobList", hasJobList ? "TRUE" : "FALSE");
+        LDAPLookupUtils.setAttributeValue(mLDAPConn, roleEntry, "jobList", hasJobList ? "TRUE" : "FALSE");
     }
 
     @Override
@@ -763,17 +778,17 @@ public class LDAPLookup implements LookupManager {
         if (!newPassword.matches("^\\{[a-zA-Z0-5]*\\}")) newPassword = LDAPLookupUtils.generateUserPassword(newPassword);
         LDAPEntry agentEntry;
         try {
-            agentEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(agent));
+            agentEntry = LDAPLookupUtils.getEntry(mLDAPConn, getFullDN(agent));
         }
         catch (ObjectNotFoundException e) {
             throw new ObjectNotFoundException("Agent " + agent.getAgentName() + " does not exist");
         }
-        LDAPLookupUtils.setAttributeValue(mLDAPAuth.getAuthObject(), agentEntry, "userPassword", newPassword);
+        LDAPLookupUtils.setAttributeValue(mLDAPConn, agentEntry, "userPassword", newPassword);
     }
 
     @Override
     public String getAgentName(AgentPath agentPath, TransactionKey transactionKey) throws ObjectNotFoundException {
-        LDAPEntry agentEntry = LDAPLookupUtils.getEntry(mLDAPAuth.getAuthObject(), getFullDN(agentPath));
+        LDAPEntry agentEntry = LDAPLookupUtils.getEntry(mLDAPConn, getFullDN(agentPath));
         return LDAPLookupUtils.getFirstAttributeValue(agentEntry, "uid");
     }
 
