@@ -86,13 +86,11 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     /**
-     * Connect to the directory using the credentials supplied in the Authenticator.
-     *
-     * @param user The connected Authenticator. The Lookup implementation may use the AuthObject in this to communicate with the database.
+     * Connect to lookup
      */
     @Override
     public void open() {
-        log.info("open(user) - Do nothing")
+        log.info("open() - Do nothing")
         clear()
     }
 

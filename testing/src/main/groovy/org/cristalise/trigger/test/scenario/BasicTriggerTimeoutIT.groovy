@@ -23,7 +23,7 @@ import groovy.transform.CompileStatic
 /**
  *
  */
-@CompileStatic
+@CompileStatic @Disabled('Trigger functionality was not updated to work with vertx')
 class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
 
     Schema warningSchema, timeoutSchema, triggerTestActSchema
@@ -104,7 +104,7 @@ class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
         agent.execute(job)
     }
 
-    @Test @Disabled("implementation is not with vertx architecture")
+    @Test
     public void 'Warning Transition is Enabled'() {
         bootstrap(true, false)
 

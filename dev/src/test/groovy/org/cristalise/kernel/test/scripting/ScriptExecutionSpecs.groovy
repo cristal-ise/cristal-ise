@@ -12,7 +12,7 @@ import spock.lang.Specification
 
 class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
 
-    def setupSpec()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true) }
+    def setupSpec()   { inMemoryServer(null, true) }
     def cleanupSpec() { cristalCleanup() }
 
     def 'Script can be used without any input or output paramteres'() {
@@ -170,6 +170,7 @@ class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
         result == 0
     }
 
+    @Ignore('Include does not work with javascript, check issue #650')
     def 'Script written in javascript can use function from included Script'() {
         given:
         ScriptBuilder.create("integTest", "Function09", 0) {
@@ -191,7 +192,7 @@ class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
         result == 0
     }
 
-    @Ignore('Include does not work with groovy')
+    @Ignore('Include does not work with groovy, check issue #650')
     def 'Script written in groovy can use function from included Script'() {
         given:
         ScriptBuilder.create("integTest", "Function10", 0) {

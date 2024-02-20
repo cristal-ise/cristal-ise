@@ -1,9 +1,4 @@
-Name=Cristal Test In Memory Server
-
-ItemServer.name         = localhost
-ItemServer.iiop         = 1498
-ItemServer.Proxy.port   = 1499
-ItemServer.Console.port = 8888
+Name=Cristal IntegTest InMemory Server
 
 Lookup = org.cristalise.storage.InMemoryPropertyClusterStorage
 

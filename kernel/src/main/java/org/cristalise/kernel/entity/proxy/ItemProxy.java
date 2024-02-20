@@ -289,22 +289,16 @@ public class ItemProxy {
         String stepPath = job.getStepPath();
         Activity act = (Activity) getWorkflow().search(stepPath);
         SecurityManager secMan = Gateway.getSecurityManager();
-        
-        if (secMan.isShiroEnabled()) {
-            if (secMan.checkPermissions(agentPath, act, getPath(), null)) {
-                return true;
-//                try {
-//                    j.getTransition().checkPerformingRole(act, agentPath);
-//                    return true;
-//                }
-//                catch (AccessRightsException e) {
-//                    // AccessRightsException is thrown if Job requires specific Role that agent does not have
-//                    log.debug("checkJobForAgent()", e);
-//                }
-            }
-        }
-        else {
-            log.warn("checkJobForAgent() - ENABLE Shiro to work with permissions.");
+
+        if (secMan.checkPermissions(agentPath, act, getPath(), null)) {
+//            try {
+//                job.getTransition().checkPerformingRole(act, agentPath);
+//                return true;
+//            }
+//            catch (AccessRightsException e) {
+//                // AccessRightsException is thrown if Job requires specific Role that agent does not have
+//                log.warn("checkJobForAgent()", e);
+//            }
             return true;
         }
 
