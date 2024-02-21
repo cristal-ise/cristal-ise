@@ -20,13 +20,12 @@
  */
 package org.cristalise.kernel.security;
 
-import static org.cristalise.kernel.SystemProperties.Authenticator;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.cristalise.kernel.SystemProperties.Shiro_iniFile;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SECURITY_ACTION;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SECURITY_DOMAIN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
-import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
@@ -46,34 +45,24 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.PropertyUtility;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+@Getter
 @Slf4j
 public class SecurityManager {
     
     private static final String securityMsgBegin = "[errorMessage]";
     private static final String securityMsgEnd   = "[/errorMessage]";
 
-    @Getter
-    private Authenticator auth = null;
-    @Getter
-    private boolean shiroEnabled = false;
-
     /**
      * 
      * @throws InvalidDataException
      */
     public SecurityManager() throws InvalidDataException {
-        if ("Shiro".equals(Authenticator.getString())) {
-            setupShiro();
-        }
-        else {
-            auth = Gateway.getAuthenticator();
-        }
+        setupShiro();
     }
 
     /**
@@ -82,10 +71,7 @@ public class SecurityManager {
      * @throws ObjectNotFoundException
      */
     public void authenticate() throws InvalidDataException, ObjectNotFoundException {
-        if (!shiroEnabled) {
-            if (!auth.authenticate(SYSTEM_AGENT.getName())) throw new InvalidDataException("Server authentication failed");
-        }
-        //NOTE: the else case is not required because shiro cannot authenticate users without a password, and the current
+        //NOTE: no code required because shiro cannot authenticate users without a password, and the current
         //setup does not allow us to create the 'system' Agent with password. Also the original auth.authenticate("system") 
         //code simply sets up the connection to the underlying technology (LDAP/AD/JDBC) to 'authenticate' the system user
     }
@@ -125,12 +111,7 @@ public class SecurityManager {
     public AgentProxy authenticate(String agentName, String agentPassword, String resource, boolean isClient, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException
     {
-        if (shiroEnabled) {
-            if (!shiroAuthenticate(agentName, agentPassword)) throw new InvalidDataException("Login failed");
-        }
-        else {
-            if (!auth.authenticate(agentName, agentPassword, resource)) throw new InvalidDataException("Login failed");
-        }
+        if (!shiroAuthenticate(agentName, agentPassword)) throw new InvalidDataException("Login failed");
 
         // It can be invoked before Lookup is initialised
         if (isClient && Gateway.getLookup() != null) return Gateway.getAgentProxy(agentName, transactionKey);
@@ -158,13 +139,12 @@ public class SecurityManager {
 
     /**
      * Loads shiro.ini file from a file or from the classpath (default)
-     * TODO: replace the use of IniSecurityManagerFactory with shiro Environment initialization
      */
-    public void setupShiro() {
+    private void setupShiro() {
         String shiroIni = Shiro_iniFile.getString();
 
-        if (StringUtils.isBlank(shiroIni)) shiroIni = "classpath:shiro.ini";
-        else                               shiroIni = "file:" + shiroIni;
+        if (isBlank(shiroIni)) shiroIni = "classpath:shiro.ini";
+        else                   shiroIni = "file:" + shiroIni;
 
         Ini sIni = Ini.fromResourcePath(shiroIni);
 
@@ -177,15 +157,14 @@ public class SecurityManager {
 //            catch (IOException e) {
 //            }
 //        }
-        
+
+        //FIXME: replace the use of IniSecurityManagerFactory with shiro Environment initialization
         Factory<org.apache.shiro.mgt.SecurityManager> factory = new IniSecurityManagerFactory(sIni);
 
         org.apache.shiro.mgt.SecurityManager securityManager = factory.getInstance();
         SecurityUtils.setSecurityManager(securityManager);
 
-        log.info("setupShiro("+shiroIni+") - Done");
-
-        shiroEnabled = true;
+        log.info("setupShiro() - Done inifile:{}", shiroIni);
     }
 
     /**
@@ -197,7 +176,7 @@ public class SecurityManager {
     public static String decodePublicSecurityMessage(Throwable ex) {
         String msg = StringUtils.substringBetween(ex.getMessage(), securityMsgBegin, securityMsgEnd);
 
-        if (StringUtils.isBlank(msg) && ex.getCause() != null) {
+        if (isBlank(msg) && ex.getCause() != null) {
             return decodePublicSecurityMessage(ex.getCause());
         }
 
@@ -221,7 +200,7 @@ public class SecurityManager {
      * @param agentPassword
      * @return
      */
-    public boolean shiroAuthenticate(String agentName, String agentPassword) throws InvalidDataException {
+    private boolean shiroAuthenticate(String agentName, String agentPassword) throws InvalidDataException {
         Subject agentSubject = getSubject(agentName);
 
         if ( !agentSubject.isAuthenticated() ) {
@@ -250,15 +229,16 @@ public class SecurityManager {
     }
 
     /**
-     * 
+     *
      * @param agent
-     * @param stepPath
+     * @param act
      * @param itemPath
+     * @param transactionKey
      * @return
      * @throws AccessRightsException
-     * @throws ObjectNotFoundException Item was not found
+     * @throws ObjectNotFoundException
      */
-    public boolean checkPermissions(AgentPath agent, Activity act, ItemPath itemPath, TransactionKey transactionKey) 
+    public boolean checkPermissions(AgentPath agent, Activity act, ItemPath itemPath, TransactionKey transactionKey)
             throws AccessRightsException, ObjectNotFoundException
     {
         String domain = getWildcardPermissionDomain(itemPath, transactionKey);
@@ -284,7 +264,7 @@ public class SecurityManager {
         String type   = PropertyUtility.getPropertyValue(itemPath, TYPE, "", transactionKey);
         String domain = PropertyUtility.getPropertyValue(itemPath, SECURITY_DOMAIN, type, transactionKey);
 
-        if (StringUtils.isBlank(domain)) throw new AccessRightsException("Domain was blank - Specify 'SecurityDomain' or 'Type' ItemProperties");
+        if (isBlank(domain)) throw new AccessRightsException("Domain was blank - Specify 'SecurityDomain' or 'Type' ItemProperties");
 
         return domain;
     }
@@ -298,8 +278,8 @@ public class SecurityManager {
     private String getWildcardPermissionAction(Activity act) throws AccessRightsException {
         String action = (String) act.getBuiltInProperty(SECURITY_ACTION, "");
 
-        if (StringUtils.isBlank(action)) action = act.getName();
-        if (StringUtils.isBlank(action)) throw new AccessRightsException("Action was blank - Specify 'SecurityAction' or 'Name' ActivityProperties");
+        if (isBlank(action)) action = act.getName();
+        if (isBlank(action)) throw new AccessRightsException("Action was blank - Specify 'SecurityAction' or 'Name' ActivityProperties");
 
         return action;
     }

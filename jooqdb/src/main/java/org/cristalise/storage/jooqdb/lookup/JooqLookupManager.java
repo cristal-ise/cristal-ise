@@ -58,7 +58,6 @@ import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
@@ -92,7 +91,7 @@ public class JooqLookupManager implements LookupManager {
     private Argon2Password passwordHasher;
 
     @Override
-    public void open(Authenticator auth) {
+    public void open() {
         JooqDataSourceHandler.readSystemProperties();
 
         try {

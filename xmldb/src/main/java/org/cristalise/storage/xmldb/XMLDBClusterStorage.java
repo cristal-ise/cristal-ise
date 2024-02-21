@@ -34,7 +34,6 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Parameter;
 import org.cristalise.kernel.querying.Query;
 import org.exist.xmldb.EXistResource;
@@ -118,7 +117,7 @@ public class XMLDBClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void open(Authenticator auth) throws PersistencyException {
+    public void open() throws PersistencyException {
         final String driver = "org.exist.xmldb.DatabaseImpl";
         // Uncomment the following for embedded existdb
         // System.setProperty("exist.initdb", "true");

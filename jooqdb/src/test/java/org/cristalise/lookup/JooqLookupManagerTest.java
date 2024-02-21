@@ -55,7 +55,7 @@ public class JooqLookupManagerTest extends JooqTestConfigurationBase {
     @Before
     public void before() throws Exception {
         jooq = new JooqLookupManager();
-        jooq.open(null);
+        jooq.open();
     }
 
     @Test

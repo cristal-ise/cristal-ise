@@ -30,7 +30,7 @@
   </appender>
 
 <!--   <logger name="org.jooq" level="DEBUG" /> -->
-  <!--logger name="org.cristalise.kernel.entity.proxy.ItemProxy" level="TRACE" /-->
+  <logger name="org.cristalise.kernel.security" level="DEBUG"/>
 
   <root level="INFO">
     <appender-ref ref="STDOUT" />

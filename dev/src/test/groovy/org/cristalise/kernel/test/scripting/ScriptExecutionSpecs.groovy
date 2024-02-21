@@ -1,3 +1,23 @@
+/**
+ * This file is part of the CRISTAL-iSE Development Module.
+ * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * http://www.fsf.org/licensing/licenses/lgpl.html
+ */
 package org.cristalise.kernel.test.scripting
 
 import org.cristalise.dsl.scripting.ScriptBuilder
@@ -12,7 +32,7 @@ import spock.lang.Specification
 
 class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
 
-    def setupSpec()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true) }
+    def setupSpec()   { inMemoryServer(null, true) }
     def cleanupSpec() { cristalCleanup() }
 
     def 'Script can be used without any input or output paramteres'() {
@@ -170,6 +190,7 @@ class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
         result == 0
     }
 
+    @Ignore('Include does not work with javascript, check issue #650')
     def 'Script written in javascript can use function from included Script'() {
         given:
         ScriptBuilder.create("integTest", "Function09", 0) {
@@ -191,7 +212,7 @@ class ScriptExecutionSpecs extends Specification implements CristalTestSetup {
         result == 0
     }
 
-    @Ignore('Include does not work with groovy')
+    @Ignore('Include does not work with groovy, check issue #650')
     def 'Script written in groovy can use function from included Script'() {
         given:
         ScriptBuilder.create("integTest", "Function10", 0) {

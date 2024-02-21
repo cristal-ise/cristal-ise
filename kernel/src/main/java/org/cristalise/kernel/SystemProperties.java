@@ -33,7 +33,6 @@ import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeInitiator;
 import org.cristalise.kernel.process.Bootstrap;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.SystemPropertyOperations;
 import org.cristalise.storage.XMLClusterStorage;
@@ -51,7 +50,6 @@ import lombok.Getter;
  * </pre>
  * 
  * @see #Activity_validateOutcome
- * @see #Authenticator
  * @see #BulkErase_force
  * @see #BulkErase_limit
  * @see #BulkImport_fileExtension
@@ -60,7 +58,7 @@ import lombok.Getter;
  * @see #ClusterStorage
  * @see #ClusterStorage_cacheSpec
  * @see #CreateItemFromDescription_Cache_enable
- * @see #DataHelper
+ * @see #DataHelper_$name
  * @see #Dependency_addStateMachineURN
  * @see #Dependency_addWorkflowURN
  * @see #Dependency_checkMemberUniqueness
@@ -121,12 +119,6 @@ public enum SystemProperties implements SystemPropertyOperations {
      * Activity property as well.
      */
     Activity_validateOutcome("Activity.validateOutcome", false),
-    /**
-     * DEPRECATED - Shiro provides better mechanism. Specifies the Authenticator implementation to be used. 
-     * The default value is 'Shiro', which will use the Shiro integration with authentication realms, 
-     * or it could be a java class implementing the deprecated {@link Authenticator} interface.
-     */
-    Authenticator("Authenticator", "Shiro"),
     /**
      *  If true continue Erase even if an error. Default value is false - UNIMPLEMENTED
      */

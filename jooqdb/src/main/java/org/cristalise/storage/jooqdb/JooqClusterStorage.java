@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
@@ -44,7 +43,6 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Parameter;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.storage.jooqdb.clusterStore.JooqCollectionHadler;
@@ -75,7 +73,7 @@ public class JooqClusterStorage extends ClusterStorage {
     protected List<JooqDomainHandler>       domainHandlers = new ArrayList<JooqDomainHandler>();
 
     @Override
-    public void open(Authenticator auth) throws PersistencyException {
+    public void open() throws PersistencyException {
         JooqDataSourceHandler.readSystemProperties();
         initialiseHandlers();
     }

@@ -23,6 +23,7 @@ package org.cristalise.lookup.ldap;
 import java.util.ArrayList;
 import java.util.Enumeration;
 
+import com.novell.ldap.LDAPConnection;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -37,13 +38,13 @@ public class LDAPPropertyManager {
     /**
      *
      */
-    protected final LDAPLookup ldap;
-    protected final LDAPAuthManager auth;
+    protected final LDAPLookup      ldap;
+    protected final LDAPConnection  conn;
 
-    public LDAPPropertyManager(LDAPLookup ldap, LDAPAuthManager auth) {
+    public LDAPPropertyManager(LDAPLookup ldap, LDAPConnection c) {
         super();
         this.ldap = ldap;
-        this.auth = auth;
+        this.conn = c;
     }
 
     /**
@@ -52,7 +53,7 @@ public class LDAPPropertyManager {
      * @throws ObjectNotFoundException
      */
     public boolean hasProperties(ItemPath thisItem) throws ObjectNotFoundException {
-    	LDAPEntry entityEntry = LDAPLookupUtils.getEntry(auth.getAuthObject(), ldap.getFullDN(thisItem));
+    	LDAPEntry entityEntry = LDAPLookupUtils.getEntry(conn, ldap.getFullDN(thisItem));
     	return entityEntry.getAttribute("cristalprop") != null;
     }
 
@@ -62,7 +63,7 @@ public class LDAPPropertyManager {
      * @throws ObjectNotFoundException
      */
     public String[] getPropertyNames(ItemPath thisItem) throws ObjectNotFoundException {
-        LDAPEntry entityEntry = LDAPLookupUtils.getEntry(auth.getAuthObject(), ldap.getFullDN(thisItem));
+        LDAPEntry entityEntry = LDAPLookupUtils.getEntry(conn, ldap.getFullDN(thisItem));
         ArrayList<String> propbag = new ArrayList<String>();
         LDAPAttribute props = entityEntry.getAttribute("cristalprop");
         for (Enumeration<?> e = props.getStringValues(); e.hasMoreElements();) {
@@ -78,12 +79,12 @@ public class LDAPPropertyManager {
 
     /**
      * @param thisItem - EntityPath of the subject entity
-     * @param propName - the name of the property to retrieve
+     * @param name - the name of the property to retrieve
      * @return The Property object
      * @throws ObjectNotFoundException
      */
     public Property getProperty(ItemPath thisItem, String name) throws ObjectNotFoundException {
-        LDAPEntry entityEntry = LDAPLookupUtils.getEntry(auth.getAuthObject(), ldap.getFullDN(thisItem));
+        LDAPEntry entityEntry = LDAPLookupUtils.getEntry(conn, ldap.getFullDN(thisItem));
         return getProperty(entityEntry, name);
     }
 
@@ -94,9 +95,9 @@ public class LDAPPropertyManager {
      * @throws ObjectCannotBeUpdated
      */
     public void deleteProperty(ItemPath thisItem, String name) throws ObjectNotFoundException, ObjectCannotBeUpdated {
-        LDAPEntry entityEntry = LDAPLookupUtils.getEntry(auth.getAuthObject(), ldap.getFullDN(thisItem));
+        LDAPEntry entityEntry = LDAPLookupUtils.getEntry(conn, ldap.getFullDN(thisItem));
         Property prop = getProperty(entityEntry, name);
-        LDAPLookupUtils.removeAttributeValue(auth.getAuthObject(), entityEntry, "cristalprop", getPropertyAttrValue(prop));
+        LDAPLookupUtils.removeAttributeValue(conn, entityEntry, "cristalprop", getPropertyAttrValue(prop));
     }
     
     private static String getPropertyAttrValue(Property prop) {
@@ -110,14 +111,14 @@ public class LDAPPropertyManager {
      * @throws ObjectCannotBeUpdated
      */
     public void setProperty(ItemPath thisItem, Property prop) throws ObjectNotFoundException, ObjectCannotBeUpdated {
-        LDAPEntry entityEntry = LDAPLookupUtils.getEntry(auth.getAuthObject(), ldap.getFullDN(thisItem));
+        LDAPEntry entityEntry = LDAPLookupUtils.getEntry(conn, ldap.getFullDN(thisItem));
         try {
         	Property oldProp = getProperty(entityEntry, prop.getName());
-            LDAPLookupUtils.removeAttributeValue(auth.getAuthObject(), entityEntry, "cristalprop", getPropertyAttrValue(oldProp));
+            LDAPLookupUtils.removeAttributeValue(conn, entityEntry, "cristalprop", getPropertyAttrValue(oldProp));
         } catch (ObjectNotFoundException ex) {
             //Logger.msg(6, "LDAPLookupUtils.setProperty("+prop.getName()+") - creating new property.");
         }
-        LDAPLookupUtils.addAttributeValue(auth.getAuthObject(), entityEntry, "cristalprop", getPropertyAttrValue(prop));
+        LDAPLookupUtils.addAttributeValue(conn, entityEntry, "cristalprop", getPropertyAttrValue(prop));
     }
 
     public static Property getProperty(LDAPEntry myEntry, String propName) throws ObjectNotFoundException {
