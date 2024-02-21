@@ -12,7 +12,7 @@ services:
   - docker
 
 install:
-  - mvn install -DskipTests -Dmaven.javadoc.skip -Dgpg.skip -B -V
+  - mvn dependency:resolve -DskipTests -Dmaven.javadoc.skip -Dgpg.skip -B -V
 
 script:
   - |
@@ -39,7 +39,7 @@ script:
       # mvn test -pl testing -P integtest
     fi
 
-# after_script:
+#after_script:
 #  - docker compose -f ./testing/src/main/docker/docker-compose.yml -p integtest down
 
 cache:
