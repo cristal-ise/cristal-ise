@@ -779,7 +779,7 @@ public class Script implements DescriptionObject {
             }
             catch (Exception e) {
                 //This case was originally not logged
-                log.warn("initOutputParams() - Failed to init output:{} error:{}", outputParam.getName(), e.getMessage());
+                log.warn("initOutputParams() - Failed to init script:{} output:{} error:{}", getName(), outputParam.getName(), e.getMessage());
             }
 
             context.getBindings(ScriptContext.ENGINE_SCOPE).put(outputParam.getName(), emptyObject);
