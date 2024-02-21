@@ -59,17 +59,18 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <additionalparam>-Xdoclint:none</additionalparam>
     <maven.deploy.skip>true</maven.deploy.skip>
-        <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
+    <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
     <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
-        <java.release>21</java.release>
-        <vertx.version>4.5.2</vertx.version>
-        <groovy.version>4.0.17</groovy.version>
-        <groovy-eclipse-compiler.version>3.9.0</groovy-eclipse-compiler.version>
-        <groovy-eclipse-batch.version>4.0.18-03</groovy-eclipse-batch.version>
-        <lombok.version>1.18.30</lombok.version>
+    <java.release>21</java.release>
+    <vertx.version>4.5.2</vertx.version>
+    <groovy.version>4.0.17</groovy.version>
+    <groovy-eclipse-compiler.version>3.9.0</groovy-eclipse-compiler.version>
+    <groovy-eclipse-batch.version>4.0.18-03</groovy-eclipse-batch.version>
+    <lombok.version>1.18.30</lombok.version>
     <slf4j.version>1.7.26</slf4j.version>
-        <spock.version>2.3-groovy-4.0</spock.version>
-        <spockReports.version>2.5.1-groovy-4.0</spockReports.version>
+    <logback.version>1.5.0</logback.version>
+    <spock.version>2.3-groovy-4.0</spock.version>
+    <spockReports.version>2.5.1-groovy-4.0</spockReports.version>
   </properties>
 
   <description>Cristal-ise is a description-driven software platform originally developed to track the construction of
@@ -426,7 +427,7 @@
       <dependency>
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-classic</artifactId>
-        <version>1.2.13</version>
+        <version>${logback.version}}</version>
       </dependency>
       <dependency>
         <groupId>org.codehaus.janino</groupId>
