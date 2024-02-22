@@ -14,7 +14,7 @@ CRISTAL-iSE is a description-driven software platform originally developed to tr
    1. review issues listed in the github Release
    1. move all open github issues to a new Release (e.g. from 6.0.0 to 6.1.0)
       - make sure all remaining/closed issues have at least the bug/enhancment flags required for the release summary
-1.  **Steps on the development machine**
+1. **Steps on the development machine**
    1. `git checkout develop`
    1. `git pull -r`
    1. `git checkout master`
