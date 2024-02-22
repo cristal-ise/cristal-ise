@@ -27,11 +27,12 @@
   <parent>
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise</artifactId>
-    <version>${revision}</version>
+    <version>6.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cristalise-gui</artifactId>
-  <name>cristalise-gui</name>
+
+  <name>CRISTAL-iSE Swing UI</name>
   <description>CRISTAL-iSE default/administration GUI</description>
   <url>https://github.com/cristal-ise/gui</url>
   <licenses>
@@ -104,7 +105,7 @@
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-kernel</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fifesoft</groupId>
@@ -176,7 +177,7 @@
         <dependency>
           <groupId>org.cristalise</groupId>
           <artifactId>cristalise-jooqdb</artifactId>
-          <version>${revision}</version>
+          <version>${project.parent.version}</version>
         </dependency>
         <dependency>
           <groupId>org.postgresql</groupId>
@@ -201,7 +202,7 @@
                 <image>${docker-from-image}</image>
               </from>
               <to>
-                <image>cristalise/swingui:${revision}</image>
+                <image>cristalise/swingui:${project.parent.version}</image>
               </to>
               <container>
                 <creationTime>${maven.build.timestamp}</creationTime>

@@ -28,11 +28,12 @@
   <parent>
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise</artifactId>
-    <version>${revision}</version>
+    <version>6.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cristalise-testing</artifactId>
-  <name>CRISTAL-iSE Testing Module</name>
+
+  <name>CRISTAL-iSE Integration Testing</name>
   <description>CRISTAL-iSE Testing Module</description>
 
   <properties>
@@ -84,7 +85,7 @@
             <image>${docker-from-image}</image>
           </from>
           <to>
-            <image>cristalise/testing:${revision}</image>
+            <image>cristalise/testing:${project.parent.version}</image>
           </to>
           <container>
             <creationTime>${maven.build.timestamp}</creationTime>
@@ -140,49 +141,49 @@
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-jooqdb</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-gui</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-dev</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-dsl</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-xpath-outcomeinit</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-restapi</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-trigger</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-inmemory-lookup</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
       <exclusions>
         <exclusion>

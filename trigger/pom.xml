@@ -28,10 +28,11 @@
   <parent>
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise</artifactId>
-    <version>${revision}</version>
+    <version>6.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cristalise-trigger</artifactId>
+
   <name>CRISTAL-iSE Trigger</name>
   <description>CRISTAL-iSE Trigger Module</description>
   <url>https://github.com/cristal-ise/xpath-outcomeinit</url>
@@ -130,7 +131,7 @@
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-kernel</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>org.quartz-scheduler</groupId>

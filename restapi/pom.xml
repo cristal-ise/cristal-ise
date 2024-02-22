@@ -28,12 +28,12 @@
   <parent>
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise</artifactId>
-    <version>${revision}</version>
+    <version>6.0.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>cristalise-restapi</artifactId>
-  <name>CRISTAL-iSE Restapi</name>
-  <packaging>jar</packaging>
+
+  <name>CRISTAL-iSE Rest API</name>
   <description>CRISTAL-iSE REST API Module</description>
   <url>https://github.com/cristal-ise/restapi</url>
   <licenses>
@@ -140,12 +140,12 @@
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-kernel</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-xpath-outcomeinit</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>org.json</groupId>
@@ -165,12 +165,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.cristalise</groupId>
-      <artifactId>cristalise-jooqdb</artifactId>
-      <version>${revision}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <scope>test</scope>
@@ -184,12 +178,12 @@
         <dependency>
           <groupId>org.cristalise</groupId>
           <artifactId>cristalise-jooqdb</artifactId>
-          <version>${revision}</version>
+          <version>${project.parent.version}</version>
         </dependency>
         <dependency>
           <groupId>org.cristalise</groupId>
           <artifactId>cristalise-dev</artifactId>
-          <version>${revision}</version>
+          <version>${project.parent.version}</version>
         </dependency>
         <dependency>
           <groupId>org.postgresql</groupId>
@@ -214,7 +208,7 @@
                 <image>${docker-from-image}</image>
               </from>
               <to>
-                <image>cristalise/restapi:${revision}</image>
+                <image>cristalise/restapi:${project.parent.version}</image>
               </to>
               <container>
                 <creationTime>${maven.build.timestamp}</creationTime>
