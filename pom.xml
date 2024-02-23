@@ -26,33 +26,26 @@
 
   <groupId>org.cristalise</groupId>
   <artifactId>cristalise</artifactId>
-  <name>cristalise</name>
-  <version>${revision}</version>
+  <version>6.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
+
+  <name>CRISTAL-iSE BOM</name>
 
   <modules>
     <module>kernel</module>
     <module>jooqdb</module>
     <module>in-memory-lookup</module>
-    <module>xmldb</module>
-    <module>lookup-ldap</module>
     <module>xpath-outcome-initiator</module>
-    <module>trigger</module>
     <module>gui</module>
-    <module>restapi</module>
-    <module>dev</module>
     <module>dsl</module>
+    <module>dev</module>
+    <module>restapi</module>
+    <module>trigger</module>
     <!-- Functional test cannot be run on travis at this stage -->
     <module>testing</module>
-
-    <!-- These modules are not needed therefore are not maintained actively -->
-    <!--module>service</module-->
-    <!--module>js-rhino</module-->
-    <!--module>module-archetype</module -->
   </modules>
 
   <properties>
-    <revision>6.0.0-SNAPSHOT</revision>
     <docker-from-image>bellsoft/liberica-openjdk-alpine:21</docker-from-image>
     <productionMode>false</productionMode>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -67,8 +60,8 @@
     <groovy-eclipse-compiler.version>3.9.0</groovy-eclipse-compiler.version>
     <groovy-eclipse-batch.version>4.0.18-03</groovy-eclipse-batch.version>
     <lombok.version>1.18.30</lombok.version>
-    <slf4j.version>1.7.26</slf4j.version>
-    <logback.version>1.5.0</logback.version>
+    <slf4j.version>1.7.36</slf4j.version>
+    <logback.version>1.2.13</logback.version>
     <spock.version>2.3-groovy-4.0</spock.version>
     <spockReports.version>2.5.1-groovy-4.0</spockReports.version>
   </properties>
@@ -127,36 +120,14 @@
     <plugins>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
-        <artifactId>flatten-maven-plugin</artifactId>
-        <version>1.6.0</version>
-        <configuration>
-          <updatePomFile>true</updatePomFile>
-          <flattenMode>ossrh</flattenMode>
-        </configuration>
-        <executions>
-          <execution>
-            <id>flatten</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>flatten</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>flatten.clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>clean</goal>
-            </goals>
-          </execution>
-        </executions>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>2.16.2</version>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
         <version>2.4.1</version>
       </plugin>
-
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${maven-compiler-plugin.version}</version>
@@ -243,8 +214,6 @@
         <module>kernel</module>
         <module>jooqdb</module>
         <module>in-memory-lookup</module>
-        <module>xmldb</module>
-        <module>lookup-ldap</module>
         <module>xpath-outcome-initiator</module>
         <module>trigger</module>
         <module>gui</module>
