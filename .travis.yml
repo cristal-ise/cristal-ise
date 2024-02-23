@@ -12,7 +12,7 @@ services:
   - docker
 
 install:
-  - mvn dependency:resolve -DskipTests -Dmaven.javadoc.skip -Dgpg.skip -B -V
+  - mvn install -DskipTests -Dmaven.javadoc.skip -Dgpg.skip -B -V
 
 script:
   - |
