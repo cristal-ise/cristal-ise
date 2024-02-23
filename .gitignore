@@ -1,5 +1,6 @@
 **/.flattened-pom.xml
 target/
+build/
 .project
 .classpath
 .settings/

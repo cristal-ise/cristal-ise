@@ -1,268 +1,118 @@
-<!--
-
-    This file is part of the CRISTAL-iSE Development Module.
-    Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
-
-    This library is free software; you can redistribute it and/or modify it
-    under the terms of the GNU Lesser General Public License as published
-    by the Free Software Foundation; either version 3 of the License, or (at
-    your option) any later version.
-
-    This library is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-    License for more details.
-
-    You should have received a copy of the GNU Lesser General Public License
-    along with this library; if not, write to the Free Software Foundation,
-    Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
-
-    http://www.fsf.org/licensing/licenses/lgpl.html
-
--->
-<CristalModule ns="dev" name="CristaliseDev">
-    <Info>
-        <Description>CRISTAL-iSE Development Items, such as resource factories and workflows. 
-        Also includes a demonstrative DescriptionFactory</Description>
-        <Version>${version}</Version>
-        <KernelVersion>3.3</KernelVersion>
-        <Dependency>CristalJooqDB</Dependency>
-        <Dependency>CristalGui</Dependency>
-    </Info>
-    <ResourceURL>org/cristalise/dev/resources/</ResourceURL>
-    <Config name="Module.dev.debug">true</Config>
-    <Config name="OutcomeInit.Dev">org.cristalise.dev.DevObjectOutcomeInitiator</Config>
-    <Config name="OverrideScriptLang.javascript">rhino</Config>
-    <Config name="OverrideScriptLang.JavaScript">rhino</Config>
-    <Config name="OverrideScriptLang.js">rhino</Config>
-    <Config name="OverrideScriptLang.JS">rhino</Config>
-    <Config name="OverrideScriptLang.ECMAScript">rhino</Config>
-    <Config name="OverrideScriptLang.ecmascript">rhino</Config>
-    <Imports>
-        <Resource name="NewDevObjectDef" version="0" type="OD">boot/OD/NewDevObjectDef.xsd</Resource>
-        <SchemaResource name="NewAgent" version="0"/>
-        <Resource name="ChooseWorkflow" version="0" type="OD">boot/OD/ChooseWorkflow.xsd</Resource>
-        <Resource name="NewCollection" version="0" type="OD">boot/OD/NewCollection.xsd</Resource>
-        <Resource name="LocalObjectDefCreator" version="0" type="SC">boot/SC/LocalObjectDefCreator.xml</Resource>
-        <Activity name="CreateNewLocalObjectDef" version="0" resource="boot/EA/CreateNewLocalObjectDef.xml">
-            <Schema name="NewDevObjectDef" version="0" />
-            <Script name="LocalObjectDefCreator" version="0" />
-        </Activity>
-        <Activity name="EditPropertyDescription" version="0" resource="boot/EA/EditPropertyDescription.xml">
-            <Schema name="PropertyDescription" version="0" />
-        </Activity>
-        <Resource name="InstantiateItem" version="0" type="SC">boot/SC/InstantiateItem.xml</Resource>
-        <Activity name="CreateItem" version="0" resource="boot/EA/CreateItem.xml">
-            <Schema name="NewDevObjectDef" version="0" />
-            <Script name="InstantiateItem" version="0" />
-        </Activity>
-        <ScriptResource name="InstantiateAgent" version="0"/>
-        <Activity name="CreateAgent" version="0">
-            <Schema name="NewAgent"         version="0" />
-            <Script name="InstantiateAgent" version="0" />
-        </Activity>
-        <Resource name="SetWorkflow" version="0" type="SC">boot/SC/SetWorkflow.xml</Resource>
-        <Activity name="SetInstanceWorkflow" version="0" resource="boot/EA/SetInstanceWorkflow.xml">
-            <Schema name="ChooseWorkflow" version="0" />
-            <Script name="SetWorkflow" version="0" />
-        </Activity>
-        <Resource name="CollDescCreator" version="0" type="SC">boot/SC/CollDescCreator.xml</Resource>
-        <Activity name="DefineNewCollection" version="0" resource="boot/EA/DefineNewCollection.xml">
-            <Schema name="NewCollection" version="0" />
-            <Script name="CollDescCreator" version="0" />
-        </Activity>
-        <Workflow name="CompositeActivityFactory" version="0" resource="boot/CA/CompositeActivityFactory.xml">
-            <Activity name="CreateNewLocalObjectDef" version="0" />
-        </Workflow>
-        <Workflow name="ElementaryActivityFactory" version="0" resource="boot/CA/ElementaryActivityFactory.xml">
-            <Activity name="CreateNewLocalObjectDef" version="0" />
-        </Workflow>
-        <Workflow name="SchemaFactoryWf" version="0" resource="boot/CA/SchemaFactoryWf.xml">
-            <Activity name="EditDefinition" version="0" />
-            <Activity name="CreateNewLocalObjectDef" version="0" />
-        </Workflow>
-        <Workflow name="ScriptFactoryWf" version="0" resource="boot/CA/ScriptFactoryWf.xml">
-            <Activity name="EditDefinition" version="0" />
-            <Activity name="CreateNewLocalObjectDef" version="0" />
-        </Workflow>
-        <Workflow name="QueryFactoryWf" version="0" resource="boot/CA/QueryFactoryWf.xml">
-            <Activity name="EditDefinition" version="0" />
-            <Activity name="CreateNewLocalObjectDef" version="0" />
-        </Workflow>
-        <Workflow name="StateMachineFactoryWf" version="0" resource="boot/CA/StateMachineFactoryWf.xml">
-            <Activity name="CreateNewLocalObjectDef" version="0" />
-        </Workflow>
-        <Workflow name="ItemDescriptionWf" version="0" resource="boot/CA/ItemDescriptionWf.xml">
-            <Activity name="EditPropertyDescription" version="0" />
-            <Activity name="SetInstanceWorkflow" version="0" />
-            <Activity name="CreateItem" version="0" />
-            <Activity name="DefineNewCollection" version="0" />
-        </Workflow>
-        <Workflow name="ItemDescriptionFactoryWf" version="0" resource="boot/CA/ItemDescriptionFactoryWf.xml">
-            <Activity name="CreateItem" version="0" />
-        </Workflow>
-        <Workflow name="ReadOnlyItemDescriptionWf" version="0" resource="boot/CA/ReadOnlyItemDescriptionWf.xml">
-            <Activity name="CreateItem" version="0" />
-        </Workflow>
-        <Workflow name="ModuleFactory" version="0" resource="boot/CA/ModuleFactory.xml">
-            <Activity name="CreateItem" version="0" />
-        </Workflow>
-        <Workflow name="AgentFactoryWf" version="0">
-            <Activity name="CreateAgent" version="0" />
-        </Workflow>
-        <Item name="ScriptFactory" initialPath="/desc/dev" workflow="ScriptFactoryWf">
-            <Property name="LocalObjectType">Script</Property>
-            <Property name="Type">Factory</Property>
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/SCProp.xml</Outcome>
-            <Outcome viewname="last" schema="Script" version="0">boot/SC/New.xml</Outcome>
-            <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageScript">
-                    <MemberProperties>
-                        <KeyValuePair Key="Version" String="0" />
-                    </MemberProperties>
-                </DependencyMember>
-                <CollectionProperties />
-            </Dependency>
-            <Dependency name="Include" isDescription="true" />
-        </Item>
-        <Item name="QueryFactory" initialPath="/desc/dev" workflow="QueryFactoryWf">
-            <Property name="LocalObjectType">Query</Property>
-            <Property name="Type">Factory</Property>
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/queryProp.xml</Outcome>
-            <Outcome viewname="last" schema="Query" version="0">boot/query/New.xml</Outcome>
-            <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageQuery">
-                    <MemberProperties>
-                        <KeyValuePair Key="Version" String="0" />
-                    </MemberProperties>
-                </DependencyMember>
-                <CollectionProperties />
-            </Dependency>
-        </Item>
-        <Item name="SchemaFactory" initialPath="/desc/dev" workflow="SchemaFactoryWf">
-            <Property name="LocalObjectType">Schema</Property>
-            <Property name="Type">Factory</Property>
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ODProp.xml</Outcome>
-            <Outcome viewname="last" schema="Schema" version="0">boot/OD/New.xsd</Outcome>
-            <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageSchema">
-                    <MemberProperties>
-                        <KeyValuePair Key="Version" String="0" />
-                    </MemberProperties>
-                </DependencyMember>
-                <CollectionProperties />
-            </Dependency>
-        </Item>
-        <Item name="StateMachineFactory" initialPath="/desc/dev" workflow="StateMachineFactoryWf">
-            <Property name="LocalObjectType">StateMachine</Property>
-            <Property name="Type">Factory</Property>
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/SMProp.xml</Outcome>
-            <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageStateMachine">
-                    <MemberProperties>
-                        <KeyValuePair Key="Version" String="0" />
-                    </MemberProperties>
-                </DependencyMember>
-                <CollectionProperties />
-            </Dependency>
-        </Item>
-        <Item name="ElementaryActivityDefFactory" initialPath="/desc/dev" workflow="ElementaryActivityFactory">
-            <Property name="LocalObjectType">ElementaryActivityDef</Property>
-            <Property name="Type">Factory</Property>
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/EAProp.xml</Outcome>
-            <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="desc/ActivityDesc/kernel/ManageElementaryActDef">
-                    <MemberProperties>
-                        <KeyValuePair Key="Version" String="0" />
-                    </MemberProperties>
-                </DependencyMember>
-                <CollectionProperties />
-            </Dependency>
-            <Dependency name="Schema" isDescription="true">
-                <DependencyMember itemPath="desc/dev/SchemaFactory" />
-            </Dependency>
-            <Dependency name="Script" isDescription="true">
-                <DependencyMember itemPath="desc/dev/ScriptFactory" />
-            </Dependency>
-            <Dependency name="Query" isDescription="true">
-                <DependencyMember itemPath="desc/dev/QueryFactory" />
-            </Dependency>
-            <Dependency name="StateMachine" isDescription="true">
-                <DependencyMember itemPath="desc/dev/StateMachineFactory" />
-            </Dependency>
-        </Item>
-        <Item name="ActivityDefType" initialPath="/desc/dev" workflow="NoWorkflow">
-            <Property name="Type">Type</Property>
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ACProp.xml</Outcome>
-        </Item>
-        <Item name="CompositeActivityDefFactory" initialPath="/desc/dev" workflow="CompositeActivityFactory">
-            <Property name="LocalObjectType">CompositeActivityDef</Property>
-            <Property name="Type">Factory</Property>
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/CAProp.xml</Outcome>
-            <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageCompositeActDef">
-                    <MemberProperties>
-                        <KeyValuePair Key="Version" String="0" />
-                    </MemberProperties>
-                </DependencyMember>
-                <CollectionProperties />
-            </Dependency>
-            <Dependency name="Activity" isDescription="true">
-                <DependencyMember itemPath="desc/dev/ActivityDefType" />
-            </Dependency>
-            <Dependency name="Schema" isDescription="true">
-                <DependencyMember itemPath="desc/dev/SchemaFactory" />
-            </Dependency>
-            <Dependency name="Script" isDescription="true">
-                <DependencyMember itemPath="desc/dev/ScriptFactory" />
-            </Dependency>
-            <Dependency name="Query" isDescription="true">
-                <DependencyMember itemPath="desc/dev/QueryFactory" />
-            </Dependency>
-            <Dependency name="StateMachine" isDescription="true">
-                <DependencyMember itemPath="desc/dev/StateMachineFactory" />
-            </Dependency>
-        </Item>
-        <Item name="DescriptionFactory" initialPath="/desc/dev" workflow="ItemDescriptionFactoryWf">
-            <Property name="Type">Factory</Property>
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/DescProp.xml</Outcome>
-            <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/dev/ItemDescriptionWf">
-                    <MemberProperties>
-                        <KeyValuePair Key="Version" String="0" />
-                    </MemberProperties>
-                </DependencyMember>
-                <CollectionProperties />
-            </Dependency>
-            <Dependency name="workflow'" isDescription="true">
-                <DependencyMember itemPath="/desc/dev/CompositeActivityDefFactory" />
-                <CollectionProperties />
-            </Dependency>
-        </Item>
-        <Item name="ModuleFactory" initialPath="/desc/dev" workflow="ModuleFactory">
-            <Property name="Type">Factory</Property>
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/ModuleProp.xml</Outcome>
-            <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageModule">
-                    <MemberProperties>
-                        <KeyValuePair Key="Version" String="0" />
-                    </MemberProperties>
-                </DependencyMember>
-                <CollectionProperties />
-            </Dependency>
-            <Dependency name="contents" isDescription="true" />
-        </Item>
-        <Item name="AgentFactory" initialPath="/desc/dev" workflow="AgentFactoryWf">
-            <Property name="Type">Factory</Property>
-            <Outcome viewname="last" schema="PropertyDescription" version="0">boot/property/AgentProp.xml</Outcome>
-            <Dependency name="workflow" isDescription="false">
-                <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageAgent">
-                    <MemberProperties>
-                        <KeyValuePair Key="Version" String="0" />
-                    </MemberProperties>
-                </DependencyMember>
-                <CollectionProperties />
-            </Dependency>
-        </Item>
-    </Imports>
+<?xml version="1.0" encoding="UTF-8"?><CristalModule ns="dev" name="CristaliseDev">
+  <Info>
+    <Description>CRISTAL-iSE Development Items to implement CRUD functionality.</Description>
+    <Version>${version}</Version>
+  </Info>
+  <ResourceURL>org/cristalise/dev/resources/</ResourceURL>
+  <Config name="OutcomeInit.Dev">org.cristalise.dev.DevObjectOutcomeInitiator</Config>
+  <Config name="OutcomeInit.dev">org.cristalise.dev.DevObjectOutcomeInitiator</Config>
+  <Imports>
+    <DomainContextResource name="DescDevContext" version="0"/>
+    <DomainContextResource name="DescActivityDescDevContext" version="0"/>
+    <DomainContextResource name="DescPropertyDescDevContext" version="0"/>
+    <DomainContextResource name="DescModuleDevContext" version="0"/>
+    <DomainContextResource name="DescSchemaDevContext" version="0"/>
+    <DomainContextResource name="DescScriptDevContext" version="0"/>
+    <DomainContextResource name="DescQueryDevContext" version="0"/>
+    <DomainContextResource name="DescStateMachineDevContext" version="0"/>
+    <DomainContextResource name="DescItemDescDevContext" version="0"/>
+    <DomainContextResource name="DescAgentDescDevContext" version="0"/>
+    <DomainContextResource name="DescRoleDescDevContext" version="0"/>
+    <DomainContextResource name="DescDomainContextDevContext" version="0"/>
+    <PropertyDescriptionResource name="ActivityDesc" version="0"/>
+    <PropertyDescriptionResource name="Agent" version="0"/>
+    <PropertyDescriptionResource name="CompositeActivityDesc" version="0"/>
+    <PropertyDescriptionResource name="ItemDescription" version="0"/>
+    <PropertyDescriptionResource name="ElementaryActivityDesc" version="0"/>
+    <PropertyDescriptionResource name="Module" version="0"/>
+    <PropertyDescriptionResource name="Schema" version="0"/>
+    <PropertyDescriptionResource name="Query" version="0"/>
+    <PropertyDescriptionResource name="Script" version="0"/>
+    <PropertyDescriptionResource name="StateMachine" version="0"/>
+    <PropertyDescriptionResource name="PropertyDescription" version="0"/>
+    <PropertyDescriptionResource name="AgentDesc" version="0"/>
+    <PropertyDescriptionResource name="ItemDesc" version="0"/>
+    <PropertyDescriptionResource name="RoleDesc" version="0"/>
+    <PropertyDescriptionResource name="DomainContext" version="0"/>
+    <Activity name="CrudState_Activate" version="0"/>
+    <Activity name="CrudState_Deactivate" version="0"/>
+    <Workflow name="CrudState_Manage" version="0">
+      <Activity name="CrudState_Activate" version="0"/>
+      <Activity name="CrudState_Deactivate" version="0"/>
+    </Workflow>
+    <SchemaResource name="CrudEntity_Dependecy" version="0"/>
+    <ScriptResource name="CrudEntity_ChangeDependecy" version="0"/>
+    <Activity name="CrudEntity_ChangeDependecy" version="0">
+      <Schema name="CrudEntity_Dependecy" version="0"/>
+      <Script name="CrudEntity_ChangeDependecy" version="0"/>
+    </Activity>
+    <SchemaResource name="CrudFactory_NewInstanceDetails" version="0"/>
+    <ScriptResource name="CrudFactory_InstantiateItem" version="0"/>
+    <ScriptResource name="CrudEntity_ChangeName" version="0"/>
+    <Activity name="CrudFactory_InstantiateItem" version="0">
+      <Schema name="CrudFactory_NewInstanceDetails" version="0"/>
+      <Script name="CrudFactory_InstantiateItem" version="0"/>
+    </Activity>
+    <Workflow name="CrudFactory_Workflow" version="0">
+      <Activity name="CrudFactory_InstantiateItem" version="0"/>
+    </Workflow>
+    <SchemaResource name="New" version="0"/>
+    <SchemaResource name="NewAgent" version="0"/>
+    <SchemaResource name="NewDevObjectDef" version="0"/>
+    <ScriptResource name="InstantiateAgent" version="0"/>
+    <ScriptResource name="LocalObjectDefCreator" version="0"/>
+    <ScriptResource name="New" version="0"/>
+    <Activity name="CreateNewLocalObjectDef" version="0">
+      <Schema name="NewDevObjectDef" version="0"/>
+      <Script name="LocalObjectDefCreator" version="0"/>
+    </Activity>
+    <Activity name="CreateAgent" version="0">
+      <Schema name="NewAgent" version="0"/>
+      <Script name="InstantiateAgent" version="0"/>
+    </Activity>
+    <Workflow name="AgentFactoryWf" version="0">
+      <Activity name="CreateAgent" version="0"/>
+    </Workflow>
+    <ItemResource name="ScriptFactory" version="0"/>
+    <ItemResource name="QueryFactory" version="0"/>
+    <ItemResource name="SchemaFactory" version="0"/>
+    <ItemResource name="StateMachineFactory" version="0"/>
+    <ItemResource name="ElementaryActivityDefFactory" version="0"/>
+    <ItemResource name="ActivityDefType" version="0"/>
+    <ItemResource name="CompositeActivityDefFactory" version="0"/>
+    <ItemResource name="ModuleFactory" version="0"/>
+    <ItemResource name="AgentFactory" version="0"/>
+    <ItemResource name="PropertyDescriptionFactory" version="0"/>
+    <ItemResource name="AgentDescFactory" version="0"/>
+    <ItemResource name="ItemDescFactory" version="0"/>
+    <ItemResource name="RoleDescFactory" version="0"/>
+    <ItemResource name="DomainContextFactory" version="0"/>
+    <SchemaResource name="ChooseWorkflow" version="0"/>
+    <SchemaResource name="NewCollection" version="0"/>
+    <ScriptResource name="CollDescCreator" version="0"/>
+    <ScriptResource name="SetWorkflow" version="0"/>
+    <ScriptResource name="InstantiateItem" version="0"/>
+    <Activity name="CreateItem" version="0">
+      <Schema name="NewDevObjectDef" version="0"/>
+      <Script name="InstantiateItem" version="0"/>
+    </Activity>
+    <Activity name="DefineNewCollection" version="0">
+      <Schema name="NewCollection" version="0"/>
+      <Script name="CollDescCreator" version="0"/>
+    </Activity>
+    <Activity name="EditPropertyDescription" version="0">
+      <Schema name="PropertyDescription" version="0"/>
+    </Activity>
+    <Activity name="SetInstanceWorkflow" version="0">
+      <Schema name="ChooseWorkflow" version="0"/>
+      <Script name="SetWorkflow" version="0"/>
+    </Activity>
+    <Workflow name="Description_Workflow" version="0">
+      <Activity name="EditPropertyDescription" version="0"/>
+      <Activity name="SetInstanceWorkflow" version="0"/>
+      <Activity name="CreateItem" version="0"/>
+      <Activity name="DefineNewCollection" version="0"/>
+    </Workflow>
+    <ItemResource name="DescriptionFactory" version="0"/>
+  </Imports>
 </CristalModule>

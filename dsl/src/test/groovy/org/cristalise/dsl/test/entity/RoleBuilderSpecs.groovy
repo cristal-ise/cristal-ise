@@ -31,8 +31,8 @@ import spock.lang.Specification
  */
 class RoleBuilderSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def "Default value for jobList is false"() {
         when:
@@ -45,17 +45,19 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
         roles[0].jobList == false
     }
 
-    def "Build a list of Roles"() {
+    def "Build a list of Roles with namespace"() {
         when:
-        def roles = RoleBuilder.build {
+        def roles = RoleBuilder.build('ttt') {
             Role(name: 'User')
             Role(name: 'User/SubUser', jobList: true)
         }
 
         then:
+        roles[0].namespace == "ttt"
         roles[0].name == "User"
         roles[0].jobList == false
         
+        roles[1].namespace == "ttt"
         roles[1].name == "User/SubUser"
         roles[1].jobList == true
     }
@@ -76,7 +78,7 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
         roles[0].permissions[0] == 'BatchFactory:Create:*'
         roles[0].permissions[1] == 'Batch:Review:*'
         roles[1].name == "User"
-        roles[1].permissions.size == 0
+        roles[1].permissions.size() == 0
     }
 
 }

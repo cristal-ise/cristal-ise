@@ -21,7 +21,7 @@
 package org.cristalise.gui.tabs.execution;
 import java.util.ArrayList;
 
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 
 
 public class ActivityItem {
@@ -40,7 +40,7 @@ public class ActivityItem {
     public ActivityItem(Job thisJob) {
         stepPath = thisJob.getStepPath();
         state = thisJob.getTransition().getOriginStateId();
-        stateName = thisJob.getOriginStateName();
+        stateName = thisJob.getTransition().getOriginState().getName();
         name = thisJob.getStepName();
         jobs.add(thisJob);
     }

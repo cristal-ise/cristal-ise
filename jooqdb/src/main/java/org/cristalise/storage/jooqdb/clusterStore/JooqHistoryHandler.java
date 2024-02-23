@@ -39,7 +39,6 @@ import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
@@ -60,7 +59,7 @@ public class JooqHistoryHandler extends JooqHandler {
     static final Field<UUID>      UUID                  = field(name("UUID"),                 UUID.class);
     static final Field<Integer>   ID                    = field(name("ID"),                   Integer.class);
     static final Field<UUID>      AGENT_UUID            = field(name("AGENT_UUID"),           UUID.class);
-    static final Field<UUID>      DELEGATE_UUID         = field(name("DELEGATE_UUID"),        UUID.class);
+    //static final Field<UUID>      DELEGATE_UUID         = field(name("DELEGATE_UUID"),        UUID.class);
     static final Field<String>    AGENT_ROLE            = field(name("AGENT_ROLE"),           String.class);
     static final Field<String>    SCHEMA_NAME           = field(name("SCHEMA_NAME"),          String.class);
     static final Field<Integer>   SCHEMA_VERSION        = field(name("SCHEMA_VERSION"),       Integer.class);
@@ -115,14 +114,12 @@ public class JooqHistoryHandler extends JooqHandler {
     @Override
     public int insert(DSLContext context, UUID uuid, C2KLocalObject obj) throws PersistencyException {
         Event event = (Event)obj;
-        AgentPath delegate = event.getDelegatePath();
 
         InsertSetMoreStep<?> insert = context
                 .insertInto(EVENT_TABLE)
                 .set(UUID,                  uuid)
                 .set(ID,                    event.getID())
                 .set(AGENT_UUID,            event.getAgentPath().getUUID())
-                .set(DELEGATE_UUID,         delegate == null ?  null : delegate.getUUID())
                 .set(AGENT_ROLE,            event.getAgentRole())
                 .set(SCHEMA_NAME,           event.getSchemaName())
                 .set(SCHEMA_VERSION,        event.getSchemaVersion())
@@ -135,11 +132,8 @@ public class JooqHistoryHandler extends JooqHandler {
                 .set(TARGET_STATE_ID,       event.getTargetState())
                 .set(TRANSITION_ID,         event.getTransition())
                 .set(VIEW_NAME,             event.getViewName())
-                .set(TIMESTAMP,             DateUtility.toSqlTimestamp(event.getTimeStamp()));
-
-        if (Gateway.getProperties().getBoolean("JOOQ.Event.enableHasAttachment", true)) {
-            insert.set(HAS_ATTACHMENT, event.getHasAttachment());
-        }
+                .set(TIMESTAMP,             DateUtility.toSqlTimestamp(event.getTimeStamp()))
+                .set(HAS_ATTACHMENT,        event.getHasAttachment());
 
         return insert.execute();
     }
@@ -149,23 +143,16 @@ public class JooqHistoryHandler extends JooqHandler {
         Record result = fetchRecord(context, uuid, primaryKeys);
 
         if (result != null) {
-            UUID agent    = getUUID(result, AGENT_UUID);
-            UUID delegate = getUUID(result, DELEGATE_UUID);
+            UUID agent = getUUID(result, AGENT_UUID);
 
             GTimeStamp ts = DateUtility.fromSqlTimestamp( result.get(TIMESTAMP));
             //GTimeStamp ts = DateUtility.fromOffsetDateTime( result.get(TIMESTAMP", OffsetDateTime.class)));
-
-            Boolean hasAttachment = false;
-            if (Gateway.getProperties().getBoolean("JOOQ.Event.enableHasAttachment", true)) {
-                hasAttachment = result.get(HAS_ATTACHMENT.getName(), Boolean.class);
-            }
 
             try {
                 return new Event(
                         result.get(ID),
                         new ItemPath(uuid),
                         new AgentPath(agent),
-                        (delegate == null ? null : new AgentPath(delegate)),
                         result.get(AGENT_ROLE),
                         result.get(STEP_NAME),
                         result.get(STEP_PATH),
@@ -178,7 +165,7 @@ public class JooqHistoryHandler extends JooqHandler {
                         result.get(SCHEMA_NAME),
                         result.get(SCHEMA_VERSION),
                         result.get(VIEW_NAME),
-                        hasAttachment,
+                        result.get(HAS_ATTACHMENT.getName(), Boolean.class),
                         ts);
             }
             catch (Exception ex) {
@@ -196,7 +183,7 @@ public class JooqHistoryHandler extends JooqHandler {
         .column(UUID,                 UUID_TYPE      .nullable(false))
         .column(ID,                   ID_TYPE        .nullable(false))
         .column(AGENT_UUID,           UUID_TYPE      .nullable(false))
-        .column(DELEGATE_UUID,        UUID_TYPE      .nullable(true))
+//        .column(DELEGATE_UUID,        UUID_TYPE      .nullable(true))
         .column(AGENT_ROLE,           NAME_TYPE      .nullable(true))
         .column(SCHEMA_NAME,          NAME_TYPE      .nullable(true))
         .column(SCHEMA_VERSION,       VERSION_TYPE   .nullable(true))
@@ -211,7 +198,8 @@ public class JooqHistoryHandler extends JooqHandler {
         .column(VIEW_NAME,            NAME_TYPE      .nullable(true))
         .column(HAS_ATTACHMENT,       BOOLEAN        .nullable(false).defaultValue(false))
         .column(TIMESTAMP,            TIMESTAMP_TYPE .nullable(false))
-        .constraints(constraint("PK_"+EVENT_TABLE).primaryKey(UUID, ID))
+        .constraints(
+                constraint("PK_"+EVENT_TABLE.getName()).primaryKey(UUID, ID))
         .execute();
     }
 

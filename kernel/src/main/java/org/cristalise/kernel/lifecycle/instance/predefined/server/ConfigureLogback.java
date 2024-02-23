@@ -39,6 +39,7 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.utils.LocalObjectLoader;
@@ -55,20 +56,22 @@ public class ConfigureLogback extends PredefinedStep {
     public static final String description = "Updates the log levels for Root level and for the named Loggers";
 
     public ConfigureLogback() {
-        super();
-        setBuiltInProperty(SCHEMA_NAME, "LoggerConfig");
+        super("LoggerConfig", description);
     }
 
     /**
      * 
      */
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectNotFoundException, CannotManageException,
                    ObjectAlreadyExistsException, InvalidCollectionModification
     {
         Schema schema = LocalObjectLoader.getSchema(
-                (String)getBuiltInProperty(SCHEMA_NAME), Integer.parseInt((String)getBuiltInProperty(SCHEMA_VERSION)));
+                (String)getBuiltInProperty(SCHEMA_NAME), 
+                Integer.parseInt((String)getBuiltInProperty(SCHEMA_VERSION)),
+                transactionKey);
+
         Outcome config = new Outcome(requestData, schema);
 
         config.validateAndCheck();

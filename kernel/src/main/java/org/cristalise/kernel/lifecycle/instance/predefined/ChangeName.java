@@ -34,6 +34,7 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup.PagedResult;
 import org.cristalise.kernel.lookup.Path;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.PropertyUtility;
 
@@ -44,16 +45,16 @@ public class ChangeName extends PredefinedStep {
     public static final String description = "Removes Items old Name, add the new Name and changes the Name property";
 
     public ChangeName() {
-        super();
+        super(description);
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectAlreadyExistsException, CannotManageException, ObjectNotFoundException
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         if (params.length != 2) throw new InvalidDataException("ChangeName: Invalid parameters: "+Arrays.toString(params));
 
@@ -67,14 +68,14 @@ public class ChangeName extends PredefinedStep {
             return requestData;
         }
 
-        String currentNameProp = PropertyUtility.getProperty(item, NAME, locker).getValue();
+        String currentNameProp = PropertyUtility.getProperty(item, NAME, transactionKey).getValue();
 
         if ( ! oldName.equals(currentNameProp)) {
             throw new InvalidDataException(item + " current Name propety '"+currentNameProp+"' is different from old name '"+oldName+"'");
         }
 
         // First find the DomainPath (alias) and change it. Note that 'pure' Agent does not have any DomainPath
-        PagedResult result = Gateway.getLookup().searchAliases(item, 0, 100);
+        PagedResult result = Gateway.getLookup().searchAliases(item, 0, 100, transactionKey);
         DomainPath currentDP = null;
         DomainPath newDP = null;
 
@@ -86,22 +87,22 @@ public class ChangeName extends PredefinedStep {
                 }
             }
 
-            if (currentDP == null) throw new InvalidDataException(item + " does not domainPath with name:" + oldName);
+            if (currentDP == null) throw new InvalidDataException(item + " does not have DomainPath with name:" + oldName);
 
-            newDP = changeDomianPath(item, newName, currentDP, locker);
+            newDP = changeDomianPath(item, newName, currentDP, transactionKey);
         }
 
         // Update the Name property of the Item or Agent
         try {
-            PropertyUtility.writeProperty(item, NAME, newName, locker);
+            PropertyUtility.writeProperty(item, NAME, newName, transactionKey);
         }
         catch (Exception e) {
             log.error("", e);
 
             //recover original state
             if (newDP != null) {
-                Gateway.getLookupManager().delete(newDP);
-                Gateway.getLookupManager().add(currentDP);
+                Gateway.getLookupManager().delete(newDP, transactionKey);
+                Gateway.getLookupManager().add(currentDP, transactionKey);
             }
 
             throw new CannotManageException(e.getMessage());
@@ -110,7 +111,7 @@ public class ChangeName extends PredefinedStep {
         return requestData;
     }
     
-    private DomainPath changeDomianPath(ItemPath item, String newName, DomainPath currentDP, Object locker) 
+    private DomainPath changeDomianPath(ItemPath item, String newName, DomainPath currentDP, TransactionKey transactionKey) 
         throws ObjectCannotBeUpdated, ObjectAlreadyExistsException, CannotManageException
     {
         DomainPath rootDP = currentDP.getParent();
@@ -118,17 +119,17 @@ public class ChangeName extends PredefinedStep {
         newDP.setItemPath(item);
 
         // Throws an exception if newName exists
-        Gateway.getLookupManager().add(newDP);
+        Gateway.getLookupManager().add(newDP, transactionKey);
 
         try {
-            Gateway.getLookupManager().delete(currentDP);
+            Gateway.getLookupManager().delete(currentDP, transactionKey);
         }
         catch (Exception e) {
             log.error("Could not delete old domain path: " + currentDP.getStringPath(), e);
 
             //recover original state
             try {
-                Gateway.getLookupManager().delete(newDP);
+                Gateway.getLookupManager().delete(newDP, transactionKey);
             }
             catch (Exception ex) {
                 log.error("Could not delete new domain path: " + newDP.getStringPath(), ex);

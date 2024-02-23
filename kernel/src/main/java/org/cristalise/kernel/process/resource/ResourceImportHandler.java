@@ -25,11 +25,13 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 
 
 public interface ResourceImportHandler {
+    // TODO: Implement REMOVE
     public enum Status {IDENTICAL, NEW, UPDATED, OVERWRITTEN, SKIPPED, REMOVED};
 
     /**
@@ -90,7 +92,7 @@ public interface ResourceImportHandler {
      * @return CollectionArrayList
      * @throws Exception something went wrong
      */
-    public CollectionArrayList getCollections(String name, String ns, String location, Integer version) throws Exception;
+    public CollectionArrayList getCollections(String name, String ns, String location, Integer version, TransactionKey transactionKey) throws Exception;
 
     /**
      * Returns any collections that this Resource Item stored in the outcome should contain.
@@ -101,7 +103,7 @@ public interface ResourceImportHandler {
      * @return CollectionArrayList
      * @throws Exception something went wrong
      */
-    public CollectionArrayList getCollections(String name, Integer version, Outcome outcome) throws Exception;
+    public CollectionArrayList getCollections(String name, Integer version, Outcome outcome, TransactionKey transactionKey) throws Exception;
 
     /**
      * The name of the imported resource managed by the handler
@@ -123,7 +125,7 @@ public interface ResourceImportHandler {
      * @return the DomainPath of the resource Item
      * @throws Exception errors that are raised during the process
      */
-    public DomainPath createResource(String ns, String itemName, int version, Outcome outcome, boolean reset, Object transactionKey)
+    public DomainPath createResource(String ns, String itemName, int version, Outcome outcome, boolean reset, TransactionKey transactionKey)
             throws Exception;
 
     /**
@@ -141,7 +143,7 @@ public interface ResourceImportHandler {
      * @return the DomainPath of the resource Item
      * @throws Exception errors that are raised during the process
      */
-    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset, Object transactionKey)
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, String dataLocation, boolean reset, TransactionKey transactionKey)
             throws Exception;
 
     /**
@@ -159,7 +161,7 @@ public interface ResourceImportHandler {
      * @return the DomainPath of the resource Item
      * @throws Exception errors that are raised during the process
      */
-    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset, Object transactionKey)
+    public DomainPath importResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset, TransactionKey transactionKey)
             throws Exception;
 
     /**
@@ -167,4 +169,6 @@ public interface ResourceImportHandler {
      * @return xml string
      */
     public String getResourceChangeDetails();
+
+    public Status getResourceChangeStatus();
 }

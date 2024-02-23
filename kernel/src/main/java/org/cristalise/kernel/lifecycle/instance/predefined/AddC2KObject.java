@@ -27,6 +27,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -35,27 +36,22 @@ import lombok.extern.slf4j.Slf4j;
 public class AddC2KObject extends PredefinedStep {
 
     public AddC2KObject() {
-        super();
+        super("Adds or overwrites a C2Kernel object for this Item");
     }
 
     // requestdata is xmlstring
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item,int transitionID, String requestData, Object locker) 
+    protected String runActivityLogic(AgentPath agent, ItemPath item,int transitionID, String requestData, TransactionKey transactionKey) 
             throws InvalidDataException, PersistencyException 
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("AddC2KObject: Invalid parameters " + Arrays.toString(params));
 
-        try {
-            C2KLocalObject obj = (C2KLocalObject) Gateway.getMarshaller().unmarshall(params[0]);
-            Gateway.getStorage().put(item, obj, locker);
-        }
-        catch (Exception e) {
-            throw new InvalidDataException("AddC2KObject: Could not unmarshall new object: " + params[0]);
-        }
+        C2KLocalObject obj = (C2KLocalObject) Gateway.getMarshaller().unmarshall(params[0]);
+        Gateway.getStorage().put(item, obj, transactionKey);
         return requestData;
     }
 }

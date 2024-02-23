@@ -38,6 +38,7 @@ import org.cristalise.gui.ItemDetails;
  *
  * Allows a close icone in JTabbePane
  */
+@SuppressWarnings("serial")
 public class JTabbedPaneWithCloseIcons extends JTabbedPane implements MouseListener, ChangeListener
 {
 	/**

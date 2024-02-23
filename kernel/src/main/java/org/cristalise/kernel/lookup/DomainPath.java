@@ -23,14 +23,17 @@ package org.cristalise.kernel.lookup;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.concurrent.Immutable;
+
 /**
  * Very simple extension to Path. Only copies constructors and defines root
  */
-@Slf4j
+@Slf4j @Immutable
 public class DomainPath extends Path {
 
     private ItemPath target = null;
@@ -81,14 +84,14 @@ public class DomainPath extends Path {
     }
 
     @Override
-    public ItemPath getItemPath() throws ObjectNotFoundException {
+    public ItemPath getItemPath(TransactionKey transactionKey) throws ObjectNotFoundException {
         if (target == null) {
             try {
-                setItemPath( Gateway.getLookup().resolvePath(this) );
+                setItemPath( Gateway.getLookup().resolvePath(this, transactionKey) );
                 if (target == null) throw new ObjectNotFoundException("Path " + toString() + " does not resolve to an Item");
             }
             catch (InvalidItemPathException e) {
-                throw new ObjectNotFoundException(e.getMessage());
+                throw new ObjectNotFoundException(e);
             } 
         }
         return target;

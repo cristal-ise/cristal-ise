@@ -28,6 +28,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -35,31 +36,41 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Authenticate extends PredefinedStep {
     public static final String description = "Records the Login event in the history. Login is assocated with user sessions with tokens validity";
+    
+    public static final String REDACTED = "REDACTED";
+
+    public Authenticate(String schema, String desc) {
+        super(schema, desc);
+    }
+
+    public Authenticate(String desc) {
+        this(null, desc);
+    }
 
     public Authenticate() {
-        super();
+        this(null, description);
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, PersistencyException
     {
-        return authenticate(agent, itemPath, requestData, locker);
+        return authenticate(agent, itemPath, requestData, transactionKey);
     }
 
-    protected String authenticate(AgentPath agent, ItemPath itemPath, String requestData, Object locker) 
+    protected String authenticate(AgentPath agent, ItemPath itemPath, String requestData, TransactionKey transactionKey) 
             throws InvalidDataException, ObjectNotFoundException
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), itemPath, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), itemPath, (Object)params);
 
         if (params.length < 2 || params.length > 3) 
             throw new InvalidDataException("PredefinedStep.Authenticate() -  Invalid number of parameters (2 <= length="+params.length+" <= 3)");
 
-        Gateway.getSecurityManager().authenticate(params[0], params[1], null, false);
+        Gateway.getSecurityManager().authenticate(params[0], params[1], null, false, transactionKey);
 
-        params[1] = "REDACTED"; // censor password from outcome
+        params[1] = REDACTED; // censor password from outcome
 
         return bundleData(params);
     }

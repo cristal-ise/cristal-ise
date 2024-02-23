@@ -39,8 +39,9 @@ class PropertyDescriptionDelegate {
         propDescList = new PropertyDescriptionList()
     }
 
-    public PropertyDescriptionDelegate(String n, Integer v) {
+    public PropertyDescriptionDelegate(String ns, String n, Integer v) {
         this()
+        propDescList.namespace = ns
         propDescList.name = n
         propDescList.version = v
     }

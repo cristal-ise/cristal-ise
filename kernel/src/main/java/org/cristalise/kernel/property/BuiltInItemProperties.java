@@ -21,7 +21,7 @@
 
 package org.cristalise.kernel.property;
 
-import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
+import org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription;
 
 
 /**
@@ -31,28 +31,47 @@ public enum BuiltInItemProperties {
     AGGREGATE_SCRIPT_URN("AggregateScriptURN"),
 
     /**
-     * Store the Agent name used used to call the {@link CreateItemFromDescription} predefined Step.
-     */
-    CREATOR("Creator"),
-
-    /**
      * Used in description Items to manage Elementary or Composite Activity Definition
      */
     COMPLEXITY("Complexity"),
 
+    /**
+     *  Used for generating Names: the prefix (e.g. PR) used as a beginning of the Name
+     */
+    ID_PREFIX("IDPrefix"),
+
+    /**
+     * 
+     */
     KERNEL_VERSION("KernelVersion"),
+
+    /**
+     * Used for generating Names: the length of the number part left padded by zeros
+     */
+    LEFT_PAD_SIZE("LeftPadSize"),
+
+    /**
+     *  Used for generating Names: the last number used to generate a Name
+     */
+    LAST_COUNT("LastCount"),
 
     MASTER_SCHEMA_URN("MasterSchemaURN"),
 
     /**
      * The name or ID of the Item, specified by the Factory Item and sent as the first parameter in the
-     * {@link CreateItemFromDescription} predefined Step. It will be automatically added even if it was not defined.
+     * {@link CreateItemFromDescription} predefined Step or generated during the execution of {@link CreateItemFromDescription}.
+     * It will be automatically added even if it was not defined.
      */
     NAME("Name"),
 
     NAMESPACE("Namespace"),
 
     MODULE("Module"),
+
+    /**
+     * Used in factory Items to specify the Root DomainPath.
+     */
+    ROOT("Root"),
 
     /**
      * The type of the Item, it is a good practice to set it as an immutable, fixed value Property. 
@@ -95,6 +114,12 @@ public enum BuiltInItemProperties {
      * instantiation of the StateMachine Dependency.
      */
     STATE_MACHINE_URN("StateMachineURN"),
+
+    /**
+     * The Name or the UUID of the Schema Item and its Version separated by colon ':'. It is specified in Factory Items
+     * is used while creating new Items.
+     */
+    UPDATE_SCHEMA("UpdateSchema"),
 
     /**
      * The UUID of the Workflow Item and its Version number separated by colon ':'

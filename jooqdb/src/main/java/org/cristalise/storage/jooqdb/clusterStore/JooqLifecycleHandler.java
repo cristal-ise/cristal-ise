@@ -33,6 +33,7 @@ import java.util.UUID;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -92,7 +93,7 @@ public class JooqLifecycleHandler extends JooqHandler {
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException(e.getMessage());
+            throw new PersistencyException(e);
         }
     }
 
@@ -108,7 +109,7 @@ public class JooqLifecycleHandler extends JooqHandler {
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException(e.getMessage());
+            throw new PersistencyException(e);
         }
     }
 
@@ -123,7 +124,7 @@ public class JooqLifecycleHandler extends JooqHandler {
             }
             catch (Exception e) {
                 log.error("", e);
-                throw new PersistencyException(e.getMessage());
+                throw new PersistencyException(e);
             }
         }
         return null;
@@ -131,13 +132,14 @@ public class JooqLifecycleHandler extends JooqHandler {
 
     @Override
     public void createTables(DSLContext context) {
-        DataType<String> xmlType = getXMLType(context);
+        DataType<String> xmlType = JooqDataSourceHandler.getStringXmlType();
 
         context.createTableIfNotExists(LIFECYCLE_TABLE)
         .column(UUID, UUID_TYPE.nullable(false))
         .column(NAME, NAME_TYPE.nullable(false))
         .column(XML,  xmlType  .nullable(false))
-        .constraints(constraint("PK_"+LIFECYCLE_TABLE).primaryKey(UUID, NAME))
+        .constraints(
+                constraint("PK_"+LIFECYCLE_TABLE.getName()).primaryKey(UUID, NAME))
         .execute();
     }
 

@@ -31,8 +31,8 @@ import spock.lang.Specification
  */
 class PropertyBuilderSpecs extends Specification implements CristalTestSetup {
     
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def 'Property can be concrete, i.e. not abstract'() {
         when:

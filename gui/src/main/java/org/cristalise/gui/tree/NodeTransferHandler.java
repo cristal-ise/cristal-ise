@@ -29,66 +29,68 @@ import javax.swing.TransferHandler;
 import org.cristalise.gui.ImageLoader;
 import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.TreeBrowser;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
 
+@SuppressWarnings("serial")
+@Slf4j
 public class NodeTransferHandler extends TransferHandler {
 
-	TreeBrowser tree;
-	
-	public NodeTransferHandler(TreeBrowser treeBrowser) {
-		tree = treeBrowser;
-	}
+    TreeBrowser tree;
 
-	@Override
-	public int getSourceActions(JComponent c) {
-	    return COPY_OR_MOVE;
-	}
+    public NodeTransferHandler(TreeBrowser treeBrowser) {
+        tree = treeBrowser;
+    }
 
-	@Override
-	public Transferable createTransferable(JComponent c) {
-		Node selNode = tree.getSelectedNode();
-	    if (selNode instanceof Transferable)
-	    	return (Transferable)selNode;
-	    else
-	    	return null;
-	}
+    @Override
+    public int getSourceActions(JComponent c) {
+        return COPY_OR_MOVE;
+    }
 
-	@Override
-	public boolean importData(TransferSupport support) {
-		if (!canImport(support)) {
-	        return false;
-	    }
-		Node dropNode = tree.getNodeAt(support.getDropLocation().getDropPoint());
-		if (dropNode instanceof NodeCollection) {
-			NodeCollection collNode = (NodeCollection)dropNode;
-			NodeItem source;
-			try {
-				source = (NodeItem)support.getTransferable().getTransferData(NodeItem.dataFlavor);
-				return collNode.addMember(source.getItemPath());
-			} catch (Exception e) {
-				Logger.error(e);
-				return false;
-			}
-		}
-		return super.importData(support);
-	}
+    @Override
+    public Transferable createTransferable(JComponent c) {
+        Node selNode = tree.getSelectedNode();
+        if (selNode instanceof Transferable)
+            return (Transferable) selNode;
+        else
+            return null;
+    }
 
-	@Override
-	public boolean canImport(TransferSupport support) {
-		boolean isNode = support.isDataFlavorSupported(NodeItem.dataFlavor);
-		if (!isNode) return false;
-		Node dropNode = tree.getNodeAt(support.getDropLocation().getDropPoint());
-		if (MainFrame.isAdmin && dropNode instanceof NodeCollection && ((NodeCollection)dropNode).isDependency())
-			return true;
-		return false;
-		
-	}
+    @Override
+    public boolean importData(TransferSupport support) {
+        if (!canImport(support)) {
+            return false;
+        }
+        Node dropNode = tree.getNodeAt(support.getDropLocation().getDropPoint());
+        if (dropNode instanceof NodeCollection) {
+            NodeCollection collNode = (NodeCollection) dropNode;
+            NodeItem source;
+            try {
+                source = (NodeItem) support.getTransferable().getTransferData(NodeItem.dataFlavor);
+                return collNode.addMember(source.getItemPath());
+            } catch (Exception e) {
+                log.error("", e);
+                return false;
+            }
+        }
+        return super.importData(support);
+    }
 
-	@Override
-	public Icon getVisualRepresentation(Transferable t) {
-		if (t instanceof NodeItem)
-			return (((NodeItem)t).getIcon());
-		return ImageLoader.nullImg;
-	}
+    @Override
+    public boolean canImport(TransferSupport support) {
+        boolean isNode = support.isDataFlavorSupported(NodeItem.dataFlavor);
+        if (!isNode) return false;
+        Node dropNode = tree.getNodeAt(support.getDropLocation().getDropPoint());
+        if (MainFrame.isAdmin && dropNode instanceof NodeCollection && ((NodeCollection) dropNode).isDependency())
+            return true;
+        return false;
+
+    }
+
+    @Override
+    public Icon getVisualRepresentation(Transferable t) {
+        if (t instanceof NodeItem)
+            return (((NodeItem) t).getIcon());
+        return ImageLoader.nullImg;
+    }
 }

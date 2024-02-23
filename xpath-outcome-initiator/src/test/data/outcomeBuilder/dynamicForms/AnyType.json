@@ -1,0 +1,23 @@
+[{
+  "name": "AnyType",
+  "cls": {"grid": {"container": "ui-g-12"}},
+  "id": "AnyType",
+  "type": "GROUP",
+  "group": [{
+    "validators": {"required": null},
+    "inputType": "text",
+    "id": "StringField",
+    "label": "String Field *",
+    "cls": {
+      "grid": {
+        "container": "ui-g",
+        "control": "ui-g-8",
+        "label": "ui-g-4"
+      },
+      "element": {"label": "ui-widget"}
+    },
+    "placeholder": "String Field",
+    "type": "INPUT",
+    "required": true
+  }]
+}]

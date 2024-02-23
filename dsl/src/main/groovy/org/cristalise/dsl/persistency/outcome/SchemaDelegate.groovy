@@ -20,11 +20,17 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
+import static org.cristalise.kernel.lifecycle.instance.Activity.PREDEF_STEPS_ELEMENT
+
+import org.cristalise.dsl.csv.TabularGroovyParser
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.property.BuiltInItemProperties
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.kernel.property.PropertyUtility
+import org.cristalise.kernel.scripting.Script
 
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 
@@ -32,11 +38,51 @@ import groovy.xml.MarkupBuilder
 /**
  *
  */
-@Slf4j
+@Slf4j @CompileStatic
 class SchemaDelegate {
 
-    String xsdString
+    String  name
+    Integer version
 
+    String xsdString
+    
+    Map<String, Script> expressionScripts = [:]
+    Map<String, List<String>> expressionScriptsInputFields = [:]
+    
+    private updateScriptReferences(Struct s) {
+        if (!s || (!s.fields && !s.attributes)) return
+
+        s.fields.each { name, f ->
+            if (f.expression) this.generateExpressionScript(s, f)
+        }
+
+        expressionScriptsInputFields.each { scriptName, inputFields ->
+            inputFields.each { fieldName ->
+                def inputField = s.fields[fieldName]
+                if (inputField.dynamicForms == null) inputField.dynamicForms = new DynamicForms()
+                inputField.dynamicForms.updateScriptRef = expressionScripts[scriptName]
+            }
+        }
+    }
+
+    private void addPredefinedStepsField(Struct s) {
+        // empty schema is not extended further
+        if (!s || !s.fields) return
+
+        // Schema can only contain one xsd:any
+        if (s.anyField) return
+
+        def predefinedStepsF = new Field(
+            name: PREDEF_STEPS_ELEMENT, 
+            multiplicity: '0..1', 
+            type: 'anyType',
+            dynamicForms: new DynamicForms(required: false, hidden: true)
+        )
+
+        s.addField(predefinedStepsF)
+    }
+
+    @CompileDynamic
     public void processClosure(Closure cl) {
         assert cl, "Schema only works with a valid Closure"
 
@@ -47,9 +93,23 @@ class SchemaDelegate {
 
         cl.delegate = objBuilder
 
-        xsdString = buildXSD( cl() )
+        Struct s = cl()
+        addPredefinedStepsField(s)
+        updateScriptReferences(s)
+        xsdString = buildXSD(s)
     }
 
+    public void processTabularData(TabularGroovyParser parser) {
+        def tsb = new TabularSchemaBuilder()
+
+        Struct s = tsb.build(parser)
+
+        addPredefinedStepsField(s)
+        updateScriptReferences(s)
+        xsdString = buildXSD(s)
+    }
+
+    @CompileDynamic
     public String buildXSD(Struct s) {
         if(!s) throw new InvalidDataException("Schema cannot be built from empty declaration")
 
@@ -61,17 +121,17 @@ class SchemaDelegate {
 
         xsd.mkp.xmlDeclaration(version: "1.0", encoding: "utf-8")
 
-        xsd.'xs:schema'('xmlns:xs': 'http://www.w3.org/2001/XMLSchema') { 
-            buildStruct(xsd,s) 
+        xsd.'xs:schema'('xmlns:xs': 'http://www.w3.org/2001/XMLSchema') {
+            buildStruct(xsd, s) 
         }
 
         return writer.toString()
     }
 
+    @CompileDynamic
     private void buildStruct(MarkupBuilder xsd, Struct s) {
-        log.info "buildStruct() - Struct: $s.name"
+        log.debug "buildStruct() - Struct: $s.name"
         xsd.'xs:element'(name: s.name, minOccurs: s.minOccurs, maxOccurs: s.maxOccurs) {
-
             if(s.documentation || s.dynamicForms) {
                 'xs:annotation' { 
                     if (s.documentation) {
@@ -80,9 +140,11 @@ class SchemaDelegate {
                     if (s.dynamicForms) {
                         'xs:appinfo' {
                             dynamicForms {
-                                if (s.dynamicForms.width)     width(     s.dynamicForms.width)
-                                if (s.dynamicForms.label)     label(     s.dynamicForms.label)
-                                if (s.dynamicForms.container) container( s.dynamicForms.container)
+                                if (s.dynamicForms.width)            width(    s.dynamicForms.width)
+                                if (s.dynamicForms.label)            label(    s.dynamicForms.label)
+                                if (s.dynamicForms.container  )      container(s.dynamicForms.container)
+                                if (s.dynamicForms.hidden   != null) hidden(   s.dynamicForms.hidden)
+                                if (s.dynamicForms.required != null) required( s.dynamicForms.required)
                             }
                         }
                     }
@@ -112,12 +174,12 @@ class SchemaDelegate {
     
     private void buildStructElements(MarkupBuilder xsd, Struct s) {
         s.orderOfElements.each { String name ->
-            if (s.fields.containsKey(name))  this.buildField(xsd, s.fields[name])
-            if (s.structs.containsKey(name)) this.buildStruct(xsd, s.structs[name])
+            if      (s.fields.containsKey(name))  this.buildField(xsd, s.fields[name])
+            else if (s.structs.containsKey(name)) this.buildStruct(xsd, s.structs[name])
         }
+        // xsd:any must be the last in sequence
         if (s.anyField) this.buildAnyField(xsd, s.anyField)
     }
-
 
     private boolean hasRangeConstraints(Attribute a) {
         return a.minInclusive != null || a.maxInclusive != null || a.minExclusive != null || a.maxExclusive != null
@@ -163,8 +225,9 @@ class SchemaDelegate {
         else                    return a.type
     }
 
+    @CompileDynamic
     private void buildAtribute(MarkupBuilder xsd, Attribute a) {
-        log.info "buildAtribute() - attribute: $a.name"
+        log.debug "buildAtribute() - attribute: $a.name"
 
         if (a.documentation) throw new InvalidDataException('Attribute cannot define documentation')
 
@@ -175,6 +238,7 @@ class SchemaDelegate {
         }
     }
 
+    @CompileDynamic
     private void setAppinfoDynamicForms(xsd, Field f) {
         xsd.dynamicForms {
             if (f.dynamicForms.hidden   != null)             hidden(      f.dynamicForms.hidden)
@@ -187,15 +251,15 @@ class SchemaDelegate {
             if (f.dynamicForms.inputType)                    inputType(   f.dynamicForms.inputType)
             if (f.dynamicForms.min != null)                  min(         f.dynamicForms.min)
             if (f.dynamicForms.max != null)                  max(         f.dynamicForms.max)
-            if (f.dynamicForms.value != null)                value(       f.dynamicForms.value)
-            if (f.dynamicForms.mask != null)                 mask(        f.dynamicForms.mask)
-            if (f.dynamicForms.autoComplete != null)         autoComplete(f.dynamicForms.autoComplete)
-            if (f.dynamicForms.pattern != null)              pattern(     f.dynamicForms.pattern)
-            if (f.dynamicForms.errmsg != null)               errmsg(      f.dynamicForms.errmsg)
+            if (f.dynamicForms.value)                        value(       f.dynamicForms.value)
+            if (f.dynamicForms.mask)                         mask(        f.dynamicForms.mask)
+            if (f.dynamicForms.autoComplete)                 autoComplete(f.dynamicForms.autoComplete)
+            if (f.dynamicForms.pattern)                      pattern(     f.dynamicForms.pattern)
+            if (f.dynamicForms.errmsg)                       errmsg(      f.dynamicForms.errmsg)
             if (f.dynamicForms.showSeconds != null)          showSeconds( f.dynamicForms.showSeconds)
-            if (f.dynamicForms.container != null)            container(   f.dynamicForms.container)
-            if (f.dynamicForms.control != null)              control(     f.dynamicForms.control)
-            if (f.dynamicForms.labelGrid != null)            labelGrid(   f.dynamicForms.labelGrid)
+            if (f.dynamicForms.container)                    container(   f.dynamicForms.container)
+            if (f.dynamicForms.control)                      control(     f.dynamicForms.control)
+            if (f.dynamicForms.labelGrid)                    labelGrid(   f.dynamicForms.labelGrid)
             if (f.dynamicForms.hideOnDateTimeSelect != null) hideOnDateTimeSelect( f.dynamicForms.hideOnDateTimeSelect)
             if (f.dynamicForms.precision)                    precision(   f.dynamicForms.precision)
             if (f.dynamicForms.scale)                        scale(       f.dynamicForms.scale)
@@ -209,23 +273,24 @@ class SchemaDelegate {
                     if (f.dynamicForms.updateQuerytRef != null) updateQuerytRef(f.dynamicForms.getUpdateQueryRefString())
                     if (f.dynamicForms.warning != null) {
                         warning {
-                            if (f.dynamicForms.warning.pattern != null)    pattern(f.dynamicForms.warning.pattern)
-                            if (f.dynamicForms.warning.message != null)    message(f.dynamicForms.warning.message)
-                            if (f.dynamicForms.warning.expression != null) expression {
+                            if (f.dynamicForms.warning.pattern)    pattern(f.dynamicForms.warning.pattern)
+                            if (f.dynamicForms.warning.message)    message(f.dynamicForms.warning.message)
+                            if (f.dynamicForms.warning.expression) expression {
                                 mkp.yieldUnescaped("<![CDATA[ ${f.dynamicForms.warning.expression}]]>")
                             }
                         }
                     }
-                    if (f.dynamicForms.updateFields !=null) updateFields(f.dynamicForms.updateFields.join(','))
+                    if (f.dynamicForms.updateFields) updateFields(f.dynamicForms.updateFields.join(','))
                 }
             }
 
             if (f.isFileUpload()) {
-                if (f.dynamicForms.htmlAccept != null)            accept(   f.dynamicForms.htmlAccept)
+                if (f.dynamicForms.htmlAccept != null) accept(f.dynamicForms.htmlAccept)
             }
         }
     }
 
+    @CompileDynamic
     private void setAppinfoListOfValues(xsd, Field f) {
         xsd.listOfValues {
             if (f.listOfValues.scriptRef)       scriptRef(      f.listOfValues.getScriptRefString())
@@ -236,12 +301,13 @@ class SchemaDelegate {
         }
     }
 
+    @CompileDynamic
     private void setAppinfoReference(xsd, Field f) {
         xsd.reference {
             if (f.reference.itemType) {
                 def itemRef = ""
 
-                if (f.reference.itemType instanceof String)  {
+                if (f.reference.itemType instanceof String) {
                     itemRef = f.reference.itemType
                 }
                 else if (f.reference.itemType instanceof PropertyDescriptionList) {
@@ -250,16 +316,41 @@ class SchemaDelegate {
 
                     if (!itemRef) throw new InvalidDataException("Property called '${BuiltInItemProperties.TYPE}' is missing")
                 }
-                else
+                else {
                     throw new InvalidDataException("itemType must be a String or PropertyDescriptionList")
+                }
 
                 itemType(itemRef)
+
+                if (f.reference.collectionName) collectionName(f.reference.collectionName)
+            }
+            else if (f.reference.collectionName) {
+                throw new InvalidDataException("itemType must be specified as well")
             }
         }
     }
-        
+
+    private void generateExpressionScript(Struct s, Field f) {
+        log.debug('generateExpressionScript(struct:{}, field:{}) - script:{}', s.name, f.name, f.expression.name)
+
+        def script = new Script('groovy', f.expression.generateUpdateScript(s, f, name, version))
+        // this constructor adds a default output which is not needed
+        script.getOutputParams().clear()
+
+        script.name = f.expression.name ?: f.expression.generateName(name, f.name)
+        script.version = f.expression.version != null ? f.expression.version : version
+        script.addInputParam(name, 'org.json.JSONObject')
+        script.addInputParam('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+        script.addInputParam('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
+        script.addOutput(name+'Xml', 'java.lang.String')
+
+        expressionScripts[script.name] = script
+        expressionScriptsInputFields[script.name] = f.expression.inputFields
+    }
+
+    @CompileDynamic
     private void buildField(MarkupBuilder xsd, Field f) {
-        log.info "buildField() - Field: $f.name"
+        log.debug "buildField() - Field: $f.name"
 
         //TODO: implement support for this combination - see issue 129
         if (((f.attributes || f.unit) && hasRestrictions(f)) || (f.attributes && f.unit))
@@ -311,14 +402,16 @@ class SchemaDelegate {
         }
     }
 
+    @CompileDynamic
     private void buildAnyField(MarkupBuilder xsd, AnyField any) {
-        log.info "buildAnyField()"
+        log.debug "buildAnyField()"
 
         xsd.'xs:any'(minOccurs: any.minOccurs, maxOccurs: any.maxOccurs, processContents: any.processContents)
     }
 
+    @CompileDynamic
     private void buildRestriction(MarkupBuilder xsd, Attribute fieldOrAttr) {
-        log.info "buildRestriction() - type:$fieldOrAttr.type"
+        log.debug "buildRestriction() - type:$fieldOrAttr.type"
 
         xsd.'xs:simpleType' {
             'xs:restriction'(base: fieldOrAttr.type) {

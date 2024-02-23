@@ -23,10 +23,10 @@ package org.cristalise.kernel.test.persistency.outcomebuilder;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
-import org.cristalise.kernel.utils.Logger;
 import org.json.JSONObject;
 import org.json.XML;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class BuildStructureFromJsonTest extends XMLUtils {
@@ -34,22 +34,22 @@ public class BuildStructureFromJsonTest extends XMLUtils {
     String dir = "src/test/data/outcomeBuilder";
 
     @Before
-    public void setUp() throws Exception {
-        Logger.addLogStream(System.out, 8);
+    public void setUp() throws Exception {}
+
+    private void checkJson2XmlOutcome(String testCase, String type, String postfix) throws Exception {
+        String testDir = testCase == null ? dir : dir + "/" + testCase;
+
+        JSONObject actualJson = new JSONObject(getJSON(testDir, type+postfix));
+        String expected = getXML(testDir, type+postfix);
+
+        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(testDir, type)), true);
+        builder.addJsonInstance(actualJson);
+
+        assert compareXML(expected, builder.getXml());
     }
 
     private void checkJson2XmlOutcome(String type, String postfix) throws Exception {
-        JSONObject actualJson = new JSONObject(getJSON(dir, type+postfix));
-        String expected = getXML(dir, type+postfix);
-
-        Logger.msg(2, "Actual json:%s", actualJson.toString());
-        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
-        builder.addJsonInstance(actualJson);
-
-        Logger.msg(2, "Expected xml:%s", expected);
-        Logger.msg(2, "Actual xml:%s", builder.getXml(false));
-
-        assert compareXML(expected, builder.getXml());
+        checkJson2XmlOutcome(null, type, postfix);
     }
 
     private void checkXml2Json2XmlOutcome(String type, String postFix) throws Exception {
@@ -57,11 +57,7 @@ public class BuildStructureFromJsonTest extends XMLUtils {
         String expected = getXML(dir, type+postFix);
         JSONObject actualJson = XML.toJSONObject(expected);
 
-        Logger.msg(2, "Actual json:%s", actualJson.toString());
         builder.addJsonInstance(actualJson);;
-
-        Logger.msg(2, "Expected xml:%s", expected);
-        Logger.msg(2, "Actual xml:%s", builder.getXml());
 
         assert compareXML(expected, builder.getXml());
     }
@@ -83,11 +79,7 @@ public class BuildStructureFromJsonTest extends XMLUtils {
 
         JSONObject actualJson = new JSONObject(getJSON(dir, "IntegerFieldOptional"));
 
-        Logger.msg(2, "Actual json:%s", actualJson.toString());
         builder.addJsonInstance(actualJson);;
-
-        Logger.msg(2, "Expected xml:%s", expected);
-        Logger.msg(2, "Actual xml:%s", builder.getXml());
 
         assert compareXML(expected, builder.getXml());
     }
@@ -137,4 +129,27 @@ public class BuildStructureFromJsonTest extends XMLUtils {
     public void field_contains_array_value() throws Exception {
         checkJson2XmlOutcome("EmployeeWithSkills", "");
     }
+
+    @Test
+    public void structWithOptionalFields() throws Exception {
+        checkJson2XmlOutcome("structWithOptionalFields", "EnvironmentDetails", "");
+        checkJson2XmlOutcome("structWithOptionalFields", "EnvironmentDetails", "WithAdminUser");
+    }
+
+    @Test @Ignore("Check issue  #627")
+    public void optionalStructWithOptionalFields() throws Exception {
+        checkJson2XmlOutcome("optionalStructWithOptionalFields", "EnvironmentDetails", "");
+        checkJson2XmlOutcome("optionalStructWithOptionalFields", "EnvironmentDetails", "WithAdminUser");
+    }
+
+    @Test
+    public void employeeShiftScheduleFromJson() throws Exception {
+        String type = "EmployeeShiftSchedule";
+        OutcomeBuilder builder = new OutcomeBuilder(new Schema(type, 0, getXSD(dir, type)), true);
+
+        builder.addJsonInstance(new JSONObject("{'EmployeeShiftSchedule': {'CollectionName': 'Shift','MemberID': '0','ShiftName': 'shift1','MemberUUID': null,}}"));
+        String actual = builder.getXml();
+        assert compareXML(getXML(dir, type), actual);
+    }
+
 }

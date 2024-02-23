@@ -1,0 +1,9 @@
+Name=Cristal Test In Memory Server
+
+Lookup = org.cristalise.storage.InMemoryPropertyClusterStorage
+
+JOOQ.URI        = jdbc:h2:mem:
+JOOQ.user       = sa
+JOOQ.password   = sa
+JOOQ.dialect    = H2
+JOOQ.autoCommit = true

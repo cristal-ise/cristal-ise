@@ -21,6 +21,7 @@
 package org.cristalise.dsl.test.entity
 
 import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.entity.DomainContext
 import org.cristalise.kernel.test.utils.CristalTestSetup;
 
 import spock.lang.Specification
@@ -31,8 +32,8 @@ import spock.lang.Specification
  */
 class ItemPropertyBuilderSpecs extends Specification implements CristalTestSetup {
     
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
     def 'Mutable EntityProperty can be created from name only'() {
         when:
@@ -81,18 +82,25 @@ class ItemPropertyBuilderSpecs extends Specification implements CristalTestSetup
 
         then:
         InvalidDataException ex = thrown()
-        ex.message == "IDL:org.cristalise.kernel/common/InvalidDataException:1.0  Inmutable EntityProperty 'Type' must have valid value"
+        ex.message == "Inmutable EntityProperty 'Type' must have valid value"
     }
 
-    def 'EntityProperty can only have String value'() {
+    def 'EntityProperty value is coerced to String'() {
         when:
         def props = ItemPropertyTestBuilder.build {
-            Property(Type: new Object())
+            Property(List: ['e1', 'e2'])
+            InmutableProperty(Root: new DomainContext('/decs/dev'))
         }
 
         then:
-        InvalidDataException ex = thrown()
-        ex.message == "IDL:org.cristalise.kernel/common/InvalidDataException:1.0  EntityProperty 'Type' value must be String"
+        props && props.size() == 2
+        props[0].name == 'List'
+        props[0].value == '[e1, e2]'
+        props[0].mutable == true
+
+        props[1].name == 'Root'
+        props[1].value == '/decs/dev'
+        props[1].mutable == false
     }
 
     def 'EntityProperty Builder builds unlimited length of List keeping the order of declaration'() {

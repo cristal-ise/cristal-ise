@@ -1,0 +1,143 @@
+package @{rootPackage}.@{itemPackage}
+
+import static org.apache.commons.lang3.StringUtils.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
+import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
+import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
+import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
+import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
+import static org.cristalise.kernel.property.BuiltInItemProperties.*;
+
+/**
+ * @{item.name} Item
+ */
+@if{inputFile != null}
+def xlsxFile = new File(moduleDir+'/@{inputFile}')
+
+Schema('@{item.name}', 0, xlsxFile)
+Schema('@{item.name}_Details', 0, xlsxFile)
+
+@else{}
+Schema('@{item.name}', @{version}) {
+  struct(name:' @{item.name}', documentation: '@{item.name} aggregated data'@if{item.useSequence}, useSequence: true@end{}) {
+@if{item.fields != null && item.fields.size() != 0}@includeNamed{'item_field_groovy.tmpl'; schemaDetails=false}@end{}
+    field(name: 'State', type: 'string', values: states)
+  }
+}
+
+Schema('@{item.name}_Details', @{version}) {
+  struct(name: '@{item.name}_Details'@if{item.useSequence}, useSequence: true@end{}) {
+@if{item.fields != null && item.fields.size() != 0}@includeNamed{'item_field_groovy.tmpl'; schemaDetails=true}@end{}
+  }
+}
+@end{}
+
+Activity('@{item.name}_Update', @{version}) {
+  Property((OUTCOME_INIT): 'Empty')
+
+  Schema(@{itemVar}_Details_Schema)
+  Script('CrudEntity_ChangeName', @{version})
+}
+Script('@{item.name}_Aggregate', @{version}) {
+  input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+  output('@{item.name}XML', 'java.lang.String')
+  script('groovy', moduleDir+'/@{itemPackage}/script/@{item.name}_Aggregate.groovy')
+}
+
+Script('@{item.name}_QueryList', @{version}) {
+  input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+  output('@{item.name}Map', 'java.util.Map')
+  script('groovy', moduleDir+'/@{itemPackage}/script/@{item.name}_QueryList.groovy')
+}
+
+Activity('@{item.name}_Aggregate', @{version}) {
+  Property((OUTCOME_INIT): 'Empty')
+  Property((AGENT_ROLE): 'UserCode')
+
+  Schema(@{itemVar}_Schema)
+  Script(@{itemVar}_Aggregate_Script)
+}
+
+@foreach{currentDependency : item.dependencies.values()}
+@if{currentDependency.originator}@includeNamed{'item_dependencies_groovy.tmpl'}@end{}
+@end{}
+
+Workflow('@{item.name}_Workflow', @{version}) {
+  Layout {
+    AndSplit {
+      LoopInfinitive { Act('Update', @{itemVar}_Update_ActivityDef)  }
+      Block { CompActDef('CrudState_Manage', 0) }
+@foreach{currentDependency : item.dependencies.values()}
+@if{currentDependency.originator}      Block { Act(@{itemVar}_Manage@{currentDependency.name}_CompositeActivityDef) }@end{}
+@end{}
+    }
+  }
+}
+
+@if{generateProperty}
+PropertyDescriptionList('@{item.name}', @{version}) {
+  PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
+  PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: '@{item.name}')
+  PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
+}
+@end{}
+
+Item(name: '@{item.name}Factory', version: @{version}, folder: '/@{moduleNs}', workflow: 'CrudFactory_Workflow', workflowVer: @{version}) {
+  InmutableProperty((TYPE): 'Factory')
+  InmutableProperty((ROOT): '/@{moduleNs}/@{item.name}s')
+@if{generatedName}
+  InmutableProperty((ID_PREFIX): '@{idPrefix}')
+  InmutableProperty((LEFT_PAD_SIZE): '@{leftPadSize}')
+  Property((LAST_COUNT): '0')
+@end{}
+
+@if{isAgent}
+  InmutableProperty('CreateAgent': 'true')
+  Property('DefaultRoles': 'Admin')
+@end{}
+
+@if{useConstructor}
+  Dependency(SCHEMA_INITIALISE) {
+    Member(itemPath: @{itemVar}_Details_Schema) {
+      Property('Version': @{version})
+    }
+  }
+@else{}
+  InmutableProperty((UPDATE_SCHEMA): '@{item.name}_Details:@{version}')
+@end{}
+
+  Outcome(schema: 'PropertyDescription', version: '@{version}', viewname: 'last', path: 'boot/property/@{item.name}_@{version}.xml')
+
+  Dependency(WORKFLOW) {
+    Member(itemPath: @{itemVar}_Workflow_CompositeActivityDef) {
+      Property('Version': @{version})
+    }
+  }
+
+  Dependency(MASTER_SCHEMA) {
+    Member(itemPath: @{itemVar}_Schema) {
+      Property('Version': @{version})
+    }
+  }
+
+  Dependency(AGGREGATE_SCRIPT) {
+    Member(itemPath: @{itemVar}_Aggregate_Script) {
+      Property('Version': @{version})
+    }
+  }
+@if{item.dependencies != null && item.dependencies.size() != 0}
+  @foreach{dependency : item.dependencies.values()}
+  DependencyDescription('@{dependency.name}') {
+    Properties {
+      Property((DEPENDENCY_CARDINALITY): @{dependency.cardinality}.toString())
+      Property((DEPENDENCY_TYPE): @{dependency.type}.toString())
+      Property((DEPENDENCY_TO): '@{dependency.otherNames}')
+    }
+    @code{to = org.apache.commons.lang3.StringUtils.uncapitalize(dependency.to)}
+    Member(@{prefix}@{to}_PropertyDescriptionList)
+  }
+  @end{}
+@end{}
+}

@@ -26,7 +26,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.Properties;
 
-import org.cristalise.storage.jooqdb.JooqHandler;
+import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
+import org.cristalise.storage.jooqdb.SystemProperties;
 import org.jooq.DSLContext;
 import org.jooq.SQLDialect;
 
@@ -43,22 +44,18 @@ public class JooqTestConfigurationBase {
          * Run tests using in-memory H2 configured with PostgreSQL compatibility mode
          */
         H2_PostgreSQL,
-        
         /**
          * Run tests using in-memory H2 configured with MYSQL compatibility mode
          */
         H2_MYSQL, 
-        
         /**
          * Run tests using PostgreSQL integtest database
          */
         PostgreSQL,
-        
         /**
          * Run tests using MYSQL integtest database
          */
         MYSQL,
-
         /**
          * Run tests using in-memory H2
          */
@@ -81,6 +78,8 @@ public class JooqTestConfigurationBase {
      * @throws Exception
      */
     public static DSLContext initJooqContext() throws Exception {
+        JooqDataSourceHandler.readSystemProperties();
+
         switch (dbType) {
             case H2_PostgreSQL: return initH2Context("PostgreSQL");
             case H2_MYSQL:      return initH2Context("MYSQL");
@@ -126,11 +125,11 @@ public class JooqTestConfigurationBase {
      * @param c2kProps
      */
     private static void setUpPostgres(Properties c2kProps) {
-        c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:postgresql://localhost:5432/" + dbName);
-        c2kProps.put(JooqHandler.JOOQ_USER,       "postgres");
-        c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "cristal");
-        c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.POSTGRES.toString());
-        c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
+        SystemProperties.JOOQ_URI       .set(c2kProps, "jdbc:postgresql://localhost:5432/" + dbName);
+        SystemProperties.JOOQ_user      .set(c2kProps, "postgres");
+        SystemProperties.JOOQ_password  .set(c2kProps, "cristal");
+        SystemProperties.JOOQ_dialect   .set(c2kProps, SQLDialect.POSTGRES.toString());
+        SystemProperties.JOOQ_autoCommit.set(c2kProps, false);
     }
 
     /**
@@ -153,11 +152,11 @@ public class JooqTestConfigurationBase {
      * @param c2kProps
      */
     private static void setUpMySQL(Properties c2kProps) {
-        c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:mysql://localhost:3306/" + dbName);
-        c2kProps.put(JooqHandler.JOOQ_USER,       "root");
-        c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "cristal");
-        c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.MYSQL.toString());
-        c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
+        SystemProperties.JOOQ_URI       .set(c2kProps, "jdbc:mysql://localhost:3306/" + dbName);
+        SystemProperties.JOOQ_user      .set(c2kProps, "root");
+        SystemProperties.JOOQ_password  .set(c2kProps, "cristal");
+        SystemProperties.JOOQ_dialect   .set(c2kProps, SQLDialect.MYSQL.toString());
+        SystemProperties.JOOQ_autoCommit.set(c2kProps, true);
     }
 
     /**
@@ -183,10 +182,10 @@ public class JooqTestConfigurationBase {
      * @param mode
      */
     private static void setUpH2(Properties c2kProps, String mode) {
-        c2kProps.put(JooqHandler.JOOQ_URI,        "jdbc:h2:mem:"+dbName+";DB_CLOSE_DELAY=-1"+(mode!=null?";MODE="+mode:""));
-        c2kProps.put(JooqHandler.JOOQ_USER,       "sa");
-        c2kProps.put(JooqHandler.JOOQ_PASSWORD,   "sa");
-        c2kProps.put(JooqHandler.JOOQ_DIALECT,    SQLDialect.H2.toString());
-        c2kProps.put(JooqHandler.JOOQ_AUTOCOMMIT, true);
+        SystemProperties.JOOQ_URI       .set(c2kProps, "jdbc:h2:mem:"+dbName+";DB_CLOSE_DELAY=-1"+(mode!=null?";MODE="+mode:""));
+        SystemProperties.JOOQ_user      .set(c2kProps, "sa");
+        SystemProperties.JOOQ_password  .set(c2kProps, "sa");
+        SystemProperties.JOOQ_dialect   .set(c2kProps, SQLDialect.H2.toString());
+        SystemProperties.JOOQ_autoCommit.set(c2kProps, true);
     }
 }

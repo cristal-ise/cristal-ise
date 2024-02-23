@@ -1,0 +1,25 @@
+{
+  "column": [
+    {
+      "field": "Name",
+      "caption": "Name"
+    },
+    {
+      "field": "State",
+      "caption": "State"
+    },
+@if{item.fields != null && item.fields.size() != 0}
+  @foreach{field : item.fields.values()}
+    {
+      "field": "@{field.name}",
+      "caption": "@{field.label}"
+    }
+  @end{','}
+@else{}
+    {
+      "field": "Description",
+      "caption": "Description"
+    }
+@end{}
+  ]
+}

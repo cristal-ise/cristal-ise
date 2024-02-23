@@ -31,7 +31,7 @@ import org.apache.xmlbeans.XmlOptions;
 import org.apache.xmlbeans.impl.xb.xsdschema.SchemaDocument;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeInitiator;
 

@@ -21,7 +21,7 @@
 package org.cristalise.kernel.persistency.outcome;
 
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 
 
 /**

@@ -20,6 +20,10 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_decimal_generateDefaultPattern;
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_decimal_separator;
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_inputField_decimal_defaultValue;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
@@ -27,7 +31,6 @@ import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
-import org.cristalise.kernel.process.Gateway;
 import org.exolab.castor.xml.schema.Facet;
 import org.json.JSONObject;
 
@@ -38,6 +41,7 @@ public class DecimalField extends NumberField {
 
     public DecimalField() {
         super(Arrays.asList(strFields), Arrays.asList(excFields));
+        javaType = BigDecimal.class;
     }
 
     /**
@@ -47,7 +51,7 @@ public class DecimalField extends NumberField {
 
     @Override
     public String getDefaultValue() {
-        return Gateway.getProperties().getString("Webui.inputField.decimal.defaultValue", "0.0");
+        return Webui_inputField_decimal_defaultValue.getString();
     }
 
     @Override
@@ -99,10 +103,10 @@ public class DecimalField extends NumberField {
     private String generatePattern(Integer precisionNumber, boolean precisionSmaller, Integer scaleNumber, boolean scaleSmaller) {
         //locale specific separators could be used, but it should be based on the locale of the browser
         //char separator = new DecimalFormatSymbols(Locale.getDefault(Locale.Category.FORMAT)).getDecimalSeparator();
-        char separator = Gateway.getProperties().getString("Webui.decimal.separator", ".").charAt(0);
+        char separator = Webui_decimal_separator.getString().charAt(0);
 
         if (precisionNumber == null && scaleNumber == null) {
-            if (Gateway.getProperties().getBoolean("Webui.decimal.generateDefaultPattern", false)) {
+            if (Webui_decimal_generateDefaultPattern.getBoolean()) {
                 //default validator for any decimal field
                 if (StringUtils.isBlank(errmsg)) errmsg = "Invalid decimal number";
                 return "^-?\\d+\\" + separator + "?\\d*$";

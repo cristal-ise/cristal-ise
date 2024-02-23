@@ -1,0 +1,5 @@
+[
+@foreach{currentDependency : item.dependencies.values()}
+  { "name": "@{currentDependency.name}", "header": "@{currentDependency.name}", "icon": "fa fa-compress-arrows-alt" }
+@end{','}
+]

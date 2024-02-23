@@ -87,6 +87,8 @@ _Collections declare relationships between Items_
 _Interacting with Items in activity, routing and instantiation scripts_
 
 1. [Script](../Script)
+1. [Routing](../Routing)
+1. [Aggregate Script](../AggregateScript)
 1. [Instantiation Script](../Instantiation-Script)
 
 ## Proxies

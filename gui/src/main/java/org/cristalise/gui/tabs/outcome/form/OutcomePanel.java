@@ -19,6 +19,7 @@
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
 package org.cristalise.gui.tabs.outcome.form;
+
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.io.File;
@@ -47,7 +48,6 @@ import org.cristalise.gui.tabs.outcome.OutcomeNotInitialisedException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.exolab.castor.xml.schema.Schema;
@@ -56,13 +56,13 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import lombok.extern.slf4j.Slf4j;
 
 
 // will load the outcome as instructed by other bits of the gui
 // provides the 'save' button and creates the trees of objects to feed to the outcome form
-
-public class OutcomePanel extends JPanel implements OutcomeHandler
-{
+@Slf4j
+public class OutcomePanel extends JPanel implements OutcomeHandler {
 
     Schema schemaSOM;
     Document outcomeDOM;
@@ -75,21 +75,17 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
     JScrollPane scrollpane = new JScrollPane();
     protected HashMap<String, Class<?>> specialEditFields = new HashMap<String, Class<?>>();
     JTextArea basicView;
-    
-    public OutcomePanel()
-    {
+
+    public OutcomePanel() {
         GridBagLayout gridbag = new java.awt.GridBagLayout();
         setLayout(gridbag);
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setValidating(false);
         dbf.setNamespaceAware(false);
-        try
-        {
+        try {
             parser = dbf.newDocumentBuilder();
-        }
-        catch (ParserConfigurationException e)
-        {
+        } catch (ParserConfigurationException e) {
             e.printStackTrace();
         }
 
@@ -110,61 +106,47 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
         this.add(scrollpane);
     }
 
-    public OutcomePanel(boolean readOnly)
-    {
+    public OutcomePanel(boolean readOnly) {
         this();
         setReadOnly(readOnly);
     }
 
-    public OutcomePanel(String schema, boolean readOnly) throws OutcomeException
-    {
+    public OutcomePanel(String schema, boolean readOnly) throws OutcomeException {
         this(readOnly);
         this.setDescription(schema);
     }
 
-    public OutcomePanel(String schema, String outcome, boolean readOnly) throws OutcomeException
-    {
+    public OutcomePanel(String schema, String outcome, boolean readOnly) throws OutcomeException {
         this(readOnly);
         this.setDescription(schema);
         this.setOutcome(outcome);
     }
 
     // Parse from URLS
-    public void setOutcome(URL outcomeURL) throws InvalidOutcomeException
-    {
+    public void setOutcome(URL outcomeURL) throws InvalidOutcomeException {
 
-        try
-        {
+        try {
             setOutcome(new InputSource(outcomeURL.openStream()));
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             throw new InvalidOutcomeException("Error creating instance DOM tree: " + ex);
         }
     }
 
-    public void setDescription(URL schemaURL) throws InvalidSchemaException
-    {
-        Logger.msg(7, "OutcomePanel.setDescription() - schemaURL:" + schemaURL.toString());
-        try
-        {
+    public void setDescription(URL schemaURL) throws InvalidSchemaException {
+        try {
             setDescription(new InputSource(schemaURL.openStream()));
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             throw new InvalidSchemaException("Error creating exolab schema object: " + ex);
         }
 
     }
 
-    public OutcomePanel(URL schemaURL, boolean readOnly) throws OutcomeException
-    {
+    public OutcomePanel(URL schemaURL, boolean readOnly) throws OutcomeException {
         this(readOnly);
         this.setDescription(schemaURL);
     }
 
-    public OutcomePanel(URL schemaURL, URL outcomeURL, boolean readOnly) throws OutcomeException
-    {
+    public OutcomePanel(URL schemaURL, URL outcomeURL, boolean readOnly) throws OutcomeException {
         this(readOnly);
         this.setDescription(schemaURL);
         this.setOutcome(outcomeURL);
@@ -172,83 +154,63 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
 
     // Parse from Strings
     @Override
-	public void setOutcome(String outcome) throws InvalidOutcomeException
-    {
+    public void setOutcome(String outcome) throws InvalidOutcomeException {
 
-        try
-        {
+        try {
             setOutcome(new InputSource(new StringReader(outcome)));
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             throw new InvalidOutcomeException("Error creating instance DOM tree: " + ex);
         }
     }
 
     @Override
-	public void setDescription(String schema) throws InvalidSchemaException
-    {
+    public void setDescription(String schema) throws InvalidSchemaException {
         if (schema == null)
             throw new InvalidSchemaException("Null schema supplied");
-        try
-        {
+        try {
             setDescription(new InputSource(new StringReader(schema)));
-        }
-        catch (Exception ex)
-        {
-            Logger.error(ex);
+        } catch (Exception ex) {
+            log.error("",ex);
         }
 
     }
 
     @Override
-	public void setReadOnly(boolean readOnly)
-    {
+    public void setReadOnly(boolean readOnly) {
         this.readOnly = readOnly;
     }
 
-    public void setDescription(InputSource schemaSource) throws InvalidSchemaException, IOException
-    {
+    public void setDescription(InputSource schemaSource)
+            throws InvalidSchemaException, IOException {
 
         SchemaReader mySchemaReader = new SchemaReader(schemaSource);
         this.schemaSOM = mySchemaReader.read();
     }
 
-    public void setOutcome(InputSource outcomeSource) throws InvalidOutcomeException, IOException
-    {
-        try
-        {
+    public void setOutcome(InputSource outcomeSource) throws InvalidOutcomeException, IOException {
+        try {
             outcomeDOM = parser.parse(outcomeSource);
-        }
-        catch (SAXException ex)
-        {
+        } catch (SAXException ex) {
             throw new InvalidOutcomeException("Sax error parsing Outcome " + ex);
         }
     }
 
     @Override
-	public void run()
-    {
+    public void run() {
         Thread.currentThread().setName("Outcome Panel Builder");
-        try
-        {
+        try {
             makeDisplay();
-        }
-        catch (Exception oe)
-        {
-            scrollpane.setViewportView(new JLabel("Outcome View Generation Failed: " + oe.getMessage()));
-            Logger.error(oe);
+        } catch (Exception oe) {
+            scrollpane.setViewportView(
+                    new JLabel("Outcome View Generation Failed: " + oe.getMessage()));
+            log.error("",oe);
         }
     }
 
-    public void makeDisplay()
-    {
-        try
-        {
+    public void makeDisplay() {
+        try {
             initPanel();
-        }
-        catch (OutcomeException ex)
-        {
+        } catch (OutcomeException ex) {
             // something went wrong
             useForm = false;
             Box textPanel = Box.createVerticalBox();
@@ -256,13 +218,13 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
             errorMsg.setHorizontalAlignment(SwingConstants.LEFT);
             textPanel.add(errorMsg);
             textPanel.add(Box.createVerticalGlue());
-            if (outcomeDOM!=null) {
+            if (outcomeDOM != null) {
                 String xml = "";
 
                 try {
                     xml = Outcome.serialize(outcomeDOM, true);
+                } catch (InvalidDataException e) {
                 }
-                catch (InvalidDataException e) {}
 
                 basicView = new JTextArea(xml);
                 basicView.setEnabled(!readOnly);
@@ -270,57 +232,54 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
             }
             scrollpane.setViewportView(textPanel);
         }
-        
+
     }
 
-    public void initPanel() throws OutcomeException
-    {
+    public void initPanel() throws OutcomeException {
         Element docElement;
-        /*if (panelBuilt)
-            return;*/
-        Logger.msg(5, "Initialising Panel..");
+        /*
+         * if (panelBuilt) return;
+         */
         scrollpane.setViewportView(new JLabel("Building outcome. Please hang on two ticks . . ."));
         if (schemaSOM == null)
             throw new InvalidSchemaException("A valid schema has not been supplied.");
         // create root panel with element declaration and maybe root document element node
 
-        //find the root element declaration in the schema - may need to look for annotation??
+        // find the root element declaration in the schema - may need to look for annotation??
         ElementDecl rootElementDecl = null;
         docElement = (outcomeDOM == null) ? null : outcomeDOM.getDocumentElement();
 
         HashMap<String, ElementDecl> foundRoots = new HashMap<String, ElementDecl>();
-        for (ElementDecl elementDecl: schemaSOM.getElementDecls())
-        	foundRoots.put(elementDecl.getName(), elementDecl);
+        for (ElementDecl elementDecl : schemaSOM.getElementDecls())
+            foundRoots.put(elementDecl.getName(), elementDecl);
         if (foundRoots.size() == 0)
-        	throw new InvalidSchemaException("No root elements defined");
+            throw new InvalidSchemaException("No root elements defined");
         if (foundRoots.size() == 1)
-        	rootElementDecl = foundRoots.values().iterator().next();
+            rootElementDecl = foundRoots.values().iterator().next();
         else if (docElement != null)
-        	rootElementDecl = foundRoots.get(docElement.getTagName());
-        else { //choose root
-        	String[] rootArr = foundRoots.keySet().toArray(new String[0]);
-        	String choice = (String) JOptionPane.showInputDialog(this, "Choose the root element:",
-        			"Multiple possible root elements found", JOptionPane.PLAIN_MESSAGE,
-        			null, rootArr, rootArr[0]);
-        	rootElementDecl = foundRoots.get(choice);
+            rootElementDecl = foundRoots.get(docElement.getTagName());
+        else { // choose root
+            String[] rootArr = foundRoots.keySet().toArray(new String[0]);
+            String choice = (String) JOptionPane.showInputDialog(this, "Choose the root element:",
+                    "Multiple possible root elements found", JOptionPane.PLAIN_MESSAGE, null,
+                    rootArr, rootArr[0]);
+            rootElementDecl = foundRoots.get(choice);
         }
 
         if (rootElementDecl == null)
             throw new InvalidSchemaException("No root elements defined");
-        
-        if (rootElementDecl.getType().isSimpleType() || ((ComplexType)rootElementDecl.getType()).isSimpleContent())
-        	documentRoot = new Field(rootElementDecl, readOnly, specialEditFields);
-        else
-        	documentRoot = new DataRecord(rootElementDecl, readOnly, false, specialEditFields);
 
-        Logger.msg(5, "Finished structure. Populating...");
-        if (docElement == null)
-        {
+        if (rootElementDecl.getType().isSimpleType()
+                || ((ComplexType) rootElementDecl.getType()).isSimpleContent())
+            documentRoot = new Field(rootElementDecl, readOnly, specialEditFields);
+        else
+            documentRoot = new DataRecord(rootElementDecl, readOnly, false, specialEditFields);
+
+        if (docElement == null) {
             outcomeDOM = parser.newDocument();
             docElement = documentRoot.initNew(outcomeDOM);
             outcomeDOM.appendChild(docElement);
-        }
-        else
+        } else
             documentRoot.addInstance(docElement, outcomeDOM);
 
         // got a fully rendered Outcome! put it in the scrollpane
@@ -340,41 +299,36 @@ public class OutcomePanel extends JPanel implements OutcomeHandler
     }
 
     @Override
-	public JPanel getPanel() throws OutcomeNotInitialisedException
-    {
+    public JPanel getPanel() throws OutcomeNotInitialisedException {
         return this;
     }
 
     @Override
-	public String getOutcome()
-    {
-        if (useForm)
-        {
+    public String getOutcome() {
+        if (useForm) {
             documentRoot.validateStructure();
             try {
                 return Outcome.serialize(outcomeDOM, false);
+            } catch (InvalidDataException e) {
             }
-            catch (InvalidDataException e) {}
             return "";
-        }
-        else
-        {
+        } else {
             return basicView.getText();
         }
     }
 
     @Override
-	public boolean isUnsaved() {
+    public boolean isUnsaved() {
         return unsaved;
     }
 
     @Override
-	public void saved() {
+    public void saved() {
         unsaved = false;
     }
 
-	@Override
-	public void export(File targetFile) throws Exception {
-		FileStringUtility.string2File(targetFile, getOutcome());
-	}
+    @Override
+    public void export(File targetFile) throws Exception {
+        FileStringUtility.string2File(targetFile, getOutcome());
+    }
 }

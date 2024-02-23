@@ -1,14 +1,20 @@
 package org.cristalise.dev.test.scenario
 
+import static org.cristalise.dev.dsl.DevXMLUtility.recordToXML
+
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.Test
-
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
+import groovy.transform.CompileDynamic
+import groovy.transform.CompileStatic
 
 /**
  * 
  *
  */
+@CompileStatic
 class ViewpointCreateIT extends KernelScenarioTestBase {
     String schemaName  = "ViewpointTest"
     String elemActName = "SetViewpoint"
@@ -22,6 +28,7 @@ class ViewpointCreateIT extends KernelScenarioTestBase {
 	 * 
 	 * @param actDefList
 	 */
+    @CompileDynamic
     private void setupItem(String viewpoint) {
         def schema = Schema("$schemaName-$timeStamp", folder) {
             struct(name: schemaName) {
@@ -36,7 +43,9 @@ class ViewpointCreateIT extends KernelScenarioTestBase {
         }
 
         def wf = CompositeActivityDef("$compActName-$timeStamp", folder) {
-            ElemActDef(elemActName,  ea)
+            Layout {
+                ElemActDef(elemActName,  ea)
+            }
         }
 
         def factory = DescriptionItem("$factoryName-$timeStamp", folder) {
@@ -44,14 +53,18 @@ class ViewpointCreateIT extends KernelScenarioTestBase {
             Workflow(wf)
         }
 
-        createNewItemByFactory(factory, "CreateNewInstance", "$itemName-$timeStamp", folder)
+        executeDoneJob(
+            factory,
+            "CreateNewInstance",
+            recordToXML('NewDevObjectDef', [ObjectName: "$itemName-$timeStamp", SubFolder: folder])
+        )
 
         viewpointTest = agent.getItem("$folder/$itemName-$timeStamp")
     }
 
     @Test
     public void defaultLastView() {
-        setupItem()
+        setupItem('')
         executeDoneJob(viewpointTest, elemActName)
         assert viewpointTest.checkViewpoint("$schemaName-$timeStamp", "last")
     }

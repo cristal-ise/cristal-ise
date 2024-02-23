@@ -1,101 +1,107 @@
 package org.cristalise.dev.test.scenario
 
-import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 
 /**
  *
  *
  */
+//@CompileStatic
 class ShiroPermissionTestIT extends KernelScenarioTestBase {
     
     @Test
     public void 'Job is only given to the Agent with the proper Permission'() {
+        Role('oper') {
+            Permission('test:EA1')
+        }
+        Role('clerk') {
+            Permission('test:EA2')
+        }
+
         def oper1 = Agent("oper1-$timeStamp") {
             Roles {
-                Role(name: 'oper') {
-                    Permission('test:EA1')
-                }
+                Role(name: 'oper')
             }
-        }
+        }.proxy
 
         def clerk1 = Agent("clerk1-$timeStamp") {
             Roles {
-                Role(name: 'clerk') {
-                    Permission('test:EA2')
-                }
+                Role(name: 'clerk')
             }
-        }
+        }.proxy
 
         def dummyItem = Item(name: "dummyItem-$timeStamp", folder: "testing") {
             Property(Type: 'test')
             Workflow {
                 EA('EA1')
             }
-        }
-        
-        def dummyItemP = agent.getItem(dummyItem.getItemPath())
+        }.proxy
 
-        assert dummyItemP.getJobList(oper1.getItemPath(),  true).size() == 2;
-        assert dummyItemP.getJobList(clerk1.getItemPath(), true).size() == 0;
+        assert dummyItem.getJobs(oper1).size() == 2;
+        assert dummyItem.getJobs(clerk1).size() == 0;
     }
 
     @Test
     public void 'Agent can execute activities with the proper Permission'() {
-        def oper1 = (AgentPath)Agent("oper1-$timeStamp") {
-            Roles {
-                Role(name: 'oper') {
-                    Permission('test:first,left,last')
-                }
-            }
-        }.getItemPath()
+        Role('oper') {
+            Permission('test:first,left,last')
+        }
+        Role('clerk') {
+            Permission('test:right,last')
+        }
 
-        def clerk1 = (AgentPath)Agent("clerk1-$timeStamp") {
+        def oper1 = Agent("oper1-$timeStamp") {
             Roles {
-                Role(name: 'clerk') {
-                    Permission('test:right,last')
-                }
+                Role(name: 'oper')
             }
-        }.getItemPath()
+        }.proxy
 
-        def dummy = Item(name: "dummyItem-$timeStamp", folder: "testing") {
+        def clerk1 = Agent("clerk1-$timeStamp") {
+            Roles {
+                Role(name: 'clerk')
+            }
+        }.proxy
+
+        // this workflow cannot be generated with CompiletStatic
+        def dummyItem = Item(name: "dummyItem-$timeStamp", folder: "testing") {
             Property(Type: 'test')
             Workflow {
                 EA('first')
                 AndSplit {
-                   Block { ElemAct("left") }
-                   Block { ElemAct("right") }
+                   Block { EA('left') }
+                   Block { EA('right') }
                }
                EA('last')
             }
-        }
+        }.proxy
 
-        def dummyItem = agent.getItem(dummy.getItemPath())
-
-        checkJobs(dummyItem, oper1, [[stepName: "first", agentRole: null, transitionName: "Start"],
-                                     [stepName: "first", agentRole: null, transitionName: "Done"]])
-        checkJobs(dummyItem, clerk1, [])
+        checkJobs(dummyItem, oper1.path, [[stepName: "first", agentRole: null, transitionName: "Start"],
+                                          [stepName: "first", agentRole: null, transitionName: "Done"]])
+        checkJobs(dummyItem, clerk1.path, [])
 
         def oper1Job = dummyItem.getJobByName('first', oper1)
         assert oper1Job
         def clerk1Job = dummyItem.getJobByName('first', clerk1)
         assert !clerk1Job
-        dummyItem.requestAction(oper1Job)
 
-        assert dummyItem.getJobList(oper1,  true).size() == 2;
-        assert dummyItem.getJobList(clerk1, true).size() == 2;
+        oper1.execute(oper1Job)
+
+        assert dummyItem.getJobs(oper1.path).size() == 2;
+        assert dummyItem.getJobs(clerk1.path).size() == 2;
 
         oper1Job = dummyItem.getJobByName('left', oper1)
         assert oper1Job
-        dummyItem.requestAction(oper1Job)
+
+        oper1.execute(oper1Job)
 
         clerk1Job = dummyItem.getJobByName('right', clerk1)
         assert clerk1Job
-        dummyItem.requestAction(clerk1Job)
 
-        assert dummyItem.getJobList(oper1,  true).size() == 2;
-        assert dummyItem.getJobList(clerk1, true).size() == 2;
+        clerk1.execute(clerk1Job)
+
+        assert dummyItem.getJobs(oper1).size() == 2;
+        assert dummyItem.getJobs(clerk1).size() == 2;
     }
 }

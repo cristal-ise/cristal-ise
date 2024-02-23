@@ -1,0 +1,102 @@
+<CompositeActivityDef Height="0" ID="-1" IsComposite="true" IsLayoutable="false" Name="Doctor_Workflow" Width="0">
+  <childrenGraphModel>
+    <GraphModelCastorData NextId="8" StartVertexId="1">
+      <ActivitySlotDef Height="60" ID="3" IsComposite="false" IsLayoutable="true" Name="AddPatient" Width="130">
+        <CentrePoint x="100" y="130"/>
+        <OutlinePoint x="35" y="100"/>
+        <OutlinePoint x="165" y="100"/>
+        <OutlinePoint x="165" y="160"/>
+        <OutlinePoint x="35" y="160"/>
+        <InEdgeId>4</InEdgeId>
+        <OutEdgeId>5</OutEdgeId>
+        <Properties>
+          <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+          <KeyValuePair Key="ActivityDefName" String="CrudEntity_ChangeDependecy" isAbstract="false"/>
+          <KeyValuePair Key="PredefinedStep" String="AddMembersToCollection" isAbstract="false"/>
+          <KeyValuePair Key="Name" String="AddPatient" isAbstract="false"/>
+          <KeyValuePair Key="DependencyName" String="Patients" isAbstract="false"/>
+          <KeyValuePair Key="ModuleNameSpace" String="integTest" isAbstract="false"/>
+        </Properties>
+        <activityDef>CrudEntity_ChangeDependecy</activityDef>
+      </ActivitySlotDef>
+      <JoinDef Height="24" ID="2" IsComposite="false" IsLayoutable="true" Name="" Width="60">
+        <CentrePoint x="100" y="290"/>
+        <OutlinePoint x="70" y="278"/>
+        <OutlinePoint x="130" y="278"/>
+        <OutlinePoint x="130" y="302"/>
+        <OutlinePoint x="70" y="302"/>
+        <InEdgeId>6</InEdgeId>
+        <Properties>
+          <KeyValuePair Key="Type" String="Join" isAbstract="false"/>
+          <KeyValuePair Key="PairingID" String="" isAbstract="false"/>
+        </Properties>
+      </JoinDef>
+      <JoinDef Height="24" ID="1" IsComposite="false" IsLayoutable="true" Name="" Width="60">
+        <CentrePoint x="180" y="50"/>
+        <OutlinePoint x="150" y="38"/>
+        <OutlinePoint x="210" y="38"/>
+        <OutlinePoint x="210" y="62"/>
+        <OutlinePoint x="150" y="62"/>
+        <InEdgeId>7</InEdgeId>
+        <OutEdgeId>4</OutEdgeId>
+        <Properties>
+          <KeyValuePair Key="Type" String="Join" isAbstract="false"/>
+          <KeyValuePair Key="PairingID" String="Loop0" isAbstract="false"/>
+        </Properties>
+      </JoinDef>
+      <LoopDef Height="24" ID="0" IsComposite="false" IsLayoutable="true" Name="" Width="60" isNext="0">
+        <CentrePoint x="180" y="210"/>
+        <OutlinePoint x="150" y="198"/>
+        <OutlinePoint x="210" y="198"/>
+        <OutlinePoint x="210" y="222"/>
+        <OutlinePoint x="150" y="222"/>
+        <InEdgeId>5</InEdgeId>
+        <OutEdgeId>6</OutEdgeId>
+        <OutEdgeId>7</OutEdgeId>
+        <Properties>
+          <KeyValuePair Key="RoutingExpr" String="" isAbstract="false"/>
+          <KeyValuePair Key="PairingID" String="Loop0" isAbstract="false"/>
+          <KeyValuePair Key="RoutingScriptVersion" isAbstract="false"/>
+          <KeyValuePair Key="LastNum" String="2" isAbstract="false"/>
+          <KeyValuePair Key="RoutingScriptName" String="groovy:true" isAbstract="false"/>
+        </Properties>
+      </LoopDef>
+      <NextDef ID="6" OriginVertexId="0" TerminusVertexId="2">
+        <OriginPoint x="180" y="210"/>
+        <TerminusPoint x="100" y="290"/>
+        <Properties>
+          <KeyValuePair Key="Alias" String="false" isAbstract="false"/>
+        </Properties>
+      </NextDef>
+      <NextDef ID="5" OriginVertexId="3" TerminusVertexId="0">
+        <OriginPoint x="100" y="130"/>
+        <TerminusPoint x="180" y="210"/>
+        <Properties/>
+      </NextDef>
+      <NextDef ID="4" OriginVertexId="1" TerminusVertexId="3">
+        <OriginPoint x="180" y="50"/>
+        <TerminusPoint x="100" y="130"/>
+        <Properties/>
+      </NextDef>
+      <NextDef ID="7" OriginVertexId="0" TerminusVertexId="1">
+        <OriginPoint x="180" y="210"/>
+        <TerminusPoint x="180" y="50"/>
+        <Properties>
+          <KeyValuePair Key="Alias" String="true" isAbstract="false"/>
+        </Properties>
+      </NextDef>
+    </GraphModelCastorData>
+  </childrenGraphModel>
+  <Properties>
+    <KeyValuePair Boolean="false" Key="Breakpoint" isAbstract="false"/>
+    <KeyValuePair Key="OutcomeInit" String="" isAbstract="false"/>
+    <KeyValuePair Key="StateMachineVersion" String="0" isAbstract="false"/>
+    <KeyValuePair Key="Description" String="" isAbstract="false"/>
+    <KeyValuePair Boolean="false" Key="Abortable" isAbstract="false"/>
+    <KeyValuePair Boolean="false" Key="RepeatWhen" isAbstract="false"/>
+    <KeyValuePair Key="Viewpoint" String="" isAbstract="false"/>
+    <KeyValuePair Key="Agent Name" String="" isAbstract="false"/>
+    <KeyValuePair Key="StateMachineName" String="CompositeActivity" isAbstract="false"/>
+    <KeyValuePair Key="Agent Role" String="" isAbstract="false"/>
+  </Properties>
+</CompositeActivityDef>

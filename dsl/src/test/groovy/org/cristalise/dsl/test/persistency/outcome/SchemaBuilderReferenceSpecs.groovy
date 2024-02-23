@@ -20,8 +20,10 @@
  */
 package org.cristalise.dsl.test.persistency.outcome
 
+import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest
 import org.cristalise.dsl.property.PropertyDescriptionBuilder
 import org.cristalise.dsl.test.builders.SchemaTestBuilder
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.test.utils.CristalTestSetup
 import org.cristalise.kernel.test.utils.KernelXMLUtility
 
@@ -33,15 +35,15 @@ import spock.lang.Specification
  */
 class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { loggerSetup()    }
-    def cleanup() { cristalCleanup() }
+    def setup()   {}
+    def cleanup() {}
 
 
-    def 'Field can specify the item type it references using String'() {
+    def 'Field can specify the item type it reference itemType using String'() {
         expect:
         SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData', useSequence: true) {
-                field(name: 'ItemRef') { reference(itemType: 'UnitTest') }
+                field(name: 'ItemRef') { reference(itemType: 'UnitTest', collectionName: 'JUnitTest') }
             }
         }.compareXML(
             """<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
@@ -53,7 +55,18 @@ class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSe
                            <xs:appinfo>
                              <reference>
                                <itemType>UnitTest</itemType>
+                               <collectionName>JUnitTest</collectionName>
                              </reference>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
@@ -90,11 +103,33 @@ class SchemaBuilderReferenceSpecs extends Specification implements CristalTestSe
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:sequence>
                    </xs:complexType>
                  </xs:element>
                </xs:schema>""",
             schema.getSchema().getXSD()
             )
+    }
+
+    def 'Specifying reference collectionName only throws InvalidDataException'() {
+        when:
+        def schema = SchemaTestBuilder.build('Test', 'TestData', 0) {
+            struct(name: 'TestData', useSequence: true) {
+                field(name: 'ItemRef') { reference(collectionName: JUnitTest) }
+            }
+        }
+
+        then:
+        thrown(InvalidDataException)
     }
 }

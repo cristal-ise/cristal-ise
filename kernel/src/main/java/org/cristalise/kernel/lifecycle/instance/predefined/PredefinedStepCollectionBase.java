@@ -39,6 +39,7 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
@@ -46,11 +47,14 @@ import org.cristalise.kernel.utils.CastorHashMap;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * @deprecated it is a base class of deprecated classes
+ */
 @Slf4j
 public abstract class PredefinedStepCollectionBase extends PredefinedStep {
 
-    public PredefinedStepCollectionBase() {
-        super();
+    public PredefinedStepCollectionBase(String desc) {
+        super(desc);
     }
 
     protected String        collectionName = null;
@@ -123,12 +127,12 @@ public abstract class PredefinedStepCollectionBase extends PredefinedStep {
      * 
      * @param item
      * @param requestData
-     * @param locker
+     * @param transactionKey
      * @throws InvalidDataException
      * @throws PersistencyException
      * @throws ObjectNotFoundException
      */
-    protected String[] unpackParamsAndGetCollection(ItemPath item, String requestData, Object locker) 
+    protected String[] unpackParamsAndGetCollection(ItemPath item, String requestData, TransactionKey transactionKey) 
             throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
         String[] params = getDataList(requestData);
@@ -140,7 +144,7 @@ public abstract class PredefinedStepCollectionBase extends PredefinedStep {
         collectionName = params[0];
 
         // load collection
-        collection = (Collection<?>) Gateway.getStorage().get(item, COLLECTION+"/"+collectionName+"/last", locker);
+        collection = (Collection<?>) Gateway.getStorage().get(item, COLLECTION+"/"+collectionName+"/last", transactionKey);
 
         try {
             if (StringUtils.isNumeric(params[1])) { //Params for Update and Remove operations
@@ -195,12 +199,12 @@ public abstract class PredefinedStepCollectionBase extends PredefinedStep {
      * @param item
      * @param dependency
      * @param newMember
-     * @param locker
+     * @param transactionKey
      * @throws ObjectNotFoundException
      * @throws InvalidDataException
      * @throws InvalidCollectionModification
      */
-    protected void evaluateScript(ItemPath item, Dependency dependency, DependencyMember newMember, Object locker)
+    protected void evaluateScript(ItemPath item, Dependency dependency, DependencyMember newMember, TransactionKey transactionKey)
             throws ObjectNotFoundException, InvalidDataException, InvalidCollectionModification
     {
         if (dependency.containsBuiltInProperty(MEMBER_ADD_SCRIPT)) {
@@ -208,11 +212,11 @@ public abstract class PredefinedStepCollectionBase extends PredefinedStep {
             scriptProps.put("collection", dependency);
             scriptProps.put("member", newMember);
 
-            evaluateScript(item, (String) dependency.getBuiltInProperty(MEMBER_ADD_SCRIPT), scriptProps, locker);
+            evaluateScript(item, (String) dependency.getBuiltInProperty(MEMBER_ADD_SCRIPT), scriptProps, transactionKey);
         }
     }
 
-    protected void evaluateScript(ItemPath item, String propertyValue, CastorHashMap scriptProps , Object locker)
+    protected void evaluateScript(ItemPath item, String propertyValue, CastorHashMap scriptProps , TransactionKey transactionKey)
             throws ObjectNotFoundException, InvalidDataException, InvalidCollectionModification
     {
         if (StringUtils.isBlank(propertyValue) || !propertyValue.contains(":")) {
@@ -223,7 +227,7 @@ public abstract class PredefinedStepCollectionBase extends PredefinedStep {
 
         try {
             Script script = Script.getScript(tokens[0], Integer.valueOf(tokens[1]));
-            script.evaluate(item, scriptProps, getActContext(), locker);
+            script.evaluate(item, scriptProps, getActContext(), transactionKey);
         }
         catch (ScriptingEngineException e) {
             log.error("evaluateScript() - failed to execute script:{}", propertyValue, e);

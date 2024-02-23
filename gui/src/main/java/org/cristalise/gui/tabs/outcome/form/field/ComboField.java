@@ -32,7 +32,6 @@ import org.cristalise.gui.MainFrame;
 import org.cristalise.gui.tabs.outcome.form.StructuralException;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.cristalise.kernel.utils.Logger;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotation;
 import org.exolab.castor.xml.schema.AttributeDecl;
@@ -40,16 +39,9 @@ import org.exolab.castor.xml.schema.Documentation;
 import org.exolab.castor.xml.schema.ElementDecl;
 import org.exolab.castor.xml.schema.Facet;
 import org.exolab.castor.xml.schema.SimpleType;
+import lombok.extern.slf4j.Slf4j;
 
-
-/*******************************************************************************
- *
- * $Revision: 1.4 $ $Date: 2005/08/16 13:59:56 $
- *
- * Copyright (C) 2003 CERN - European Organization for Nuclear Research All
- * rights reserved.
- ******************************************************************************/
-
+@Slf4j
 public class ComboField extends EditField {
 
     JComboBox comboField;
@@ -66,40 +58,39 @@ public class ComboField extends EditField {
     }
 
     @Override
-	public String getDefaultValue() {
+    public String getDefaultValue() {
         if (vals.getDefaultKey() != null)
             return vals.get(vals.getDefaultKey()).toString();
         else
             return "";
     }
-    
+
     public void setDefaultValue(String defaultVal) {
-    	vals.setDefaultValue(defaultVal);
-    	comboModel.setSelectedItem(vals.getDefaultKey());
+        vals.setDefaultValue(defaultVal);
+        comboModel.setSelectedItem(vals.getDefaultKey());
     }
 
     @Override
-	public String getText() {
+    public String getText() {
         return vals.get(comboModel.getSelectedItem()).toString();
     }
 
     @Override
-	public JTextComponent makeTextField() {
+    public JTextComponent makeTextField() {
         // not used by this control
         return null;
     }
 
     @Override
-	public void setText(String text) {
+    public void setText(String text) {
         if (vals.containsValue(text)) {
-        	comboModel.setSelectedItem(vals.findKey(text));
-        }
-        else
-        	Logger.error("Illegal value for ComboField "+getName()+": "+text);
+            comboModel.setSelectedItem(vals.findKey(text));
+        } else
+            log.error("Illegal value for ComboField " + getName() + ": " + text);
     }
 
     @Override
-	public Component getControl() {
+    public Component getControl() {
         return comboField;
     }
 
@@ -118,24 +109,24 @@ public class ComboField extends EditField {
         // handle enumerations
         // TODO: should be ANDed with above results
         if (content.hasFacet(Facet.ENUMERATION)) {
-            //ListOfValues andList = new ListOfValues();
+            // ListOfValues andList = new ListOfValues();
             Enumeration<Facet> enums = content.getFacets(Facet.ENUMERATION);
             while (enums.hasMoreElements()) {
                 Facet thisEnum = enums.nextElement();
                 String desc = thisEnum.getValue();
                 Enumeration<Annotation> annos = thisEnum.getAnnotations();
                 if (annos.hasMoreElements()) {
-                	Annotation thisAnno = annos.nextElement();
-                	Enumeration<Documentation> docs = thisAnno.getDocumentation();
-                	if (docs.hasMoreElements()) 
-                		desc = docs.nextElement().getContent();
+                    Annotation thisAnno = annos.nextElement();
+                    Enumeration<Documentation> docs = thisAnno.getDocumentation();
+                    if (docs.hasMoreElements())
+                        desc = docs.nextElement().getContent();
                 }
                 vals.put(desc, thisEnum.getValue(), false);
-             }
+            }
         }
 
         comboModel = new DefaultComboBoxModel(vals.getKeyArray());
-        //if (vals.getDefaultKey() != null) comboModel.setSelectedItem(vals.getDefaultKey());
+        // if (vals.getDefaultKey() != null) comboModel.setSelectedItem(vals.getDefaultKey());
         comboField.setModel(comboModel);
     }
 
@@ -153,22 +144,23 @@ public class ComboField extends EditField {
             StringTokenizer tok = new StringTokenizer(scriptName, "_");
             if (tok.countTokens() != 2)
                 throw new Exception("Invalid LOVScript name");
-            Script lovscript = LocalObjectLoader.getScript(tok.nextToken(), Integer.parseInt(tok.nextToken()));
+            Script lovscript =
+                    LocalObjectLoader.getScript(tok.nextToken(), Integer.parseInt(tok.nextToken()));
             lovscript.setInputParamValue("LOV", vals);
             lovscript.execute();
         } catch (Exception ex) {
-        	MainFrame.exceptionDialog(ex);
+            MainFrame.exceptionDialog(ex);
         }
     }
 
     @Override
-	public void setDecl(AttributeDecl model) throws StructuralException {
+    public void setDecl(AttributeDecl model) throws StructuralException {
         super.setDecl(model);
         setDefaultValue(model.getDefaultValue());
     }
 
     @Override
-	public void setDecl(ElementDecl model) throws StructuralException {
+    public void setDecl(ElementDecl model) throws StructuralException {
         super.setDecl(model);
         setDefaultValue(model.getDefaultValue());
     }
@@ -178,7 +170,7 @@ public class ComboField extends EditField {
      */
 
     @Override
-	public void setEditable(boolean editable) {
+    public void setEditable(boolean editable) {
         comboField.setEditable(editable);
     }
 }

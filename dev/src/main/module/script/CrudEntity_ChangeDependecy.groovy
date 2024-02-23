@@ -1,0 +1,85 @@
+/**
+ * This file is part of the CRISTAL-iSE Development Module.
+ * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * http://www.fsf.org/licensing/licenses/lgpl.html
+ */
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
+import org.cristalise.dev.utils.PredefinedStepsOutcomeBuilder
+import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.entity.Job
+import org.cristalise.kernel.entity.proxy.AgentProxy
+import org.cristalise.kernel.lifecycle.instance.predefined.AddMembersToCollection
+import org.cristalise.kernel.lifecycle.instance.predefined.RemoveMembersFromCollection
+import org.cristalise.kernel.lookup.ItemPath
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+import groovy.transform.CompileStatic
+import groovy.transform.Field
+
+@Field
+final Logger log = LoggerFactory.getLogger("org.cristalise.dev.Script.CrudEntity.ChangeDependecy")
+@Field
+final PredefinedStepsOutcomeBuilder builder = new PredefinedStepsOutcomeBuilder(item, job.outcome, job.schema, item.transactionKey)
+
+/*
+ * Script starts here 
+ */
+def dependencyName = job.getActProp(DEPENDENCY_NAME) as String
+def predefinedStep = job.getActProp(PREDEFINED_STEP) as String
+
+
+if (predefinedStep == AddMembersToCollection.class.getSimpleName()) {
+    ItemPath memberItemPath = resolveMember(job, agent, dependencyName)
+
+    builder.updateOutcomeWithAddMembersToCollection(dependencyName, memberItemPath)
+}
+else if (predefinedStep.contains(RemoveMembersFromCollection.class.getSimpleName())) {
+    def memberSlotId = job.outcome.hasField('MemberSlotId') ? job.outcome.getField('MemberSlotId') as Integer : -1
+    ItemPath memberItemPath
+
+    if (memberSlotId == -1) memberItemPath = resolveMember(job, agent, dependencyName)
+
+    builder.updateOutcomeWithRemoveMembersFromCollection(dependencyName, memberSlotId, memberItemPath)
+}
+else {
+    throw new InvalidDataException('Cannot handle predefined step:'+predefinedStep+' outcome:'+job.outcome);
+}
+
+log.debug('outcome:{}', job.outcome)
+
+@CompileStatic
+def ItemPath resolveMember(Job job, AgentProxy agent, String dependencyName) {
+    def memberPath = job.outcome.getField('MemberPath')
+    def memberName = job.outcome.getField('MemberName')
+
+    ItemPath memberItemPath
+
+    if (!memberPath && !memberName) {
+        log.error('resolveMember() - Both MemberPath and MemberName are missing from outcome:{}', job.outcome)
+        throw new InvalidDataException('Please provide MemberPath or MemberName')
+    }
+
+    if (memberPath) {
+        memberItemPath = new ItemPath(memberPath)
+    }
+    else {
+        def moduleNs = job.getActProp('ModuleNameSpace')
+        memberItemPath = agent.getItem("$moduleNs/$dependencyName/$memberName").path
+    }
+}

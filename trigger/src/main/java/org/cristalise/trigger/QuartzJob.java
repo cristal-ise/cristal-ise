@@ -20,7 +20,7 @@
  */
 package org.cristalise.trigger;
 
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;

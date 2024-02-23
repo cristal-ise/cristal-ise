@@ -1,0 +1,6 @@
+<AllProperties name="Module">
+  <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="true" Name="Name" Transitive="false"/>
+  <PropertyDescription DefaultValue="Module" IsClassIdentifier="true" IsMutable="false" Name="Type" Transitive="true"/>
+  <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="true" Name="Version" Transitive="false"/>
+  <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="true" Name="Namespace" Transitive="false"/>
+</AllProperties>

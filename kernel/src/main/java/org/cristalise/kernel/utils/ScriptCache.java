@@ -35,22 +35,22 @@ import lombok.extern.slf4j.Slf4j;
 public class ScriptCache extends DescriptionObjectCache<Script> {
 
     @Override
-    public String getTypeCode() {
+    protected String getTypeCode() {
         return SCRIPT_RESOURCE.getTypeCode();
     }
 
     @Override
-    public String getSchemaName() {
+    protected String getSchemaName() {
         return SCRIPT_RESOURCE.getSchemaName();
     }
 
     @Override
-    public String getTypeRoot() {
+    protected String getTypeRoot() {
         return SCRIPT_RESOURCE.getTypeRoot();
     }
 
     @Override
-    public Script buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
+    protected Script buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
         try {
             return new Script(name, version, path, data);
         }

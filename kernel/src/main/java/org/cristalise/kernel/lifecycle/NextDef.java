@@ -21,100 +21,58 @@
 package org.cristalise.kernel.lifecycle;
 
 import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS;
-import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.TYPE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.LAST_NUM;
-
-import org.cristalise.kernel.graph.model.GraphPoint;
 import org.cristalise.kernel.graph.model.GraphableEdge;
 import org.cristalise.kernel.lifecycle.instance.Next;
 
 /**
  */
-public class NextDef extends GraphableEdge
-{
-	/**
-	 * @see java.lang.Object#Object()
-	 */
-	public NextDef()
-	{
-	}
-	/**
-	 * Method verify.
-	 *
-	 * @return boolean
-	 */
-	public boolean verify()
-	{
-		return true;
-	}
-	/**
-	 * Method NextDef.
-	 *
-	 * @param pre
-	 * @param nex
-	 */
-	/** create and initialize a link between an Activities */
-	public NextDef(WfVertexDef pre, WfVertexDef nex)
-	{
-	    super();
+public class NextDef extends GraphableEdge {
+    /**
+     * @see java.lang.Object#Object()
+     */
+    public NextDef() {}
 
-		setParent(pre.getParent());
-		if (pre instanceof OrSplitDef || pre instanceof XOrSplitDef)
-		{
-			int num = pre.getOutGraphables().length;
-			try {
-				num = Integer.parseInt((String) pre.getBuiltInProperty(LAST_NUM));
-			}
-			catch (Exception e) {
-			}
+    /**
+     * Method verify.
+     *
+     * @return boolean
+     */
+    public boolean verify() {
+        return true;
+    }
 
-			setBuiltInProperty(ALIAS, String.valueOf(num));
-			pre.setBuiltInProperty(LAST_NUM, String.valueOf(num + 1));
-		}
-	}
-	@Override
-	public boolean containsPoint(GraphPoint p)
-	{
-		GraphPoint originPoint = getOriginPoint();
-		GraphPoint terminusPoint = getTerminusPoint();
-		GraphPoint midPoint = new GraphPoint();
-		if (("Broken +".equals(getBuiltInProperty(TYPE))))
-		{
-			midPoint.x = (originPoint.x + terminusPoint.x) / 2;
-			midPoint.y = (originPoint.y + terminusPoint.y) / 2;
-		}
-		else if (("Broken -".equals(getBuiltInProperty(TYPE))))
-		{
-			boolean arrowOnY = !(originPoint.y - terminusPoint.y < 60 && originPoint.y - terminusPoint.y > -60);
-			midPoint.x = arrowOnY ? terminusPoint.x : (originPoint.x + terminusPoint.x) / 2;
-			midPoint.y = arrowOnY ? (originPoint.y + terminusPoint.y) / 2 : originPoint.y;
-		}
-		else if (("Broken |".equals(getBuiltInProperty(TYPE))))
-		{
-			boolean arrowOnY = !(originPoint.y - terminusPoint.y < 60 && originPoint.y - terminusPoint.y > -60);
-			midPoint.x = arrowOnY ? originPoint.x : (originPoint.x + terminusPoint.x) / 2;
-			midPoint.y = arrowOnY ? (originPoint.y + terminusPoint.y) / 2 : terminusPoint.y;
-		}
-		else
-		{
-			midPoint.x = originPoint.x + (terminusPoint.x - originPoint.x) / 2;
-			midPoint.y = originPoint.y + (terminusPoint.y - originPoint.y) / 2;
-		}
-		int minX = midPoint.x - 10;
-		int minY = midPoint.y - 10;
-		int maxX = midPoint.x + 10;
-		int maxY = midPoint.y + 10;
-		return (p.x >= minX) && (p.x <= maxX) && (p.y >= minY) && (p.y <= maxY);
-	}
+    /**
+     * Method NextDef.
+     *
+     * @param pre
+     * @param nex
+     */
+    /** create and initialize a link between an Activities */
+    public NextDef(WfVertexDef pre, WfVertexDef nex) {
+        super();
 
-	public Next instantiate() {
-		Next next = new Next();
-		next.setID(getID());
-		next.setOriginVertexId(getOriginVertexId());
-		next.setTerminusVertexId(getTerminusVertexId());
-		next.setProperties(getProperties());
-		next.setOriginPoint(getOriginPoint());
-		next.setTerminusPoint(getTerminusPoint());
-		return next;
-	}
+        setParent(pre.getParent());
+        if (pre instanceof OrSplitDef || pre instanceof XOrSplitDef) {
+            int num = pre.getOutGraphables().length;
+            try {
+                num = Integer.parseInt((String) pre.getBuiltInProperty(LAST_NUM));
+            } catch (Exception e) {
+            }
+
+            setBuiltInProperty(ALIAS, String.valueOf(num));
+            pre.setBuiltInProperty(LAST_NUM, String.valueOf(num + 1));
+        }
+    }
+
+    public Next instantiate() {
+        Next next = new Next();
+        next.setID(getID());
+        next.setOriginVertexId(getOriginVertexId());
+        next.setTerminusVertexId(getTerminusVertexId());
+        next.setProperties(getProperties());
+        next.setOriginPoint(getOriginPoint());
+        next.setTerminusPoint(getTerminusPoint());
+        return next;
+    }
 }

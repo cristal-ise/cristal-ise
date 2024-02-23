@@ -27,6 +27,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.persistency.outcomebuilder.field.StringField;
 import org.exolab.castor.xml.schema.ElementDecl;
+import org.exolab.castor.xml.schema.Wildcard;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.Document;
@@ -42,20 +43,29 @@ public class Field extends OutcomeStructure {
     AttributeList myAttributes;
     Text          textNode;
 
+    public Field(Wildcard model) {
+        super(model);
+    }
+
     public Field(ElementDecl model) {
         super(model);
+
+        log.debug("ctor() - name:{} optional:{} isAnyType:{}", model.getName(), isOptional(), isAnyType());
+
+        if (isAnyType()) {
+            log.debug("ctor() - skipping Field(name:{}) with anyType", getName());
+            return;
+        }
 
         // field can have attributes
         myAttributes = new AttributeList(model);
 
-        log.debug("name:"+model.getName()+" optional:" + isOptional());
-        
         // skipping optional fields
         //if (isOptional()) return;
 
         try {
             myFieldInstance = StringField.getField(model);
-            log.debug("name:" + model.getName() + " type: "+myFieldInstance.getClass().getSimpleName());
+            log.debug("ctor() - name:" + model.getName() + " type: "+myFieldInstance.getClass().getSimpleName());
         }
         catch (StructuralException e) {
             // no base type for field - only attributes
@@ -74,6 +84,11 @@ public class Field extends OutcomeStructure {
 
     @Override
     public void addInstance(Element newElement, Document parentDoc) throws OutcomeBuilderException {
+        if (isAnyType()) {
+            log.debug("addInstance() - skipping Field(name:{}) with anyType", getName());
+            return ;
+        }
+
         log.debug("addInstance() - field:"+newElement.getTagName());
 
         // Set attributes first
@@ -199,7 +214,16 @@ public class Field extends OutcomeStructure {
         }
 
         // set up attributes
-        myAttributes.initNew(myElement);
+        if (myAttributes != null) myAttributes.initNew(myElement);
+
+        return myElement;
+    }
+
+    public Element initNewAny(Document rootDocument, String name) {
+        log.debug("initNewAny() - Creating '"+name+"'");
+
+        // make a new Element
+        myElement = rootDocument.createElement(name);
 
         return myElement;
     }
@@ -220,6 +244,11 @@ public class Field extends OutcomeStructure {
 
     @Override
     public void exportViewTemplate(Writer template) throws IOException {
+        if (isAnyType()) {
+            log.debug("exportViewTemplate() - skipping Field(name:{}) with anyType", getName());
+            return;
+        }
+
         String type = myFieldInstance.getClass().getSimpleName();
         template.write("<Field name='"+model.getName()+"' type='"+type+"'/>");
     }
@@ -230,17 +259,39 @@ public class Field extends OutcomeStructure {
     }
 
     @Override
-    public Object generateNgDynamicForms(Map<String, Object> inputs) {
+    public Object generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
+        if (isAnyType() || isAnyField()) {
+            log.debug("generateNgDynamicForms() - skipping {}", (isAnyField() ? "AnyField" : "Field(name:"+getName()+") with anyType"));
+            return null;
+        }
+
+        log.debug("generateNgDynamicForms() - name:{} optional:{}", model.getName(), isOptional());
+
         String defVal = getDefaultValue();
 
-        JSONObject fieldJson = myFieldInstance.generateNgDynamicForms(inputs);
+        JSONObject fieldJson = myFieldInstance.generateNgDynamicForms(inputs, withModel, withLayout);
 
         if (StringUtils.isNotBlank(defVal)) fieldJson.put("value", defVal);
-        if (StringUtils.isNotBlank(help))   myFieldInstance.getAdditionalConfigNgDynamicForms(fieldJson).put("tooltip", help.trim());
+        if (StringUtils.isNotBlank(help))   myFieldInstance.getNgDynamicFormsAdditional(fieldJson).put("tooltip", help.trim());
 
         // dynamicForms.additional fields provided in the schema can overwrite default values (check ListOfValues.editable)
         myFieldInstance.updateWithAdditional(fieldJson);
 
         return fieldJson;
+    }
+
+    /**
+     * Finds the named Element in the named AppInfo node, and returns the value
+     * 
+     * @param nodeName the name of the AppInfo node 
+     * @param elementName the name of the Element in the named AppInfo node
+     * @return value of the named Element in the named AppInfo node if exists, otherwise returns null.
+     */
+    public String getAppInfoNodeElementValue(String nodeName, String elementName) {
+        return StructureWithAppInfo.getAppInfoNodeElementValue(model, nodeName, elementName);
+    }
+
+    public Class<?> getJavaType() {
+        return myFieldInstance.getJavaType();
     }
 }

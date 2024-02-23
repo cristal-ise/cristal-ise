@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.test.persistency.outcomebuilder;
 
+import static org.junit.Assert.assertEquals;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -27,6 +29,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.persistency.outcomebuilder.Field;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.persistency.XMLUtils;
@@ -95,7 +98,7 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
         checkEmptyOutcome("RootWithOptionalAttr");
     }
 
-    @Test @Ignore
+    @Test
     public void patientDetails() throws Exception {
         String type = "PatientDetails";
         String xsd  = getXSD(dir, type);
@@ -105,7 +108,7 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
         CompiledTemplate expr = TemplateCompiler.compileTemplate(getXML(dir, type));
         String expected = (String)TemplateRuntime.execute(expr, args);
 
-        OutcomeBuilder actual = new OutcomeBuilder(new Schema(type, 0, xsd));
+        OutcomeBuilder actual = new OutcomeBuilder(new Schema(type, 0, xsd), expected);
 
         log.info(actual.getXml());
 
@@ -145,6 +148,14 @@ public class BuildEmptyOutcomeTest extends XMLUtils {
 
         ob = new OutcomeBuilder("Storage", schema);
         log.info(ob.getXml());
+    }
+
+    @Test
+    public void getReferencedItemType() throws Exception {
+        OutcomeBuilder builder = new OutcomeBuilder("Reference", new Schema("Reference", 0, getXSD(dir, "Reference")), false);
+        Field field = (Field)builder.findChildStructure("ItemRef");
+        
+        assertEquals("UnitTest", field.getAppInfoNodeElementValue("reference", "itemType"));
     }
 
     @Test

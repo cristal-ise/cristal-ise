@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.querying;
 
+import static org.cristalise.kernel.SystemProperties.Resource_useOldImportFormat;
 import static org.cristalise.kernel.process.resource.BuiltInResources.QUERY_RESOURCE;
 
 import java.io.File;
@@ -31,18 +32,17 @@ import java.util.ArrayList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeValidator;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.scripting.ParameterException;
 import org.cristalise.kernel.scripting.ScriptParsingException;
 import org.cristalise.kernel.utils.CastorHashMap;
@@ -55,14 +55,31 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 import org.xml.sax.InputSource;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
 @Getter @Setter @Slf4j
 public class Query implements DescriptionObject {
 
-    private String      name = "";
-    private Integer     version = null;
-    private ItemPath    itemPath;
-    private String      language;
-    private String      query;
+    private String   namespace;
+    private String   name = "";
+    private Integer  version = null;
+    private ItemPath itemPath;
+    private String   language;
+    private String   query;
+
+    /**
+     * Specifies the name of the root element of the XML generated from the result of the query. 
+     * It can be omitted if the query returns a valid XML (i.e. it is an instance of SQLXML of jdbc),
+     * or the result has a single record (in this case use recordElement).
+     */
+    private String rootElement;
+    /**
+     * Specifies the name of the record element of the XML generated from the result of the query
+     * It can be omitted if the record returns a valid XML (i.e. it is an instance of SQLXML of jdbc).
+     */
+    private String recordElement;
 
     private ArrayList<Parameter> parameters = new ArrayList<Parameter>();
 
@@ -163,6 +180,9 @@ public class Query implements DescriptionObject {
             if(queryDoc.getDocumentElement().hasAttribute("name") )    name    = queryDoc.getDocumentElement().getAttribute("name");
             if(queryDoc.getDocumentElement().hasAttribute("version") ) version = Integer.valueOf(queryDoc.getDocumentElement().getAttribute("version"));
 
+            if(queryDoc.getDocumentElement().hasAttribute("rootElement") )   rootElement   = queryDoc.getDocumentElement().getAttribute("rootElement");
+            if(queryDoc.getDocumentElement().hasAttribute("recordElement") ) recordElement = queryDoc.getDocumentElement().getAttribute("recordElement");
+
             parseQueryTag(queryDoc.getElementsByTagName("query"));
             parseParameterTag(queryDoc.getElementsByTagName("parameter"));
         }
@@ -205,7 +225,12 @@ public class Query implements DescriptionObject {
     }
 
     public String getQueryXML() {
-        StringBuffer sb = new StringBuffer("<cristalquery name='" + name + "' version='" + version + "'>");
+        StringBuffer sb = new StringBuffer("<cristalquery name='" + name + "' version='" + version + "'");
+
+        if (StringUtils.isNotBlank(rootElement))   sb.append(" rootElement='"+rootElement+"'");
+        if (StringUtils.isNotBlank(recordElement)) sb.append(" recordElement='"+recordElement+"'");
+
+        sb.append(">");
 
         for(Parameter p: parameters) {
             sb.append("<parameter name='"+p.getName()+"' type='"+p.getType().getName()+"'/>");
@@ -220,7 +245,7 @@ public class Query implements DescriptionObject {
     }
 
     @Override
-    public CollectionArrayList makeDescCollections() throws InvalidDataException, ObjectNotFoundException {
+    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         return new CollectionArrayList();
     }
 
@@ -228,11 +253,12 @@ public class Query implements DescriptionObject {
     public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
         String resType = QUERY_RESOURCE.getTypeCode();
 
-        FileStringUtility.string2File(new File(new File(dir, resType), getName()+(getVersion()==null?"":"_"+getVersion())+".xml"), getQueryXML());
+        String xml = new Outcome(getQueryXML()).getData(true);
+        FileStringUtility.string2File(new File(new File(dir, resType), getName()+(getVersion()==null?"":"_"+getVersion())+".xml"), xml);
 
         if (imports == null) return;
 
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
+        if (Resource_useOldImportFormat.getBoolean()) {
             imports.write("<Resource name='"+getName()+"' "
                     + (getItemPath()==null?"":"id='"+getItemID()+"' ")
                     + (getVersion()==null?"":"version='"+getVersion()+"' ")
@@ -246,5 +272,16 @@ public class Query implements DescriptionObject {
                     + "/>\n");
             
         }
+    }
+
+    @Override
+    public String getXml(boolean prettyPrint) throws InvalidDataException {
+        if (prettyPrint) return new Outcome(getQueryXML()).getData(true);
+        else             return getQueryXML();
+    }
+
+    @Override
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.QUERY_RESOURCE;
     }
 }

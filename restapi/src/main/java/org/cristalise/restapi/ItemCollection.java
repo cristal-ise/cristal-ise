@@ -21,6 +21,7 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
+import static org.cristalise.restapi.SystemProperties.REST_CollectionForm_checkInputs;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +53,7 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.json.JSONArray;
 
 @Path("/item/{uuid}/collection")
 public class ItemCollection extends ItemUtils {
@@ -155,7 +157,7 @@ public class ItemCollection extends ItemUtils {
             if (inputs.isEmpty()) {
                 List<String> names = getItemNames(dep.getClassProperties());
 
-                if (Gateway.getProperties().getBoolean("REST.CollectionForm.checkInputs", false)) {
+                if (REST_CollectionForm_checkInputs.getBoolean()) {
                     if (names.size() == 0) {
                         throw new WebAppExceptionBuilder()
                                 .message("No Item was found")
@@ -167,7 +169,7 @@ public class ItemCollection extends ItemUtils {
                 inputs.put("memberNames", names); // Put the new member here e.g.ListOfValues
             }
 
-            AgentProxy agent = Gateway.getProxyManager().getAgentProxy(authData.agent);
+            AgentProxy agent = Gateway.getAgentProxy(authData.agent);
 
             inputs.put(Script.PARAMETER_AGENT, agent);
             inputs.put(Script.PARAMETER_ITEM, item);
@@ -176,7 +178,8 @@ public class ItemCollection extends ItemUtils {
             String[] schemaInfo = ((String) dep.getProperties().get("MemberUpdateSchema")).split(":");
 
             Schema schema = LocalObjectLoader.getSchema(schemaInfo[0], Integer.valueOf(schemaInfo[1]));
-            return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms(inputs)).cookie(cookie).build();
+            JSONArray formJson = new OutcomeBuilder(schema, false).generateNgDynamicFormsJson(inputs);
+            return Response.ok(formJson.toString()).cookie(cookie).build();
         }
         catch (ObjectNotFoundException | NumberFormatException | InvalidDataException | OutcomeBuilderException | ScriptingEngineException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();

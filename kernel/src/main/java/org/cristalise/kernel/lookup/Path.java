@@ -25,9 +25,9 @@ import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 public abstract class Path implements C2KLocalObject {
@@ -86,11 +86,9 @@ public abstract class Path implements C2KLocalObject {
     abstract public String getRoot();
 
     //these methods declared here to provide backward compatibility
-    public org.omg.CORBA.Object getIOR() { return null; }
-    public void setIOR(org.omg.CORBA.Object IOR) {}
-    public SystemKey getSystemKey() { return null; }
     public UUID getUUID() { return null; }
-    public ItemPath getItemPath() throws ObjectNotFoundException { return null; }
+    public ItemPath getItemPath() throws ObjectNotFoundException { return getItemPath(null); }
+    public ItemPath getItemPath(TransactionKey transactionKey) throws ObjectNotFoundException { return null; }
 
     /**
      * clones the path object
@@ -105,8 +103,16 @@ public abstract class Path implements C2KLocalObject {
     }
 
     public String getStringPath() {
-        if (mPath.length == 0) return delim + getRoot();
-        else                   return delim + getRoot() + delim + StringUtils.join(mPath, delim);
+        return getStringPath(true);
+    }
+
+    public String getStringPath(boolean addRoot) {
+        String rootSegment = "";
+
+        if (addRoot) rootSegment = delim + getRoot();
+
+        if (mPath.length == 0) return rootSegment;
+        else                   return rootSegment + delim + StringUtils.join(mPath, delim);
     }
 
     /**
@@ -118,8 +124,12 @@ public abstract class Path implements C2KLocalObject {
     }
 
     public boolean exists() {
+        return exists(null);
+    }
+
+    public boolean exists(TransactionKey transactionKey) {
         if (Gateway.getLookup() == null) return false;
-        return Gateway.getLookup().exists(this);
+        return Gateway.getLookup().exists(this, transactionKey);
     }
 
     @Override

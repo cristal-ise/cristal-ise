@@ -1,9 +1,0 @@
-<CristalModule ns="${namespace}" name="${artifactId}">
-	<Info>
-		<Description>CRISTAL Module</Description>
-		<Version>\${version}</Version>
-	</Info>
-	<ResourceURL>${packageInPathFormat}/resources/</ResourceURL>
-    <Config name="Module.debug">true</Config>
-	<Imports/>
-</CristalModule>

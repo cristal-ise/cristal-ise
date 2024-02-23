@@ -3,15 +3,12 @@ package org.cristalise.restapi.test
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-import org.cristalise.dev.dsl.DevXMLUtility
-import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.process.Gateway
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import io.restassured.http.ContentType
 
 
 /**
@@ -28,8 +25,10 @@ class ConcurrentTest extends RestapiTestBase {
      */
     private List<String> setupPatients(int count) {
         def factory = agent.getItem("/$folder/PatientFactory")
-        def createItemJob = factory.getJobByName('CreateItem', agent)
+        def createItemJob = factory.getJobByName('InstantiateItem', agent)
         def o = createItemJob.getOutcome()
+        // Empty OotcomeInitiator will create this optional node
+        o.removeNodeByXPath('//PropertyList')
 
         List<String> uuids = []
 
@@ -42,10 +41,10 @@ class ConcurrentTest extends RestapiTestBase {
 
             def p = agent.getItem("$folder/Patients/$timeStamp/$name")
 
-            executeDoneJob(p, 'SetPatientDetails')
+            executeDoneJob(p, 'SetDetails')
             executeDoneJob(p, 'SetUrinSample')
 
-            uuids << p.getPath().getUUID().toString()
+            uuids << p.uuid
         }
 
         return uuids
@@ -88,6 +87,46 @@ class ConcurrentTest extends RestapiTestBase {
                     log.info "${uuids[idx]} - $result"
                 }
             }
+        }
+
+        pool.shutdown()
+        pool.awaitTermination(10, TimeUnit.MINUTES)
+
+        logout('')
+        Gateway.close()
+    }
+
+    /**
+     * issue #502/#509: Make the initial parsing of Script XML thread-safe
+     */
+    @Test @CompileDynamic
+    public void createPatients_RunAggrageScripts_ParseScript_Concurrently() {
+        init('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
+        def clearCacheScriptName = 'ClearCache'+timeStamp
+
+        def patientCount = 10
+        def uuids = setupPatients(patientCount)
+
+        login()
+
+        def pool = Executors.newFixedThreadPool(patientCount+1)
+
+        Script(clearCacheScriptName, folder) {
+            script(language: 'groovy') {
+                'org.cristalise.kernel.process.Gateway.getStorage().clearCache(); System.gc();'
+            }
+        }
+        log.info 'finished creating Script: ' + clearCacheScriptName
+
+        patientCount.times { int idx ->
+            pool.submit {
+                2.times {
+                    def result = executeScript(uuids[idx], 'Patient_Aggregate', '{}')
+                    log.info "${uuids[idx]} - $result"
+                }
+            }
+            executeScript(uuids[idx], clearCacheScriptName, '{}')
+            Thread.sleep(2000)
         }
 
         pool.shutdown()

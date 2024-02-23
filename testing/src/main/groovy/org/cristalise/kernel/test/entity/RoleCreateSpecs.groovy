@@ -34,7 +34,7 @@ import spock.lang.Specification
 class RoleCreateSpecs extends Specification implements CristalTestSetup {
 
     
-    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', 8) }
+    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc') }
     def cleanup() { cristalCleanup() }
 
     def "Parent Role must exists"() {
@@ -56,11 +56,11 @@ class RoleCreateSpecs extends Specification implements CristalTestSetup {
 
         then:
         roles[0].exists()
-        roles[0].string == "/role/Clerk"
+        roles[0].stringPath == "/role/Clerk"
         roles[0].hasJobList() == false
 
         roles[1].exists()
-        roles[1].string == "/role/Clerk/SubClerk"
+        roles[1].stringPath == "/role/Clerk/SubClerk"
         roles[1].hasJobList() == true
 
         Gateway.lookup.getRolePath("Clerk").hasJobList() == false

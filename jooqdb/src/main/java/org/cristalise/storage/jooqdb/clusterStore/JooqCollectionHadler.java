@@ -34,6 +34,7 @@ import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.storage.jooqdb.JooqDataSourceHandler;
 import org.cristalise.storage.jooqdb.JooqHandler;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -103,7 +104,7 @@ public class JooqCollectionHadler extends JooqHandler {
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException(e.getMessage());
+            throw new PersistencyException(e);
         }
     }
 
@@ -121,7 +122,7 @@ public class JooqCollectionHadler extends JooqHandler {
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException(e.getMessage());
+            throw new PersistencyException(e);
         }
     }
 
@@ -136,7 +137,7 @@ public class JooqCollectionHadler extends JooqHandler {
             }
             catch (Exception e) {
                 log.error("", e);
-                throw new PersistencyException(e.getMessage());
+                throw new PersistencyException(e);
             }
         }
         return null;
@@ -144,7 +145,7 @@ public class JooqCollectionHadler extends JooqHandler {
 
     @Override
     public void createTables(DSLContext context) throws PersistencyException {
-        DataType<String> xmlType = getXMLType(context);
+        DataType<String> xmlType = JooqDataSourceHandler.getStringXmlType();
 
         context.createTableIfNotExists(COLLECTION_TABLE)
         .column(UUID,    UUID_TYPE.nullable(false))
@@ -152,7 +153,7 @@ public class JooqCollectionHadler extends JooqHandler {
         .column(VERSION, NAME_TYPE.nullable(false))
         .column(XML,     xmlType  .nullable(false))
         .constraints(
-                constraint("PK_"+COLLECTION_TABLE).primaryKey(UUID, NAME, VERSION))
+                constraint("PK_"+COLLECTION_TABLE.getName()).primaryKey(UUID, NAME, VERSION))
         .execute();
     }
 

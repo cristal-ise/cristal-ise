@@ -25,8 +25,6 @@ import groovy.transform.CompileStatic
 import org.cristalise.kernel.common.CannotManageException
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.common.ObjectNotFoundException
-import org.cristalise.kernel.entity.CorbaServer
-import org.cristalise.kernel.entity.agent.ActiveEntity
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.lifecycle.instance.Workflow
@@ -46,29 +44,28 @@ class AgentBuilder {
 
     public AgentBuilder() {}
 
-    public static AgentPath create(Map<String, Object> attrs, Closure cl) {
-        assert attrs && attrs.agent && (attrs.agent instanceof AgentPath)
-
-        return create((AgentPath)attrs.agent, build(attrs, cl))
-    }
-
-    public static ImportAgent build(Map<String, Object> attrs, Closure cl) {
+    public static ImportAgent build(Map<String, Object> attrs, @DelegatesTo(AgentDelegate) Closure cl) {
         assert attrs && attrs.name && attrs.password
-        return build(attrs.folder ? (String)attrs.folder : null, (String)attrs.name, (String)attrs.password, cl)
-    }
 
-    public static ImportAgent build(String name, String pwd, Closure cl) {
-        return build(null, name, pwd, cl)
-    }
-
-    public static ImportAgent build(String folder, String name, String pwd, Closure cl) {
-        def agentD = new AgentDelegate(folder, name, pwd)
-
+        def agentD = new AgentDelegate(attrs)
         agentD.processClosure(cl)
 
-        if(!agentD.newAgent.roles) throw new InvalidDataException("Agent '$name' does not have any Roles defined")
+        if(!agentD.newAgent.roles) throw new InvalidDataException("Agent '${attrs.name}' does not have any Roles defined")
 
         return agentD.newAgent
+    }
+
+    public static ImportAgent build(String name, String pwd, @DelegatesTo(AgentDelegate) Closure cl) {
+        return build(['name': name, 'password': pwd] as Map<String, Object>, cl)
+    }
+
+    public static ImportAgent build(String folder, String name, String pwd, @DelegatesTo(AgentDelegate) Closure cl) {
+        return build(['folder': folder, 'name': name, 'password': pwd] as Map<String, Object>, cl)
+    }
+
+    public static AgentPath create(Map<String, Object> attrs, @DelegatesTo(AgentDelegate) Closure cl) {
+        assert attrs && attrs.agent && (attrs.agent instanceof AgentPath)
+        return create((AgentPath)attrs.agent, build(attrs, cl))
     }
 
     public static AgentPath create(AgentPath builderAgent, ImportAgent newAgent) {

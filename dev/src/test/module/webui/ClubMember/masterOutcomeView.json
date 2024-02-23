@@ -1,0 +1,21 @@
+{
+  "column" : [ {
+    "field" : "Name",
+    "caption" : "Name"
+  }, {
+    "field" : "State",
+    "caption" : "State"
+  }, {
+    "field" : "Name",
+    "caption" : "Name"
+  }, {
+    "field" : "Email",
+    "caption" : "Email"
+  }, {
+    "field" : "FavoriteCar",
+    "caption" : "Favorite Car"
+  }, {
+    "field" : "FavoriteMotorcycle",
+    "caption" : "Favorite Motorcycle"
+  } ]
+}

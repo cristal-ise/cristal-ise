@@ -23,6 +23,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lifecycle.instance.OrSplit;
 import org.cristalise.kernel.lifecycle.instance.WfVertex;
+import org.cristalise.kernel.persistency.TransactionKey;
 /**
  * @version $Revision: 1.13 $ $Date: 2005/12/01 14:23:15 $
  * @author $Author: abranson $
@@ -38,9 +39,9 @@ public class OrSplitDef extends AndSplitDef
 	}
 
 	@Override
-	public WfVertex instantiate() throws InvalidDataException, ObjectNotFoundException {
+	public WfVertex instantiate(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
 		OrSplit newSplit = new OrSplit();
-		configureInstance(newSplit);
+		configureInstance(newSplit, transactionKey);
 		return newSplit;
 	}
 }

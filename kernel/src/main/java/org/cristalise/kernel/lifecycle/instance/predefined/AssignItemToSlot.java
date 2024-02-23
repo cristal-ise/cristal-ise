@@ -35,6 +35,7 @@ import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AssignItemToSlot extends PredefinedStep {
 
     public AssignItemToSlot() {
-        super();
+        super("Assigns the referenced item to a pre-existing slot in an aggregation");
     }
 
     /**
@@ -56,7 +57,7 @@ public class AssignItemToSlot extends PredefinedStep {
      */
     @Override
     protected String runActivityLogic(AgentPath agent, ItemPath item,
-            int transitionID, String requestData, Object locker) throws InvalidDataException, ObjectNotFoundException, PersistencyException,
+            int transitionID, String requestData, TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException, PersistencyException,
             ObjectCannotBeUpdated, InvalidCollectionModification {
 
         String collName;
@@ -67,7 +68,7 @@ public class AssignItemToSlot extends PredefinedStep {
         // extract parameters
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         try {
             collName = params[0];
@@ -87,7 +88,7 @@ public class AssignItemToSlot extends PredefinedStep {
         // load collection
         C2KLocalObject collObj;
         try {
-            collObj = Gateway.getStorage().get(item, ClusterType.COLLECTION + "/" + collName + "/last", locker);
+            collObj = Gateway.getStorage().get(item, ClusterType.COLLECTION + "/" + collName + "/last", transactionKey);
         }
         catch (PersistencyException ex) {
             log.error("Error loading collection '"+collName+"'", ex);
@@ -103,7 +104,7 @@ public class AssignItemToSlot extends PredefinedStep {
             if (member.getID() == slotNo) {
                 if (member.getItemPath() != null)
                     throw new ObjectCannotBeUpdated("AssignItemToSlot: Member slot " + slotNo + " not empty");
-                member.assignItem(childItem);
+                member.assignItem(childItem, transactionKey);
                 stored = true;
                 break;
             }
@@ -113,7 +114,7 @@ public class AssignItemToSlot extends PredefinedStep {
         }
 
         try {
-            Gateway.getStorage().put(item, agg, locker);
+            Gateway.getStorage().put(item, agg, transactionKey);
         }
         catch (PersistencyException e) {
             throw new PersistencyException("AssignItemToSlot: Error saving collection '" + collName + "': " + e.getMessage());

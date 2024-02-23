@@ -1,0 +1,214 @@
+<!--
+
+    This file is part of the CRISTAL-iSE kernel.
+    Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+
+    This library is free software; you can redistribute it and/or modify it
+    under the terms of the GNU Lesser General Public License as published
+    by the Free Software Foundation; either version 3 of the License, or (at
+    your option) any later version.
+
+    This library is distributed in the hope that it will be useful, but WITHOUT
+    ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+    FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+    License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with this library; if not, write to the Free Software Foundation,
+    Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+
+    http://www.fsf.org/licensing/licenses/lgpl.html
+
+-->
+<HISTORY>
+  <EVENT>
+    <UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</UUID>
+    <ID>0</ID>
+    <AGENT_UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</AGENT_UUID>
+    <AGENT_ROLE />
+    <SCHEMA_NAME>PredefinedStepOutcome</SCHEMA_NAME>
+    <SCHEMA_VERSION>0</SCHEMA_VERSION>
+    <STATEMACHINE_NAME>Default</STATEMACHINE_NAME>
+    <STATEMACHINE_VERSION>0</STATEMACHINE_VERSION>
+    <STEP_NAME>WriteProperty</STEP_NAME>
+    <STEP_PATH>workflow/predefined/WriteProperty</STEP_PATH>
+    <STEP_TYPE>WriteProperty</STEP_TYPE>
+    <ORIGIN_STATE_ID>0</ORIGIN_STATE_ID>
+    <TARGET_STATE_ID>0</TARGET_STATE_ID>
+    <TRANSITION_ID>3</TRANSITION_ID>
+    <VIEW_NAME>last</VIEW_NAME>
+    <HAS_ATTACHMENT>false</HAS_ATTACHMENT>
+    <TIMESTAMP>2016-10-10 13:23:50.0</TIMESTAMP>
+  </EVENT>
+  <EVENT>
+    <UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</UUID>
+    <ID>1</ID>
+    <AGENT_UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</AGENT_UUID>
+    <AGENT_ROLE />
+    <SCHEMA_NAME>PredefinedStepOutcome</SCHEMA_NAME>
+    <SCHEMA_VERSION>0</SCHEMA_VERSION>
+    <STATEMACHINE_NAME>Default</STATEMACHINE_NAME>
+    <STATEMACHINE_VERSION>0</STATEMACHINE_VERSION>
+    <STEP_NAME>WriteProperty</STEP_NAME>
+    <STEP_PATH>workflow/predefined/WriteProperty</STEP_PATH>
+    <STEP_TYPE>WriteProperty</STEP_TYPE>
+    <ORIGIN_STATE_ID>0</ORIGIN_STATE_ID>
+    <TARGET_STATE_ID>0</TARGET_STATE_ID>
+    <TRANSITION_ID>3</TRANSITION_ID>
+    <VIEW_NAME>last</VIEW_NAME>
+    <HAS_ATTACHMENT>false</HAS_ATTACHMENT>
+    <TIMESTAMP>2016-10-10 13:23:50.0</TIMESTAMP>
+  </EVENT>
+  <EVENT>
+    <UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</UUID>
+    <ID>2</ID>
+    <AGENT_UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</AGENT_UUID>
+    <AGENT_ROLE />
+    <SCHEMA_NAME>PredefinedStepOutcome</SCHEMA_NAME>
+    <SCHEMA_VERSION>0</SCHEMA_VERSION>
+    <STATEMACHINE_NAME>Default</STATEMACHINE_NAME>
+    <STATEMACHINE_VERSION>0</STATEMACHINE_VERSION>
+    <STEP_NAME>WriteProperty</STEP_NAME>
+    <STEP_PATH>workflow/predefined/WriteProperty</STEP_PATH>
+    <STEP_TYPE>WriteProperty</STEP_TYPE>
+    <ORIGIN_STATE_ID>0</ORIGIN_STATE_ID>
+    <TARGET_STATE_ID>0</TARGET_STATE_ID>
+    <TRANSITION_ID>3</TRANSITION_ID>
+    <VIEW_NAME>last</VIEW_NAME>
+    <HAS_ATTACHMENT>false</HAS_ATTACHMENT>
+    <TIMESTAMP>2016-10-10 13:23:50.0</TIMESTAMP>
+  </EVENT>
+  <EVENT>
+    <UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</UUID>
+    <ID>3</ID>
+    <AGENT_UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</AGENT_UUID>
+    <AGENT_ROLE />
+    <SCHEMA_NAME>PredefinedStepOutcome</SCHEMA_NAME>
+    <SCHEMA_VERSION>0</SCHEMA_VERSION>
+    <STATEMACHINE_NAME>Default</STATEMACHINE_NAME>
+    <STATEMACHINE_VERSION>0</STATEMACHINE_VERSION>
+    <STEP_NAME>WriteProperty</STEP_NAME>
+    <STEP_PATH>workflow/predefined/WriteProperty</STEP_PATH>
+    <STEP_TYPE>WriteProperty</STEP_TYPE>
+    <ORIGIN_STATE_ID>0</ORIGIN_STATE_ID>
+    <TARGET_STATE_ID>0</TARGET_STATE_ID>
+    <TRANSITION_ID>3</TRANSITION_ID>
+    <VIEW_NAME>last</VIEW_NAME>
+    <HAS_ATTACHMENT>false</HAS_ATTACHMENT>
+    <TIMESTAMP>2016-10-10 13:23:50.0</TIMESTAMP>
+  </EVENT>
+  <EVENT>
+    <UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</UUID>
+    <ID>4</ID>
+    <AGENT_UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</AGENT_UUID>
+    <AGENT_ROLE />
+    <SCHEMA_NAME>PredefinedStepOutcome</SCHEMA_NAME>
+    <SCHEMA_VERSION>0</SCHEMA_VERSION>
+    <STATEMACHINE_NAME>Default</STATEMACHINE_NAME>
+    <STATEMACHINE_VERSION>0</STATEMACHINE_VERSION>
+    <STEP_NAME>WriteProperty</STEP_NAME>
+    <STEP_PATH>workflow/predefined/WriteProperty</STEP_PATH>
+    <STEP_TYPE>WriteProperty</STEP_TYPE>
+    <ORIGIN_STATE_ID>0</ORIGIN_STATE_ID>
+    <TARGET_STATE_ID>0</TARGET_STATE_ID>
+    <TRANSITION_ID>3</TRANSITION_ID>
+    <VIEW_NAME>last</VIEW_NAME>
+    <HAS_ATTACHMENT>false</HAS_ATTACHMENT>
+    <TIMESTAMP>2016-10-10 13:23:50.0</TIMESTAMP>
+  </EVENT>
+  <EVENT>
+    <UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</UUID>
+    <ID>5</ID>
+    <AGENT_UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</AGENT_UUID>
+    <AGENT_ROLE />
+    <SCHEMA_NAME>PredefinedStepOutcome</SCHEMA_NAME>
+    <SCHEMA_VERSION>0</SCHEMA_VERSION>
+    <STATEMACHINE_NAME>Default</STATEMACHINE_NAME>
+    <STATEMACHINE_VERSION>0</STATEMACHINE_VERSION>
+    <STEP_NAME>WriteProperty</STEP_NAME>
+    <STEP_PATH>workflow/predefined/WriteProperty</STEP_PATH>
+    <STEP_TYPE>WriteProperty</STEP_TYPE>
+    <ORIGIN_STATE_ID>0</ORIGIN_STATE_ID>
+    <TARGET_STATE_ID>0</TARGET_STATE_ID>
+    <TRANSITION_ID>3</TRANSITION_ID>
+    <VIEW_NAME>last</VIEW_NAME>
+    <HAS_ATTACHMENT>false</HAS_ATTACHMENT>
+    <TIMESTAMP>2016-10-10 13:23:50.0</TIMESTAMP>
+  </EVENT>
+  <EVENT>
+    <UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</UUID>
+    <ID>6</ID>
+    <AGENT_UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</AGENT_UUID>
+    <AGENT_ROLE />
+    <SCHEMA_NAME>PredefinedStepOutcome</SCHEMA_NAME>
+    <SCHEMA_VERSION>0</SCHEMA_VERSION>
+    <STATEMACHINE_NAME>Default</STATEMACHINE_NAME>
+    <STATEMACHINE_VERSION>0</STATEMACHINE_VERSION>
+    <STEP_NAME>WriteProperty</STEP_NAME>
+    <STEP_PATH>workflow/predefined/WriteProperty</STEP_PATH>
+    <STEP_TYPE>WriteProperty</STEP_TYPE>
+    <ORIGIN_STATE_ID>0</ORIGIN_STATE_ID>
+    <TARGET_STATE_ID>0</TARGET_STATE_ID>
+    <TRANSITION_ID>3</TRANSITION_ID>
+    <VIEW_NAME>last</VIEW_NAME>
+    <HAS_ATTACHMENT>false</HAS_ATTACHMENT>
+    <TIMESTAMP>2016-10-10 13:23:50.0</TIMESTAMP>
+  </EVENT>
+  <EVENT>
+    <UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</UUID>
+    <ID>7</ID>
+    <AGENT_UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</AGENT_UUID>
+    <AGENT_ROLE />
+    <SCHEMA_NAME>PredefinedStepOutcome</SCHEMA_NAME>
+    <SCHEMA_VERSION>0</SCHEMA_VERSION>
+    <STATEMACHINE_NAME>Default</STATEMACHINE_NAME>
+    <STATEMACHINE_VERSION>0</STATEMACHINE_VERSION>
+    <STEP_NAME>WriteProperty</STEP_NAME>
+    <STEP_PATH>workflow/predefined/WriteProperty</STEP_PATH>
+    <STEP_TYPE>WriteProperty</STEP_TYPE>
+    <ORIGIN_STATE_ID>0</ORIGIN_STATE_ID>
+    <TARGET_STATE_ID>0</TARGET_STATE_ID>
+    <TRANSITION_ID>3</TRANSITION_ID>
+    <VIEW_NAME>last</VIEW_NAME>
+    <HAS_ATTACHMENT>false</HAS_ATTACHMENT>
+    <TIMESTAMP>2016-10-10 13:23:54.0</TIMESTAMP>
+  </EVENT>
+  <EVENT>
+    <UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</UUID>
+    <ID>8</ID>
+    <AGENT_UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</AGENT_UUID>
+    <AGENT_ROLE />
+    <SCHEMA_NAME>PredefinedStepOutcome</SCHEMA_NAME>
+    <SCHEMA_VERSION>0</SCHEMA_VERSION>
+    <STATEMACHINE_NAME>Default</STATEMACHINE_NAME>
+    <STATEMACHINE_VERSION>0</STATEMACHINE_VERSION>
+    <STEP_NAME>WriteProperty</STEP_NAME>
+    <STEP_PATH>workflow/predefined/WriteProperty</STEP_PATH>
+    <STEP_TYPE>WriteProperty</STEP_TYPE>
+    <ORIGIN_STATE_ID>0</ORIGIN_STATE_ID>
+    <TARGET_STATE_ID>0</TARGET_STATE_ID>
+    <TRANSITION_ID>3</TRANSITION_ID>
+    <VIEW_NAME>last</VIEW_NAME>
+    <HAS_ATTACHMENT>false</HAS_ATTACHMENT>
+    <TIMESTAMP>2016-10-10 13:23:55.0</TIMESTAMP>
+  </EVENT>
+  <EVENT>
+    <UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</UUID>
+    <ID>9</ID>
+    <AGENT_UUID>fcecd4ad-40eb-421c-a648-edc1d74f339b</AGENT_UUID>
+    <AGENT_ROLE />
+    <SCHEMA_NAME>PredefinedStepOutcome</SCHEMA_NAME>
+    <SCHEMA_VERSION>0</SCHEMA_VERSION>
+    <STATEMACHINE_NAME>Default</STATEMACHINE_NAME>
+    <STATEMACHINE_VERSION>0</STATEMACHINE_VERSION>
+    <STEP_NAME>WriteProperty</STEP_NAME>
+    <STEP_PATH>workflow/predefined/WriteProperty</STEP_PATH>
+    <STEP_TYPE>WriteProperty</STEP_TYPE>
+    <ORIGIN_STATE_ID>0</ORIGIN_STATE_ID>
+    <TARGET_STATE_ID>0</TARGET_STATE_ID>
+    <TRANSITION_ID>3</TRANSITION_ID>
+    <VIEW_NAME>last</VIEW_NAME>
+    <HAS_ATTACHMENT>false</HAS_ATTACHMENT>
+    <TIMESTAMP>2016-10-10 13:23:58.0</TIMESTAMP>
+  </EVENT>
+</HISTORY>

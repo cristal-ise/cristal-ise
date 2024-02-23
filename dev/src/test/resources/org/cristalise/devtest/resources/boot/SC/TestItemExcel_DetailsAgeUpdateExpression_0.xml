@@ -1,0 +1,65 @@
+<cristalscript>
+  <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
+  <param name="agent" type="org.cristalise.kernel.entity.proxy.AgentProxy"/>
+  <param name="TestItemExcel_Details" type="org.json.JSONObject"/>
+  <output name="TestItemExcel_DetailsXml" type="java.lang.String"/>
+  <script language="groovy" name="TestItemExcel_DetailsAgeUpdateExpression"><![CDATA[import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.*
+
+import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
+import org.cristalise.kernel.persistency.outcome.Schema
+import org.cristalise.kernel.utils.LocalObjectLoader
+import org.json.JSONObject
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+import groovy.transform.CompileStatic
+import groovy.xml.MarkupBuilder
+
+import java.time.Period
+import java.time.LocalDate
+
+final Logger log = LoggerFactory.getLogger("org.cristalise.devtest.Script.TestItemExcel.DetailsAgeUpdateExpression")
+
+ @CompileStatic 
+def getAge(JSONObject json) {
+    def schema = LocalObjectLoader.getSchema('TestItemExcel_Details', 0)
+    def builder = new OutcomeBuilder(schema)
+
+    def DateOfBirth = getLocalDateOrNull(json, 'DateOfBirth')
+    def DateOfDeath = getLocalDateOrNull(json, 'DateOfDeath')
+
+    if (DateOfBirth != null) {
+        //expression comes here, use Outcome, OutcomeBuilder, OutcomeUtils, ItemProxy and other utility classes
+        Period.between(DateOfBirth, DateOfDeath ?: LocalDate.now()).getYears()
+    }
+    else {
+        return null
+    }
+}
+
+if (!TestItemExcel_Details) throw new InvalidDataException('Undefined inputs TestItemExcel_Details for script org.cristalise.devtest.Script.TestItemExcel.DetailsAgeUpdateExpression')
+
+JSONObject jsonInput = (JSONObject)TestItemExcel_Details
+log.debug 'TestItemExcel_Details:{}', jsonInput
+
+StringWriter writer = new StringWriter()
+MarkupBuilder xml = new MarkupBuilder(writer)
+
+// returned XML shall only contain fields that is updated by the script
+xml.TestItemExcel_Details {
+    def AgeValue = getAge(jsonInput)
+
+    if (AgeValue != null) {
+        Age(AgeValue)
+    }
+    else {
+        Age()
+    }
+}
+
+TestItemExcel_DetailsXml = writer.toString()
+
+log.debug('returning TestItemExcel_DetailsXml:{}', TestItemExcel_DetailsXml)
+]]></script>
+</cristalscript>

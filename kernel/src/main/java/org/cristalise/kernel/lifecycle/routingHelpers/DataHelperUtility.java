@@ -20,11 +20,14 @@
  */
 package org.cristalise.kernel.lifecycle.routingHelpers;
 
+import static org.cristalise.kernel.SystemProperties.DataHelper_$name;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.persistency.TransactionKey;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -43,13 +46,15 @@ public class DataHelperUtility {
      * @throws InvalidDataException could not configure DataHelper
      */
     public static DataHelper getDataHelper(String id) throws InvalidDataException {
-        Object configHelper = Gateway.getProperties().getObject("DataHelper."+id);
+        Object[] args = new Object[] {id};
 
-        if (configHelper != null) {
-            if (configHelper instanceof DataHelper)
-                return (DataHelper)configHelper;
-            else
-                throw new InvalidDataException("Config value is not an instance of DataHelper - 'DataHelper."+id+"'=" +configHelper.toString());
+        if (DataHelper_$name.getObject(args) != null) {
+            try {
+                return (DataHelper) DataHelper_$name.getInstance(args);
+            }
+            catch (ReflectiveOperationException e) {
+                throw new InvalidDataException(e);
+            }
         }
         else {
             switch (BuiltInDataHelpers.getValue(id)) {
@@ -68,14 +73,14 @@ public class DataHelperUtility {
      * @param itemPath the actual Item context
      * @param value the value to be evaluated
      * @param actContext activity path
-     * @param locker database transaction locker
+     * @param transactionKey database transaction transactionKey
      * @return String value which was evaluated using {@link DataHelper} implementation
      *
      * @throws InvalidDataException data inconsistency
      * @throws PersistencyException persistency issue
      * @throws ObjectNotFoundException  object was not found
      */
-    public static Object evaluateValue(ItemPath itemPath, Object value, String actContext, Object locker)
+    public static Object evaluateValue(ItemPath itemPath, Object value, String actContext, TransactionKey transactionKey)
             throws InvalidDataException, PersistencyException, ObjectNotFoundException
     {
         if (value == null || !(value instanceof String) || !((String)value).contains("//"))
@@ -95,7 +100,7 @@ public class DataHelperUtility {
 
         DataHelper dataHelper = getDataHelper(pathType);
 
-        if (dataHelper != null) return dataHelper.get(itemPath, actContext, dataPath, locker);
+        if (dataHelper != null) return dataHelper.get(itemPath, actContext, dataPath, transactionKey);
         else                    return value;
     }
 }

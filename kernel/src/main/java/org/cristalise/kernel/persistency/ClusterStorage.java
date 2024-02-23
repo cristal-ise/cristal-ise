@@ -23,10 +23,8 @@ package org.cristalise.kernel.persistency;
 import java.util.ArrayList;
 
 import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.common.SystemKey;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
 
 import lombok.extern.slf4j.Slf4j;
@@ -93,7 +91,7 @@ public abstract class ClusterStorage {
      * @throws PersistencyException
      *             If storage initialization failed
      */
-    public abstract void open(Authenticator auth) throws PersistencyException;
+    public abstract void open() throws PersistencyException;
 
     /**
      * Shuts down the storage. Data must be completely written to disk before
@@ -197,7 +195,7 @@ public abstract class ClusterStorage {
      * @param transactionKey the key of the transaction, can be null
      * @return the xml result of the query
      */
-    public abstract String executeQuery(Query query, Object transactionKey) throws PersistencyException;
+    public abstract String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException;
 
     /**
      * History and JobList based on a integer id that is incremented each tome a new Event or Job is stored
@@ -208,7 +206,7 @@ public abstract class ClusterStorage {
      * @return returns the last found integer id (zero based), or -1 if not found
      * @throws PersistencyException When storage fails
      */
-    public abstract int getLastIntegerId(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException;
+    public abstract int getLastIntegerId(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException;
 
     /**
      * Fetches a CRISTAL local object from storage by path
@@ -219,7 +217,7 @@ public abstract class ClusterStorage {
      * @return The C2KLocalObject, or null if the object was not found
      * @throws PersistencyException when retrieval failed
      */
-    public abstract C2KLocalObject get(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException;
+    public abstract C2KLocalObject get(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException;
 
     /**
      * Stores a CRISTAL local object. The path is automatically generated.
@@ -229,19 +227,40 @@ public abstract class ClusterStorage {
      * @param transactionKey the key of the transaction, cannot be null
      * @throws PersistencyException When storage fails
      */
-    public abstract void put(ItemPath itemPath, C2KLocalObject obj, Object transactionKey) throws PersistencyException;
+    public abstract void put(ItemPath itemPath, C2KLocalObject obj, TransactionKey transactionKey) throws PersistencyException;
 
     /**
-     * Remove a CRISTAL local object from storage. This should be used sparingly
-     * and responsibly, as it violated traceability. Objects removed in this way
-     * are not expected to be recoverable.
+     * Remove all CRISTAL local object of the given ClusterType from storage. This should be used sparingly
+     * and responsibly, as it violated traceability. Objects removed in this way cannot be recovered.
+     * 
+     * @param itemPath The containing Item
+     * @param cluster The type of the object to be removed
+     * @param transactionKey the key of the transaction, cannot be null
+     * @throws PersistencyException When deletion fails or is not allowed
+     */
+    public abstract void delete(ItemPath itemPath, ClusterType cluster, TransactionKey transactionKey) throws PersistencyException;
+
+    /**
+     * Remove a CRISTAL local object from storage. This should be used sparingly and responsibly, 
+     * as it violated traceability. Objects removed in this way cannot be recovered.
      * 
      * @param itemPath The containing Item
      * @param path The path of the object to be removed
      * @param transactionKey the key of the transaction, cannot be null
      * @throws PersistencyException When deletion fails or is not allowed
      */
-    public abstract void delete(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException;
+    public abstract void delete(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException;
+
+    /**
+     * Removes all data of an Item. This should be used sparingly
+     * and responsibly, as it violated traceability. Objects removed in this way
+     * are not expected to be recoverable.
+     * 
+     * @param itemPath The containing Item
+     * @param transactionKey the key of the transaction, cannot be null
+     * @throws PersistencyException When deletion fails or is not allowed
+     */
+    public abstract void delete(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException;
 
     /**
      * Queries the local path below of the item and returns the possible next elements.
@@ -252,7 +271,7 @@ public abstract class ClusterStorage {
      * @return A String array of the possible next path elements
      * @throws PersistencyException When an error occurred during the query
      */
-    public abstract String[] getClusterContents(ItemPath itemPath, String path, Object transactionKey) throws PersistencyException;
+    public abstract String[] getClusterContents(ItemPath itemPath, String path, TransactionKey transactionKey) throws PersistencyException;
 
     /**
      * Queries the local path below the given type and returns the possible next elements.
@@ -263,7 +282,7 @@ public abstract class ClusterStorage {
      * @return
      * @throws PersistencyException
      */
-    public String[] getClusterContents(ItemPath itemPath, ClusterType type, Object transactionKey) throws PersistencyException {
+    public String[] getClusterContents(ItemPath itemPath, ClusterType type, TransactionKey transactionKey) throws PersistencyException {
         return getClusterContents(itemPath, type.getName(), transactionKey);
     }
 
@@ -275,7 +294,7 @@ public abstract class ClusterStorage {
      * @return A ClusterType array of the possible next path elements
      * @throws PersistencyException When an error occurred during the query
      */
-    public ClusterType[] getClusters(ItemPath itemPath, Object transactionKey) throws PersistencyException {
+    public ClusterType[] getClusters(ItemPath itemPath, TransactionKey transactionKey) throws PersistencyException {
         String[] contents = getClusterContents(itemPath, "", transactionKey);
         ArrayList<ClusterType> types = new ArrayList<ClusterType>();
 
@@ -292,11 +311,15 @@ public abstract class ClusterStorage {
         return types.toArray(new ClusterType[0]);
     }
 
-    public abstract void begin(Object transactionKey) throws PersistencyException;
+    public abstract void begin(TransactionKey transactionKey) throws PersistencyException;
 
-    public abstract void commit(Object transactionKey) throws PersistencyException;
+    public abstract void commit(TransactionKey transactionKey) throws PersistencyException;
     
-    public abstract void abort(Object transactionKey) throws PersistencyException;
+    public abstract void abort(TransactionKey transactionKey) throws PersistencyException;
 
 
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

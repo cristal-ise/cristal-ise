@@ -23,8 +23,7 @@ package org.cristalise.kernel.lifecycle.instance;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
-import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +40,7 @@ public class Loop extends XOrSplit {
     }
 
     @Override
-    public void followNext(Next activeNext, AgentPath agent, ItemPath itemPath, Object locker) throws InvalidDataException {
+    public void followNext(Next activeNext, TransactionKey transactionKey) throws InvalidDataException {
         WfVertex v = activeNext.getTerminusVertex();
 
         Boolean isMyPair = isMyPair(v);
@@ -55,14 +54,14 @@ public class Loop extends XOrSplit {
             if (isInPrev(v)) v.reinit(getID());
         }
 
-        v.run(agent, itemPath, locker);
+        v.run(transactionKey);
     }
 
     @Override
     public void reinit(int idLoop) throws InvalidDataException {
         //propagate if the reinit was NOT started by this loop 
         if (idLoop != getID()) {
-            log.debug("reinit(id:{}, idLoop:{}) - parent:{}", getID(), idLoop, getParent().getName());
+            log.trace("reinit(id:{}, idLoop:{}) - parent:{}", getID(), idLoop, getParent().getName());
 
             for (Vertex outVertex: getOutGraphables()) {
                 WfVertex v = (WfVertex)outVertex;
@@ -79,7 +78,7 @@ public class Loop extends XOrSplit {
             }
         }
         else {
-            log.debug("reinit(id:{}, idLoop:{}) - STOPPED!", getID(), idLoop);
+            log.trace("reinit(id:{}, idLoop:{}) - STOPPED!", getID(), idLoop);
         }
     }
 

@@ -20,22 +20,36 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.cristalise.kernel.SystemProperties.Module_Versioning_strict;
+import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
-import java.io.IOException;
+import static org.cristalise.kernel.property.BuiltInItemProperties.UPDATE_SCHEMA;
+
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+
+import io.vertx.core.Context;
+import io.vertx.core.Future;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.Collection;
-import org.cristalise.kernel.collection.CollectionArrayList;
+import org.cristalise.kernel.collection.DependencyMember;
 import org.cristalise.kernel.common.AccessRightsException;
+import org.cristalise.kernel.common.CannotManageException;
+import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.InvalidTransitionException;
@@ -44,16 +58,19 @@ import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.entity.Item;
-import org.cristalise.kernel.entity.ItemHelper;
-import org.cristalise.kernel.entity.agent.Job;
-import org.cristalise.kernel.entity.agent.JobArrayList;
+import org.cristalise.kernel.entity.ItemVerticle;
+import org.cristalise.kernel.entity.ItemVertxEBProxy;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.events.Event;
-import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
+import org.cristalise.kernel.events.History;
+import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.WriteProperty;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
@@ -61,177 +78,67 @@ import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.BuiltInItemProperties;
 import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
-import org.cristalise.kernel.utils.CastorXMLUtility;
+import org.cristalise.kernel.security.SecurityManager;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
+
+import com.google.errorprone.annotations.Immutable;
+
+import io.vertx.core.AsyncResult;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-
 /**
- * It is a wrapper for the connection and communication with Item.
- * It caches data loaded from the Item to reduce communication
+ * It is a immutable wrapper for the connection and communication with Item and its data. It relies on the
+ * ClusterStorage mechanism to retrieve and to cache data, i.e. it does not do any cashing itself.
  */
-@Slf4j
-public class ItemProxy
-{
-    protected Item                  mItem = null;
-    protected ItemPath              mItemPath;
-    protected org.omg.CORBA.Object  mIOR;
+@Slf4j @Immutable @EqualsAndHashCode
+public class ItemProxy {
+    @EqualsAndHashCode.Exclude 
+    protected Item mItem = null;
 
-    private final HashMap<MemberSubscription<?>, ProxyObserver<?>> mSubscriptions;
+    protected ItemPath mItemPath;
 
     /**
-     * Set Transaction key (a.k.a. locker) when ItemProxy is used in server side scripting
+     * Set Transaction key (a.k.a. transKey/locker) when ItemProxy is used in server side scripting
      */
-    @Getter @Setter
-    private Object transactionKey = null;
+    @Getter @EqualsAndHashCode.Exclude 
+    protected TransactionKey transactionKey = null;
 
     /**
      *
-     * @param ior
      * @param itemPath
      */
-    protected ItemProxy( org.omg.CORBA.Object  ior, ItemPath itemPath) {
-        mIOR            = ior;
-        mItemPath       = itemPath;
-        mSubscriptions  = new HashMap<MemberSubscription<?>, ProxyObserver<?>>();
+    protected ItemProxy(ItemPath itemPath) {
+        this(itemPath, null);
+    }
+
+    protected ItemProxy(ItemPath itemPath, TransactionKey transKey) {
+        mItemPath  = itemPath;
+        transactionKey = transKey;
+    }
+
+    public Item getItem() {
+        if (mItem == null) mItem = new ItemVertxEBProxy(Gateway.getVertx(), ItemVerticle.ebAddress);
+        return mItem;
     }
 
     /**
      * Return the ItemPath object of the Item this proxy is linked with
-     * @return the ItemPath of the Item this proxy is linked with
+     * @return the ItemPath of the Item
      */
     public ItemPath getPath() {
         return mItemPath;
     }
 
     /**
-     * Returns the CORBA Item this proxy is linked with
-     *
-     * @return the CORBA Item this proxy is linked with
-     * @throws ObjectNotFoundException there was a problem connecting with the Item
+     * Returns the UUID string of the Item this proxy is linked with
+     * @return UUID string of the Item
      */
-    protected Item getItem() throws ObjectNotFoundException {
-        if (mItem == null) mItem = narrow();
-        return mItem;
-    }
-
-    /**
-     * Narrows the CORBA Item this proxy is linked with
-     *
-     * @return the CORBA Item this proxy is linked with
-     * @throws ObjectNotFoundException there was a problem connecting with the Item
-     */
-    public Item narrow() throws ObjectNotFoundException {
-        try {
-            return ItemHelper.narrow(mIOR);
-        }
-        catch (org.omg.CORBA.BAD_PARAM ex) {
-            throw new ObjectNotFoundException("CORBA Object was not an Item, or the server is down:" + ex.getMessage());
-        }
-    }
-
-    /**
-     * Initialise the new Item with instance data which was normally created from descriptions
-     *
-     * @param agentId the Agent who is creating the Item
-     * @param itemProps initial list of Properties of the Item
-     * @param workflow new Lifecycle of the Item
-     * @param colls the initial state of the Item's collections
-     *
-     * @throws AccessRightsException Agent does not have the rights to create an Item
-     * @throws InvalidDataException data was invalid
-     * @throws PersistencyException there was a database problem during Item initialisation
-     * @throws ObjectNotFoundException Object not found
-     * @throws MarshalException there was a problem converting those objects to XML
-     * @throws ValidationException XML was not valid
-     * @throws IOException IO errors
-     * @throws MappingException errors in XML marshall/unmarshall mapping
-     * @throws InvalidCollectionModification invalid Collection
-     */
-    @Deprecated
-    public void initialise(AgentPath agentId, 
-                           PropertyArrayList itemProps, 
-                           CompositeActivity workflow, 
-                           CollectionArrayList colls
-                           )
-             throws AccessRightsException,
-                    InvalidDataException,
-                    PersistencyException,
-                    ObjectNotFoundException,
-                    MarshalException,
-                    ValidationException,
-                    IOException,
-                    MappingException,
-                    InvalidCollectionModification
-    {
-        initialise(agentId, itemProps, workflow, colls, null, null);
-    }
-
-    /**
-     * Initialise the new Item with instance data which was normally created from descriptions
-     *
-     * @param agentId the Agent who is creating the Item
-     * @param itemProps initial list of Properties of the Item
-     * @param workflow new Lifecycle of the Item
-     * @param colls the initial state of the Item's collections
-     * @param viewpoint the provide viewpoint to be stored for the Outcome
-     * @param outcome the Outcome to be used (like the parameters of the class constructor)
-     *
-     * @throws AccessRightsException Agent does not have the rights to create an Item
-     * @throws InvalidDataException data was invalid
-     * @throws PersistencyException there was a database problem during Item initialisation
-     * @throws ObjectNotFoundException Object not found
-     * @throws MarshalException there was a problem converting those objects to XML
-     * @throws ValidationException XML was not valid
-     * @throws IOException IO errors
-     * @throws MappingException errors in XML marshall/unmarshall mapping
-     * @throws InvalidCollectionModification invalid Collection
-     */
-    @Deprecated
-    public void initialise(AgentPath agentId, 
-                           PropertyArrayList itemProps, 
-                           CompositeActivity workflow, 
-                           CollectionArrayList colls,
-                           Viewpoint viewpoint,
-                           Outcome outcome
-                           )
-            throws AccessRightsException,
-                    InvalidDataException,
-                    PersistencyException,
-                    ObjectNotFoundException,
-                    MarshalException,
-                    ValidationException,
-                    IOException,
-                    MappingException,
-                    InvalidCollectionModification
-    {
-        log.debug("initialise() - started");
-
-        CastorXMLUtility xml = Gateway.getMarshaller();
-        if (itemProps == null) throw new InvalidDataException("initialise() - No initial properties supplied");
-        String propString = xml.marshall(itemProps);
-
-        String wfString = "";
-        if (workflow != null) wfString = xml.marshall(workflow);
-
-        String collString = "";
-        if (colls != null) collString = xml.marshall(colls);
-
-        String viewpointString = "";
-        if (viewpoint != null) viewpointString = xml.marshall(viewpoint);
-
-        String outcomeString = "";
-        if (outcome != null) outcomeString = outcome.getData();
-
-        getItem().initialise(agentId.getSystemKey(), propString, wfString, collString, viewpointString, outcomeString);
+    public String getUuid() {
+        return mItemPath.getName();
     }
 
     /**
@@ -261,28 +168,81 @@ public class ItemProxy
     }
 
     /**
-     * Executes the given Job
+     *
+     * @param itemUuid
+     * @param agentUuid
+     * @param stepPath
+     * @param transitionID
+     * @param requestData
+     * @param fileName
+     * @param attachment
+     * @return
+     * @throws CriseVertxException
+     */
+    public String requestAction(
+            String     itemUuid,
+            String     agentUuid,
+            String     stepPath,
+            int        transitionID,
+            String     requestData,
+            String     fileName,
+            List<Byte> attachment
+        ) throws CriseVertxException
+    {
+        log.debug("requestAction() - item:{} agent:{} stepPath:{}", this, agentUuid, stepPath);
+
+        try {
+            Future<String> future = getItem().requestAction(itemUuid, agentUuid, stepPath, transitionID, requestData, fileName, attachment);
+            return await(future);
+        }
+        catch (ExecutionException e) {
+            log.error("requestAction() - item:{} agent:{}", this, agentUuid, e);
+            throw CriseVertxException.convertFutureException(e);
+        }
+        catch (CriseVertxException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            log.error("requestAction() - item:{} agent:{} stepPath:{}", this, agentUuid, stepPath, e);
+            throw new CannotManageException("Error while waiting for the requestAction() return value item:"+itemUuid+" agent:"+agentUuid+"", e);
+        }
+    }
+
+    /**
+     * Waits for the future to complete, and returns the result.
+     *
+     * @param future the future to wait for
+     * @return the result of the future
+     * @param <T> the class of the result
+     * @throws Exception anything that can go wrong
+     */
+    private <T> T await(Future<T> future) throws Exception {
+        if (Context.isOnVertxThread()) {
+            // We are on the Vert.x event loop thread using virtual threads, so we can block
+            return Future.await(future);
+        }
+        else {
+            // We are on a platform thread, so we need to wait asynchronously
+            CompletableFuture<T> futureResult = new CompletableFuture<>();
+
+            future.onSuccess(futureResult::complete)
+                  .onFailure(futureResult::completeExceptionally);
+
+            // blocks until the future is complete or the timeout is reached
+            return futureResult.get(ItemVerticle.requestTimeout, SECONDS);
+        }
+    }
+
+    /**
+     * Executes the given Job of this Item
      *
      * @param thisJob the Job to be executed
      * @return the result of the execution
-     * @throws AccessRightsException Agent does not the rights to execute this operation
-     * @throws PersistencyException there was a database problems during this operations
-     * @throws InvalidDataException data was invalid
-     * @throws InvalidTransitionException the Transition cannot be executed
-     * @throws ObjectNotFoundException Object not found
-     * @throws ObjectAlreadyExistsException Object already exists
-     * @throws InvalidCollectionModification Invalid collection
+     * @throws CriseVertxException if the operation failed
      */
-    public String requestAction( Job thisJob )
-            throws AccessRightsException,
-                   InvalidTransitionException,
-                   ObjectNotFoundException,
-                   InvalidDataException,
-                   PersistencyException,
-                   ObjectAlreadyExistsException,
-                   InvalidCollectionModification
-    {
+    public String requestAction(Job thisJob) throws CriseVertxException {
         if (thisJob.getAgentPath() == null) throw new InvalidDataException("No Agent specified.");
+        if (!thisJob.getItemPath().equals(getPath())) throw new InvalidDataException("Job:"+thisJob+" is not for this Item:"+this);
 
         String outcome = thisJob.getOutcomeString();
 
@@ -302,25 +262,14 @@ public class ItemProxy
 
         log.debug("requestAction() - executing job:{}", thisJob);
 
-        if (thisJob.getDelegatePath() == null) {
-            return getItem().requestAction (
-                    thisJob.getAgentPath().getSystemKey(), 
-                    thisJob.getStepPath(),
-                    thisJob.getTransition().getId(), 
-                    outcome,
-                    attachmentFileName,
-                    attachmentBinary);
-        }
-        else {
-            return getItem().delegatedAction(
-                    thisJob.getAgentPath().getSystemKey(), 
-                    thisJob.getDelegatePath().getSystemKey(),
-                    thisJob.getStepPath(), 
-                    thisJob.getTransition().getId(), 
-                    outcome, 
-                    attachmentFileName,
-                    attachmentBinary);
-        }
+        return requestAction(
+                mItemPath.toString(),
+                thisJob.getAgentPath().toString(),
+                thisJob.getStepPath(),
+                thisJob.getTransition().getId(),
+                outcome,
+                attachmentFileName,
+                Arrays.asList(ArrayUtils.toObject(attachmentBinary)));
     }
 
     /**
@@ -332,47 +281,79 @@ public class ItemProxy
      * @throws PersistencyException there was a database problems during this operations
      * @throws ObjectNotFoundException data was invalid
      */
-    public ArrayList<Job> getJobList(AgentPath agentPath) throws AccessRightsException, ObjectNotFoundException, PersistencyException {
-        return getJobList(agentPath, false);
+    public List<Job> getJobs(AgentPath agentPath) throws CriseVertxException {
+        return getJobsForAgent(agentPath);
     }
 
+    public boolean checkJobForAgent(Job job, AgentPath agentPath) throws CriseVertxException {
+        String stepPath = job.getStepPath();
+        Activity act = (Activity) getWorkflow().search(stepPath);
+        SecurityManager secMan = Gateway.getSecurityManager();
+
+        if (secMan.checkPermissions(agentPath, act, getPath(), null)) {
+//            try {
+//                job.getTransition().checkPerformingRole(act, agentPath);
+//                return true;
+//            }
+//            catch (AccessRightsException e) {
+//                // AccessRightsException is thrown if Job requires specific Role that agent does not have
+//                log.warn("checkJobForAgent()", e);
+//            }
+            return true;
+        }
+
+        return false;
+    }
     /**
-     * Get the list of Jobs of the Item that can be executed by the Agent
+     * Returns a set of Jobs for this Agent on this Item. Each Job represents a possible transition of a particular 
+     * Activity/Step in the Item's lifecycle.
      *
-     * @param agentPath the Agent requesting the job
-     * @param filter if true, then only Activities which are currently active will be included.
+     * @param agentPath the Agent requesting the jobs
      * @return list of Jobs
      * @throws AccessRightsException Agent does not the rights to execute this operation
      * @throws PersistencyException there was a database problems during this operations
      * @throws ObjectNotFoundException data was invalid
      */
-    private ArrayList<Job> getJobList(AgentPath agentPath, boolean filter)
-            throws AccessRightsException, ObjectNotFoundException, PersistencyException
-    {
-        JobArrayList thisJobList;
-        String jobs =  getItem().queryLifeCycle(agentPath.getSystemKey(), filter);
+    private List<Job> getJobsForAgent(AgentPath agentPath) throws CriseVertxException {
+        List<Job> jobBag = new ArrayList<>();
 
-        try {
-            thisJobList = (JobArrayList)Gateway.getMarshaller().unmarshall(jobs);
+        // Make sure that the latest Jobs and Workflow is used for this calculation
+        Gateway.getStorage().clearCache(getPath(), ClusterType.JOB);
+        Gateway.getStorage().clearCache(getPath(), ClusterType.LIFECYCLE);
+
+        for (Job j: getJobs().values()) {
+            if (checkJobForAgent(j, agentPath)) jobBag.add(j);
         }
-        catch (Exception e) {
-            log.error("Cannot unmarshall the jobs", e);
-            throw new PersistencyException("Cannot unmarshall the jobs");
-        }
-        return thisJobList.list;
+
+        log.debug("getJobsForAgent() - {} returning #{} jobs for agent:{}", this, jobBag.size(), agentPath.getAgentName());
+        return jobBag;
     }
 
     /**
      * Get the list of active Jobs of the Item that can be executed by the Agent
      *
-     * @param agent the Agent requesting the job
+     * @param agent requesting the job
      * @return list of Jobs
-     * @throws AccessRightsException Agent does not the rights to execute this operation
-     * @throws PersistencyException there was a database problems during this operations
-     * @throws ObjectNotFoundException data was invalid
      */
-    public ArrayList<Job> getJobList(AgentProxy agent) throws AccessRightsException, ObjectNotFoundException, PersistencyException {
-        return getJobList(agent.getPath(), true);
+    public List<Job> getJobs(AgentProxy agent) throws CriseVertxException {
+        return getJobsForAgent(agent.getPath());
+    }
+
+    /**
+     * Get the list of active Jobs of the Item for the given Activity that can be executed by the Agent.
+     * 
+     * @param agent requesting the job
+     * @param stepPath the path of the Activity instance
+     * @return list of active Jobs of the Item for the given Activity that can be executed by the Agent
+     * @throws CriseVertxException
+     */
+    public List<Job> getJobs(AgentPath agent, String stepPath) throws CriseVertxException {
+        List<Job> resultJobs = new ArrayList<>();
+
+        for (Job job : getJobsForAgent(agent)) {
+            if (job.getStepPath().equals(stepPath)) resultJobs.add(job);
+        }
+        return resultJobs;
     }
 
     /**
@@ -384,13 +365,65 @@ public class ItemProxy
      * @throws ObjectNotFoundException
      * @throws PersistencyException
      */
-    private Job getJobByName(String actName, AgentPath agent) throws AccessRightsException, ObjectNotFoundException, PersistencyException {
-        ArrayList<Job> jobList = getJobList(agent, true);
-        for (Job job : jobList) {
-            if (job.getStepName().equals(actName) && job.getTransition().isFinishing())
-                return job;
+    private Job getJobByName(String actName, AgentPath agent) throws CriseVertxException {
+        C2KLocalObjectMap<Job> jobMap = getJobs();
+
+        for (String key: jobMap.keySet()) {
+            String stepName = key.split("/")[0]; // key = 'Update/Done'
+            if (stepName.equals(actName)) {
+                Job job = jobMap.get(key);
+                if (job.getTransition().isFinishing() && checkJobForAgent(job, agent)) {
+                    return job;
+                }
+            }
         }
         return null;
+    }
+
+    /**
+     * Checks if the given built-in Collection exists
+     * 
+     * @param collection the built-in Collection
+     * @return true of Collection exists false otherwise
+     * @throws ObjectNotFoundException if Item does not have any Collections at all
+     */
+    public boolean checkCollection(BuiltInCollections collection) throws ObjectNotFoundException {
+        return checkCollection(collection, transactionKey);
+    }
+
+    /**
+     * Checks if the given built-in Collection exists
+     * 
+     * @param collection the built-in Collection
+     * @param transKey the transaction key
+     * @return true of Collection exists false otherwise
+     * @throws ObjectNotFoundException if Item does not have any Collections at all
+     */
+    public boolean checkCollection(BuiltInCollections collection, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkCollection(collection.getName(), transKey);
+    }
+
+    /**
+     * Checks if the given Collection exists
+     * 
+     * @param collection the name Collection
+     * @return true of Collection exists false otherwise
+     * @throws ObjectNotFoundException if Item does not have any Collections at all
+     */
+    public boolean checkCollection(String collection) throws ObjectNotFoundException {
+        return checkCollection(collection, transactionKey);
+    }
+
+    /**
+     * Checks if the given Collection exists
+     * 
+     * @param collection the name Collection
+     * @param transKey the transaction key
+     * @return true of Collection exists false otherwise
+     * @throws ObjectNotFoundException if Item does not have any Collections at all
+     */
+    public boolean checkCollection(String collection, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkContent(ClusterType.COLLECTION, collection, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -409,12 +442,12 @@ public class ItemProxy
      * side Script to find uncommitted changes during the active transaction.
      *
      * @param collection The built-in collection
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Collection object
      * @throws ObjectNotFoundException objects were not found
      */
-    public Collection<?> getCollection(BuiltInCollections collection, Object locker) throws ObjectNotFoundException {
-        return getCollection(collection, (Integer)null, locker == null ? transactionKey : locker);
+    public Collection<?> getCollection(BuiltInCollections collection, TransactionKey transKey) throws ObjectNotFoundException {
+        return getCollection(collection, (Integer)null, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -434,12 +467,12 @@ public class ItemProxy
      *
      * @param collection The built-in Collection
      * @param version The collection number. Use null to get the 'last' version.
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Collection object
      * @throws ObjectNotFoundException objects were not found
      */
-    public Collection<?> getCollection(BuiltInCollections collection, Integer version, Object locker) throws ObjectNotFoundException {
-        return getCollection(collection.getName(), version, locker == null ? transactionKey : locker);
+    public Collection<?> getCollection(BuiltInCollections collection, Integer version, TransactionKey transKey) throws ObjectNotFoundException {
+        return getCollection(collection.getName(), version, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -458,12 +491,12 @@ public class ItemProxy
      * side Script to find uncommitted changes during the active transaction.
      *
      * @param collName The collection name
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Collection object
      * @throws ObjectNotFoundException objects were not found
      */
-    public Collection<?> getCollection(String collName, Object locker) throws ObjectNotFoundException {
-        return getCollection(collName, (Integer)null, locker == null ? transactionKey : locker);
+    public Collection<?> getCollection(String collName, TransactionKey transKey) throws ObjectNotFoundException {
+        return getCollection(collName, (Integer)null, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -484,13 +517,13 @@ public class ItemProxy
      *
      * @param collName The collection name
      * @param version The collection number. Use null to get the 'last' version.
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Collection object
      * @throws ObjectNotFoundException objects were not found
      */
-    public Collection<?> getCollection(String collName, Integer version, Object locker) throws ObjectNotFoundException {
+    public Collection<?> getCollection(String collName, Integer version, TransactionKey transKey) throws ObjectNotFoundException {
         String verStr = version == null ? "last" : String.valueOf(version);
-        return (Collection<?>) getObject(ClusterType.COLLECTION+"/"+collName+"/"+verStr, locker == null ? transactionKey : locker);
+        return (Collection<?>) getObject(ClusterType.COLLECTION+"/"+collName+"/"+verStr, transKey == null ? transactionKey : transKey);
     }
 
     /** 
@@ -507,12 +540,12 @@ public class ItemProxy
      * Gets the Workflow object of this Item. This method can be used in server 
      * side Script to find uncommitted changes during the active transaction.
      *
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Item's Workflow object
      * @throws ObjectNotFoundException objects were not found
      */
-    public Workflow getWorkflow(Object locker) throws ObjectNotFoundException {
-        return (Workflow)getObject(ClusterType.LIFECYCLE+"/workflow", locker == null ? transactionKey : locker);
+    public Workflow getWorkflow(TransactionKey transKey) throws ObjectNotFoundException {
+        return (Workflow)getObject(ClusterType.LIFECYCLE+"/workflow", transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -533,12 +566,12 @@ public class ItemProxy
      *
      * @param schemaName the name of the Schema associated with the Viewpoint
      * @param viewName the name of the View
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return true if the ViewPoint exist false otherwise
      * @throws ObjectNotFoundException Object not found
      */
-    public boolean checkViewpoint(String schemaName, String viewName, Object locker) throws ObjectNotFoundException {
-        return checkContent(ClusterType.VIEWPOINT+"/"+schemaName, viewName, locker == null ? transactionKey : locker);
+    public boolean checkViewpoint(String schemaName, String viewName, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkContent(ClusterType.VIEWPOINT+"/"+schemaName, viewName, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -557,12 +590,12 @@ public class ItemProxy
      * side Script to find uncommitted changes during the active transaction.
      * 
      * @param schemaName the name of the schema
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return array of strings containing the Viewpoint names
      * @throws ObjectNotFoundException Object not found
      */
-    public String[] getViewpoints(String schemaName, Object locker) throws ObjectNotFoundException {
-        return getContents(ClusterType.VIEWPOINT+"/"+schemaName, locker == null ? transactionKey : locker);
+    public String[] getViewpoints(String schemaName, TransactionKey transKey) throws ObjectNotFoundException {
+        return getContents(ClusterType.VIEWPOINT+"/"+schemaName, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -583,12 +616,12 @@ public class ItemProxy
      * 
      * @param schemaName the name of the Schema associated with the Viewpoint
      * @param viewName name if the View
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return a Viewpoint object
      * @throws ObjectNotFoundException objects were not found
      */
-    public Viewpoint getViewpoint(String schemaName, String viewName, Object locker) throws ObjectNotFoundException {
-        return (Viewpoint)getObject(ClusterType.VIEWPOINT+"/"+schemaName+"/"+viewName, locker == null ? transactionKey : locker);
+    public Viewpoint getViewpoint(String schemaName, String viewName, TransactionKey transKey) throws ObjectNotFoundException {
+        return (Viewpoint)getObject(ClusterType.VIEWPOINT+"/"+schemaName+"/"+viewName, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -611,13 +644,14 @@ public class ItemProxy
      * @param schemaName the name of the Schema used to create the Outcome
      * @param schemaVersion the version of the Schema used to create the Outcome
      * @param eventId the id of the Event created when the Outcome was stored
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return true if the Outcome exist false otherwise
      * @throws ObjectNotFoundException Object not found
      */
-    public boolean checkOutcome(String schemaName, int schemaVersion, int eventId, Object locker) throws ObjectNotFoundException {
+    public boolean checkOutcome(String schemaName, int schemaVersion, int eventId, TransactionKey transKey) throws ObjectNotFoundException {
         try {
-            return checkOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, locker == null ? transactionKey : locker);
+            TransactionKey tk = transKey == null ? transactionKey : transKey;
+            return checkOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion, tk), eventId, tk);
         }
         catch (InvalidDataException e) {
             log.error("Schema was not found:{}", schemaName, e);
@@ -643,12 +677,12 @@ public class ItemProxy
      * 
      * @param schema the Schema used to create the Outcome
      * @param eventId the id of the Event created when the Outcome was stored
-     * @param locker transaction key
+     * @param transKey transaction key
      * @return true if the Outcome exist false otherwise
      * @throws ObjectNotFoundException Object not found
      */
-    public boolean checkOutcome(Schema schema, int eventId, Object locker) throws ObjectNotFoundException {
-        return checkContent(ClusterType.OUTCOME+"/"+schema.getName()+"/"+schema.getVersion(), String.valueOf(eventId), locker == null ? transactionKey : locker);
+    public boolean checkOutcome(Schema schema, int eventId, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkContent(ClusterType.OUTCOME+"/"+schema.getName()+"/"+schema.getVersion(), String.valueOf(eventId), transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -672,13 +706,14 @@ public class ItemProxy
      * @param schemaName the name of the Schema of the Outcome
      * @param schemaVersion the version of the Schema of the Outcome
      * @param eventId the event id
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Outcome object
      * @throws ObjectNotFoundException object was not found
      */
-    public Outcome getOutcome(String schemaName, int schemaVersion, int eventId, Object locker) throws ObjectNotFoundException {
+    public Outcome getOutcome(String schemaName, int schemaVersion, int eventId, TransactionKey transKey) throws ObjectNotFoundException {
         try {
-            return getOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, locker == null ? transactionKey : locker);
+            TransactionKey tk = transKey == null ? transactionKey : transKey;
+            return getOutcome(LocalObjectLoader.getSchema(schemaName, schemaVersion, tk), eventId, tk);
         }
         catch (InvalidDataException e) {
             log.error("Schema was not found:{}", schemaName, e);
@@ -704,12 +739,12 @@ public class ItemProxy
      *
      * @param schema the Schema used to create the Outcome
      * @param eventId the id of the Event created when the Outcome was stored
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Outcome object
      * @throws ObjectNotFoundException object was not found
      */
-    public Outcome getOutcome(Schema schema, int eventId, Object locker) throws ObjectNotFoundException {
-        return (Outcome)getObject(ClusterType.OUTCOME+"/"+schema.getName()+"/"+schema.getVersion()+"/"+eventId, locker == null ? transactionKey : locker);
+    public Outcome getOutcome(Schema schema, int eventId, TransactionKey transKey) throws ObjectNotFoundException {
+        return (Outcome)getObject(ClusterType.OUTCOME+"/"+schema.getName()+"/"+schema.getVersion()+"/"+eventId, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -728,13 +763,13 @@ public class ItemProxy
      * during the active transaction.
      *
      * @param view the Viewpoint to be used
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Outcome object
      * @throws ObjectNotFoundException object was not found
      */
-    public Outcome getOutcome(Viewpoint view, Object locker) throws ObjectNotFoundException {
+    public Outcome getOutcome(Viewpoint view, TransactionKey transKey) throws ObjectNotFoundException {
         try {
-            return view.getOutcome(locker == null ? transactionKey : locker);
+            return view.getOutcome(transKey == null ? transactionKey : transKey);
         }
         catch (PersistencyException e) {
             log.error("Could not retrieve outcome for view:{}", view, e);
@@ -758,12 +793,12 @@ public class ItemProxy
      * during the active transaction.
      * 
      * @param event the Event to be used
-     * @param locker  the transaction key
+     * @param transKey  the transaction key
      * @return the Outcome object
      * @throws ObjectNotFoundException object was not found
      */
-    public Outcome getOutcome(Event event, Object locker) throws ObjectNotFoundException {
-        return getOutcome(event.getSchemaName(), event.getSchemaVersion(), event.getID(), locker);
+    public Outcome getOutcome(Event event, TransactionKey transKey) throws ObjectNotFoundException {
+        return getOutcome(event.getSchemaName(), event.getSchemaVersion(), event.getID(), transKey);
     }
 
     /**
@@ -784,12 +819,12 @@ public class ItemProxy
      *
      * @param schema the Schema used to create the Outcome and its OutcomeAttachment
      * @param eventId the id of the Event created when the Outcome and its OutcomeAttachment was stored
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return true if the OutcomeAttachment exist false otherwise
      * @throws ObjectNotFoundException Object not found
      */
-    public boolean checkOutcomeAttachment(Schema schema, int eventId, Object locker) throws ObjectNotFoundException {
-        return checkContent(ClusterType.ATTACHMENT+"/"+schema.getName()+"/"+schema.getVersion(), String.valueOf(eventId), locker == null ? transactionKey : locker);
+    public boolean checkOutcomeAttachment(Schema schema, int eventId, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkContent(ClusterType.ATTACHMENT+"/"+schema.getName()+"/"+schema.getVersion(), String.valueOf(eventId), transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -812,15 +847,16 @@ public class ItemProxy
      * @param schemaName the name of the Schema used to create the Outcome and its OutcomeAttachment
      * @param schemaVersion the version of the Schema of the Outcome
      * @param eventId the event id
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Outcome object
      * @throws ObjectNotFoundException object was not found
      */
-    public OutcomeAttachment getOutcomeAttachment(String schemaName, int schemaVersion, int eventId, Object locker)
+    public OutcomeAttachment getOutcomeAttachment(String schemaName, int schemaVersion, int eventId, TransactionKey transKey)
             throws ObjectNotFoundException
     {
         try {
-            return getOutcomeAttachment(LocalObjectLoader.getSchema(schemaName, schemaVersion), eventId, locker == null ? transactionKey : locker);
+            TransactionKey tk = transKey == null ? transactionKey : transKey;
+            return getOutcomeAttachment(LocalObjectLoader.getSchema(schemaName, schemaVersion, tk), eventId, tk);
         }
         catch (InvalidDataException e) {
             log.error("Could not retrieve attachment for schema:{}", schemaName, e);
@@ -846,12 +882,12 @@ public class ItemProxy
      *
      * @param schema the Schema used to create the Outcome and its OutcomeAttachment
      * @param eventId the id of the Event created when the Outcome and the OutcomeAttachment was stored
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Outcome object
      * @throws ObjectNotFoundException object was not found
      */
-    public OutcomeAttachment getOutcomeAttachment(Schema schema, int eventId, Object locker) throws ObjectNotFoundException {
-        return (OutcomeAttachment)getObject(ClusterType.ATTACHMENT+"/"+schema.getName()+"/"+schema.getVersion()+"/"+eventId, locker == null ? transactionKey : locker);
+    public OutcomeAttachment getOutcomeAttachment(Schema schema, int eventId, TransactionKey transKey) throws ObjectNotFoundException {
+        return (OutcomeAttachment)getObject(ClusterType.ATTACHMENT+"/"+schema.getName()+"/"+schema.getVersion()+"/"+eventId, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -864,7 +900,7 @@ public class ItemProxy
      * @throws ObjectNotFoundException objects were not found
      * @throws PersistencyException Error loading the relevant objects
      */
-    public Job getJobByName(String actName, AgentProxy agent) throws AccessRightsException, ObjectNotFoundException,PersistencyException {
+    public Job getJobByName(String actName, AgentProxy agent) throws CriseVertxException {
         return getJobByName(actName, agent.getPath());
     }
 
@@ -879,7 +915,7 @@ public class ItemProxy
      * @throws ObjectNotFoundException objects were not found
      * @throws PersistencyException Error loading the relevant objects
      */
-    public Job getJobByTransitionName(String actName, String transName, AgentProxy agent) throws AccessRightsException, ObjectNotFoundException,PersistencyException {
+    public Job getJobByTransitionName(String actName, String transName, AgentProxy agent) throws CriseVertxException {
         return getJobByTransitionName(actName, transName, agent.getPath());
     }
 
@@ -894,25 +930,14 @@ public class ItemProxy
      * @throws ObjectNotFoundException objects were not found
      * @throws PersistencyException Error loading the relevant objects
      */
-    public Job getJobByTransitionName(String actName, String transName, AgentPath agentPath) throws AccessRightsException, ObjectNotFoundException,PersistencyException {
-        for (Job job : getJobList(agentPath, true)) {
+    public Job getJobByTransitionName(String actName, String transName, AgentPath agentPath) throws CriseVertxException {
+        for (Job job : getJobsForAgent(agentPath)) {
             if (job.getTransition().getName().equals(transName)) {
                 if ((actName.contains("/") && job.getStepPath().equals(actName)) || job.getStepName().equals(actName))
                     return job;
             }
         }
         return null;
-    }
-
-    /**
-     * If this is reaped, clear out the cache for it too.
-     */
-    @Override
-    protected void finalize() throws Throwable {
-        log.debug("finalize() - caches are reaped for item:{}", mItemPath);
-        Gateway.getStorage().clearCache(mItemPath, null);
-        Gateway.getProxyManager().removeProxy(mItemPath);
-        super.finalize();
     }
 
     /**
@@ -930,18 +955,18 @@ public class ItemProxy
      * Query data of the Item located by the ClusterStorage path
      *
      * @param path the ClusterStorage path
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the data in XML form
      * @throws ObjectNotFoundException path was not correct
      */
-    public String queryData(String path, Object locker) throws ObjectNotFoundException {
+    public String queryData(String path, TransactionKey transKey) throws ObjectNotFoundException {
+        log.debug("queryData() - {}/{}", mItemPath, path);
+
         try {
-            log.debug("queryData() - {}/{}", mItemPath, path);
-
             if (path.endsWith("all")) {
-                log.debug("queryData() - listing contents");
+                log.trace("queryData() - listing contents");
 
-                String[] result = Gateway.getStorage().getClusterContents(mItemPath, path.substring(0, path.length()-3));
+                String[] result = Gateway.getStorage().getClusterContents(mItemPath, path.substring(0, path.length()-3), transKey == null ? transactionKey : transKey);
                 StringBuffer retString = new StringBuffer();
 
                 for (int i = 0; i < result.length; i++) {
@@ -949,18 +974,18 @@ public class ItemProxy
 
                     if (i < result.length-1) retString.append(",");
                 }
-                log.debug("queryData() - {}", retString);
+                log.trace("queryData() - retString:{}", retString);
                 return retString.toString();
             }
             else {
-                C2KLocalObject target = Gateway.getStorage().get(mItemPath, path, locker == null ? transactionKey : locker);
+                C2KLocalObject target = Gateway.getStorage().get(mItemPath, path, transKey == null ? transactionKey : transKey);
                 return Gateway.getMarshaller().marshall(target);
             }
         }
         catch (ObjectNotFoundException e) {
             throw e;
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             log.error("queryData() - could not read data for path:{}/{}", mItemPath, path, e);
             return "<ERROR>"+e.getMessage()+"</ERROR>";
         }
@@ -991,17 +1016,34 @@ public class ItemProxy
     }
 
     /**
-     * Check if the data of the Item located by the ClusterStorage path is exist. This method can be used
-     * in server side Script to find uncommitted changes during the active transaction.
+     * Check the root content of the given ClusterType
      *
      * @param cluster the type of the cluster
      * @param name the name of the content to be checked
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return true if there is content false otherwise
      * @throws ObjectNotFoundException path was not correct
      */
-    public boolean checkContent(String path, String name, Object locker) throws ObjectNotFoundException {
-        for (String key : getContents(path, locker == null ? transactionKey : locker)) if (key.equals(name)) return true;
+    public boolean checkContent(ClusterType cluster, String name, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkContent(cluster.getName(), name, transKey);
+    }
+
+    /**
+     * Check if the data of the Item located by the ClusterStorage path is exist. This method can be used
+     * in server side Script to find uncommitted changes during the active transaction.
+     *
+     * @param path the type of the cluster
+     * @param name the name of the content to be checked
+     * @param transKey the transaction key
+     * @return true if there is content false otherwise
+     * @throws ObjectNotFoundException path was not correct
+     */
+    public boolean checkContent(String path, String name, TransactionKey transKey) throws ObjectNotFoundException {
+        String[] contents = getContents(path, transKey == null ? transactionKey : transKey);
+
+        for (String key : contents) {
+            if (key.equals(name)) return true;
+        }
         return false;
     }
 
@@ -1021,12 +1063,12 @@ public class ItemProxy
      * to find uncommitted changes during the active transaction.
      *
      * @param type the type of the cluster
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return list of String of the cluster content
      * @throws ObjectNotFoundException Object nt found
      */
-    public String[] getContents(ClusterType type, Object locker) throws ObjectNotFoundException {
-        return getContents(type.getName(), locker == null ? transactionKey : locker);
+    public String[] getContents(ClusterType type, TransactionKey transKey) throws ObjectNotFoundException {
+        return getContents(type.getName(), transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -1045,14 +1087,13 @@ public class ItemProxy
      * to find uncommitted changes during the active transaction.
      *
      * @param path the ClusterStorage path
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return list of String of the cluster content
      * @throws ObjectNotFoundException Object not found
      */
-    public String[] getContents(String path, Object locker) throws ObjectNotFoundException {
+    public String[] getContents(String path, TransactionKey transKey) throws ObjectNotFoundException {
         try {
-            //return Gateway.getStorage().getClusterContents(mItemPath, path);
-            return Gateway.getStorage().getClusterContents(mItemPath, path, locker == null ? transactionKey : locker);
+            return Gateway.getStorage().getClusterContents(mItemPath, path, transKey == null ? transactionKey : transKey);
         }
         catch (PersistencyException e) {
             throw new ObjectNotFoundException(e.toString());
@@ -1078,7 +1119,20 @@ public class ItemProxy
      * @throws ObjectNotFoundException the type did not result in a C2KLocalObject
      */
     public C2KLocalObject getObject(ClusterType type) throws ObjectNotFoundException {
-        return getObject(type.getName());
+        return getObject(type.getName(), transactionKey);
+    }
+
+    /**
+     * Retrieve the C2KLocalObject for the ClusterType. Actually it returns an instance of C2KLocalObjectMap
+     *
+     * @param type the ClusterTyoe
+     * @return the C2KLocalObjectMap representing all the Object in the ClusterType
+     * @throws ObjectNotFoundException the type did not result in a C2KLocalObject
+     */
+    public C2KLocalObject getObject(ClusterType type, TransactionKey transKey) throws ObjectNotFoundException {
+        C2KLocalObjectMap<?> c2kObjMap = (C2KLocalObjectMap<?>) getObject(type.getName(), transKey);
+        c2kObjMap.setTransactionKey(transKey);
+        return c2kObjMap;
     }
 
     /**
@@ -1097,13 +1151,13 @@ public class ItemProxy
      * during the active transaction.
      * 
      * @param path the path to the cluster object
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the C2KLocalObject
      * @throws ObjectNotFoundException the path did not result in a C2KLocalObject
      */
-    public C2KLocalObject getObject(String path, Object locker) throws ObjectNotFoundException {
+    public C2KLocalObject getObject(String path, TransactionKey transKey) throws ObjectNotFoundException {
         try {
-            return Gateway.getStorage().get(mItemPath, path , locker == null ? transactionKey : locker);
+            return Gateway.getStorage().get(mItemPath, path , transKey == null ? transactionKey : transKey);
         }
         catch( PersistencyException ex ) {
             log.error("getObject() - Exception loading object:{}/{}", mItemPath, path, ex);
@@ -1130,7 +1184,20 @@ public class ItemProxy
      * @return the value or the defaultValue
      */
     public String getProperty(BuiltInItemProperties prop, String defaultValue) {
-        return getProperty(prop.getName(), defaultValue);
+        return getProperty(prop, defaultValue, transactionKey);
+    }
+
+    /**
+     * Retrieves the values of a BuiltInItemProperty or returns the defaulValue if no Property was found.
+     * This method can be used in server side Script to find uncommitted changes during the active transaction.
+     * 
+     * @param prop one of the Built-In Item Property
+     * @param defaultValue the value to be used if no Property was found
+     * @param transKey the transaction key
+     * @return the value or the defaultValue
+     */
+    public String getProperty(BuiltInItemProperties prop, String defaultValue, TransactionKey transKey) {
+        return getProperty(prop.getName(), defaultValue, transKey);
     }
 
     /**
@@ -1150,17 +1217,17 @@ public class ItemProxy
      *
      * @param name of the Item Property
      * @param defaultValue the value to be used if no Property was found
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the value of the property
      */
-    public String getProperty(String name, String defaultValue, Object locker) {
+    public String getProperty(String name, String defaultValue, TransactionKey transKey) {
         try {
-            if (checkContent(ClusterType.PROPERTY.getName(), name, locker == null ? transactionKey : locker)) {
-                return getProperty(name, locker == null ? transactionKey : locker);
+            if (checkProperty(name, transKey)) {
+                return getProperty(name, transKey);
             }
         }
         catch(ObjectNotFoundException e) {
-            //This line should never happen because of the use of checkContent()
+            //This line should never happen because of the use of checkProperty()
         }
 
         return defaultValue;
@@ -1174,23 +1241,45 @@ public class ItemProxy
      * @throws ObjectNotFoundException property was not found
      */
     public String getProperty( String name ) throws ObjectNotFoundException {
-        return getProperty(name, (Object)null);
+        return getProperty(name, (TransactionKey)null);
     }
 
     /**
      * 
      * @param name
-     * @param locker
+     * @param transKey
      * @return
      * @throws ObjectNotFoundException
      */
-    public String getProperty(String name, Object locker) throws ObjectNotFoundException {
-        log.debug("getProperty() - {} from item {}", name, mItemPath);
-
-        Property prop = (Property)getObject(ClusterType.PROPERTY+"/"+name, locker == null ? transactionKey : locker);
+    public String getProperty(String name, TransactionKey transKey) throws ObjectNotFoundException {
+        Property prop = (Property)getObject(ClusterType.PROPERTY+"/"+name, transKey == null ? transactionKey : transKey);
 
         if(prop != null) return prop.getValue();
         else             throw new ObjectNotFoundException("COULD not find property "+name+" from item "+mItemPath);
+    }
+
+    /**
+     * Check if the given built-in Property exists
+     * 
+     * @param prop the built-in Property
+     * @return true if the Property exist false otherwise
+     * @throws ObjectNotFoundException Item does not have any properties at all
+     */
+    public boolean checkProperty(BuiltInItemProperties prop) throws ObjectNotFoundException {
+        return checkProperty(prop, transactionKey);
+    }
+
+    /**
+     * Check if the given built-in Property exists. This method can be used in server 
+     * side Script to find uncommitted changes during the active transaction.
+     * 
+     * @param prop the built-in Property
+     * @param transKey the transaction key
+     * @return true if the Property exist false otherwise
+     * @throws ObjectNotFoundException Item does not have any properties at all
+     */
+    public boolean checkProperty(BuiltInItemProperties prop, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkProperty(prop.getName(), transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -1209,12 +1298,12 @@ public class ItemProxy
      * side Script to find uncommitted changes during the active transaction.
      * 
      * @param name of the Property
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return true if the Property exist false otherwise
      * @throws ObjectNotFoundException Item does not have any properties at all
      */
-    public boolean checkProperty(String name, Object locker) throws ObjectNotFoundException {
-        return checkContent(ClusterType.PROPERTY.getName(), name, locker == null ? transactionKey : locker);
+    public boolean checkProperty(String name, TransactionKey transKey) throws ObjectNotFoundException {
+        return checkContent(ClusterType.PROPERTY.getName(), name, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -1223,7 +1312,18 @@ public class ItemProxy
      * @return the name of the Item or null if no Name Property exists
      */
     public String getName() {
-        return getProperty(NAME, (String)null);
+        return getName(transactionKey);
+    }
+
+    /**
+     * Get the name of the Item from its Property called Name. This method can be used in server 
+     * side Script to find uncommitted changes during the active transaction.
+     * 
+     * @param transKey the transaction key
+     * @return the name of the Item or null if no Name Property exists
+     */
+    public String getName(TransactionKey transKey) {
+        return getProperty(NAME, (String)null, transKey == null ? transactionKey : transKey);
     }
 
     /**
@@ -1232,7 +1332,18 @@ public class ItemProxy
      * @return the type of the Item or null if no Type Property exists
      */
     public String getType() {
-        return getProperty(TYPE, (String)null);
+        return getType(transactionKey);
+    }
+
+    /**
+     * Get the type of the Item from its Property called Type. This method can be used in server 
+     * side Script to find uncommitted changes during the active transaction.
+     *
+     * @param transKey the transaction key
+     * @return the type of the Item or null if no Type Property exists
+     */
+    public String getType(TransactionKey transKey) {
+        return getProperty(TYPE, (String)null, transKey);
     }
 
     /**
@@ -1251,12 +1362,85 @@ public class ItemProxy
      * during the active transaction.
      * 
      * @param eventId the id of the Event
-     * @param locker the transaction key
+     * @param transKey the transaction key
      * @return the Event object
      * @throws ObjectNotFoundException there is no event for the given id
      */
-    public Event getEvent(int eventId, Object locker) throws ObjectNotFoundException {
-        return (Event) getObject(HISTORY + "/" + eventId, locker == null ? transactionKey : locker);
+    public Event getEvent(int eventId, TransactionKey transKey) throws ObjectNotFoundException {
+        return (Event) getObject(HISTORY + "/" + eventId, transKey == null ? transactionKey : transKey);
+    }
+
+    /**
+     * Retrieves the History of the item.
+     * 
+     * @return the History object
+     * @throws ObjectNotFoundException there is no event for the given id
+     */
+    public History getHistory() throws ObjectNotFoundException {
+        return getHistory(null);
+    }
+
+    /**
+     * Retrieves the History of the item. This method can be used in server side Script to find uncommitted changes
+     * during the active transaction.
+     * 
+     * @param transKey the transaction key
+     * @return the History object
+     * @throws ObjectNotFoundException there is no event for the given id
+     */
+    public History getHistory(TransactionKey transKey) throws ObjectNotFoundException {
+        return (History) getObject(HISTORY, transKey == null ? transactionKey : transKey);
+    }
+
+    /**
+     * Retrieves single persistent Job.
+     * 
+     * @param id of the persistent Job
+     * @return persistent Job of the Item
+     * @throws ObjectNotFoundException there is no persistent Job for the given id
+     */
+    public Job getJob(String id) throws ObjectNotFoundException {
+        return getJob(id, null);
+    }
+
+    /**
+     * Retrieves single persistent Job. This method can be used in server side Script 
+     * to find uncommitted changes during the active transaction.
+     * 
+     * @param id of the Job
+     * @param transKey the transaction key
+     * @return persistent Job of the Item
+     * @throws ObjectNotFoundException there is no Job for the given id
+     */
+    public Job getJob(String id, TransactionKey transKey) throws ObjectNotFoundException {
+        return (Job) getObject(JOB+"/"+id, transKey == null ? transactionKey : transKey);
+    }
+
+    /**
+     * Retrieves the complete list of Jobs of the Item.
+     * 
+     * @return C2KLocalObjectMap of Jobs
+     */
+    public C2KLocalObjectMap<Job> getJobs() {
+        return getJobs((TransactionKey)null);
+    }
+
+    /**
+     * Retrieves the complete list of Jobs of the Item. This method can be used in server side Script 
+     * to find uncommitted changes during the active transaction.
+     * 
+     * @param transKey the transaction key
+     * @return C2KLocalObjectMap of Jobs
+     */
+    @SuppressWarnings("unchecked")
+    public C2KLocalObjectMap<Job> getJobs(TransactionKey transKey) {
+        try {
+            return (C2KLocalObjectMap<Job>) getObject(JOB, transKey == null ? transactionKey : transKey);
+        }
+        catch (ObjectNotFoundException e) {
+            //This case should never happen
+            return new C2KLocalObjectMap<Job>(mItemPath, JOB, transactionKey);
+        }
     }
 
     /**
@@ -1290,7 +1474,7 @@ public class ItemProxy
 
         if (schemaVersion == null) {
             if (StringUtils.isBlank(masterSchemaUrn)) {
-                if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+                if (Module_Versioning_strict.getBoolean()) {
                     throw new InvalidDataException("Version for Schema '" + schemaName + "' cannot be null");
                 }
                 else {
@@ -1303,15 +1487,47 @@ public class ItemProxy
             }
         }
 
+        return LocalObjectLoader.getSchema(schemaName, schemaVersion, transactionKey);
+    }
+
+    /**
+     * Returns the so called UpdateSchema which is used while creating new Items. It can be either 
+     * the "constructor" Schema retrieved from the 'SchemaInitialise' dependency 
+     * or the Schema used by the Update Activity
+     * 
+     * @return schema
+     * @throws InvalidDataException the Schema could not be constructed
+     * @throws ObjectNotFoundException no Schema was found
+     */
+    public Schema getUpdateSchema() throws ObjectNotFoundException, InvalidDataException {
+        String schemaName = null;
+        Integer schemaVersion = null;
+
+        if (checkCollection(SCHEMA_INITIALISE)) {
+            Collection<?> initSchemaCollection = getCollection(SCHEMA_INITIALISE);
+            DependencyMember member = (DependencyMember) initSchemaCollection.getMembers().list.get(0);
+
+            schemaName = member.getChildUUID();
+            Object initSchemaVersion = member.getProperties().getBuiltInProperty(VERSION);
+
+            if (initSchemaVersion instanceof String) schemaVersion = Integer.parseInt((String)initSchemaVersion);
+            else                                     schemaVersion = (Integer)initSchemaVersion;
+        }
+        else {
+            String[] nameAndVersion = getProperty(UPDATE_SCHEMA).split(":");
+            schemaName = nameAndVersion[0];
+            schemaVersion = Integer.parseInt(nameAndVersion[1]);
+        }
+
         return LocalObjectLoader.getSchema(schemaName, schemaVersion);
     }
 
     /**
      * Returns the so called Aggregate Script which can be used to construct master outcome.
      * 
-     * @return the script or null
-     * @throws InvalidDataException 
-     * @throws ObjectNotFoundException 
+     * @return the script
+     * @throws InvalidDataException something was wrong with the provided data
+     * @throws ObjectNotFoundException no Script can be found
      */
     public Script getAggregateScript() throws InvalidDataException, ObjectNotFoundException {
         return getAggregateScript(null, null);
@@ -1337,7 +1553,7 @@ public class ItemProxy
 
         if (scriptVersion == null) {
             if (StringUtils.isBlank(aggregateScriptUrn)) {
-                if (Gateway.getProperties().getBoolean("Module.Versioning.strict", false)) {
+                if (Module_Versioning_strict.getBoolean()) {
                     throw new InvalidDataException("Version for Script '" + scriptName + "' cannot be null");
                 }
                 else {
@@ -1350,67 +1566,21 @@ public class ItemProxy
             }
         }
 
-        return LocalObjectLoader.getScript(scriptName, scriptVersion);
+        return LocalObjectLoader.getScript(scriptName, scriptVersion, transactionKey);
     }
 
-    //**************************************************************************
-    // Subscription methods
-    //**************************************************************************/
-
-
-    public void subscribe(MemberSubscription<?> newSub) {
-        newSub.setSubject(this);
-        synchronized (this){
-            mSubscriptions.put( newSub, newSub.getObserver() );
-        }
-        new Thread(newSub).start();
-        log.debug("subscribe() - {} for {}", newSub.getObserver().getClass().getName(), newSub.interest);
+    public String marshall(Object obj) throws Exception {
+        return Gateway.getMarshaller().marshall(obj);
     }
 
-    public void unsubscribe(ProxyObserver<?> observer) {
-        synchronized (this){
-            for (Iterator<MemberSubscription<?>> e = mSubscriptions.keySet().iterator(); e.hasNext();) {
-                MemberSubscription<?> thisSub = e.next();
-                if (mSubscriptions.get( thisSub ) == observer) {
-                    e.remove();
-                    log.debug("unsubscribed() - {}", observer.getClass().getName());
-                }
-            }
-        }
+    public Object unmarshall(String obj) throws Exception {
+        return Gateway.getMarshaller().unmarshall(obj);
     }
 
-    public void dumpSubscriptions(int logLevel) {
-        log.debug("Subscriptions to proxy {}", mItemPath);
-
-        synchronized(this) {
-            for (MemberSubscription<?> element : mSubscriptions.keySet()) {
-                ProxyObserver<?> obs = element.getObserver();
-
-                if (obs != null) log.debug("    {} subscribed to {}", element.getObserver().getClass().getName(), element.interest);
-                else             log.debug("    Phantom subscription to {}", element.interest);
-            }
-        }
+    public void clearCache() {
+        Gateway.getStorage().clearCache(mItemPath);
     }
 
-    public void notify(ProxyMessage message) {
-        log.trace("Received change notification for {} on {}", message.getPath(), mItemPath);
-
-        synchronized (this){
-            if (Gateway.getProxyServer() == null || !message.getServer().equals(Gateway.getProxyServer().getServerName())) {
-                Gateway.getStorage().clearCache(mItemPath, message.getPath());
-            }
-            for (Iterator<MemberSubscription<?>> e = mSubscriptions.keySet().iterator(); e.hasNext();) {
-                MemberSubscription<?> newSub = e.next();
-                if (newSub.getObserver() == null) { // phantom
-                    log.trace("removing phantom subscription to {}", newSub.interest);
-                    e.remove();
-                }
-                else
-                    newSub.update(message.getPath(), message.isState());
-            }
-        }
-    }
-    
     @Override
     public String toString() {
         if (log.isTraceEnabled()) {

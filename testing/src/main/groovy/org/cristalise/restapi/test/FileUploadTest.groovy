@@ -7,7 +7,7 @@ import io.restassured.specification.RequestSpecification
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.process.Gateway
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
@@ -59,9 +59,11 @@ class FileUploadTest extends RestapiTestBase {
         }
 
         def wf = CompositeActivityDef("EmployeeWorkflow-$timeStamp", folder) {
-            ElemActDef('UpdateProfile',  ea0)
-            ElemActDef('UpdateContract', ea1)
-            ElemActDef('UpdateListOfPublications', ea2)
+            Layout {
+                ElemActDef('UpdateProfile',  ea0)
+                ElemActDef('UpdateContract', ea1)
+                ElemActDef('UpdateListOfPublications', ea2)
+            }
         }
 
         def factory = DescriptionItem("EmployeeFactory-$timeStamp", folder) {

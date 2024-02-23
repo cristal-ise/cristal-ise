@@ -22,22 +22,23 @@
 
 -->
 <mapping>
-	<class name="org.cristalise.kernel.persistency.outcome.Viewpoint">
-		<map-to xml="Viewpoint"/>
-        <field name="mItemPath" type="string" direct="false" get-method="getItemUUID" set-method="setItemUUID">
-           <bind-xml name="ItemUUID" node="attribute"/>
-	    </field>
-		<field name="schemaName" type="string" direct="false" get-method="getSchemaName" set-method="setSchemaName">
-			<bind-xml name="SchemaName" node="attribute"/>
-		</field>
-		<field name="name" type="string" direct="false" get-method="getName" set-method="setName">
-			<bind-xml name="Name" node="attribute"/>
-		</field>
-		<field name="schemaVersion" type="integer" direct="false" get-method="getSchemaVersion" set-method="setSchemaVersion">
-			<bind-xml name="SchemaVersion" node="attribute"/>
-		</field>
-		<field name="eventId" type="integer" direct="false" get-method="getEventId" set-method="setEventId">
-			<bind-xml name="Last" node="attribute"/>
-		</field>
-	</class>
+  <class name="org.cristalise.kernel.persistency.outcome.Viewpoint">
+    <map-to xml="Viewpoint" />
+    <field name="mItemPath" type="string" direct="false" get-method="getItemUUID" set-method="setItemUUID">
+      <bind-xml name="ItemUUID" node="attribute" />
+    </field>
+    <field name="schemaName" type="string" direct="false" get-method="getSchemaName" set-method="setSchemaName">
+      <bind-xml name="SchemaName" node="attribute" />
+    </field>
+    <field name="name" type="string" direct="false" get-method="getName" set-method="setName">
+      <bind-xml name="Name" node="attribute" />
+    </field>
+    <field name="schemaVersion" type="integer" direct="false" get-method="getSchemaVersion"
+      set-method="setSchemaVersion">
+      <bind-xml name="SchemaVersion" node="attribute" />
+    </field>
+    <field name="eventId" type="integer" direct="false" get-method="getEventId" set-method="setEventId">
+      <bind-xml name="Last" node="attribute" />
+    </field>
+  </class>
 </mapping>

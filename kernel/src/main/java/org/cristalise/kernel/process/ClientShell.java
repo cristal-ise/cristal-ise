@@ -27,7 +27,7 @@ import org.cristalise.kernel.process.auth.ProxyLogin;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptParsingException;
 
-
+@Deprecated
 public class ClientShell extends StandardClient {
 
     Script console;

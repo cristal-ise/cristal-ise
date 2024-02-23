@@ -49,7 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 @Accessors(prefix = "m") @Getter @Setter @Slf4j
 public class Event implements C2KLocalObject {
     ItemPath   mItemPath;
-    AgentPath  mAgentPath, mDelegatePath;
+    AgentPath  mAgentPath;
     int        mOriginState, mTransition, mTargetState;
     Integer    mID, mSchemaVersion, mStateMachineVersion;
     String     mName, mStepName, mStepPath, mStepType, mSchemaName, mStateMachineName, mViewName, mAgentRole;
@@ -60,10 +60,7 @@ public class Event implements C2KLocalObject {
      */
     GTimeStamp mTimeStamp;
 
-//TODO: add these fields to persitency
-//String mOriginStateName, mTransitionName, mTargetStateName;
-
-    public Event(ItemPath itemPath, AgentPath agentPath, AgentPath delegatePath, String agentRole,
+    public Event(ItemPath itemPath, AgentPath agentPath, String agentRole,
                  String stepName, String stepPath, String stepType, StateMachine stateMachine, int transitionId)
     {
         Transition transition = stateMachine.getTransition(transitionId);
@@ -71,7 +68,6 @@ public class Event implements C2KLocalObject {
 
         setItemPath(itemPath);
         setAgentPath(agentPath);
-        setDelegatePath(delegatePath);
         setAgentRole(agentRole);
         setStepName(stepName);
         setStepPath(stepPath);
@@ -84,7 +80,7 @@ public class Event implements C2KLocalObject {
         setTimeStamp(DateUtility.getNow());
     }
 
-    public Event(ItemPath itemPath, AgentPath agentPath, AgentPath delegatePath, String agentRole,
+    public Event(ItemPath itemPath, AgentPath agentPath, String agentRole,
                  String stepName, String stepPath, String stepType, StateMachine stateMachine, int transitionId, boolean hasAttachment)
     {   
         Transition transition = stateMachine.getTransition(transitionId);
@@ -92,7 +88,6 @@ public class Event implements C2KLocalObject {
 
         setItemPath(itemPath);
         setAgentPath(agentPath);
-        setDelegatePath(delegatePath);
         setAgentRole(agentRole);
         setStepName(stepName);
         setStepPath(stepPath);
@@ -109,7 +104,7 @@ public class Event implements C2KLocalObject {
     /**
      * Constructor for recreating object from backend
      */
-    public Event(Integer id, ItemPath itemPath, AgentPath agentPath, AgentPath delegatePath, String agentRole,
+    public Event(Integer id, ItemPath itemPath, AgentPath agentPath, String agentRole,
             String stepName, String stepPath, String stepType, 
             String smName, Integer smVersion, int transitionId, int originState, int targetState,
             String schemaName, Integer schemaVersion, String viewName, GTimeStamp ts)
@@ -117,7 +112,6 @@ public class Event implements C2KLocalObject {
         setID(id);
         setItemPath(itemPath);
         setAgentPath(agentPath);
-        setDelegatePath(delegatePath);
         setAgentRole(agentRole);
         setStepName(stepName);
         setStepPath(stepPath);
@@ -136,7 +130,7 @@ public class Event implements C2KLocalObject {
     /**
      * Constructor for recreating object from backend
      */
-    public Event(Integer id, ItemPath itemPath, AgentPath agentPath, AgentPath delegatePath, String agentRole,
+    public Event(Integer id, ItemPath itemPath, AgentPath agentPath, String agentRole,
             String stepName, String stepPath, String stepType, 
             String smName, Integer smVersion, int transitionId, int originState, int targetState,
             String schemaName, Integer schemaVersion, String viewName, boolean hasAttachment, GTimeStamp ts)
@@ -144,7 +138,6 @@ public class Event implements C2KLocalObject {
         setID(id);
         setItemPath(itemPath);
         setAgentPath(agentPath);
-        setDelegatePath(delegatePath);
         setAgentRole(agentRole);
         setStepName(stepName);
         setStepPath(stepPath);
@@ -176,31 +169,14 @@ public class Event implements C2KLocalObject {
         return getItemPath().getUUID().toString();
     }
 
-    public void setAgentUUID( String uuid ) throws InvalidItemPathException {
-        if (uuid == null || uuid.length() == 0) {
-            mAgentPath = null;
-        }
-        else if (uuid.contains(":")) {
-            String[] agentStr = uuid.split(":");
-           
-            if (agentStr.length!=2) throw new InvalidItemPathException();
-
-            setAgentPath(new AgentPath(agentStr[0]));
-            setDelegatePath(new AgentPath(agentStr[1]));
-        }
-        else
-            setAgentPath(new AgentPath(uuid));
+    public void setAgentUUID(String uuid) throws InvalidItemPathException {
+        if (uuid == null || uuid.length() == 0) mAgentPath = null;
+        else                                    setAgentPath(new AgentPath(uuid));
     }
 
     public String getAgentUUID() {
-        if (mAgentPath != null) {
-            if (mDelegatePath != null)
-                return getAgentPath().getUUID().toString()+":"+getDelegatePath().getUUID().toString();
-            else
-                return getAgentPath().getUUID().toString();
-        }
-        else
-            return null;
+        if (mAgentPath != null) return getAgentPath().getUUID().toString();
+        else                    return null;
     }
 
     @Override

@@ -1,0 +1,7 @@
+<Job RoleOverride="Admin" ItemUUID="fcecd4ad-40eb-421c-a648-edc1d74f339b" StepName="TestStep" StepPath="workflow/1" StepType=""
+  TransitionName="Done">
+  <ActProps>
+    <KeyValuePair Integer="0" Key="StateMachineVersion" isAbstract="false" />
+    <KeyValuePair Key="StateMachineName" String="Default" isAbstract="false" />
+  </ActProps>
+</Job>

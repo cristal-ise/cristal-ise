@@ -22,7 +22,7 @@ package org.cristalise.storage.jooqdb;
 
 import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
 import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.Arrays;
 
@@ -49,8 +49,6 @@ public class JooqCollectionTest extends StorageTestBase {
 
     @After
     public void after() throws Exception {
-        context.close();
-
         if (dbType == MYSQL || dbType == PostgreSQL) jooq.dropTables(context);
     }
 

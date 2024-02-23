@@ -1,78 +1,77 @@
-package org.cristalise.kernel.test.scenario;
+package org.cristalise.kernel.test.scenario
 
-import static org.junit.Assert.*
+import groovy.transform.CompileStatic
 
-import org.apache.commons.collections4.CollectionUtils
-import org.cristalise.kernel.entity.agent.Job
+import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.imports.ImportAgent
+import org.cristalise.kernel.entity.imports.ImportItem
 import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.instance.predefined.Erase
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ConfigureLogback
-import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
-import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
-import org.cristalise.kernel.lookup.DomainPath
+import org.cristalise.kernel.lifecycle.instance.predefined.server.RemoveRole
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
 import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.cristalise.kernel.utils.LocalObjectLoader
-import org.junit.Before
-import org.junit.Test
-
-import groovy.transform.CompileStatic
-
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.MethodOrderer
+import org.junit.jupiter.api.Order
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestMethodOrder
 
 /**
  * 
  */
 @CompileStatic
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
 
-    ItemProxy serverItem
-
-    @Before
-    public void before() {
-        super.before();
-
-        serverItem = agent.getItem("/domain/servers/localhost")
-        assert serverItem && serverItem.getName() == "localhost"
-    }
-
-    private RolePath createRole(String role) {
-        executeDoneJob(serverItem, "CreateNewRole", KernelXMLUtility.getRoleXML(name: role))
-        return Gateway.getLookup().getRolePath(role);
+    private RolePath createRole(String roleName) {
+        def role = new ImportRole()
+        role.name = roleName
+        role.jobList = false
+        executeDoneJob(serverItem, 'CreateNewRole', Gateway.marshaller.marshall(role))
+        return Gateway.getLookup().getRolePath(roleName);
     }
 
     private void removeRole(String role) {
         String[] params = [ role ];
-        agent.execute(serverItem, "RemoveRole", params);
+        agent.execute(serverItem, RemoveRole.class, params);
         assert ! Gateway.getLookup().exists(new RolePath(role, false));
     }
 
-    private AgentProxy createAgent(String name, String role) {
-        Job j = executeDoneJob(serverItem, "CreateNewAgent", KernelXMLUtility.getAgentXML(name: name, password: "test", Role: role))
-        return Gateway.getProxyManager().getAgentProxy( Gateway.getLookup().getAgentPath(name) )
+    private AgentProxy createAgent(String name, String roleName) {
+        def agent = new ImportAgent(name, 'test')
+        def role = new ImportRole()
+        role.name = roleName
+        agent.roles.add(role)
+        executeDoneJob(serverItem, 'CreateNewAgent', Gateway.marshaller.marshall(agent))
+        return Gateway.getAgentProxy( Gateway.getLookup().getAgentPath(name) )
     }
 
     private ItemProxy createItem(String name) {
-        Job j = executeDoneJob(serverItem, "CreateNewItem", KernelXMLUtility.getItemXML(name: name, type: 'Item', workflow: 'NoWorkflow', initialPath: '/domain/itemTest'))
-        return Gateway.getProxyManager().getProxy( Gateway.getLookup().resolvePath(new DomainPath("/domain/itemTest/$name")) )
+        def item = new ImportItem(name, '/domain/itemTest', null, 'NoWorkflow')
+        item.properties.add(new Property('Type', 'Item'))
+        Job j = executeDoneJob(serverItem, 'CreateNewItem', Gateway.marshaller.marshall(item))
+        return agent.getItem("/domain/itemTest/$name")
     }
 
-    @Test
-    public void 'CreateNewRole and RemoveRole predefined step of ServerItem'() {
+    @Test @Order(1)
+    public void 'CreateNewRole and RemoveRole predefined step'() {
         String role = "TestRole-$timeStamp"
         createRole(role)
         removeRole(role)
     }
 
-    @Test
-    public void 'CreateNewAgent with initialPath using predefined step of ServerItem'() {
-        String role = "TestRole-$timeStamp"
-        String name = "TestAgent-$timeStamp"
+    @Test @Order(1)
+    public void 'CreateNewAgentpredefined step with initialPath'() {
+        def role = "TestRole-$timeStamp"
+        def name = "TestAgent-$timeStamp"
+        def folder = '/itemTest/agents' // i.e. initialPath
 
         ImportRole newRole = new ImportRole()
         newRole.setName(role)
@@ -80,18 +79,20 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
         newRole.permissions.add('dom1:Func1,Func2:')
         newRole.permissions.add('dom2:Func1:toto')
 
-        agent.execute(serverItem, CreateNewRole.class, agent.marshall(newRole))
-        
-        def rp = Gateway.getLookup().getRolePath(role)
+        executeDoneJob(serverItem, 'CreateNewRole', agent.marshall(newRole))
 
-        ImportAgent newAgent = new ImportAgent('/itemTest/agents', name, 'pwd');
-        newAgent.addRoles([rp]);
-    
-        agent.execute(serverItem, CreateNewAgent.class, agent.marshall(newAgent));
+        newRole.jobList = null
+        newRole.permissions.clear()
+        ImportAgent newAgent = new ImportAgent(folder, name, 'pwd');
+        newAgent.roles.add(newRole)
+
+        executeDoneJob(serverItem, 'CreateNewAgent', agent.marshall(newAgent))
+
+        assert agent.getItem("$folder/$name")
     }
 
-    @Test
-    public void 'CreateNewAgent predefined step of ServerItem'() {
+    @Test @Order(1)
+    public void 'CreateNewAgent predefined step'() {
         String role = "TestRole-$timeStamp"
         String name = "TestAgent-$timeStamp"
 
@@ -101,15 +102,15 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
         removeRole(role)
     }
 
-    @Test
-    public void 'CreateNewItem predefined step of ServerItem'() {
+    @Test @Order(1)
+    public void 'CreateNewItem predefined step'() {
         def newItem = createItem("TestItem-$timeStamp")
         agent.execute(newItem, Erase.class)
     }
 
-    @Test
-    public void 'ConfigureLogback predefined step of ServerItem'() {
-        OutcomeBuilder ob = new OutcomeBuilder(LocalObjectLoader.getSchema('LoggerConfig', 0))
+    @Test @Order(2)
+    public void 'ConfigureLogback predefined step'() {
+        def ob = new OutcomeBuilder(LocalObjectLoader.getSchema('LoggerConfig', 0))
 
         ob.addField("Root", "WARN")
         ob.addRecord('/LoggerConfig/Logger', [Name: 'org.cristalise.storage', Level: 'TRACE'])
@@ -117,5 +118,13 @@ class ItemWithoutDescriptionIT extends KernelScenarioTestBase {
 
         agent.execute(serverItem, ConfigureLogback.class, ob.xml)
     }
-}
 
+    @Test @Order(3)
+    public void 'Reset ConfigureLogback predefined'() {
+        def ob = new OutcomeBuilder(LocalObjectLoader.getSchema('LoggerConfig', 0))
+
+        ob.addField("Root", "INFO")
+
+        agent.execute(serverItem, ConfigureLogback.class, ob.xml)
+    }
+}

@@ -58,7 +58,7 @@ public class AttributeList extends OutcomeStructure {
             log.debug("attribute:{} optional:{}", thisDecl.getName(), thisDecl.isOptional());
 
             // FIXME: this will be overwritten by the help of next attributes
-            help = OutcomeStructure.extractHelp(thisDecl);
+            help = extractHelp(thisDecl);
 
             //Skipping optional attributes
             //if (thisDecl.isOptional()) continue;
@@ -152,10 +152,10 @@ public class AttributeList extends OutcomeStructure {
     }
 
     @Override
-    public JSONArray generateNgDynamicForms(Map<String, Object> inputs) {
+    public JSONArray generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
         JSONArray attrs = new JSONArray();
 
-        for (StringField attr: attrMap.values()) attrs.put(attr.generateNgDynamicForms(inputs));
+        for (StringField attr: attrMap.values()) attrs.put(attr.generateNgDynamicForms(inputs, withModel, withLayout));
 
         return attrs;
     }
@@ -196,6 +196,7 @@ public class AttributeList extends OutcomeStructure {
     @Override
     public void exportViewTemplate(Writer template) {}
 
+    @Override
     public JSONObject generateNgDynamicFormsCls() { return null; }
 
 }

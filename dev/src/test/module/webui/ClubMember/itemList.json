@@ -1,0 +1,37 @@
+{
+  "column" : [ {
+    "field" : "Name",
+    "caption" : "Name",
+    "align" : "left",
+    "width" : 100
+  }, {
+    "field" : "State",
+    "caption" : "State",
+    "align" : "left",
+    "width" : 100
+  }, {
+    "field" : "Name",
+    "caption" : "Name",
+    "align" : "left",
+    "width" : 100
+  }, {
+    "field" : "Email",
+    "caption" : "Email",
+    "align" : "left",
+    "width" : 100
+  }, {
+    "field" : "FavoriteCar",
+    "caption" : "Favorite Car",
+    "align" : "left",
+    "width" : 100
+  }, {
+    "field" : "FavoriteMotorcycle",
+    "caption" : "Favorite Motorcycle",
+    "align" : "left",
+    "width" : 100
+  } ],
+  "sort" : {
+    "field" : "Name",
+    "order" : "asc"
+  }
+}

@@ -20,11 +20,9 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
-import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.MEMBER_ADD_SCRIPT;
 
-import java.io.IOException;
-
+import org.cristalise.kernel.collection.Collection.Cardinality;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.collection.DependencyMember;
 import org.cristalise.kernel.common.InvalidCollectionModification;
@@ -32,57 +30,117 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
+import org.cristalise.kernel.utils.CastorHashMap;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class AddMembersToCollection extends PredefinedStepCollectionBase {
+public class AddMembersToCollection extends ManageMembersOfCollectionBase {
 
-    public AddMembersToCollection(){
-        super();
-        this.setBuiltInProperty(SCHEMA_NAME, "Dependency");
+    public static final String description = "Adds many members to the named Collection of the Item";
+
+    public AddMembersToCollection() {
+        super("Dependency", description);
+    }
+    
+    @Override
+    protected void checkCardinatilyConstraint(Dependency currentDependency, Dependency inputDependency, ItemPath itemPath, TransactionKey transactionKey)
+            throws InvalidDataException, InvalidCollectionModification
+    {
+        Cardinality currentDepCardinality = currentDependency.getCardinality();
+
+        if (currentDepCardinality != null) {
+            switch (currentDepCardinality) {
+                case OneToOne:
+                case ManyToOne:
+                    String errorMsg = null;
+                    if      (currentDependency.getMembers().list.size() != 0) errorMsg = "Cannot add new members";
+                    else if (inputDependency.getMembers().list.size() != 1)   errorMsg = "Cannot add more than one member";
+
+                    if (errorMsg != null) {
+                        errorMsg = errorMsg + " - " + currentDependency + " of item " + itemPath.getItemName(transactionKey);
+                        log.error("runActivityLogic() - {}", errorMsg);
+                        throw new InvalidCollectionModification(errorMsg);
+                    }
+                    break;
+
+                case OneToMany:
+                case ManyToMany:
+                    // nothing to do
+                    break;
+
+                default:
+                    String msg = "Unknown cardinality - "+ currentDependency + " of item "+itemPath.getItemName(transactionKey);
+                    log.error("runActivityLogic() - {}", msg);
+                    throw new InvalidDataException(msg);
+            }
+        }
     }
 
-    //Creates a new member slot for the given item in a dependency, and assigns the item
-    public static final String description = "Adds members to a given item";
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath itemPath, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectAlreadyExistsException, PersistencyException, ObjectNotFoundException,
             InvalidCollectionModification
     {
-        try {
-            Dependency inputDependendency = (Dependency) Gateway.getMarshaller().unmarshall(requestData);
-            String collectionName = inputDependendency.getName();
-            Dependency dep = (Dependency) Gateway.getStorage().get(item, COLLECTION + "/" + collectionName + "/last", locker);
+        ItemProxy item = Gateway.getProxy(itemPath, transactionKey);
 
-            for (DependencyMember inputMember : inputDependendency.getMembers().list) {
-                DependencyMember newMember = null;
+        log.debug("runActivityLogic() - item:{} requestdata:{}", item, requestData);
 
-                if (inputMember.getProperties() != null && inputMember.getProperties().size() != 0) {
-                    newMember = dep.createMember(inputMember.getItemPath(), inputMember.getProperties());
-                }
-                else {
-                    newMember = dep.createMember(inputMember.getItemPath());
-                }
+        Dependency inputDependency = (Dependency) Gateway.getMarshaller().unmarshall(requestData);
+        String collectionName = inputDependency.getName();
+        Dependency currentDependency =
+                (Dependency) item.getCollection(collectionName, null, transactionKey);
 
-                evaluateScript(item, dep, newMember, locker);
+        log.debug("runActivityLogic() - Changing {} of item:{}", currentDependency, item);
 
-                dep.addMember(newMember);
+        checkCardinatilyConstraint(currentDependency, inputDependency, itemPath, transactionKey);
+
+        for (DependencyMember inputMember : inputDependency.getMembers().list) {
+            CastorHashMap inputMemberProps = inputMember.getProperties();
+            DependencyMember newMember = null;
+
+            if (inputMemberProps.size() != 0) {
+                newMember = currentDependency.createMember(inputMember.getItemPath(),
+                        inputMemberProps, transactionKey);
+            } else {
+                newMember =
+                        currentDependency.createMember(inputMember.getItemPath(), transactionKey);
             }
 
-            Gateway.getStorage().put(item, dep, locker);
+            evaluateScript(itemPath, currentDependency, newMember, transactionKey);
 
-            return Gateway.getMarshaller().marshall(dep);
+            currentDependency.addMember(newMember);
         }
-        catch (IOException | ValidationException | MarshalException | MappingException ex) {
-            log.error("Error adding members to collection", ex);
-            throw new InvalidDataException("Error adding members to collection: " + ex);
+
+        Gateway.getStorage().put(itemPath, currentDependency, transactionKey);
+
+        return Gateway.getMarshaller().marshall(currentDependency);
+    }
+
+    /**
+     * 
+     * @param item
+     * @param dependency
+     * @param newMember
+     * @param transactionKey
+     * @throws ObjectNotFoundException
+     * @throws InvalidDataException
+     * @throws InvalidCollectionModification
+     */
+    protected void evaluateScript(ItemPath item, Dependency dependency, DependencyMember newMember, TransactionKey transactionKey)
+            throws ObjectNotFoundException, InvalidDataException, InvalidCollectionModification
+    {
+        if (dependency.containsBuiltInProperty(MEMBER_ADD_SCRIPT)) {
+            CastorHashMap scriptProps = new CastorHashMap();
+            scriptProps.put("collection", dependency);
+            scriptProps.put("member", newMember);
+
+            evaluateScript(item, (String) dependency.getBuiltInProperty(MEMBER_ADD_SCRIPT), scriptProps, transactionKey);
         }
     }
 }

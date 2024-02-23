@@ -29,11 +29,15 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
+import javax.annotation.concurrent.Immutable;
+
+@Immutable
 public class RolePath extends Path {
     private boolean hasJobList = false;
-    
+
     //LinkedHashSet is used to make permissions string unique and to keep its original order
     private Set<String> permissions = new LinkedHashSet<>();
 
@@ -55,7 +59,7 @@ public class RolePath extends Path {
     }
 
     public RolePath(RolePath parent, String roleName, List<String> newPermissions) {
-        this(parent, roleName, new LinkedHashSet<>(newPermissions));
+        this(parent, roleName, newPermissions != null ? new LinkedHashSet<>(newPermissions) : null);
     }
 
     public RolePath(String path, boolean jobList) {
@@ -69,7 +73,7 @@ public class RolePath extends Path {
     }
     
     public RolePath(String path, boolean jobList, List<String> newPermissions) {
-        this(path, jobList, new LinkedHashSet<>(newPermissions));
+        this(path, jobList, newPermissions != null ? new LinkedHashSet<>(newPermissions) : null);
     }
 
     public RolePath(String[] path, boolean jobList) {
@@ -103,9 +107,13 @@ public class RolePath extends Path {
     }
 
     public RolePath getParent() throws ObjectNotFoundException {
+        return getParent(null);
+    }
+
+    public RolePath getParent(TransactionKey transactionKey) throws ObjectNotFoundException {
         if (mPath.length < 2) return null;
 
-        return Gateway.getLookup().getRolePath(mPath[mPath.length - 2]);
+        return Gateway.getLookup().getRolePath(mPath[mPath.length - 2], transactionKey);
     }
 
     /**
@@ -131,17 +139,25 @@ public class RolePath extends Path {
     }
 
     public void setPermissions(List<String> newPermissions) {
-        this.permissions.clear();
-        this.permissions.addAll(newPermissions);
+        if (newPermissions != null) {
+            this.permissions.clear();
+            this.permissions.addAll(newPermissions);
+        }
     }
 
     public void setPermissions(Set<String> newPermissions) {
-        this.permissions.clear();
-        this.permissions.addAll(newPermissions);
+        if (newPermissions != null) {
+            this.permissions.clear();
+            this.permissions.addAll(newPermissions);
+        }
     }
 
     public Iterator<Path> getChildren() {
-        return Gateway.getLookup().getChildren(this);
+        return getChildren(null);
+    }
+
+    public Iterator<Path> getChildren(TransactionKey transactionKey) {
+        return Gateway.getLookup().getChildren(this, transactionKey);
     }
 
     @Override

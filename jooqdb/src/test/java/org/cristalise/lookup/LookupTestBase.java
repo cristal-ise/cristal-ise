@@ -63,13 +63,12 @@ public class LookupTestBase extends JooqTestConfigurationBase {
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookupManager", lookup, true);
         FieldUtils.writeDeclaredStaticField(Gateway.class, "mLookup",        lookup, true);
 
-        lookup.open(null);
-        lookup.initializeDirectory();
+        lookup.open();
+        lookup.initializeDirectory(null);
     }
 
     @After
     public void tearDown() throws Exception {
-        //if (dbType == MYSQL || dbType == PostgreSQL || dbType == H2_PostgreSQL || dbType == H2_MYSQL) lookup.dropHandlers();
         if (lookup != null) {
             lookup.dropHandlers();
             lookup.close();

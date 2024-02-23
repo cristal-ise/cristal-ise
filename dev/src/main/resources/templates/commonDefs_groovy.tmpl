@@ -1,0 +1,11 @@
+package @{rootPackage}
+
+// this is defined in CrudState.groovy of the dev module
+states = ['ACTIVE', 'INACTIVE']
+
+@foreach{fileName : moduleFiles} @code{itemName = fileName.substring(0, fileName.lastIndexOf('.'))}
+PropertyDescriptionList('@{itemName}', @{version}) {
+  PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
+  PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: '@{itemName}')
+  PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
+}@end{}

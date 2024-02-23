@@ -26,6 +26,7 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,12 +34,12 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RemoveC2KObject extends PredefinedStep {
     public RemoveC2KObject() {
-        super();
+        super("Removes the named C2Kernel object from this Item.");
     }
 
     // requestdata is xmlstring
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker) 
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey) 
             throws InvalidDataException, PersistencyException
     {
         String[] params = getDataList(requestData);
@@ -47,9 +48,9 @@ public class RemoveC2KObject extends PredefinedStep {
             throw new InvalidDataException("RemoveC2KObject: Invalid parameters - length != 1" + Arrays.toString(params));
         }
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
-        Gateway.getStorage().remove(item, params[0], locker);
+        Gateway.getStorage().remove(item, params[0], transactionKey);
         return requestData;
     }
 }

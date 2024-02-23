@@ -27,6 +27,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.StringTokenizer;
 
 import javax.swing.JMenuItem;
@@ -39,59 +40,58 @@ import org.cristalise.kernel.collection.Aggregation;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.Logger;
 
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Structure for Item presence on the tree and ItemDetails boxes. Created by NodeFactory.
- * @author $Author: abranson $
- * @version $Version$
  */
+@Slf4j
 public class NodeItem extends Node implements Transferable {
 
-	protected ItemProxy myItem = null;
+    protected ItemProxy myItem = null;
 
     public NodeItem(Path path, ItemTabManager desktop) {
-        
-    	super(path, desktop);
-        Logger.msg(2,"NodeEntity.<init> - Creating item for '"+path.toString()+"'.");
+
+        super(path, desktop);
+        log.info( "ctor() - Creating item for '" + path.toString() + "'.");
 
         // if an item - resolve the item and get its properties
-		try {
-			myItem = Gateway.getProxyManager().getProxy(path);
-	        this.itemPath = path.getItemPath();
-	        Logger.msg(2,"NodeEntity.<init> - System key is "+this.itemPath);
-	
-	        // Name should be the alias if present
-	        String alias = myItem.getName();
-	        if (alias != null) this.name = alias;
-	
-	        try {
-				this.type = myItem.getProperty("Type");
-			} catch (ObjectNotFoundException e) {
-				this.type = "";
-			}
-	        String iconString = this.type;
-	        if ("ActivityDesc".equals(this.type)) {
-				try {
-					iconString = myItem.getProperty("Complexity")+iconString;
-				} catch (ObjectNotFoundException e) {
-					iconString = "error";
-				}
-	        }
-	        if (iconString != null) this.setIcon(iconString.toLowerCase());
-		}
-		catch (ObjectNotFoundException e1) {
-			this.itemPath = null;
-			this.type="Error";
-			this.name="Entity not found";
-			this.setIcon("error");
-		}
+        try {
+            myItem = Gateway.getProxy(path);
+            this.itemPath = path.getItemPath();
+            log.info( "ctor() - System key is " + this.itemPath);
+
+            // Name should be the alias if present
+            String alias = myItem.getName();
+            if (alias != null) this.name = alias;
+
+            try {
+                this.type = myItem.getProperty("Type");
+            } catch (ObjectNotFoundException e) {
+                this.type = "";
+            }
+            String iconString = this.type;
+            if ("ActivityDesc".equals(this.type)) {
+                try {
+                    iconString = myItem.getProperty("Complexity") + iconString;
+                } catch (ObjectNotFoundException e) {
+                    iconString = "error";
+                }
+            }
+            if (iconString != null) this.setIcon(iconString.toLowerCase());
+        }
+        catch (ObjectNotFoundException e1) {
+            this.itemPath = null;
+            this.type = "Error";
+            this.name = "Entity not found";
+            this.setIcon("error");
+        }
         createTreeNode();
         makeExpandable();
     }
@@ -99,37 +99,36 @@ public class NodeItem extends Node implements Transferable {
     public ItemProxy getItem() {
         return myItem;
     }
-    
+
     public void openItem() {
         desktop.add(this);
     }
-    
-	public Collection<? extends CollectionMember> getParentCollection() {
-		return parentCollection;
-	}
 
-	public Integer getSlotNo() {
-		return slotNo;
-	}
+    public Collection<? extends CollectionMember> getParentCollection() {
+        return parentCollection;
+    }
 
-	Collection<? extends CollectionMember> parentCollection;
-	Integer slotNo = null;
-	static DataFlavor dataFlavor = new DataFlavor(NodeItem.class, "NodeItem");
-	ItemProxy parentItem;
-	static DataFlavor[] supportedFlavours = new DataFlavor[] { 
-		dataFlavor, 
-		new DataFlavor(Path.class, "Path"),
-		DataFlavor.getTextPlainUnicodeFlavor() };
+    public Integer getSlotNo() {
+        return slotNo;
+    }
 
-    
+    Collection<? extends CollectionMember> parentCollection;
+    Integer                                slotNo            = null;
+    static DataFlavor                      dataFlavor        = new DataFlavor(NodeItem.class, "NodeItem");
+    ItemProxy                              parentItem;
+    static DataFlavor[]                    supportedFlavours = new DataFlavor[] {
+            dataFlavor,
+            new DataFlavor(Path.class, "Path"),
+            DataFlavor.getTextPlainUnicodeFlavor() };
+
     public void setCollection(Collection<? extends CollectionMember> parentCollection, Integer slotNo, ItemProxy parentItem) {
-    	this.parentCollection = parentCollection;
-    	this.slotNo = slotNo;
-    	this.parentItem = parentItem;
-	}
+        this.parentCollection = parentCollection;
+        this.slotNo = slotNo;
+        this.parentItem = parentItem;
+    }
 
     @Override
-	public void loadChildren() {
+    public void loadChildren() {
         try {
             String collections = myItem.queryData("Collection/all");
             StringTokenizer tok = new StringTokenizer(collections, ",");
@@ -139,123 +138,123 @@ public class NodeItem extends Node implements Transferable {
             }
             end(false);
         } catch (Exception e) {
-            Logger.error(e);
+            log.error("", e);
         }
     }
 
-	@Override
-	public JPopupMenu getPopupMenu() {
-		
+    @Override
+    public JPopupMenu getPopupMenu() {
         JPopupMenu popup = super.getPopupMenu();
         JMenuItem openItem = new JMenuItem("Open");
         openItem.addActionListener(new ActionListener() {
             @Override
-			public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent e) {
                 openItem();
             }
         });
         popup.addSeparator();
         popup.add(openItem);
-		popup.addSeparator();
-		if (parentCollection != null && MainFrame.isAdmin) {
-			JMenuItem collMenuItem = new JMenuItem("Remove from collection");
-			//collMenuItem.setActionCommand("removeColl");
-			collMenuItem.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					String[] params = { parentCollection.getName(), String.valueOf(slotNo) };
-					String predefStepName = parentCollection instanceof Aggregation?"ClearSlot":"RemoveSlotFromCollection";
-					try {
-						MainFrame.userAgent.execute(parentItem, predefStepName, params);
-					} catch (Exception e1) {
-						MainFrame.exceptionDialog(e1);
-					}
-					
-				}
-			});
-			popup.add(collMenuItem);
-			popup.addSeparator();
-		}
-		try {
-            ArrayList<Job> jobList = myItem.getJobList(MainFrame.userAgent);
+        popup.addSeparator();
+        if (parentCollection != null && MainFrame.isAdmin) {
+            JMenuItem collMenuItem = new JMenuItem("Remove from collection");
+            // collMenuItem.setActionCommand("removeColl");
+            collMenuItem.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String[] params = { parentCollection.getName(), String.valueOf(slotNo) };
+                    String predefStepName = parentCollection instanceof Aggregation ? "ClearSlot" : "RemoveSlotFromCollection";
+                    try {
+                        MainFrame.userAgent.execute(parentItem, predefStepName, params);
+                    } catch (Exception e1) {
+                        MainFrame.exceptionDialog(e1);
+                    }
+
+                }
+            });
+            popup.add(collMenuItem);
+            popup.addSeparator();
+        }
+        try {
+            List<Job> jobList = myItem.getJobs(MainFrame.userAgent);
             ArrayList<String> already = new ArrayList<String>();
-			if (jobList.size() > 0) {
-	            for (Job thisJob : jobList) {
-	                String stepName = thisJob.getStepName();
-					if (already.contains(stepName))
-						continue;
-					already.add(stepName);
-					JMenuItem menuItem = new JMenuItem(stepName);
-					menuItem.setActionCommand(stepName);
-					menuItem.addActionListener(new ActionListener() {
+            if (jobList.size() > 0) {
+                for (Job thisJob : jobList) {
+                    String stepName = thisJob.getStepName();
+                    if (already.contains(stepName))
+                        continue;
+                    already.add(stepName);
+                    JMenuItem menuItem = new JMenuItem(stepName);
+                    menuItem.setActionCommand(stepName);
+                    menuItem.addActionListener(new ActionListener() {
                         @Override
-						public void actionPerformed(ActionEvent e) {
+                        public void actionPerformed(ActionEvent e) {
                             execute(e.getActionCommand());
                         }
                     });
-					popup.add(menuItem);
+                    popup.add(menuItem);
 
-				}
-			}
-            else {
-    			JMenuItem noAct = new JMenuItem("No activities");
-	   		    noAct.setEnabled(false);
-		      	popup.add(noAct);
+                }
             }
-		} catch (Exception ex) {
-			JMenuItem error = new JMenuItem("Error querying jobs");
-			error.setEnabled(false);
-			popup.add(error);
-		}
+            else {
+                JMenuItem noAct = new JMenuItem("No activities");
+                noAct.setEnabled(false);
+                popup.add(noAct);
+            }
+        } catch (Exception ex) {
+            JMenuItem error = new JMenuItem("Error querying jobs");
+            error.setEnabled(false);
+            popup.add(error);
+        }
 
-		return popup;
-	}
+        return popup;
+    }
 
-	public void execute(String stepName) {
-		ItemDetails thisDetail = desktop.add(this);
-		thisDetail.runCommand("Execution", stepName);
-	}
+    public void execute(String stepName) {
+        ItemDetails thisDetail = desktop.add(this);
+        thisDetail.runCommand("Execution", stepName);
+    }
 
-	public ArrayList<String> getTabs() {
+    public ArrayList<String> getTabs() {
 
         ArrayList<String> requiredTabs = new ArrayList<String>();
         requiredTabs.add("Properties");
         try {
-            String collNames = myItem.queryData(ClusterType.COLLECTION+"/all");
+            String collNames = myItem.queryData(ClusterType.COLLECTION + "/all");
             if (collNames.length() > 0)
                 requiredTabs.add("Collection");
-        } catch (Exception e) { }
+        } catch (Exception e) {}
         requiredTabs.add("Execution");
         requiredTabs.add("History");
         requiredTabs.add("Viewpoint");
         requiredTabs.add("Workflow");
+        requiredTabs.add("JobList");
         return requiredTabs;
 
     }
 
-	@Override
-	public DataFlavor[] getTransferDataFlavors() {
-		return supportedFlavours;
-	}
+    @Override
+    public DataFlavor[] getTransferDataFlavors() {
+        return supportedFlavours;
+    }
 
-	@Override
-	public boolean isDataFlavorSupported(DataFlavor flavor) {
-		for (DataFlavor flavour : supportedFlavours) {
-			if (flavour.equals(flavor))
-				return true;
-		}
-		return false;
-	}
+    @Override
+    public boolean isDataFlavorSupported(DataFlavor flavor) {
+        for (DataFlavor flavour : supportedFlavours) {
+            if (flavour.equals(flavor))
+                return true;
+        }
+        return false;
+    }
 
-	@Override
-	public Object getTransferData(DataFlavor flavor)
-			throws UnsupportedFlavorException, IOException {
-		if (flavor.equals(supportedFlavours[0]))
-				return this;
-		if (flavor.equals(supportedFlavours[1]))
-				return binding;
-		if (flavor.equals(supportedFlavours[2]))
-				return name; 
-		throw new UnsupportedFlavorException(flavor);
-	}
+    @Override
+    public Object getTransferData(DataFlavor flavor)
+            throws UnsupportedFlavorException, IOException {
+        if (flavor.equals(supportedFlavours[0]))
+            return this;
+        if (flavor.equals(supportedFlavours[1]))
+            return binding;
+        if (flavor.equals(supportedFlavours[2]))
+            return name;
+        throw new UnsupportedFlavorException(flavor);
+    }
 }

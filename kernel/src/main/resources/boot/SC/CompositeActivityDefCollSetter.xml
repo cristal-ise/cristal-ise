@@ -23,11 +23,11 @@
 <cristalscript>
     <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy" />
     <param name="agent" type="org.cristalise.kernel.entity.proxy.AgentProxy" />
-    <param name="job" type="org.cristalise.kernel.entity.agent.Job" />
+    <param name="job" type="org.cristalise.kernel.entity.Job" />
     <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo" />
     <script language="javascript" name="CompositeActivityDefCollSetter"><![CDATA[
 var actDef = agent.unmarshall(job.getOutcomeString());
-var newDescColl = actDef.makeActDefCollection();	
+var newDescColl = actDef.makeActDefCollection(item.getTransactionKey());	
 
 var oldDescColl;
 try {
@@ -37,19 +37,18 @@ catch (e) {
     throw "/Collection/Activity/last does not exist!";
 }
 
-var props = new org.cristalise.kernel.utils.CastorHashMap();
 var newMemIter = oldDescColl.compare(newDescColl).iterator();
-var params = new Array(3);
-params[0] = "Activity";
+
+var dep = new org.cristalise.kernel.collection.Dependency("Activity");
 
 while (newMemIter.hasNext()) {
     var member = newMemIter.next();
+    
+	var props = new org.cristalise.kernel.utils.CastorHashMap();
     props.put("Version", member.getProperties().get("Version"), true);
-
-    params[1] = member.getItemPath();
-    params[2] = agent.marshall(props);;
-    agent.execute(item, "AddMemberToCollection", params);
+    dep.addMember(member.getItemPath(), props, "", null);
 }
+agent.execute(item, "AddMembersToCollection", agent.marshall(dep));
 
 params = new Array(3);
 params[0] = "Activity";

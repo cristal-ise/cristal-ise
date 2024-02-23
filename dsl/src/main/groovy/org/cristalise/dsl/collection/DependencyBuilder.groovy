@@ -36,11 +36,11 @@ class DependencyBuilder {
         dependency = d
     }
 
-    public static DependencyBuilder build(String name, boolean isDescrption = false, String classProps = null, Closure cl) {
+    public static DependencyBuilder build(String name, boolean isDescrption = false, String classProps = null, @DelegatesTo(DependencyDelegate) Closure cl) {
         return build("", name, isDescrption, classProps, cl)
     }
 
-    public static DependencyBuilder build(String ns, String name, boolean isDescrption = false, String classProps = null, Closure cl) {
+    public static DependencyBuilder build(String ns, String name, boolean isDescrption = false, String classProps = null, @DelegatesTo(DependencyDelegate) Closure cl) {
         def delegate = new DependencyDelegate(ns, name, isDescrption, classProps)
 
         delegate.processClosure(cl)

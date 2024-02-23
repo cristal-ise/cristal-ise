@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 
+import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
 import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE;
 
 import java.security.NoSuchAlgorithmException;
@@ -33,6 +34,7 @@ import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -41,16 +43,16 @@ import lombok.extern.slf4j.Slf4j;
 public class SetAgentPassword extends PredefinedStep {
 
     public SetAgentPassword() {
-        super();
+        super("Changes the Agent's password");
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException, ObjectCannotBeUpdated, CannotManageException, AccessRightsException
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         //FIXME params.length != 1 case is deprecated, shall enforce identity check
         if (params.length != 1 && params.length != 2) 
@@ -60,30 +62,30 @@ public class SetAgentPassword extends PredefinedStep {
             AgentPath targetAgent = new AgentPath(item);
             String newPwd;
 
-            if (!targetAgent.equals(agent) && !agent.hasRole(ADMIN_ROLE.getName()))
+            if (!targetAgent.equals(agent) && !agent.hasRole(ADMIN_ROLE.getName(), transactionKey))
                 throw new AccessRightsException("Agent passwords may only be set by those Agents or by an Administrator");
 
             if (params.length == 1) {
                 //FIXME these case is deprecated, shall enforce identity check
                 newPwd = params[0];
-                params[0] = "REDACTED"; // censor password from outcome
+                params[0] = REDACTED; // censor password from outcome
             }
             else {
                 //Enforce identity check
                 try {
-                    Gateway.getSecurityManager().authenticate(agent.getAgentName(), params[0], null);
+                    Gateway.getSecurityManager().authenticate(agent.getAgentName(transactionKey), params[0], null, false, transactionKey);
                 }
                 catch (Exception e) {
                     throw new AccessRightsException("Authentication failed");
                 }
 
                 newPwd = params[1];
-                params[0] = "REDACTED"; // censor password from outcome
-                params[1] = "REDACTED"; // censor password from outcome
+                params[0] = REDACTED; // censor password from outcome
+                params[1] = REDACTED; // censor password from outcome
             }
 
             // Password is temporary when it was set by someone else
-            Gateway.getLookupManager().setAgentPassword(targetAgent, newPwd, !targetAgent.equals(agent));
+            Gateway.getLookupManager().setAgentPassword(targetAgent, newPwd, !targetAgent.equals(agent), transactionKey);
 
             return bundleData(params);
         }

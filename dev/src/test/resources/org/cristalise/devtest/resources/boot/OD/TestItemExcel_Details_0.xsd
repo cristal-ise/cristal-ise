@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name='TestItemExcel_Details'>
+    <xs:annotation>
+      <xs:documentation>This is the Update chame for TestItemExcel</xs:documentation>
+      <xs:appinfo>
+        <dynamicForms>
+          <width>100%</width>
+        </dynamicForms>
+      </xs:appinfo>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <disabled>true</disabled>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name='Description' type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='DateOfBirth' type='xs:date' minOccurs='1' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <additional>
+                  <updateScriptRef>TestItemExcel_DetailsAgeUpdateExpression:0</updateScriptRef>
+                </additional>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name='DateOfDeath' type='xs:date' minOccurs='0' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <additional>
+                  <updateScriptRef>TestItemExcel_DetailsAgeUpdateExpression:0</updateScriptRef>
+                </additional>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name='Age' type='xs:integer' minOccurs='1' maxOccurs='1' />
+        <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <hidden>true</hidden>
+                <required>false</required>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

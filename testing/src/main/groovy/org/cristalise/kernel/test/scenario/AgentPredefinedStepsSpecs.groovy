@@ -6,44 +6,41 @@ import org.cristalise.kernel.entity.imports.ImportAgent
 import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportAgent
+import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportRole
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.SetAgentPassword
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.SetAgentRoles
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.Sign
-import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewAgent
-import org.cristalise.kernel.lifecycle.instance.predefined.server.CreateNewRole
 import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
 
-
-
 /**
  * 
  */
 class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetup {
 
-    AgentProxy agent
-    String timeStamp
+    static AgentProxy agent
+    static String timeStamp
 
-    def setup()   { 
-        cristalInit(8, 'src/main/bin/client.conf', 'src/main/bin/integTest.clc')
+    def setupSpec() {
+        cristalInit('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
         agent = Gateway.connect('user', 'test')
         timeStamp = LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")
     }
 
-    def cleanup() { cristalCleanup() }
+    def cleanupSpec() { cristalCleanup() }
 
-
-    private ItemProxy getServerItem() { return agent.getItem("/domain/servers/localhost") }
+    private ItemProxy getServerItem() { return agent.getItem('/servers/' + InetAddress.getLocalHost().getHostName()) }
 
     private RolePath createRole(String role) {
         def importRole = new ImportRole()
         importRole.name = role
         importRole.jobList = false
 
-        agent.execute(serverItem, CreateNewRole.class, Gateway.getMarshaller().marshall(importRole));
+        agent.execute(serverItem, ImportImportRole, Gateway.getMarshaller().marshall(importRole));
 
         return Gateway.getLookup().getRolePath(role)
     }
@@ -57,9 +54,9 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
         importAgent.password = "dummepwd"
         importAgent.roles.add(importRole)
 
-        agent.execute(serverItem, CreateNewAgent.class, Gateway.getMarshaller().marshall(importAgent));
+        agent.execute(serverItem, ImportImportAgent, Gateway.getMarshaller().marshall(importAgent));
 
-        return Gateway.getProxyManager().getAgentProxy( Gateway.getLookup().getAgentPath(name) )
+        return Gateway.getAgentProxy( Gateway.getLookup().getAgentPath(name) )
     }
 
     def 'SetAgentRole can be used to assign/unassing roles with agent'() {
@@ -89,7 +86,7 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
     def 'SetAgentPassword can be called by admin or by the agent itself'() {
         when: 'Admin changes the password of triggerAgent'
         String[] params = [ 'test', timeStamp ]
-        def triggerAgent = Gateway.getProxyManager().getAgentProxy( Gateway.getLookup().getAgentPath('triggerAgent') )
+        def triggerAgent = Gateway.getAgentProxy( Gateway.getLookup().getAgentPath('triggerAgent') )
         assert ! triggerAgent.getPath().isPasswordTemporary()
         agent.execute(triggerAgent, SetAgentPassword.class, params)
 

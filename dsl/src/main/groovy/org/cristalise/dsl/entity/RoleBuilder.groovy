@@ -34,17 +34,19 @@ import groovy.util.logging.Slf4j
 @CompileStatic @Slf4j
 class RoleBuilder {
 
-    public static ArrayList<ImportRole> build(Closure cl) {
-        def roleDelegate = new RoleDelegate()
+    public static List<ImportRole> build(@DelegatesTo(RoleDelegate) Closure cl) {
+        return build('', cl)
+    }
+
+    public static List<ImportRole> build(String ns, @DelegatesTo(RoleDelegate) Closure cl) {
+        def roleDelegate = new RoleDelegate(ns)
 
         roleDelegate.processClosure(cl)
-
-        log.debug "RoleBuilder.build() - Done"
 
         return roleDelegate.roles
     }
 
-    public static List<RolePath> create(Closure cl) {
+    public static List<RolePath> create(@DelegatesTo(RoleDelegate) Closure cl) {
         return createRoles(build(cl))
     }
 
@@ -57,7 +59,9 @@ class RoleBuilder {
         List<RolePath> rolePathes = []
 
         //Creating roles does not require an Agent during bootstrap and import
-        roles.each { ImportRole newRole -> rolePathes.add((RolePath)newRole.create(null, false, null)) }
+        roles.each { ImportRole newRole ->
+            rolePathes.add((RolePath)newRole.create(null, false, null))
+        }
 
         return rolePathes
     }

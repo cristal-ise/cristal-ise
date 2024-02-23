@@ -29,6 +29,7 @@ import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
@@ -37,20 +38,20 @@ import lombok.extern.slf4j.Slf4j;
 public class AddDomainPath extends PredefinedStep {
 
     public AddDomainPath() {
-        super();
+        super("Adds a new path to this item in the domain tree");
     }
 
     @Override
-    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, Object locker)
+    protected String runActivityLogic(AgentPath agent, ItemPath item, int transitionID, String requestData, TransactionKey transactionKey)
             throws InvalidDataException, ObjectCannotBeUpdated, ObjectAlreadyExistsException, CannotManageException
     {
         String[] params = getDataList(requestData);
 
-        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(), item, (Object)params);
+        log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), item, (Object)params);
 
         if (params.length != 1) throw new InvalidDataException("AddDomainPath: Invalid parameters: "+Arrays.toString(params));
 
-        Gateway.getLookupManager().add(new DomainPath(params[0], item));
+        Gateway.getLookupManager().add(new DomainPath(params[0], item), transactionKey);
 
         return requestData;
     }

@@ -23,7 +23,7 @@ package org.cristalise.kernel.scripting;
 import java.util.ArrayList;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.cristalise.kernel.entity.agent.Job;
+import org.cristalise.kernel.entity.Job;
 
 public class ErrorInfo {
     boolean fatal = false;
@@ -41,7 +41,7 @@ public class ErrorInfo {
         errors.add(error);
     }
 
-    public ErrorInfo(Exception ex) {
+    public ErrorInfo(Throwable ex) {
         this();
         setFatal();
         for (String frame : ExceptionUtils.getStackFrames(ex)) {
@@ -49,7 +49,7 @@ public class ErrorInfo {
         }
     }
 
-    public ErrorInfo(Job job, Exception ex) {
+    public ErrorInfo(Job job, Throwable ex) {
         this(ex);
         failedJob = job;
     }

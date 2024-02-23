@@ -20,7 +20,11 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_format_date_default;
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_inputField_date_defaultValue;
+
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -29,24 +33,20 @@ import java.time.format.DateTimeParseException;
 import java.util.Map;
 
 import org.cristalise.kernel.persistency.outcomebuilder.InvalidOutcomeException;
-import org.cristalise.kernel.process.Gateway;
 import org.json.JSONObject;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DateField extends StringField {
-    public static final String javaTimeDateFormat = "yyyy-MM-dd";
-    public static final String primeNGDateFormat = "yy-mm-dd";
-    private static final String webuiDateFormatKey = "Webui.format.date.default";
-
     public DateField() {
         super();
+        javaType = LocalDate.class;
     }
 
     @Override
     public String getDefaultValue() {
-        return Gateway.getProperties().getString("Webui.inputField.date.defaultValue", "");
+        return Webui_inputField_date_defaultValue.getString("");
     }
 
     @Override
@@ -63,12 +63,12 @@ public class DateField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
-        JSONObject date = getCommonFieldsNgDynamicForms();
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
+        JSONObject date = getNgDynamicFormsCommonFields(withModel, withLayout);
 
-        date.put("format", Gateway.getProperties().getString(webuiDateFormatKey, primeNGDateFormat));
+        date.put("format", Webui_format_date_default.getString());
 
-        JSONObject additional = getAdditionalConfigNgDynamicForms(date);
+        JSONObject additional = getNgDynamicFormsAdditional(date);
         additional.put("showButtonBar", true);
         
         return date;

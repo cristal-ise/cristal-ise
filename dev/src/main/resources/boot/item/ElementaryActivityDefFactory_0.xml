@@ -1,0 +1,46 @@
+<Item initialPath="/desc/ActivityDesc" name="ElementaryActivityDefFactory" ns="dev" version="0" workflow="CrudFactory_Workflow" workflowVer="0">
+  <Property mutable="false" name="Type">Factory</Property>
+  <Property mutable="false" name="Root">/desc/ActivityDesc</Property>
+  <Property mutable="false" name="UpdateSchema">ElementaryActivityDef:0</Property>
+  <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/ElementaryActivityDesc_0.xml</Outcome>
+  <Dependency classProps="" isDescription="false" name="workflow">
+    <DependencyMember itemPath="/desc/ActivityDesc/kernel/ManageElementaryActDef">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="false" name="MasterSchema">
+    <DependencyMember itemPath="/desc/Schema/kernel/ElementaryActivityDef">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="Schema">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/Schema">
+      <MemberProperties/>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="Script">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/Script">
+      <MemberProperties/>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="Query">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/Query">
+      <MemberProperties/>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="true" name="StateMachine">
+    <DependencyMember itemPath="/desc/PropertyDesc/dev/StateMachine">
+      <MemberProperties/>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+</Item>
