@@ -41,7 +41,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <additionalparam>-Xdoclint:none</additionalparam>
     <maven.deploy.skip>true</maven.deploy.skip>
-    <maven.staging.skip>true</maven.staging.skip>
+    <skipStaging>true</skipStaging>
   </properties>
 
   <build>
