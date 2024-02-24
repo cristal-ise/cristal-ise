@@ -124,11 +124,6 @@
         <version>2.16.2</version>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.4.1</version>
-      </plugin>
-      <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>${maven-compiler-plugin.version}</version>
         <configuration>
@@ -195,6 +190,7 @@
               <include>**/*Spec.*</include>
               <include>**/*Tests.*</include>
               <include>**/*Test.*</include>
+              <include>**/*IT.*</include>
             </includes>
           </configuration>
         </plugin>
@@ -210,17 +206,6 @@
   <profiles>
     <profile>
       <id>release</id>
-      <modules>
-        <module>kernel</module>
-        <module>jooqdb</module>
-        <module>in-memory-lookup</module>
-        <module>xpath-outcome-initiator</module>
-        <module>trigger</module>
-        <module>gui</module>
-        <module>restapi</module>
-        <module>dev</module>
-        <module>dsl</module>
-      </modules>
 
       <build>
         <plugins>
