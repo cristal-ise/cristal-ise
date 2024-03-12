@@ -1,6 +1,6 @@
 package org.cristalise.dev.test.scenario
 
-import static org.cristalise.dev.dsl.DevXMLUtility.recordToXML
+
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
 import org.cristalise.kernel.test.KernelScenarioTestBase
@@ -61,7 +61,7 @@ class TutorialsDevIT extends KernelScenarioTestBase {
     }
 
     @Test
-    public void 'Basic Tutorial with one Activy'() {
+    public void 'Basic Tutorial with one Activity'() {
         def factory = setupPatient([:])
         def patient = createItemFromDescription(factory, "$itemType-$timeStamp", folder)
 
@@ -69,7 +69,7 @@ class TutorialsDevIT extends KernelScenarioTestBase {
     }
     
     @CompileDynamic
-    private ItemProxy setupExtedned() {
+    private ItemProxy setupExtended() {
         Map<String, ActivityDef> actMap = [:]
 
         def urinalysisSchema =  Schema("UrinSample-$timeStamp", folder) {
@@ -109,7 +109,7 @@ class TutorialsDevIT extends KernelScenarioTestBase {
 
     @Test
     public void 'Extended Tutorial with default Master Schema and Aggregate Script'() {
-        def factory = setupExtedned()
+        def factory = setupExtended()
         def patient = createItemFromDescription(factory, "$itemType-$timeStamp", folder)
 
         assert patient.getMasterSchema()

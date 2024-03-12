@@ -43,7 +43,7 @@ public class LookupPathClusterStorageTest {
 
     @Before
     public void setup() throws Exception {
-        inMemoryCluster.open(null);
+        inMemoryCluster.open();
     }
 
     @Test

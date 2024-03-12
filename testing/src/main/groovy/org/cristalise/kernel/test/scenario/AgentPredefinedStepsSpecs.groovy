@@ -33,7 +33,7 @@ class AgentPredefinedStepsSpecs extends Specification implements CristalTestSetu
 
     def cleanupSpec() { cristalCleanup() }
 
-    private ItemProxy getServerItem() { return agent.getItem("/domain/servers/localhost") }
+    private ItemProxy getServerItem() { return agent.getItem('/servers/' + InetAddress.getLocalHost().getHostName()) }
 
     private RolePath createRole(String role) {
         def importRole = new ImportRole()

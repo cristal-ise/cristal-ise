@@ -28,7 +28,7 @@
     <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo"/>
     <script language="javascript" name="UpdateImportAgent"><![CDATA[
 var module = item.getProperty("Module");
-var importAgentXML = item.getViewpoint('Agent', 'last').getOutcome().getData()
+var importAgentXML = item.getViewpoint('AgentDesc', 'last').getOutcome().getData()
 var importAgent = agent.unmarshall(importAgentXML)
 importAgent.setNamespace(module);
 var agentItem = agent.getItem(importAgent.getDomainPath())

@@ -1,6 +1,6 @@
 language: java
-jdk: openjdk17
-dist: focal
+jdk: openjdk21
+dist: jammy
 branches:
   only:
     - master
@@ -8,19 +8,44 @@ branches:
     - /^release\/.*$/
     - /^support\/.*$/
     - /^hotfix\/.*$/
+services:
+  - docker
 
 install:
-  - mvn install -DskipTests=true -Dmaven.javadoc.skip=true -Dgpg.skip -B -V
+  - mvn install -DskipTests -Dmaven.javadoc.skip -Dgpg.skip -B -V
 
 script:
   - |
-    if [[ $TRAVIS_PULL_REQUEST == false ]] && ([[ $TRAVIS_BRANCH == develop ]] || [[ $TRAVIS_BRANCH == master ]] || [[ $TRAVIS_BRANCH == support/* ]] || [[ $TRAVIS_BRANCH == hotfix/* ]]); then
+    if [[ $TRAVIS_PULL_REQUEST == false ]] ; then
+      #
+      # Build test and upload to Maven repo
+      #
       echo $GPG_SECRET_KEYS | tr " " "\n" | base64 --decode | $GPG_EXECUTABLE --import --no-tty --batch --yes
       echo $GPG_OWNERTRUST | base64 --decode | $GPG_EXECUTABLE --import-ownertrust --no-tty --batch --yes
-      mvn -e clean deploy --settings .maven.xml -B -V -Prelease;
+      mvn -e clean deploy --settings .maven.xml -B -V -P release;
     else
       mvn -e clean install --settings .maven.xml -Dgpg.skip -B -V
+      # 
+      # Build docker images locally and run integration tests
+      #
+      # mvn -P docker -pl restapi,testing jib:dockerBuild
+      # docker compose -f ./testing/src/main/docker/docker-compose.yml -p integtest up -d
+      # sleep 30
+      # mvn test -pl testing -P integtest
     fi
+
+after_success:
+  - |
+    if [[ $TRAVIS_PULL_REQUEST == false ]] ; then
+      # 
+      # Upload to docker hub
+      #
+      echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      mvn -P docker -pl dev,gui,restapi jib:build
+    fi
+
+#after_script:
+#  - docker compose -f ./testing/src/main/docker/docker-compose.yml -p integtest down
 
 cache:
   directories:

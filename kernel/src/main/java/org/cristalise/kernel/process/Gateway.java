@@ -21,7 +21,6 @@
 package org.cristalise.kernel.process;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.cristalise.kernel.SystemProperties.Authenticator;
 import static org.cristalise.kernel.SystemProperties.Gateway_clusteredVertx;
 import static org.cristalise.kernel.SystemProperties.ItemServer_Telnet_host;
 import static org.cristalise.kernel.SystemProperties.ItemServer_Telnet_port;
@@ -39,6 +38,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import io.vertx.core.ThreadingModel;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.CriseVertxException;
@@ -54,7 +54,6 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.persistency.ClusterStorageManager;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.process.module.ModuleManager;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.process.resource.DefaultResourceImportHandler;
@@ -248,14 +247,14 @@ public class Gateway extends ProxyManager
      */
     static private void createServerVerticles() {
         DeploymentOptions options = new DeploymentOptions()
-                .setWorker(ItemVerticle.isWorker)
+                .setThreadingModel(ThreadingModel.VIRTUAL_THREAD)
                 .setInstances(ItemVerticle.instances);
         mVertx.deployVerticle(ItemVerticle.class, options);
 
         options.setInstances(getProperties().getInt("JobPusherVerticle.instances", 2));
 
         options.setInstances(1);
-        options.setWorker(false);
+        options.setThreadingModel(ThreadingModel.EVENT_LOOP);
         mVertx.deployVerticle(TcpBridgeVerticle.class, options);
     }
 
@@ -364,10 +363,9 @@ public class Gateway extends ProxyManager
     /**
      * Initialises the {@link Lookup} and {@link ProxyManager}
      *
-     * @param auth the Authenticator instance
-     * @throws CriseVertxException 
+     * @throws CriseVertxException
      */
-    private static void setup(Authenticator auth) throws CriseVertxException {
+    private static void setup() throws CriseVertxException {
         if (mLookup != null) mLookup.close();
 
         // To use tcpip-bride, the client has to create non-clustered vertx
@@ -375,36 +373,33 @@ public class Gateway extends ProxyManager
 
         try {
             mLookup = (Lookup) Lookup.getInstance();
-            mLookup.open(auth);
+            mLookup.open();
         }
         catch (ReflectiveOperationException ex) {
             log.error("", ex);
             throw new InvalidDataException("Cannot connect server process. Please check config.", ex);
         }
 
-        mStorage = new ClusterStorageManager(auth);
+        mStorage = new ClusterStorageManager();
         mProxyManager = new ProxyManager();
     }
 
     /**
-     * Connects to the Lookup server in an administrative context - using the admin username and
-     * password available in the implementation of the Authenticator. It shall be used in server processes only.
+     * Connects to the Lookup server in an administrative context.  It shall be used in server processes only.
      *
      * @throws InvalidDataException - bad params
      * @throws PersistencyException - error starting storages
      * @throws ObjectNotFoundException - object not found
      */
-    static public Authenticator connect() throws CriseVertxException {
+    static public void connect() throws CriseVertxException {
         mSecurityManager = new SecurityManager();
         mSecurityManager.authenticate();
 
-        setup(mSecurityManager.getAuth());
+        setup();
 
         log.info("connect(system) - DONE.");
 
         mStorage.postConnect();
-
-        return mSecurityManager.getAuth();
     }
 
     /**
@@ -442,7 +437,7 @@ public class Gateway extends ProxyManager
         mSecurityManager = new SecurityManager();
         mSecurityManager.authenticate(agentName, agentPassword, resource, true, null);
 
-        setup(mSecurityManager.getAuth());
+        setup();
 
         AgentProxy agent = getAgentProxy(agentName);
 
@@ -455,24 +450,6 @@ public class Gateway extends ProxyManager
         mStorage.postConnect();
 
         return agent;
-    }
-
-    /**
-     * Get the Authenticator instance
-     * 
-     * @return the Authenticator
-     * @throws InvalidDataException in case of ClassNotFoundException or InstantiationException or IllegalAccessException
-     * @deprecated use {{@link #getSecurityManager()}} instead if you need to authenticate
-     */
-    @Deprecated
-    static public Authenticator getAuthenticator() throws InvalidDataException {
-        try {
-            return (Authenticator) Authenticator.getInstance();
-        }
-        catch (ReflectiveOperationException ex) {
-            log.error("Authenticator:"+Authenticator.getString()+" could not be instantiated", ex);
-            throw new InvalidDataException("Authenticator "+Authenticator.getString()+" could not be instantiated", ex);
-        } 
     }
 
     /**

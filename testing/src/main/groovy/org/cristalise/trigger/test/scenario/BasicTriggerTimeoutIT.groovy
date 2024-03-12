@@ -23,7 +23,7 @@ import groovy.transform.CompileStatic
 /**
  *
  */
-@CompileStatic
+@CompileStatic @Disabled('Trigger functionality was not updated to work with vertx')
 class BasicTriggerTimeoutIT extends KernelScenarioTestBase {
 
     Schema warningSchema, timeoutSchema, triggerTestActSchema

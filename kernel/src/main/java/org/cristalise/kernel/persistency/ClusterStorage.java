@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
 
 import lombok.extern.slf4j.Slf4j;
@@ -92,7 +91,7 @@ public abstract class ClusterStorage {
      * @throws PersistencyException
      *             If storage initialization failed
      */
-    public abstract void open(Authenticator auth) throws PersistencyException;
+    public abstract void open() throws PersistencyException;
 
     /**
      * Shuts down the storage. Data must be completely written to disk before

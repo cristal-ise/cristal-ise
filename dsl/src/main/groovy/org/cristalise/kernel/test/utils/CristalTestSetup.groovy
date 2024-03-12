@@ -120,10 +120,8 @@ trait CristalTestSetup {
     }
 
     public void cristalInit(String config, String connect, Properties testProps = null) {
-        if (testProps == null) testProps = new Properties();
-        if (!testProps.containsKey('Shiro.iniFile')) testProps.put("Shiro.iniFile", "src/main/bin/shiro.ini");
-
-        Gateway.init(AbstractMain.readPropertyFiles(config, connect, testProps))
+        def props = AbstractMain.readPropertyFiles(config, connect, testProps)
+        Gateway.init(props)
     }
 
     public static void cristalCleanup() {

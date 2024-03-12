@@ -13,7 +13,7 @@ Development module to enable basic (crud level) management of Items
 1. On the Classpath tab 'Restore Default Entries' - restores maven dependencies
 
 ### Docker commands to setup development
-- `docker pull postgres:9.6`
-- `docker run -p 5432:5432 --name psql9.6 -e POSTGRES_PASSWORD=cristal -d postgres:9.6`
-- `docker start psql9.6`
-- `docker stop psql9.6`
+- `docker pull postgres:16`
+- `docker run -p 5432:5432 --name psql16 -e POSTGRES_PASSWORD=cristal -d postgres:16`
+- `docker start psql16`
+- `docker stop psql16`

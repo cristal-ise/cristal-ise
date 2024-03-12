@@ -32,16 +32,7 @@ import static org.cristalise.kernel.persistency.outcomeinit.SystemProperties.Sim
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -70,7 +61,6 @@ import org.apache.xmlbeans.XmlInteger;
 import org.apache.xmlbeans.XmlObject;
 import org.apache.xmlbeans.XmlOptions;
 import org.apache.xmlbeans.XmlTime;
-import org.apache.xmlbeans.impl.util.Base64;
 import org.apache.xmlbeans.impl.util.HexBin;
 import org.apache.xmlbeans.soap.SOAPArrayType;
 import org.apache.xmlbeans.soap.SchemaWSDLArrayType;
@@ -102,11 +92,10 @@ public class SampleXmlUtil {
         // end of the doc so we use the original xml object that the cursor was
         // created upon to do the xmlText() against.
         XmlOptions options = new XmlOptions();
-        options.put(XmlOptions.SAVE_PRETTY_PRINT);
-        options.put(XmlOptions.SAVE_PRETTY_PRINT_INDENT, 2);
-        options.put(XmlOptions.SAVE_AGGRESSIVE_NAMESPACES);
-        String result = object.xmlText(options);
-        return result;
+        options.setSavePrettyPrint(true);
+        options.setSavePrettyPrintIndent(2);
+        options.setSaveAggressiveNamespaces(true);
+        return object.xmlText(options);
     }
 
     Random _picker = new Random(1);
@@ -212,7 +201,7 @@ public class SampleXmlUtil {
                 String result = null;
                 try {
                     result = new String(
-                            Base64.encode(formatToLength(pick(WORDS), sType).getBytes("utf-8")));
+                            Base64.getEncoder().encode(formatToLength(pick(WORDS), sType).getBytes("utf-8")));
                 } catch (java.io.UnsupportedEncodingException e) {
                     /* Can't possibly happen */ }
                 return result;

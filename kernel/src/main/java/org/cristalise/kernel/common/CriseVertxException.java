@@ -22,8 +22,11 @@ package org.cristalise.kernel.common;
 
 import static org.cristalise.kernel.common.CriseVertxException.FailureCodes.InternalServerError;
 
+import java.io.Serial;
 import java.util.concurrent.ExecutionException;
 
+import io.vertx.core.Future;
+import lombok.Getter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.scripting.ScriptErrorException;
@@ -34,8 +37,10 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.serviceproxy.ServiceException;
 
 public class CriseVertxException extends Exception {
+    @Serial
     private static final long serialVersionUID = 5606562389374279530L;
     
+    @Getter
     public enum FailureCodes {
         /**
          * Generic code for errors not covered by specific exception
@@ -64,10 +69,6 @@ public class CriseVertxException extends Exception {
                 if(code.getId() == id) return code;
             }
             return null;
-        }
-
-        public int getId() {
-            return id;
         }
     }
 
@@ -116,6 +117,20 @@ public class CriseVertxException extends Exception {
         failureCode = code.getId();
     }
 
+    public ServiceException toServiceException() {
+        return new ServiceException(failureCode, getMessage(), getDebugInfo());
+    }
+
+    public static ServiceException toServiceException(Throwable t) {
+        if (t instanceof CriseVertxException criseEx) {
+            return criseEx.toServiceException();
+        }
+        else {
+            JsonObject debugInfo = convertToDebugInfo(t);
+            return new ServiceException(InternalServerError.getId(), t.getMessage(), debugInfo);
+        }
+    }
+
     public <T> AsyncResult<T> failService() {
         return ServiceException.fail(failureCode, getMessage(), getDebugInfo());
     }
@@ -146,8 +161,8 @@ public class CriseVertxException extends Exception {
     public JsonObject getServiceDebugInfo() {
         Throwable cause = getCause();
 
-        if (cause != null && cause instanceof ServiceException) return ((ServiceException)cause).getDebugInfo();
-        else                                                    return null;
+        if (cause instanceof ServiceException) return ((ServiceException)cause).getDebugInfo();
+        else                                   return null;
     }
 
     public static CriseVertxException convertThrowable(Throwable ex) {
@@ -156,30 +171,23 @@ public class CriseVertxException extends Exception {
         if (ex instanceof CriseVertxException) {
             return (CriseVertxException)ex;
         }
-        else if (ex instanceof ServiceException) {
-            ServiceException serviceEx = (ServiceException)ex;
-
-            CriseVertxException cve;
-
-            switch (FailureCodes.getValue(serviceEx.failureCode())) {
-                case AccessRightsError:             cve = new AccessRightsException(ex); break;
-                case CannotManage:                  cve = new CannotManageException(ex); break;
-                case InvalidCollectionModification: cve = new InvalidCollectionModification(ex); break;
-                case InvalidData:                   cve = new InvalidDataException(ex); break;
-                case InvalidItemPath:               cve = new InvalidItemPathException(ex); break;
-                case InvalidTransition:             cve = new InvalidTransitionException(ex); break;
-                case ObjectAlreadyExists:           cve = new ObjectAlreadyExistsException(ex); break;
-                case ObjectCannotBeUpdated:         cve = new ObjectCannotBeUpdated(ex); break;
-                case ObjectNotFound:                cve = new ObjectNotFoundException(ex); break;
-                case PersistencyError:              cve = new PersistencyException(ex); break;
-                case ScriptError:                   cve = new ScriptErrorException(ex); break;
-                default:
-                    cve = null;
-                    break;
-            }
-            return cve;
+        else if (ex instanceof ServiceException serviceEx) {
+            int failureCode = serviceEx.failureCode();
+            return switch (FailureCodes.getValue(failureCode)) {
+                case AccessRightsError              -> new AccessRightsException(ex);
+                case CannotManage                   -> new CannotManageException(ex);
+                case InvalidCollectionModification  -> new InvalidCollectionModification(ex);
+                case InvalidData                    -> new InvalidDataException(ex);
+                case InvalidItemPath                -> new InvalidItemPathException(ex);
+                case InvalidTransition              -> new InvalidTransitionException(ex);
+                case ObjectAlreadyExists            -> new ObjectAlreadyExistsException(ex);
+                case ObjectCannotBeUpdated          -> new ObjectCannotBeUpdated(ex);
+                case ObjectNotFound                 -> new ObjectNotFoundException(ex);
+                case PersistencyError               -> new PersistencyException(ex);
+                case ScriptError                    -> new ScriptErrorException(ex);
+                case null, default                  -> null;
+            };
         }
-
         return null;
     }
 

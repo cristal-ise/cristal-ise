@@ -17,7 +17,7 @@ This is an account of the sequence of events involved in starting a CRISTAL serv
     * The **module properties** are merged into the Kernel Properties, by order of dependency.
     * The **Kernel Properties** are again merged with the properties supplied in the method **arguments**, so they take precedence over any module properties.
     * Any client [startup scripts](../Script) are run here, if this is a client process.
-1. `Gateway.connect()` - makes a root connection to the **[Lookup](../Lookup)** directory
+1. `Gateway.connect()` - makes a root connection to the **[Lookup](../Lookup)** directory - FIXME: LDAP and Authenticator is NOT used anymore
     * An [Authenticator](../Authenticator) is obtained. The implementation of this is taken from the **'Authenticator'** kernel property, which may be a class name or a pre-instantiated object. In the case of the default LDAP lookup module, this is provided in the module properties.
     * An authentication request is made using a 'System' context. For the LDAP Lookup:
         * **LDAP properties** are loaded from the Kernel Properties. Host, port, user and password must be set.

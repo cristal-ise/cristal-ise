@@ -35,7 +35,11 @@ import spock.lang.Specification
  */
 class AgentCreateSpecs extends Specification implements CristalTestSetup {
 
-    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', null, true) }
+    def setup() {
+        def props = new Properties()
+        props.put('Shiro.iniFile', 'src/main/bin/shiroInMemory.ini')
+        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', props, true)
+    }
     def cleanup() { cristalCleanup() }
 
     def 'Agent with Role is created'() {
@@ -54,12 +58,12 @@ class AgentCreateSpecs extends Specification implements CristalTestSetup {
         agentBuilder.newAgent.roles
         agentBuilder.newAgent.roles.size() == 1
         agentBuilder.newAgent.roles[0].name == 'toto'
-        agentBuilder.newAgent.roles[0].jobList == true
 
         // check data available in through Lookup API
-        def rolePath = agentBuilder.newAgent.roles[0].rolePath
+        def rolePath = Gateway.lookup.getRolePath(agentBuilder.newAgent.roles[0].name)
+        rolePath.name == 'toto'
+        rolePath.hasJobList()
         agentBuilder.newAgentPath.exists()
-        rolePath.exists()
         agentBuilder.newAgentPath.hasRole(rolePath)
     }
 

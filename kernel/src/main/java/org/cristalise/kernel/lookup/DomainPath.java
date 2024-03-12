@@ -28,10 +28,12 @@ import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.concurrent.Immutable;
+
 /**
  * Very simple extension to Path. Only copies constructors and defines root
  */
-@Slf4j
+@Slf4j @Immutable
 public class DomainPath extends Path {
 
     private ItemPath target = null;
