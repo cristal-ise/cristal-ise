@@ -234,9 +234,6 @@
                   <arg>-Shiro.iniFile</arg>
                   <arg>/app/config/shiro.ini</arg>
                 </args>
-                <ports>
-                  <port>7000</port>
-                </ports>
                 <volumes>
                   <volume>/app/config</volume>
                   <volume>/app/log</volume>
