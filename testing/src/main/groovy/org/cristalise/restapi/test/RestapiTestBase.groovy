@@ -6,6 +6,7 @@ import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE
 import static org.cristalise.restapi.RestHandler.PASSWORD
 import static org.cristalise.restapi.RestHandler.USERNAME
 import static org.hamcrest.Matchers.*
+import static javax.ws.rs.core.Response.Status.OK;
 
 import java.nio.charset.StandardCharsets
 
@@ -33,6 +34,8 @@ import io.restassured.http.ContentType
 import io.restassured.http.Cookie
 import io.restassured.response.Response
 
+import javax.ws.rs.core.Response.Status;
+
 @CompileStatic @Slf4j
 class RestapiTestBase extends KernelScenarioTestBase {
 
@@ -41,8 +44,6 @@ class RestapiTestBase extends KernelScenarioTestBase {
     String userUuid
     Cookie cauthCookie
     String serverPath = '/servers/localhost'
-
-    static final int STATUS_OK = 200
 
     @BeforeAll
     public void init() {
@@ -76,7 +77,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
                 .post(apiUri+"/login")
             .then()
                 .cookie('cauth')
-                .statusCode(STATUS_OK)
+                .statusCode(OK.statusCode)
                 .extract().response()
 
         log.debug('loginPost() - response:{}', loginResp.body().asString())
@@ -96,7 +97,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
                 .get(apiUri+"/login")
             .then()
                 .cookie('cauth')
-                .statusCode(STATUS_OK)
+                .statusCode(OK.statusCode)
             .extract().response()
 
         log.debug('login() - response:{}', loginResp.body().asString())
@@ -116,7 +117,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
            .when()
                 .get(apiUri+"/logout")
            .then()
-                .statusCode(STATUS_OK)
+                .statusCode(OK.statusCode)
         }
         else {
             given()
@@ -125,7 +126,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .when()
                 .get(apiUri+"/logout")
             .then()
-                .statusCode(STATUS_OK)
+                .statusCode(OK.statusCode)
         }
     }
 
@@ -143,7 +144,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
                 .when()
                     .get(apiUri+"/item/$uuid/history")
                 .then()
-                    .statusCode(STATUS_OK)
+                    .statusCode(OK.statusCode)
                 .extract().response().body().asString()
 
             def histJson = new JSONArray(histBody)
@@ -160,7 +161,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .when()
                 .get(apiUri+"/item/$userUuid/history/$id")
             .then()
-                .statusCode(STATUS_OK)
+                .statusCode(OK.statusCode)
                 .body('activity.name', equalTo(name))
 
             return id
@@ -175,7 +176,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .when()
                 .get("${apiUri}/item/$uuid/job/form${urlPostFix}/${activityPath}".toString())
             .then()
-                .statusCode(STATUS_OK)
+                .statusCode(OK.statusCode)
             .extract().response().body().asString()
 
         return responseBody
@@ -218,7 +219,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .post(apiUri+"/item/$uuid/workflow/predefined/"+predefStepName)
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(OK.statusCode)
         .extract().response().body().asString()
 
         return responseBody
@@ -233,7 +234,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(OK.statusCode)
         .extract().response().body().asString()
     }
 
@@ -243,7 +244,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .get(apiUri+"/item/$uuid/attachment/$schema/$version/$event")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(OK.statusCode)
         .extract().response().body().asString()
     }
 
@@ -253,7 +254,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .get(apiUri+"/item/$uuid/outcome/$schema/$version/$event")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(OK.statusCode)
         .extract().response().body().asString()
     }
 
@@ -263,7 +264,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .get(apiUri+"/item/$uuid/viewpoint/$schema/$view")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(OK.statusCode)
         .extract().response().body().asString()
     }
 
@@ -277,11 +278,11 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .when()
                 .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
             .then()
-                .statusCode(STATUS_OK)
+                .statusCode(OK.statusCode)
             .extract().response().asString()
     }
 
-    String executeScript(String uuid, String scriptName, ContentType contentType = JSON, String inputs) {
+    String executeScript(String uuid, String scriptName, ContentType contentType = JSON, Status status = OK, String inputs) {
         return given()
             .contentType(contentType)
             .accept(JSON)
@@ -290,7 +291,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .post(apiUri+"/item/$uuid/scriptResult/?script=${scriptName}&version=0")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(status.statusCode)
         .extract().response().body().asString()
     }
 
@@ -304,7 +305,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .get(apiUri+"/domain/$path")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(OK.statusCode)
         .extract().response().body().asString()
 
         return new JSONObject(responseBody).getString("uuid")
@@ -318,7 +319,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .get(apiUri+"/role/$name")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(OK.statusCode)
         .extract()
             .response().body().asString()
 
