@@ -112,7 +112,10 @@ public class UserCodeVerticle extends AbstractVerticle {
 
             try {
                 Job aJob = userCode.getJob(jobId);
-                vertx.executeBlocking((result) -> process(aJob));
+                vertx.executeBlocking(() -> {
+                    process(aJob);
+                    return null;
+                });
             }
             catch (ObjectNotFoundException e) {
                 log.error("handler()", e);

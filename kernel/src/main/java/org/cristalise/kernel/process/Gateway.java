@@ -326,11 +326,10 @@ public class Gateway extends ProxyManager
                 Config hazelcastConfig =  ConfigUtil.loadConfig();
                 if (!AbstractMain.isServer) hazelcastConfig.setLiteMember(true);
                 ClusterManager mgr = new HazelcastClusterManager(hazelcastConfig);
-                options.setClusterManager(mgr);
 
                 CompletableFuture<Void> future = new CompletableFuture<Void>();
 
-                Vertx.clusteredVertx(options, (result) -> {
+                Vertx.builder().with(options).withClusterManager(mgr).buildClustered().onComplete((result) -> {
                     if (result.succeeded()) {
                         mVertx = result.result();
                         log.info("createVertx(clustered) -  Done");

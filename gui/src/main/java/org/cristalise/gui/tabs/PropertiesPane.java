@@ -119,7 +119,7 @@ public class PropertiesPane extends ItemTabPane implements ActionListener {
             String[] tokens = ((String) message.body()).split(":");
             String propName = tokens[0];
 
-            vertx.executeBlocking(promise -> {
+            vertx.executeBlocking(() -> {
                 try {
                     if (tokens[1].equals("DELETE")) {
                         remove(propName);
@@ -131,9 +131,7 @@ public class PropertiesPane extends ItemTabPane implements ActionListener {
                 catch (ObjectNotFoundException e) {
                     log.error("", e);
                 }
-                promise.complete();
-            }, res -> {
-                //
+                return null;
             });
         });
     }

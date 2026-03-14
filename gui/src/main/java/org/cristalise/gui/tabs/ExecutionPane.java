@@ -103,16 +103,14 @@ public class ExecutionPane extends ItemTabPane {
 
             if (tokens[1].equals("DELETE")) return;
 
-            vertx.executeBlocking(promise -> {
+            vertx.executeBlocking(() -> {
                 try {
                     add(sourceItem.getItem().getWorkflow());
                 }
                 catch (ObjectNotFoundException e) {
                     log.error("", e);
                 }
-                promise.complete();
-            }, res -> {
-                //
+                return null;
             });
         });
     }

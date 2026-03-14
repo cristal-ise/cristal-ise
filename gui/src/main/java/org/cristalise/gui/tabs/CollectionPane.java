@@ -63,7 +63,7 @@ public class CollectionPane extends ItemTabPane {
 
             if (tokens[1].equals("DELETE")) return;
 
-            vertx.executeBlocking(promise -> {
+            vertx.executeBlocking(() -> {
                 try {
                     int idx = collPath.lastIndexOf("/");
                     String collName = collPath.substring(0, idx);
@@ -72,16 +72,14 @@ public class CollectionPane extends ItemTabPane {
                         add(sourceItem.getItem().getCollection(collName));
                     }
                     else {
-                        Integer version = new Integer(collPath.substring(idx+1));
+                        Integer version = Integer.valueOf(collPath.substring(idx+1));
                         add(sourceItem.getItem().getCollection(collName, version));
                     }
                 }
                 catch (ObjectNotFoundException e) {
                     log.error("", e);
                 }
-                promise.complete();
-            }, res -> {
-                //
+                return null;
             });
         });
     }
