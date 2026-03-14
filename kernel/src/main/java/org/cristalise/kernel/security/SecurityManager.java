@@ -31,11 +31,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.config.Ini;
-import org.apache.shiro.config.IniSecurityManagerFactory;
+import org.apache.shiro.mgt.DefaultSecurityManager;
+import org.apache.shiro.realm.text.IniRealm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.Factory;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -158,10 +158,8 @@ public class SecurityManager {
 //            }
 //        }
 
-        //FIXME: replace the use of IniSecurityManagerFactory with shiro Environment initialization
-        Factory<org.apache.shiro.mgt.SecurityManager> factory = new IniSecurityManagerFactory(sIni);
-
-        org.apache.shiro.mgt.SecurityManager securityManager = factory.getInstance();
+        IniRealm iniRealm = new IniRealm(sIni);
+        DefaultSecurityManager securityManager = new DefaultSecurityManager(iniRealm);
         SecurityUtils.setSecurityManager(securityManager);
 
         log.info("setupShiro() - Done inifile:{}", shiroIni);
