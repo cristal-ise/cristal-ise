@@ -46,7 +46,7 @@ public class TcpBridgeClientVerticle extends AbstractVerticle {
         String host = TcpBridge_host.getString();
         int    port = TcpBridge_port.getInteger();
 
-        tcpClient.connect(port, host, result -> {
+        tcpClient.connect(port, host).onComplete(result -> {
             if (result.succeeded()) {
                 socket = result.result();
 

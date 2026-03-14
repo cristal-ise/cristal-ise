@@ -61,12 +61,10 @@ public class JobListPane extends ItemTabPane {
 
         Vertx vertx = Gateway.getVertx();
         vertx.eventBus().localConsumer(parent.getItemPath().getUUID() + "/" + JOB, message -> {
-            vertx.executeBlocking(promise -> {
+            vertx.executeBlocking(() -> {
                 reload();
-                promise.complete();
-            }, result -> {
-                if (result.failed()) log.warn("", result.cause());
-            });
+                return null;
+            }).onFailure(cause -> log.warn("", cause));
         });
     }
 

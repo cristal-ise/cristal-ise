@@ -55,7 +55,7 @@
     <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
     <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
     <java.release>21</java.release>
-    <vertx.version>4.5.13</vertx.version>
+    <vertx.version>5.0.8</vertx.version>
     <groovy.version>4.0.30</groovy.version>
     <groovy-eclipse-compiler.version>3.9.1</groovy-eclipse-compiler.version>
     <groovy-eclipse-batch.version>4.0.30-02</groovy-eclipse-batch.version>
