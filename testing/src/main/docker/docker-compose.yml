@@ -1,3 +1,4 @@
+version: "3"
 name: integtest
 
 services:
@@ -11,7 +12,7 @@ services:
       - POSTGRES_PASSWORD=cristal
 
   module:
-    image: cristalise/testing:$CRISTALISE_RELEASE
+    image: cristalise/testing:${CRISTALISE_RELEASE}
     network_mode: host
     depends_on:
       - postgres
@@ -21,7 +22,7 @@ services:
       - $TRAVIS_BUILD_DIR/testing/src/main/docker/data:/app/data
 
   restapi:
-    image: cristalise/restapi:$CRISTALISE_RELEASE
+    image: cristalise/restapi:${CRISTALISE_RELEASE}
     network_mode: host
     depends_on:
       - module
