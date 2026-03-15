@@ -21,6 +21,7 @@
 package org.cristalise.kernel.security;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.cristalise.kernel.SystemProperties.Shiro_iniFile;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SECURITY_ACTION;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
@@ -31,8 +32,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.config.Ini;
-import org.apache.shiro.mgt.DefaultSecurityManager;
-import org.apache.shiro.realm.text.IniRealm;
+import org.apache.shiro.env.BasicIniEnvironment;
+import org.apache.shiro.env.Environment;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.Subject;
@@ -49,6 +50,9 @@ import org.cristalise.kernel.property.PropertyUtility;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.cristalise.kernel.utils.FileStringUtility;
+
+import java.io.IOException;
 
 @Getter
 @Slf4j
@@ -58,17 +62,27 @@ public class SecurityManager {
     private static final String securityMsgEnd   = "[/errorMessage]";
 
     /**
-     * 
-     * @throws InvalidDataException
+     * Constructs a new instance of the SecurityManager class.
+     * This constructor initializes the security environment by loading the 
+     * Shiro configuration through the {@code setupShiro} method.
+     *
+     * @throws InvalidDataException if there is an issue with the initialization process
+     *                              such as invalid data in the configuration.
      */
     public SecurityManager() throws InvalidDataException {
         setupShiro();
     }
 
     /**
-     * 
-     * @throws InvalidDataException
-     * @throws ObjectNotFoundException
+     * Authenticates the system user to establish a connection with the underlying 
+     * security technology (e.g., LDAP/AD/JDBC).
+     * The method does not perform actual user authentication but initializes the 
+     * necessary setup to authenticate the 'system' agent.
+     * Note that due to restrictions in the current configuration, the system agent
+     * cannot be created with a password. 
+     *
+     * @throws InvalidDataException      if the initialization process encounters invalid data.
+     * @throws ObjectNotFoundException   if the 'system' agent is not found.
      */
     public void authenticate() throws InvalidDataException, ObjectNotFoundException {
         //NOTE: no code required because shiro cannot authenticate users without a password, and the current
@@ -83,14 +97,16 @@ public class SecurityManager {
     }
 
     /**
+     * Authenticates an agent using the provided credentials and resource details.
+     *
+     * @param agentName     the name of the agent to authenticate
+     * @param agentPassword the password of the agent
+     * @param resource      the resource the agent is attempting to access
+     * @param isClient      specifies if the caller is a client process
+     * @return the authenticated AgentProxy object or null if {@code isClient} is true
      * 
-     * @param agentName
-     * @param agentPassword
-     * @param resource
-     * @param isClient
-     * @return
-     * @throws InvalidDataException
-     * @throws ObjectNotFoundException
+     * @throws InvalidDataException      if the provided data, such as credentials, is invalid
+     * @throws ObjectNotFoundException  if the agent or resource is not found
      */
     public AgentProxy authenticate(String agentName, String agentPassword, String resource, boolean isClient)
             throws InvalidDataException, ObjectNotFoundException
@@ -99,14 +115,17 @@ public class SecurityManager {
     }
 
     /**
+     * Authenticates an agent using the provided credentials, resource details, and a transaction key.
+     *
+     * @param agentName       the name of the agent to authenticate
+     * @param agentPassword   the password of the agent
+     * @param resource        the resource the agent is attempting to access
+     * @param isClient        specifies if the caller is a client process
+     * @param transactionKey  the transaction key associated with the action
+     * @return the authenticated AgentProxy object if the authentication is successful, or null if {@code isClient} is true
      * 
-     * @param agentName
-     * @param agentPassword
-     * @param resource 
-     * @param isClient ItemProxy should only be used in the client processes
-     * @return AgentProxy of the user or returns null isClient is true
-     * @throws InvalidDataException
-     * @throws ObjectNotFoundException
+     * @throws InvalidDataException       if the provided credentials are invalid
+     * @throws ObjectNotFoundException    if the agent, resource, or other associated objects are not found
      */
     public AgentProxy authenticate(String agentName, String agentPassword, String resource, boolean isClient, TransactionKey transactionKey)
             throws InvalidDataException, ObjectNotFoundException
@@ -119,18 +138,20 @@ public class SecurityManager {
     }
 
     /**
-     * 
-     * @param agent
-     * @return
+     * Retrieves a Subject object based on the provided agent path.
+     *
+     * @param agent the AgentPath representing the agent for which the subject should be retrieved
+     * @return the Subject associated with the given agent
      */
     public Subject getSubject(AgentPath agent) {;
         return getSubject(agent.getAgentName());
     }
 
     /**
-     * 
-     * @param principal
-     * @return
+     * Retrieves a Subject object based on the provided principal name.
+     *
+     * @param principal the principal name representing the identity for which the Subject should be retrieved
+     * @return the Subject associated with the given principal
      */
     public Subject getSubject(String principal) {
         PrincipalCollection principals = new SimplePrincipalCollection(principal, principal);
@@ -147,22 +168,25 @@ public class SecurityManager {
         else                   shiroIni = "file:" + shiroIni;
 
         Ini sIni = Ini.fromResourcePath(shiroIni);
+        String passwordFile = sIni.getSectionProperty("ds", "passwordFile");
 
-//        if (! sIni.containsKey("ds.password")) {
-//            try {
-//                String pwd = FileStringUtility.file2String(sIni.getSectionProperty("ds", "passwordFile"));
-//                sIni.setSectionProperty("ds", "password", pwd);
-//                pwd = "";
-//            }
-//            catch (IOException e) {
-//            }
-//        }
+        if (isNotBlank(passwordFile)) {
+            log.info("setupShiro() - setting value for ds.password from passwordFile:{}", passwordFile);
+            try {
+                String pwd = FileStringUtility.file2String(passwordFile);
+                sIni.setSectionProperty("ds", "password", pwd);
+                pwd = null;
+            }
+            catch (IOException e) {
+                log.error("setupShiro() - Failed to read passwordFile:{}", passwordFile, e);
+                System.exit(1);
+            }
+        }
 
-        IniRealm iniRealm = new IniRealm(sIni);
-        DefaultSecurityManager securityManager = new DefaultSecurityManager(iniRealm);
-        SecurityUtils.setSecurityManager(securityManager);
+        Environment shiroEnv = new BasicIniEnvironment(sIni);
+        SecurityUtils.setSecurityManager(shiroEnv.getSecurityManager());
 
-        log.info("setupShiro() - Done inifile:{}", shiroIni);
+        log.info("setupShiro() - DONE shiroIni:{}", shiroIni);
     }
 
     /**
@@ -191,13 +215,6 @@ public class SecurityManager {
         return securityMsgBegin + msg + securityMsgEnd;
     }
 
-    
-    /**
-     * 
-     * @param agentName
-     * @param agentPassword
-     * @return
-     */
     private boolean shiroAuthenticate(String agentName, String agentPassword) throws InvalidDataException {
         Subject agentSubject = getSubject(agentName);
 
@@ -212,11 +229,11 @@ public class SecurityManager {
             }
             catch (Exception ex) {
               //NOTE: Enable this log for testing security problems only, but always remove it when merged
-              //Logger.error(ex);
+              //log.error("agentName:{}", agentName, ex);
 
               String publicMsg = decodePublicSecurityMessage(ex);
 
-              if (StringUtils.isNotBlank(publicMsg)) {
+              if (isNotBlank(publicMsg)) {
                 log.debug("shiroAuthenticate() - Failed with public message:{}", publicMsg);
                 throw new InvalidDataException(encodePublicSecurityMessage(publicMsg));
               }
@@ -227,14 +244,18 @@ public class SecurityManager {
     }
 
     /**
+     * Checks whether the specified agent has permission to perform a given action 
+     * on a specified item within the context of a transaction.
      *
-     * @param agent
-     * @param act
-     * @param itemPath
-     * @param transactionKey
-     * @return
-     * @throws AccessRightsException
-     * @throws ObjectNotFoundException
+     * @param agent           the {@code AgentPath} representing the agent whose permissions 
+     *                        are being checked
+     * @param act             the {@code Activity} representing the action being evaluated
+     * @param itemPath        the {@code ItemPath} representing the target resource
+     * @param transactionKey  the {@code TransactionKey} representing the transaction context
+     * @return {@code true} if the agent has the required permissions, {@code false} otherwise
+     * @throws AccessRightsException   if there is an error determining access rights
+     * @throws ObjectNotFoundException if any of the specified objects (e.g., agent, activity, 
+     *                                 or resource) cannot be found
      */
     public boolean checkPermissions(AgentPath agent, Activity act, ItemPath itemPath, TransactionKey transactionKey)
             throws AccessRightsException, ObjectNotFoundException
@@ -250,14 +271,7 @@ public class SecurityManager {
 
         return getSubject(agent).isPermitted(permission);
     }
-    
-    /**
-     * 
-     * @param itemPath
-     * @return
-     * @throws ObjectNotFoundException Item was not found 
-     * @throws AccessRightsException 
-     */
+
     private String getWildcardPermissionDomain(ItemPath itemPath, TransactionKey transactionKey) throws ObjectNotFoundException, AccessRightsException {
         String type   = PropertyUtility.getPropertyValue(itemPath, TYPE, "", transactionKey);
         String domain = PropertyUtility.getPropertyValue(itemPath, SECURITY_DOMAIN, type, transactionKey);
@@ -267,12 +281,6 @@ public class SecurityManager {
         return domain;
     }
 
-    /**
-     * 
-     * @param act
-     * @return
-     * @throws AccessRightsException 
-     */
     private String getWildcardPermissionAction(Activity act) throws AccessRightsException {
         String action = (String) act.getBuiltInProperty(SECURITY_ACTION, "");
 
