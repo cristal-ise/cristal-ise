@@ -21,40 +21,35 @@ import javax.ws.rs.core.Response;
  */
 @Slf4j @CompileStatic
 class ScriptAccessRightsTest extends RestapiTestBase {
+    private String prefix = 'ScriptAuthz'
 
     /**
      * 
      * @param count
      * @return
      */
-    private List<String> setupPatients(int count) {
+    private String setupPatient() {
         def factory = agent.getItem("/$folder/PatientFactory")
         def createItemJob = factory.getJobByName('InstantiateItem', agent)
         def o = createItemJob.getOutcome()
 
-        List<String> uuids = []
+        def name = "${prefix}_Patient"
 
-        count.times { int idx ->
-            def name = "Patient${idx+1}"
+        o.setField('Name', name)
+        o.setField('SubFolder', timeStamp)
+        agent.execute(createItemJob)
 
-            o.setField('Name', name)
-            o.setField('SubFolder', timeStamp)
-            agent.execute(createItemJob)
+        def p = agent.getItem("$folder/Patients/$timeStamp/$name")
 
-            def p = agent.getItem("$folder/Patients/$timeStamp/$name")
+        executeDoneJob(p, 'SetDetails')
+        executeDoneJob(p, 'SetUrinSample')
 
-            executeDoneJob(p, 'SetDetails')
-            executeDoneJob(p, 'SetUrinSample')
-
-            uuids << p.getPath().getUUID().toString()
-        }
-
-        return uuids
+        return p.getPath().getUUID().toString()
     }
 
     private String createRoleAndAgent(String permission, String pwd) {
-        String role = "TestRole-$timeStamp"
-        String agenName = "TestAgent-$timeStamp"
+        String role = "${prefix}_TestRole-$timeStamp"
+        String agenName = "${prefix}_TestAgent-$timeStamp"
 
         ImportRole newRole = new ImportRole()
         newRole.setName(role)
@@ -78,9 +73,7 @@ class ScriptAccessRightsTest extends RestapiTestBase {
 
     @Test
     public void executeScript_withPermission() {
-        init('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
-
-        def uuid = setupPatients(1)[0]
+        def uuid = setupPatient()
         def agentName = createRoleAndAgent('Script:ACTION_EXECUTE:Patient_Aggregate', 'test')
 
         login(agentName, 'test')
@@ -89,15 +82,11 @@ class ScriptAccessRightsTest extends RestapiTestBase {
         log.info "${uuid} - $result"
 
         logout('')
-
-        Gateway.close()
     }
 
     @Test
     public void executeScript_noPermission() {
-        init('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
-
-        def uuid = setupPatients(1)[0]
+        def uuid = setupPatient()
         def agentName = createRoleAndAgent('Script:ACTION_EXECUTE:Some_Other', 'test')
 
         login(agentName, 'test')
@@ -107,7 +96,5 @@ class ScriptAccessRightsTest extends RestapiTestBase {
         //assert msg.equals("'$agentName' is NOT permitted to ACTION_EXECUTE script: ")
 
         logout('')
-
-        Gateway.close()
     }
 }

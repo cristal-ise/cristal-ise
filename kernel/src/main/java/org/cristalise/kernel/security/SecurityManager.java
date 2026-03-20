@@ -249,8 +249,8 @@ public class SecurityManager {
     }
 
     /**
-     * Checks whether the specified agent has permission to perform a given action 
-     * on a specified item within the context of a transaction.
+     * Checks whether the specified agent has permission to perform a given Activity 
+     * on a specified Item within the context of a transaction.
      *
      * @param agent           the {@code AgentPath} representing the agent whose permissions 
      *                        are being checked

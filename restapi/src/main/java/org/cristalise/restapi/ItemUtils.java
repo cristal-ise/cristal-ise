@@ -42,12 +42,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.Aggregation;
 import org.cristalise.kernel.collection.AggregationMember;
@@ -92,6 +89,7 @@ import org.json.JSONObject;
 import org.json.XML;
 import com.google.common.io.ByteStreams;
 import lombok.extern.slf4j.Slf4j;
+
 
 
 @Slf4j
@@ -168,6 +166,10 @@ public abstract class ItemUtils extends RestHandler {
         catch(ClassCastException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
+    }
+
+    protected AgentProxy getAgentProxy(Cookie cookie) throws ObjectNotFoundException {
+        return Gateway.getAgentProxy(getAgentPath(cookie));
     }
 
     protected AgentProxy getAgentProxy(NewCookie cookie) {

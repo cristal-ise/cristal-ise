@@ -252,7 +252,8 @@ public class ItemRoot extends ItemUtils {
 
         try {
             return scriptUtils
-                    .executeScript(headers, item, scriptName, scriptVersion, actPath, postData, ImmutableMap.of())
+                    .executeScript(headers, item, scriptName, scriptVersion, actPath, postData,
+                            ImmutableMap.of(Script.PARAMETER_AGENT, getAgentProxy(authCookie)))
                     .cookie(cookie).build();
         }
         catch (Exception e) {
