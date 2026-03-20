@@ -1,7 +1,6 @@
 <cristalscript>
     <param name="item"    type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
     <param name="agent"   type="org.cristalise.kernel.entity.proxy.AgentProxy"/>
-    <param name="storage" type="org.cristalise.kernel.persistency.TransactionManager"/>
     <param name="proxy"   type="org.cristalise.kernel.entity.proxy.ProxyManager"/>
     <param name="lookup"  type="org.cristalise.kernel.lookup.Lookup"/>
 

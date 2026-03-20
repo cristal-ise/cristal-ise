@@ -480,6 +480,8 @@ public class Gateway extends ProxyManager
         mResource = null;
         mMarshaller = null;
         mC2KProps.clear();
+
+        log.info("close() - DONE.");
     }
 
     static public SecurityManager getSecurityManager() {
