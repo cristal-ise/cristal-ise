@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LoginResult",
+  "type": "object",
+  "properties": {
+    "Login": {
+      "type": "object",
+      "properties": {
+        "result": { "type": "string" },
+        "temporaryPassword": { "type": "boolean" },
+        "uuid": { "type": "string", "format": "uuid" }
+      },
+      "required": ["result", "temporaryPassword", "uuid"]
+    }
+  },
+  "required": ["Login"]
+}

@@ -1,6 +1,6 @@
 /**
- * This file is part of the CRISTAL-iSE kernel.
- * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+ * This file is part of the CRISTAL-iSE Development Module.
+ * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -21,8 +21,7 @@
 package org.cristalise.kernel.test.entity
 
 import org.cristalise.dsl.test.builders.ItemTestBuilder
-import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.property.PropertyUtility;
+import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Ignore
@@ -33,25 +32,27 @@ import spock.lang.Specification
  *
  */
 class ItemCreateSpecs extends Specification implements CristalTestSetup {
+    private final String itemName = 'myFirstItem'
 
-    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc') }
-    def cleanup() { cristalCleanup() }
+    def setupSpec()   { inMemoryServer(null, true) }
+    def cleanupSpec() { cristalCleanup() }
 
     def 'Item can be created without workflow'() {
         when:
-        def builder = ItemTestBuilder.create(name: "myFisrtItem", folder: "testing") {}
+        def builder = ItemTestBuilder.create(name: itemName, folder: "testing") {}
 
         then:
         assert builder
-        builder.checkPathes("myFisrtItem", "testing")
-        builder.checkProperties(Name: "myFisrtItem", Creator: "bootstrap")
+        builder.checkPathes(itemName, "testing")
+        builder.newItem.proxy.getObject(ClusterType.PROPERTY).size() == 1
+        builder.checkProperties(Name: itemName)
         //assert workflow only has predefined steps
     }
-    
+
     @Ignore
     def 'Item can be created with CompActDef'() {
         when:
-        def builder = ItemTestBuilder.create(name: "myFisrtItem", folder: "testing") {
+        def builder = ItemTestBuilder.create(name: itemName, folder: "testing") {
             CompositeActivityDef {
                 ElemActDef('TriggerTestAct',  0)
             }
@@ -59,8 +60,8 @@ class ItemCreateSpecs extends Specification implements CristalTestSetup {
 
         then:
         assert builder
-        builder.checkPathes("myFisrtItem", "testing")
-        builder.checkProperties(Name: "myFisrtItem", Creator: "bootstrap")
+        builder.checkPathes(itemName, "testing")
+        builder.checkProperties(Name: itemName, Creator: "bootstrap")
         //assert workflow only has predefined steps
     }
 

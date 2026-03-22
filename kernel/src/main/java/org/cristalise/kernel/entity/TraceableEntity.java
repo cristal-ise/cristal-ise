@@ -315,15 +315,12 @@ public class TraceableEntity implements Item {
         log.info("queryLifeCycle({}) - agent:{}", item, agent);
 
         try {
-            Workflow wf = (Workflow) mStorage.get(item.getPath(), ClusterType.LIFECYCLE + "/workflow", null);
-            @SuppressWarnings("unchecked")
-            C2KLocalObjectMap<Job> jobs = (C2KLocalObjectMap<Job>)mStorage.get(item.getPath(), ClusterType.JOB.getName(), null);
-
+            C2KLocalObjectMap<Job> jobs = item.getJobs();
             SecurityManager secMan = Gateway.getSecurityManager();
             JobArrayList jobBag = new JobArrayList();
 
             for (Job j : jobs.values()) {
-                Activity act = (Activity) wf.search(j.getStepPath());
+                Activity act = (Activity) item.getWorkflow().search(j.getStepPath());
                 if (secMan.checkPermissions(agent.getPath(), act, item.getPath(), null)) {
                     try {
                         j.getTransition().checkPerformingRole(act, agent.getPath());

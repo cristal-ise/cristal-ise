@@ -21,7 +21,7 @@ CRISTAL-iSE is a description-driven software platform for No-Code/Low-Code appli
 - `dsl`: Domain Specific Language for CRISTAL objects.
 - `trigger`: Quartz-based scheduling.
 - `gui`: Swing-based administrative UI.
-- `testing`: Functional testing project.
+- `testing`: Integration testing project.
 - `webui`: Angular-based modern UI (NX workspace).
 - `dev`: Development and bootstrap utilities.
 

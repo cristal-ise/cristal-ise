@@ -1123,7 +1123,7 @@ public class ItemProxy {
     }
 
     /**
-     * Retrieve the C2KLocalObject for the ClusterType. Actually it returns an instance of C2KLocalObjectMap
+     * Retrieve the C2KLocalObject for the ClusterType. Actually, it returns an instance of C2KLocalObjectMap
      *
      * @param type the ClusterTyoe
      * @return the C2KLocalObjectMap representing all the Object in the ClusterType
