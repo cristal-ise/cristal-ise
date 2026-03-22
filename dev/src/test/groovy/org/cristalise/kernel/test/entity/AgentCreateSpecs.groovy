@@ -35,12 +35,8 @@ import spock.lang.Specification
  */
 class AgentCreateSpecs extends Specification implements CristalTestSetup {
 
-    def setup() {
-        def props = new Properties()
-        props.put('Shiro.iniFile', 'src/main/bin/inMemoryShiro.ini')
-        inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', props, true)
-    }
-    def cleanup() { cristalCleanup() }
+    def setupSpec()   { inMemoryServer(null, true) }
+    def cleanupSpec() { cristalCleanup() }
 
     def 'Agent with Role is created'() {
         when:

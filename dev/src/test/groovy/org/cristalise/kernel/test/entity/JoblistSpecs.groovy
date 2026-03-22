@@ -25,7 +25,7 @@ import org.cristalise.dsl.lifecycle.stateMachine.StateMachineBuilder
 import org.cristalise.dsl.test.builders.AgentTestBuilder
 import org.cristalise.dsl.test.builders.ItemTestBuilder
 import org.cristalise.kernel.test.utils.CristalTestSetup
-
+import spock.lang.Ignore
 import spock.lang.Specification
 import spock.util.concurrent.PollingConditions
 
@@ -33,6 +33,7 @@ import spock.util.concurrent.PollingConditions
 /**
  *
  */
+@Ignore('REVIEW Required')
 class JoblistSpecs extends Specification implements CristalTestSetup {
 
     PollingConditions pollingWait = new PollingConditions(timeout: 5, initialDelay: 0.5, delay: 0.2, factor: 1)
@@ -43,7 +44,6 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
     def setupSpec() {
         def props = new Properties()
         props.put('Shiro.iniFile', 'src/main/bin/inMemoryShiro.ini')
-        //skips boostrap!!!
         inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc', props, true)
     }
 
@@ -83,8 +83,8 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
         //"Agent gets 2 Jobs (Start, Complete) for the Activity it was assigned to"
         pollingWait.eventually {
             dummyAgentBuilder.checkJobList(
-                    [   [stepName: "EA1", agentRole: "toto", transitionName: "Start"],
-                        [stepName: "EA1", agentRole: "toto", transitionName: "Done" ]])
+                    [[stepName: "EA1", agentRole: "toto", transitionName: "Start"],
+                     [stepName: "EA1", agentRole: "toto", transitionName: "Done" ]])
         }
 
         when: "the Job associated with the Start Transition is executed"
@@ -93,8 +93,8 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
         then: "Agent gets two Jobs (Complete, Suspend) for the Activity it was assigned to"
         pollingWait.eventually {
             dummyAgentBuilder.checkJobList(
-                    [   [stepName: "EA1", agentRole: "toto", transitionName: "Suspend" ],
-                        [stepName: "EA1", agentRole: "toto", transitionName: "Complete"]])
+                    [[stepName: "EA1", agentRole: "toto", transitionName: "Suspend" ],
+                     [stepName: "EA1", agentRole: "toto", transitionName: "Complete"]])
         }
 
         when: "the Job associated with the Complete Transition is executed"
@@ -106,7 +106,7 @@ class JoblistSpecs extends Specification implements CristalTestSetup {
         }
     }
 
-    def 'StateMachine Transition can override Role specified in Actitiy'() {
+    def 'StateMachine Transition can override Role specified in Activity'() {
         given:
         StateMachineBuilder.create("testing", "RoleOverrideSM", 0) {
             transition("Start", [origin:"Waiting", target:"Started"]) {

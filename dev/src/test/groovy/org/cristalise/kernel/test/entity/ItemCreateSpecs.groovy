@@ -21,8 +21,7 @@
 package org.cristalise.kernel.test.entity
 
 import org.cristalise.dsl.test.builders.ItemTestBuilder
-import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.property.PropertyUtility;
+import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Ignore
@@ -35,8 +34,8 @@ import spock.lang.Specification
 class ItemCreateSpecs extends Specification implements CristalTestSetup {
     private final String itemName = 'myFirstItem'
 
-    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc') }
-    def cleanup() { cristalCleanup() }
+    def setupSpec()   { inMemoryServer(null, true) }
+    def cleanupSpec() { cristalCleanup() }
 
     def 'Item can be created without workflow'() {
         when:
@@ -45,10 +44,11 @@ class ItemCreateSpecs extends Specification implements CristalTestSetup {
         then:
         assert builder
         builder.checkPathes(itemName, "testing")
-        builder.checkProperties(Name: itemName, Creator: "bootstrap")
+        builder.newItem.proxy.getObject(ClusterType.PROPERTY).size() == 1
+        builder.checkProperties(Name: itemName)
         //assert workflow only has predefined steps
     }
-    
+
     @Ignore
     def 'Item can be created with CompActDef'() {
         when:
