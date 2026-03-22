@@ -33,25 +33,26 @@ import spock.lang.Specification
  *
  */
 class ItemCreateSpecs extends Specification implements CristalTestSetup {
+    private final String itemName = 'myFirstItem'
 
     def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc') }
     def cleanup() { cristalCleanup() }
 
     def 'Item can be created without workflow'() {
         when:
-        def builder = ItemTestBuilder.create(name: "myFisrtItem", folder: "testing") {}
+        def builder = ItemTestBuilder.create(name: itemName, folder: "testing") {}
 
         then:
         assert builder
-        builder.checkPathes("myFisrtItem", "testing")
-        builder.checkProperties(Name: "myFisrtItem", Creator: "bootstrap")
+        builder.checkPathes(itemName, "testing")
+        builder.checkProperties(Name: itemName, Creator: "bootstrap")
         //assert workflow only has predefined steps
     }
     
     @Ignore
     def 'Item can be created with CompActDef'() {
         when:
-        def builder = ItemTestBuilder.create(name: "myFisrtItem", folder: "testing") {
+        def builder = ItemTestBuilder.create(name: itemName, folder: "testing") {
             CompositeActivityDef {
                 ElemActDef('TriggerTestAct',  0)
             }
@@ -59,8 +60,8 @@ class ItemCreateSpecs extends Specification implements CristalTestSetup {
 
         then:
         assert builder
-        builder.checkPathes("myFisrtItem", "testing")
-        builder.checkProperties(Name: "myFisrtItem", Creator: "bootstrap")
+        builder.checkPathes(itemName, "testing")
+        builder.checkProperties(Name: itemName, Creator: "bootstrap")
         //assert workflow only has predefined steps
     }
 

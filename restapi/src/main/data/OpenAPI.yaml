@@ -202,7 +202,7 @@ paths:
   /item/{uuid}/aliases:
     get:
       summary: Get Item Aliases
-      description: Returns the aliases (domain paths) of the item.
+      description: Returns the aliases, i.e. the list of DomainPaths of the item.
       security:
         - cookieAuth: []
       parameters:
@@ -225,7 +225,7 @@ paths:
   /item/{uuid}/master:
     get:
       summary: Get Master Outcome
-      description: Returns the master outcome of the item.
+      description: Returns the master outcome of the Item.
       security:
         - cookieAuth: []
       parameters:
@@ -267,7 +267,7 @@ paths:
   /item/{uuid}/scriptResult:
     get:
       summary: Execute Script (GET)
-      description: Executes a script on the item and returns the result.
+      description: Executes a script on the item and returns the result as a JSON or XML.
       security:
         - cookieAuth: []
       parameters:
@@ -305,7 +305,7 @@ paths:
                 type: string
     post:
       summary: Execute Script (POST)
-      description: Executes a script on the item and returns the result.
+      description: Executes a script on the Item and returns the result as a JSON or XML.
       security:
         - cookieAuth: []
       parameters:
