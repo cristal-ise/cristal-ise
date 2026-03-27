@@ -167,7 +167,6 @@
   }
   img, svg, video, canvas, audio, iframe, embed, object {
     display: block;
-    vertical-align: middle;
   }
   img, video {
     max-width: 100%;
@@ -1527,29 +1526,57 @@
   --vibe-primary-dark: #4f46e5;
   --vibe-secondary: #ec4899;
   --vibe-accent: #8b5cf6;
-  --vibe-glass-bg: rgba(255, 255, 255, 0.05);
-  --vibe-glass-border: rgba(255, 255, 255, 0.1);
+  
+  /* Light Theme - Clean Slate Palette */
+  --vibe-bg: #f8fafc;
+  --vibe-text: #0f172a;
+  --vibe-faint-bg: #f1f5f9;
+  --vibe-glass-bg: rgba(255, 255, 255, 0.8);
+  --vibe-glass-border: #e2e8f0;
+  --vibe-card-bg: #ffffff;
+  --vibe-card-border: #e2e8f0;
+  --vibe-muted: #64748b;
+  --vibe-surface: #ffffff;
+  --vibe-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
+
+.my-app-dark {
+  /* Dark Theme - Deep Oceanic Palette */
+  --vibe-bg: #020617;
+  --vibe-text: #f8fafc;
+  --vibe-faint-bg: rgba(30, 41, 59, 0.5);
+  --vibe-glass-bg: rgba(15, 23, 42, 0.6);
+  --vibe-glass-border: rgba(51, 65, 85, 0.5);
+  --vibe-card-bg: #0f172a;
+  --vibe-card-border: rgba(51, 65, 85, 0.5);
+  --vibe-muted: #94a3b8;
+  --vibe-surface: #0f172a;
+  --vibe-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+}
+
 body {
   margin: 0;
   font-family: var(--font-family);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #020617;
-  color: #f8fafc;
+  background-color: var(--vibe-bg);
+  color: var(--vibe-text);
+  transition: all 0.3s ease;
 }
+
 .glass-effect {
   background: var(--vibe-glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--vibe-glass-border);
 }
+
 .glass-card {
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--vibe-card-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  border: 1px solid var(--vibe-card-border);
+  box-shadow: var(--vibe-shadow);
 }
 @keyframes float {
   0% {
@@ -1581,7 +1608,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 800;
 }
 .text-gradient {
-  background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+  background: linear-gradient(135deg, var(--vibe-text) 0%, var(--vibe-muted) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

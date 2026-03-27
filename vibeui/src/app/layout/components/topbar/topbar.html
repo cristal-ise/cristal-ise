@@ -1,31 +1,31 @@
-<header class="h-20 border-b border-white/5 bg-slate-950/40 backdrop-blur-xl flex items-center justify-between px-8 sticky top-0 z-40">
+<header class="h-20 !border-b !border-[var(--vibe-glass-border)] bg-[var(--vibe-glass-bg)] backdrop-blur-xl flex items-center justify-between px-8 sticky top-0 z-40 transition-all duration-300">
   <div class="flex items-center flex-1">
     <div class="relative w-full max-w-md group">
       <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
       <input type="text" pInputText placeholder="Search for projects, tasks..." 
-        class="w-full !bg-white/5 !border-white/5 focus:!border-indigo-500/30 focus:!ring-4 focus:!ring-indigo-500/10 !rounded-2xl !pl-12 !py-3 !text-sm !text-white placeholder:!text-slate-600 transition-all" />
+        class="w-full !bg-[var(--vibe-faint-bg)] !border-[var(--vibe-glass-border)] focus:!border-indigo-500/30 focus:!ring-4 focus:!ring-indigo-500/10 !rounded-2xl !pl-12 !py-3 !text-sm !text-[var(--vibe-text)] placeholder:!text-slate-500 transition-all" />
     </div>
   </div>
 
   <div class="flex items-center gap-4">
     <div class="hidden md:flex items-center gap-2">
-      <p-button icon="pi pi-bell" [rounded]="true" [text]="true" severity="secondary" styleClass="!text-slate-400 hover:!text-white hover:!bg-white/5 transition-all">
+      <p-button icon="pi pi-bell" [rounded]="true" [text]="true" severity="secondary" styleClass="!text-[var(--vibe-muted)] hover:!text-[var(--vibe-text)] hover:!bg-[var(--vibe-faint-bg)] transition-all">
           <i pBadge [value]="'3'" severity="danger" styleClass="!text-[8px] !min-w-[14px] !h-[14px]"></i>
       </p-button>
-      <p-button icon="pi pi-cog" [rounded]="true" [text]="true" severity="secondary" styleClass="!text-slate-400 hover:!text-white hover:!bg-white/5"></p-button>
+      <p-button icon="pi pi-cog" [routerLink]="['/dashboard/settings']" [rounded]="true" [text]="true" severity="secondary" styleClass="!text-slate-400 hover:!text-[var(--vibe-text)] hover:!bg-[var(--vibe-faint-bg)]"></p-button>
     </div>
 
-    <div class="h-8 w-[1px] bg-white/5 mx-2 hidden md:block"></div>
+    <div class="h-8 w-[1px] bg-[var(--vibe-glass-border)] mx-2 hidden md:block"></div>
 
     <div class="flex items-center gap-4 pl-2 cursor-pointer group">
       <div class="text-right hidden sm:block">
-        <p class="text-sm font-bold text-white leading-tight group-hover:text-indigo-400 transition-colors">Alex Rivera</p>
+        <p class="text-sm font-bold text-[var(--vibe-text)] leading-tight group-hover:text-indigo-400 transition-colors">Alex Rivera</p>
         <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Administrator</p>
       </div>
       <div class="relative">
         <p-avatar image="https://i.pravatar.cc/150?u=antigravity" shape="circle" size="large" 
-          styleClass="!w-12 !h-12 border-2 border-white/5 group-hover:border-indigo-500/50 transition-all shadow-xl shadow-black/20" />
-        <div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-slate-950 rounded-full"></div>
+          styleClass="!w-12 !h-12 border-2 !border-[var(--vibe-glass-border)] group-hover:border-indigo-500/50 transition-all shadow-xl shadow-black/20" />
+        <div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-[var(--vibe-surface)] rounded-full"></div>
       </div>
     </div>
   </div>

@@ -1,0 +1,76 @@
+<div class="p-6 max-w-4xl mx-auto">
+  <div class="mb-10">
+    <h1 class="text-4xl font-black text-gradient tracking-tightest mb-2">Settings</h1>
+    <p class="text-slate-500 font-medium">Manage your application preferences and appearance</p>
+  </div>
+
+  <div class="grid grid-cols-1 gap-8">
+    <!-- Appearance Section -->
+    <div class="glass-card !rounded-3xl p-8 border border-[var(--vibe-glass-border)] shadow-xl">
+      <div class="flex items-center gap-4 mb-8">
+        <div class="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-400">
+          <i class="pi pi-palette text-2xl"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold">Appearance</h2>
+          <p class="text-sm text-slate-500">Customize how the interface looks on your device</p>
+        </div>
+      </div>
+
+      <div class="space-y-8">
+        <div class="flex items-center justify-between p-4 bg-[var(--vibe-faint-bg)] rounded-2xl border border-[var(--vibe-glass-border)]">
+          <div>
+            <h3 class="font-bold mb-1">Color Theme</h3>
+            <p class="text-xs text-slate-500">Choose between light and dark mode</p>
+          </div>
+          
+          <p-selectButton 
+            [options]="themeOptions" 
+            [ngModel]="themeService.isDarkMode()" 
+            (ngModelChange)="themeService.setTheme($event)"
+            optionLabel="label" 
+            optionValue="value"
+            styleClass="premium-select-button">
+            <ng-template pTemplate="item" let-item>
+              <div class="flex items-center gap-2 px-2">
+                <i [class]="item.icon"></i>
+                <span class="font-bold text-sm">{{item.label}}</span>
+              </div>
+            </ng-template>
+          </p-selectButton>
+        </div>
+
+        <div class="flex items-center justify-between p-4 bg-[var(--vibe-faint-bg)] rounded-2xl border border-[var(--vibe-glass-border)] opacity-50">
+          <div>
+            <h3 class="font-bold mb-1">Accent Color</h3>
+            <p class="text-xs text-slate-500">Coming soon: Customize your primary accent</p>
+          </div>
+          <div class="flex gap-2">
+            <div class="w-6 h-6 rounded-full bg-indigo-500"></div>
+            <div class="w-6 h-6 rounded-full bg-pink-500"></div>
+            <div class="w-6 h-6 rounded-full bg-emerald-500"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- General Section -->
+    <div class="glass-card !rounded-3xl p-8 border border-[var(--vibe-glass-border)] shadow-xl overflow-hidden relative">
+      <div class="absolute -right-24 -bottom-24 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl"></div>
+      
+      <div class="flex items-center gap-4 mb-8">
+        <div class="w-12 h-12 bg-purple-500/10 rounded-2xl flex items-center justify-center text-purple-400">
+          <i class="pi pi-cog text-2xl"></i>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold">General</h2>
+          <p class="text-sm text-slate-500">Global application settings and defaults</p>
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <p class="text-slate-500 italic text-sm">More settings will be available as features are implemented.</p>
+      </div>
+    </div>
+  </div>
+</div>
