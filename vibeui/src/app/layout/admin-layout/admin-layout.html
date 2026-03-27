@@ -1,0 +1,20 @@
+<div class="flex h-screen overflow-hidden bg-black selection:bg-indigo-500/30">
+  <app-sidebar class="hidden md:flex flex-col w-80 h-full overflow-hidden" />
+
+  <div class="flex flex-col flex-1 overflow-hidden relative">
+    <!-- Background Accents -->
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-[300px] h-[300px] bg-purple-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+
+    <app-topbar />
+
+    <main class="flex-1 overflow-x-hidden overflow-y-auto p-8 relative z-10 custom-scrollbar">
+      <div class="max-w-[1600px] mx-auto">
+        <router-outlet />
+      </div>
+    </main>
+
+    <app-footer />
+  </div>
+</div>
+

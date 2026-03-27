@@ -1,0 +1,66 @@
+<div class="min-h-screen flex items-center justify-center bg-slate-950 p-6 relative overflow-hidden">
+  <!-- Decorative Blurs -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-24 -left-24 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse-soft"></div>
+    <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse-soft" style="animation-delay: 1.5s"></div>
+  </div>
+
+  <div class="w-full max-w-md relative z-10">
+    <!-- Logo/Header Area -->
+    <div class="text-center mb-10">
+      <div class="w-16 h-16 premium-gradient rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-indigo-500/20 mx-auto mb-6 animate-float">
+        <i class="pi pi-bolt text-3xl"></i>
+      </div>
+      <h2 class="text-4xl font-black text-white tracking-tight mb-2">Welcome back</h2>
+      <p class="text-slate-400 font-medium">Please enter your details to sign in</p>
+    </div>
+
+    <div class="glass-card !rounded-[32px] p-8 md:p-10 border border-white/10 shadow-2xl">
+      <form class="space-y-6">
+        <div class="flex flex-col gap-2">
+          <label for="email" class="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Email address</label>
+          <div class="relative group">
+            <i class="pi pi-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
+            <input id="email" type="email" pInputText placeholder="alex@antigravity.ia" 
+              class="w-full !rounded-2xl !pl-12 !pr-4 !py-4 !bg-white/5 !border-white/10 focus:!border-indigo-500/50 focus:!ring-4 focus:!ring-indigo-500/10 !text-white placeholder:!text-slate-600 transition-all" />
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between ml-1">
+            <label for="password" class="text-xs font-bold uppercase tracking-widest text-slate-400">Password</label>
+            <a href="#" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">Forgot password?</a>
+          </div>
+          <p-password id="password" [toggleMask]="true" [feedback]="false" styleClass="w-full" 
+            inputStyleClass="w-full !rounded-2xl !py-4 !bg-white/5 !border-white/10 focus:!border-indigo-500/50 focus:!ring-4 focus:!ring-indigo-500/10 !text-white placeholder:!text-slate-600 transition-all" 
+            placeholder="••••••••"></p-password>
+        </div>
+
+        <div class="flex items-center gap-3 ml-1">
+          <p-checkbox id="remember" [binary]="true"></p-checkbox>
+          <label for="remember" class="text-sm font-medium text-slate-400 cursor-pointer select-none">Stay signed in for 30 days</label>
+        </div>
+
+        <p-button label="Sign In" [routerLink]="['/dashboard']" 
+          styleClass="w-full !rounded-2xl !py-4 premium-gradient border-none shadow-xl shadow-indigo-500/20 font-bold text-lg hover:scale-[1.02] active:scale-[0.98] transition-all"></p-button>
+
+        <div class="relative py-4">
+          <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/5"></div></div>
+          <div class="relative flex justify-center text-xs uppercase tracking-widest font-bold"><span class="bg-transparent px-4 text-slate-500">Or continue with</span></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <p-button label="Google" icon="pi pi-google" [outlined]="true" 
+            styleClass="!rounded-2xl !py-3 w-full !border-white/10 !text-white hover:!bg-white/5 transition-all font-bold"></p-button>
+          <p-button label="Github" icon="pi pi-github" [outlined]="true" 
+            styleClass="!rounded-2xl !py-3 w-full !border-white/10 !text-white hover:!bg-white/5 transition-all font-bold"></p-button>
+        </div>
+      </form>
+    </div>
+
+    <p class="text-center mt-10 text-slate-400 font-medium">
+      Don't have an account? <a href="#" class="font-bold text-indigo-400 hover:text-indigo-300 transition-colors">Sign up for free</a>
+    </p>
+  </div>
+</div>
+
