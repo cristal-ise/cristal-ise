@@ -1,59 +1,114 @@
-# Vibeui
+# VibeUI - Premium Angular Admin Dashboard
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.3.
+VibeUI is a state-of-the-art Angular 21+ administrative dashboard designed with a focus on premium aesthetics, performance, and developer experience. It features a modern design system leveraging Glassmorphism, a dual-theme engine, and seamless integration with PrimeNG and Tailwind CSS 4.
 
-## Development server
+## 🚀 Key Features
 
-To start a local development server, run:
+-   **Modern Tech Stack**: Built with Angular 21, Signals, and Zoneless change detection.
+-   **Premium Design**: Professional Glassmorphism effects with a curated Slate-based color palette.
+-   **Dual-Theme System**: Native support for Light and Dark modes with seamless transitions.
+-   **API Integration**: Automated TypeScript service generation from OpenAPI 3.1 specifications.
+-   **UI Components**: Powered by PrimeNG 21 for high-performance, accessible widgets and charts.
+-   **Responsive Layout**: Fully responsive sidebar, topbar, and dashboard architecture.
 
+---
+
+## 🛠 Development Commands
+
+### Environment Setup
+Before starting, ensure all dependencies are installed:
 ```bash
+npm install
+```
+
+### Local Development Server
+Launch the development server with hot-reloading:
+```bash
+npm run start
+# or
 ng serve
 ```
+Navigate to `http://localhost:4200/`.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
+### Real-time Build Watcher
+To watch for changes and rebuild the project in development mode:
 ```bash
-ng generate component component-name
+npm run watch
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+---
 
+## 🔧 Maintenance Commands
+
+### API Client Generation
+VibeUI uses OpenAPI Generator to maintain synchronization with backend endpoints. When the API specification (`openapi/OpenAPI.yaml`) changes, regenerate the services:
 ```bash
-ng generate --help
+npm run generate:api
+```
+This command generates TypeScript-Angular services in `src/app/api` with `providedIn: 'root'` and single request parameter configuration.
+
+### Code Quality & Scaffolding
+Standard Angular CLI commands are used for scaffolding:
+```bash
+ng generate component components/my-component
+ng generate service services/my-service
+```
+Prettier is used for code formatting:
+```bash
+npx prettier --write .
 ```
 
-## Building
+---
 
-To build the project run:
+## 🧪 Testing
 
+VibeUI utilizes **Vitest** for blistering fast unit testing, replacing the traditional Karma/Jasmine setup for better performance and DX.
+
+### Run Unit Tests
 ```bash
-ng build
+npm run test
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
+### End-to-End Testing (Optional)
+If configured, run E2E suites:
 ```bash
 ng e2e
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+---
 
-## Additional Resources
+## 📦 Deployment
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+### Production Build
+Compile the application with full optimizations for production deployment:
+```bash
+npm run build
+```
+The output artifacts will be stored in the `dist/vibeui/` directory. The build includes:
+-   AOT (Ahead-of-Time) compilation.
+-   Tree-shaking and minification.
+-   Production-ready environment configurations.
+
+### Environment Management
+Configurations are managed via files in `src/environments/`:
+-   `environment.ts`: Development defaults.
+-   `environment.prod.ts`: Production settings.
+-   `environment.test.ts`: Test environment settings.
+
+---
+
+## 🎨 Design System
+
+VibeUI follows a strict design protocol to maintain a premium feel:
+-   **Styling**: Powered by Tailwind CSS 4 and the `@primeng/themes` preset.
+-   **Themes**: Theme variables are defined in `src/index.css` using CSS custom properties.
+-   **Icons**: Integration with `primeicons`.
+-   **Typography**: Optimized for readability using modern sans-serif fonts.
+
+---
+
+## 📖 Project Evolution
+
+Major development milestones and historical steps are documented separately to keep the main guide focused on project maintenance and operations.
+
+See the [Development Steps](DEVELOPMENT_STEPS.md) for a detailed timeline.
