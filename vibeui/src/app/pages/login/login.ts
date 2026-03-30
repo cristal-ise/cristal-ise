@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
 import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
@@ -33,7 +34,7 @@ import { finalize } from 'rxjs';
 export class Login {
   private fb = inject(FormBuilder);
   private router = inject(Router);
-  private defaultService = inject(DefaultService);
+  private authService = inject(AuthService);
   private messageService = inject(MessageService);
 
   loading = signal(false);
@@ -59,17 +60,17 @@ export class Login {
     const b64User = btoa(username);
     const b64Pass = btoa(password);
 
-    this.defaultService.loginPost({
-      loginRequest: {
-        username: b64User,
-        password: b64Pass
-      }
+    this.authService.login({
+      username: b64User,
+      password: b64Pass
     }).pipe(
       finalize(() => this.loading.set(false))
     ).subscribe({
       next: (result) => {
         console.log('Login successful:', result);
-        this.router.navigate(['/dashboard']);
+        const returnUrl = this.authService.redirectUrl || '/dashboard';
+        this.authService.redirectUrl = null; // Clear to prevent stale redirects
+        this.router.navigateByUrl(returnUrl);
       },
       error: (err) => {
         console.error('Login failed:', err);

@@ -7,6 +7,7 @@ import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
 import { MenuModule } from 'primeng/menu';
 import { MenuItem } from 'primeng/api';
+import { AuthService } from '../../../core/services/auth.service';
 import { DefaultService } from '../../../api';
 import { finalize } from 'rxjs';
 
@@ -31,6 +32,7 @@ import { finalize } from 'rxjs';
 })
 export class Topbar {
   private router = inject(Router);
+  private authService = inject(AuthService);
   private defaultService = inject(DefaultService);
 
   userMenuItems: MenuItem[] = [
@@ -55,13 +57,8 @@ export class Topbar {
   ];
 
   logout() {
-    this.defaultService.logoutGet({ reason: undefined }).pipe(
-      finalize(() => {
-        // Always redirect to landing page even if the backend call fails
-        this.router.navigate(['/']);
-      })
-    ).subscribe({
-        next: () => console.log('Successfully logged out from backend'),
+    this.authService.logout().subscribe({
+        next: () => console.log('Successfully logged out'),
         error: (err) => console.error('Logout error:', err)
     });
   }

@@ -28,18 +28,20 @@
         </div>
 
         <div class="flex flex-col gap-2">
-          <div class="flex items-center justify-between ml-1">
+          <div class="flex items-center ml-1">
             <label for="password" class="text-xs font-bold uppercase tracking-widest text-[var(--vibe-muted)]">Password</label>
-            <a href="#" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">Forgot password?</a>
           </div>
           <p-password id="password" [toggleMask]="true" [feedback]="false" styleClass="w-full" formControlName="password"
             inputStyleClass="w-full !rounded-2xl !py-4 !bg-[var(--vibe-faint-bg)] !border-[var(--vibe-glass-border)] focus:!border-indigo-500/50 focus:!ring-4 focus:!ring-indigo-500/10 !text-[var(--vibe-text)] placeholder:!text-[var(--vibe-muted)] transition-all" 
             placeholder="••••••••"></p-password>
         </div>
 
-        <div class="flex items-center gap-3 ml-1">
-          <p-checkbox id="remember" [binary]="true" formControlName="remember"></p-checkbox>
-          <label for="remember" class="text-sm font-medium text-[var(--vibe-muted)] cursor-pointer select-none">Stay signed in for 30 days</label>
+        <div class="flex items-center justify-between ml-1">
+          <div class="flex items-center gap-3">
+            <p-checkbox id="remember" [binary]="true" formControlName="remember"></p-checkbox>
+            <label for="remember" class="text-sm font-medium text-[var(--vibe-muted)] cursor-pointer select-none">Stay signed in</label>
+          </div>
+          <a href="#" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">Forgot password?</a>
         </div>
 
         <p-button type="submit" label="Sign In" [loading]="loading()" 
