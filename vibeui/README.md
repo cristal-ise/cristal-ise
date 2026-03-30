@@ -38,6 +38,23 @@ npm run watch
 
 ---
 
+## ⚙️ Configuration
+
+### Backend API Strategy
+VibeUI is configured to communicate with its backend using a hybrid approach for flexibility and security:
+
+-   **Local Development**: `proxy.conf.json` is used to map `/api` requests to `http://localhost:8081` (default backend port). This avoids CORS issues during development.
+-   **Environment-Specific URLS**: The `apiUrl` is managed in `src/environments/environment.ts`. In production builds, these are swapped with the appropriate values from `environment.prod.ts`.
+
+### Environment Management
+| File | Purpose |
+| :--- | :--- |
+| `src/environments/environment.ts` | Default development configuration. |
+| `src/environments/environment.prod.ts` | Optimized production settings. |
+| `src/environments/environment.test.ts` | Unit testing configuration. |
+
+---
+
 ## 🔧 Maintenance Commands
 
 ### API Client Generation

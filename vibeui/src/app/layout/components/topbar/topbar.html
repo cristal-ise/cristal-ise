@@ -17,9 +17,17 @@
 
     <div class="h-8 w-[1px] bg-[var(--vibe-glass-border)] mx-2 hidden md:block"></div>
 
-    <div class="flex items-center gap-4 pl-2 cursor-pointer group">
-      <div class="text-right hidden sm:block">
-        <p class="text-sm font-bold text-[var(--vibe-text)] leading-tight group-hover:text-indigo-400 transition-colors">Alex Rivera</p>
+    <div class="flex items-center gap-4 pl-2 cursor-pointer group" (click)="userMenu.toggle($event)">
+      <p-menu #userMenu [model]="userMenuItems" [popup]="true" appendTo="body" styleClass="!shadow-2xl !border-[var(--vibe-glass-border)] !bg-[var(--vibe-glass-bg)] !backdrop-blur-xl !rounded-2xl !p-2">
+        <ng-template #item let-item>
+            <a class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 hover:bg-indigo-500/10 group/item">
+                <i [class]="item.icon + ' text-slate-500 group-hover/item:text-indigo-400'"></i>
+                <span class="font-bold text-sm text-[var(--vibe-text)] group-hover/item:text-indigo-400">{{ item.label }}</span>
+            </a>
+        </ng-template>
+      </p-menu>
+      <div class="text-right hidden sm:block leading-tight">
+        <p class="text-sm font-bold text-[var(--vibe-text)] group-hover:text-indigo-400 transition-colors">Alex Rivera</p>
         <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Administrator</p>
       </div>
       <div class="relative">

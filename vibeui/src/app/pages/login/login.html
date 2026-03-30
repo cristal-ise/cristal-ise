@@ -16,12 +16,13 @@
     </div>
 
     <div class="glass-card !rounded-[32px] p-8 md:p-10 border border-[var(--vibe-glass-border)] shadow-2xl">
-      <form class="space-y-6">
+      <p-toast />
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
         <div class="flex flex-col gap-2">
-          <label for="email" class="text-xs font-bold uppercase tracking-widest text-[var(--vibe-muted)] ml-1">Email address</label>
+          <label for="username" class="text-xs font-bold uppercase tracking-widest text-[var(--vibe-muted)] ml-1">Username</label>
           <div class="relative group">
-            <i class="pi pi-envelope absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
-            <input id="email" type="email" pInputText placeholder="alex@antigravity.ia" 
+            <i class="pi pi-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
+            <input id="username" type="text" pInputText placeholder="username" formControlName="username"
               class="w-full !rounded-2xl !pl-12 !pr-4 !py-4 !bg-[var(--vibe-faint-bg)] !border-[var(--vibe-glass-border)] focus:!border-indigo-500/50 focus:!ring-4 focus:!ring-indigo-500/10 !text-[var(--vibe-text)] placeholder:!text-[var(--vibe-muted)] transition-all" />
           </div>
         </div>
@@ -31,17 +32,17 @@
             <label for="password" class="text-xs font-bold uppercase tracking-widest text-[var(--vibe-muted)]">Password</label>
             <a href="#" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">Forgot password?</a>
           </div>
-          <p-password id="password" [toggleMask]="true" [feedback]="false" styleClass="w-full" 
+          <p-password id="password" [toggleMask]="true" [feedback]="false" styleClass="w-full" formControlName="password"
             inputStyleClass="w-full !rounded-2xl !py-4 !bg-[var(--vibe-faint-bg)] !border-[var(--vibe-glass-border)] focus:!border-indigo-500/50 focus:!ring-4 focus:!ring-indigo-500/10 !text-[var(--vibe-text)] placeholder:!text-[var(--vibe-muted)] transition-all" 
             placeholder="••••••••"></p-password>
         </div>
 
         <div class="flex items-center gap-3 ml-1">
-          <p-checkbox id="remember" [binary]="true"></p-checkbox>
+          <p-checkbox id="remember" [binary]="true" formControlName="remember"></p-checkbox>
           <label for="remember" class="text-sm font-medium text-[var(--vibe-muted)] cursor-pointer select-none">Stay signed in for 30 days</label>
         </div>
 
-        <p-button label="Sign In" [routerLink]="['/dashboard']" 
+        <p-button type="submit" label="Sign In" [loading]="loading()" 
           styleClass="w-full !rounded-2xl !py-4 premium-gradient border-none shadow-xl shadow-indigo-500/20 font-bold text-lg hover:scale-[1.02] active:scale-[0.98] transition-all"></p-button>
 
         <div class="h-2"></div>

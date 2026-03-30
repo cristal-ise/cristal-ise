@@ -14,7 +14,10 @@ export const appConfig: ApplicationConfig = {
     provideZonelessChangeDetection(),
     provideRouter(routes),
     provideHttpClient(),
-    provideApi(environment.apiUrl),
+    provideApi({
+        basePath: environment.apiUrl,
+        withCredentials: true
+    }),
     provideAnimationsAsync(),
     providePrimeNG({
         theme: {
