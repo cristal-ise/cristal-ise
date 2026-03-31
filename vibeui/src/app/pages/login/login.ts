@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -18,20 +18,19 @@ import { finalize } from 'rxjs';
   standalone: true,
   imports: [
     CommonModule,
-    CardModule, 
-    InputTextModule, 
-    PasswordModule, 
-    ButtonModule, 
-    CheckboxModule, 
+    CardModule,
+    InputTextModule,
+    PasswordModule,
+    ButtonModule,
+    CheckboxModule,
     ReactiveFormsModule,
     ToastModule
   ],
-  providers: [MessageService],
   templateUrl: './login.html',
   styleUrl: './login.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class Login {
+export class Login implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private authService = inject(AuthService);
@@ -45,10 +44,27 @@ export class Login {
     remember: [false]
   });
 
+  ngOnInit() {
+    if (history.state?.loggedOutByTimeout) {
+      setTimeout(() => {
+        this.messageService.add({
+          key: 'system',
+          severity: 'info',
+          summary: 'Session Expired',
+          detail: 'You were automatically logged out due to inactivity.',
+          sticky: true,
+          closable: true
+        });
+      });
+    }
+  }
+
   onSubmit() {
     if (this.loginForm.invalid) {
       return;
     }
+
+    this.messageService.clear();
 
     const { username, password } = this.loginForm.value;
     if (!username || !password) return;
@@ -75,12 +91,12 @@ export class Login {
       error: (err) => {
         console.error('Login failed:', err);
         let errorMsg = 'Invalid credentials';
-        
+
         // Handle JAX-RS JSON error format if provided
         if (err.error && typeof err.error === 'object') {
-            errorMsg = err.error.message || err.error.errorMessage || err.error.error || errorMsg;
+          errorMsg = err.error.message || err.error.errorMessage || err.error.error || errorMsg;
         } else if (err.status === 401) {
-            errorMsg = 'Incorrect username or password';
+          errorMsg = 'Incorrect username or password';
         }
 
         this.messageService.add({

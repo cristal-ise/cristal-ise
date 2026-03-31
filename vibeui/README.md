@@ -82,8 +82,19 @@ npx prettier --write .
 VibeUI utilizes **Vitest** for blistering fast unit testing, replacing the traditional Karma/Jasmine setup for better performance and DX.
 
 ### Run Unit Tests
+To run the entire test suite:
 ```bash
 npm run test
+```
+
+To run a specific test file (e.g., to test the timeout and window close features) without watch mode:
+```bash
+npx ng test --watch=false --include=src/app/core/services/auth.service.spec.ts
+```
+
+To run the test and see test results in the browser:
+```bash
+npm run testui
 ```
 
 ### End-to-End Testing (Optional)

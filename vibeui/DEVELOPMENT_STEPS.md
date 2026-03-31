@@ -11,7 +11,7 @@ This document outlines the major milestones in the development of the VibeUI pro
 5.  **Data Layer**: Integrated OpenAPI 3.1 generator for automated, type-safe communication with backend services.
 6.  **Authentication & Services**: Connected the Frontend Login component to the backend authentication system. Implemented Base64 credential encoding and robust JSON error handling for JAX-RS responses. Also added logout functionality.
 7.  **Route Protection & Navigation**: Implemented a global `AuthGuard` and a centralized `AuthService` using Signals. This ensures that only authenticated users can access the dashboard. Also enhanced the navigation flow to automatically redirect users to their intended destination after a successful login.
-
+8.  **Session Management & Auto-Logout**: Engineered a configurable, performance-optimized idle session tracker running outside Angular's detection loops. Added preemptive, sticky PrimeNG Toast alerts notifying users of imminent expiration, alongside automated logouts that gracefully push inactive users back to the login interface with persistent localized warnings.
 
 ---
 *For development, maintenance, and deployment commands, please refer back to the [README.md](README.md).*

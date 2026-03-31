@@ -83,7 +83,10 @@
           "defaultConfiguration": "development"
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "exclude": ["src/environments/environment.test.ts"]
+          }
         }
       }
     }

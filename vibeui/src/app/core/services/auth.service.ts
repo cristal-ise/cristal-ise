@@ -1,6 +1,6 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { DefaultService, LoginRequest } from '../../api';
+import { Configuration, DefaultService, LoginRequest } from '../../api';
 import { catchError, map, of, tap } from 'rxjs';
 
 @Injectable({
@@ -8,6 +8,7 @@ import { catchError, map, of, tap } from 'rxjs';
 })
 export class AuthService {
   private defaultService = inject(DefaultService);
+  private configuration = inject(Configuration);
   private router = inject(Router);
 
   /**
@@ -33,13 +34,24 @@ export class AuthService {
 
   /**
    * Performs logout, updates authentication status, and redirects to landing page.
+   * Uses fetch with keepalive for 'windowClose' to ensure the request completes during unload.
    */
-  logout() {
-    return this.defaultService.logoutGet({ reason: undefined }).pipe(
+  logout(reason?: 'timeout' | 'windowClose') {
+    if (reason === 'windowClose') {
+      const url = `${this.configuration.basePath}/logout?reason=windowClose`;
+      fetch(url, { keepalive: true, credentials: 'include' });
+      this.isAuthenticated.set(false);
+      return of(null);
+    }
+    return this.defaultService.logoutGet({ reason }).pipe(
       catchError(() => of(null)), // Still logout locally if server call fails
       tap(() => {
         this.isAuthenticated.set(false);
-        this.router.navigate(['/']);
+        if (reason === 'timeout') {
+          this.router.navigate(['/login'], { state: { loggedOutByTimeout: true } });
+        } else {
+          this.router.navigate(['/']);
+        }
       })
     );
   }
