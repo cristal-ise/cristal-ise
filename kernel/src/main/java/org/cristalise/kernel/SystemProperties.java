@@ -98,6 +98,10 @@ import lombok.Getter;
  * @see #SystemProperties_keywordsToRedact
  * @see #TcpBridge_host
  * @see #TcpBridge_port
+ * @see #WebSocketVerticle_enabled
+ * @see #WebSocketVerticle_host
+ * @see #WebSocketVerticle_port
+ * @see #WebSocketVerticle_path
  * @see #$UserCodeRole_agent
  * @see #$UserCodeRole_password
  * @see #$UserCodeRole_permissions
@@ -351,6 +355,22 @@ public enum SystemProperties implements SystemPropertyOperations {
      * Port of the machine to connect through vert.x tcp-ip bridge, Default value is 7000
      */
     TcpBridge_port("TcpBridge.port", 7000),
+    /**
+     * Enables deployment of {@link org.cristalise.kernel.process.WebSocketVerticle}. Default value is 'false'.
+     */
+    WebSocketVerticle_enabled("WebSocketVerticle.enabled", false),
+    /**
+     * Host interface used by {@link org.cristalise.kernel.process.WebSocketVerticle}. Default value is 'localhost'.
+     */
+    WebSocketVerticle_host("WebSocketVerticle.host", "localhost"),
+    /**
+     * Port used by {@link org.cristalise.kernel.process.WebSocketVerticle}. Default value is 8080.
+     */
+    WebSocketVerticle_port("WebSocketVerticle.port", 8080),
+    /**
+     * Websocket path accepted by {@link org.cristalise.kernel.process.WebSocketVerticle}. Default value is '/ws/proxy-message'.
+     */
+    WebSocketVerticle_path("WebSocketVerticle.path", "/ws/proxy-message"),
     /**
      * Defines the default role to be used for UserCode. It also used as a prefix for every configuration property
      * eg: UserCode.StateMachine.startTransition. Default value is 'UserCode'.
