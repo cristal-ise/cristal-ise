@@ -44,7 +44,7 @@ public class TcpBridgeVerticle extends AbstractVerticle {
 
         int port = TcpBridge_port.getInteger();
 
-        bridge.listen(port, res -> {
+        bridge.listen(port).onComplete(res -> {
           if (res.succeeded()) {
               log.info("start() - listen to port:{}", port);
               startPromise.complete();

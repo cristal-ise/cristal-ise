@@ -96,16 +96,14 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
             String[] viewPath = tokens[0].split("/");
             if (tokens[1].equals("DELETE")) return;
 
-            vertx.executeBlocking(promise -> {
+            vertx.executeBlocking(() -> {
                 try {
                     addViewpoint(sourceItem.getItem().getViewpoint(viewPath[0], viewPath[1]));
                 }
                 catch (ObjectNotFoundException e) {
                     log.error("EventBus.localConsumer(VIEWPOINT)", e);
                 }
-                promise.complete();
-            }, res -> {
-                //
+                return null;
             });
         });
         vertx.eventBus().localConsumer(parent.getItemPath().getUUID() + "/" + OUTCOME, message -> {
@@ -113,16 +111,14 @@ public class ViewpointPane extends ItemTabPane implements ItemListener, ActionLi
             String outcomePath = tokens[0];
             if (tokens[1].equals("DELETE")) return;
 
-            vertx.executeBlocking(promise -> {
+            vertx.executeBlocking(() -> {
                 try {
                     addOutcome((Outcome)sourceItem.getItem().getObject(OUTCOME+"/"+outcomePath));
                 }
                 catch (ObjectNotFoundException e) {
                     log.error("EventBus.localConsumer(OUTCOME)", e);
                 }
-                promise.complete();
-            }, res -> {
-                //
+                return null;
             });
         });
     }

@@ -2,6 +2,7 @@ package org.cristalise.restapi.test
 
 import static io.restassured.RestAssured.*
 import static net.javacrumbs.jsonunit.JsonAssert.assertJsonEquals
+import static javax.ws.rs.core.Response.Status.OK;
 
 import org.junit.jupiter.api.Test
 
@@ -26,7 +27,7 @@ class PathAccessTest extends RestapiTestBase {
                 .get(apiUri+"/domain/aliases")
             .then()
                 //.cookie('cauth') //response cookie is added when 30s is passed between the cookie creation and the request
-                .statusCode(STATUS_OK)
+                .statusCode(OK.statusCode)
                 .extract().response()
 
         def expected ="""[{
@@ -64,7 +65,7 @@ class PathAccessTest extends RestapiTestBase {
             .when()
                 .get(apiUri+"/domain/desc")
             .then()
-                .statusCode(STATUS_OK)
+                .statusCode(OK.statusCode)
                 .extract().response()
 
         def json = contextTreeResp.body.jsonPath().getJsonObject('rows[0]') as Map

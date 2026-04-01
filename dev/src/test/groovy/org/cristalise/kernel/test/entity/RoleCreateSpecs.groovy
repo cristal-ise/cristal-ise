@@ -1,6 +1,6 @@
 /**
- * This file is part of the CRISTAL-iSE kernel.
- * Copyright (c) 2001-2015 The CRISTAL Consortium. All rights reserved.
+ * This file is part of the CRISTAL-iSE Development Module.
+ * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published
@@ -34,8 +34,8 @@ import spock.lang.Specification
 class RoleCreateSpecs extends Specification implements CristalTestSetup {
 
     
-    def setup()   { inMemoryServer('src/main/bin/inMemoryServer.conf', 'src/main/bin/inMemory.clc') }
-    def cleanup() { cristalCleanup() }
+    def setupSpec()   { inMemoryServer(null, true) }
+    def cleanupSpec() { cristalCleanup() }
 
     def "Parent Role must exists"() {
         when:
@@ -57,14 +57,14 @@ class RoleCreateSpecs extends Specification implements CristalTestSetup {
         then:
         roles[0].exists()
         roles[0].stringPath == "/role/Clerk"
-        roles[0].hasJobList() == false
+        ! roles[0].hasJobList()
 
         roles[1].exists()
         roles[1].stringPath == "/role/Clerk/SubClerk"
-        roles[1].hasJobList() == true
+        roles[1].hasJobList()
 
-        Gateway.lookup.getRolePath("Clerk").hasJobList() == false
-        Gateway.lookup.getRolePath("SubClerk").hasJobList() == true
+        ! Gateway.lookup.getRolePath("Clerk").hasJobList()
+        Gateway.lookup.getRolePath("SubClerk").hasJobList()
     }
 
     def "Creating Role with Permissions"() {

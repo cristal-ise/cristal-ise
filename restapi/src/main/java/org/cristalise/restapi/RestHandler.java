@@ -46,7 +46,7 @@ import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.DatatypeConverter;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.crypto.AesCipherService;
+import org.apache.shiro.crypto.cipher.AesCipherService;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
@@ -106,7 +106,7 @@ abstract public class RestHandler {
         while(true) {
             try {
                 byte[] bytes = DatatypeConverter.parseBase64Binary(authData);
-                return new AuthData(aesCipherService.decrypt(bytes, cookieKey.getEncoded()).getBytes());
+                return new AuthData(aesCipherService.decrypt(bytes, cookieKey.getEncoded()).getClonedBytes());
             }
             catch (final Exception e) {
                 if (cntRetries == 1) {

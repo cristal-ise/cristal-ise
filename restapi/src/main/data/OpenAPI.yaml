@@ -1,0 +1,672 @@
+openapi: 3.1.0
+info:
+  title: CRISTAL-iSE Item Rest API
+  version: 1.0.0
+  description: API for managing CRISTAL Items
+
+servers:
+  - url: /rest
+
+paths:
+  /login:
+    get:
+      summary: Login via GET
+      description: Authenticates a user using username and password as query parameters. Returns a session cookie.
+      parameters:
+        - name: user
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: pass
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful login
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: cauth=...
+          content:
+            application/json:
+              schema:
+                $ref: 'LoginResult.json'
+            application/xml:
+              schema:
+                $ref: 'LoginResult.json'
+        '401':
+          description: Unauthorized
+    post:
+      summary: Login via POST
+      description: Authenticates a user using a JSON body with Base64 encoded credentials. Returns a session cookie.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'LoginRequest.json'
+      responses:
+        '200':
+          description: Successful login
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                example: cauth=...
+          content:
+            application/json:
+              schema:
+                $ref: 'LoginResult.json'
+        '401':
+          description: Unauthorized
+        '400':
+          description: Bad Request
+
+  /logout:
+    get:
+      summary: Logout
+      description: Logs out the current user and invalidates the session.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: reason
+          in: query
+          schema:
+            type: string
+            enum: [timeout, windowClose]
+      responses:
+        '200':
+          description: Successful logout
+
+  /domain:
+    get:
+      summary: Query Root Domain Path
+      description: Lists children of the root domain path.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: start
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: batch
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: 'PagedPathData.json'
+
+  /domain/{path}:
+    get:
+      summary: Query Domain Path
+      description: Lists children of a domain path, searches, or redirects to an item if the path represents one.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: start
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: batch
+          in: query
+          schema:
+            type: integer
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: 'PagedPathData.json'
+                  - type: array
+                    items:
+                      $ref: 'ItemAliases.json'
+        '303':
+          description: Redirect to Item
+        '404':
+          description: Not Found
+
+  /item/{uuid}:
+    get:
+      summary: Get Item Summary
+      description: Returns a summary of the item, including its properties, viewpoints, collections, and related links.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: 'ItemSummary.json'
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+
+  /item/{uuid}/name:
+    get:
+      summary: Get Item Name
+      description: Returns the name of the item.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+
+  /item/{uuid}/aliases:
+    get:
+      summary: Get Item Aliases
+      description: Returns the aliases, i.e. the list of DomainPaths of the item.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: 'ItemAliases.json'
+        '404':
+          description: Not Found
+
+  /item/{uuid}/master:
+    get:
+      summary: Get Master Outcome
+      description: Returns the master outcome of the Item.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: schema
+          in: query
+          schema:
+            type: string
+        - name: schemaVersion
+          in: query
+          schema:
+            type: integer
+        - name: script
+          in: query
+          schema:
+            type: string
+        - name: scriptVersion
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+
+  /item/{uuid}/scriptResult:
+    get:
+      summary: Execute Script (GET)
+      description: Executes a script on the item and returns the result as a JSON or XML.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: script
+          in: query
+          schema:
+            type: string
+        - name: version
+          in: query
+          schema:
+            type: integer
+        - name: activityPath
+          in: query
+          schema:
+            type: string
+        - name: inputs
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: string
+    post:
+      summary: Execute Script (POST)
+      description: Executes a script on the Item and returns the result as a JSON or XML.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: script
+          in: query
+          schema:
+            type: string
+        - name: version
+          in: query
+          schema:
+            type: integer
+        - name: activityPath
+          in: query
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+          application/xml:
+            schema:
+              type: string
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: string
+
+  /item/{uuid}/queryResult:
+    get:
+      summary: Execute Query
+      description: Executes a query on the item and returns the result.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: query
+          in: query
+          schema:
+            type: string
+        - name: version
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+
+  /item/{uuid}/job:
+    get:
+      summary: Get Jobs
+      description: Returns a list of jobs or a single job associated with the item.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: agent
+          in: query
+          schema:
+            type: string
+        - name: activityName
+          in: query
+          schema:
+            type: string
+        - name: transitionName
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: array
+                    items:
+                      $ref: 'JobData.json'
+                  - $ref: 'JobData.json'
+        '404':
+          description: Not Found
+
+  /item/{uuid}/{activityPath}:
+    post:
+      summary: Request Transition
+      description: Requests a transition on a specific activity path.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: activityPath
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: transition
+          in: query
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+          application/xml:
+            schema:
+              type: string
+          text/plain:
+            schema:
+              type: string
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                outcome:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: string
+
+  /item/{uuid}/job/formModel/{activityPath}:
+    get:
+      summary: Get Job Form Model
+      description: Returns the form model for a job.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: activityPath
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: transition
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+
+  /item/{uuid}/job/formLayout/{activityPath}:
+    get:
+      summary: Get Job Form Layout
+      description: Returns the form layout for a job.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: activityPath
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: transition
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+
+  /item/{uuid}/job/formTemplate/{activityPath}:
+    get:
+      summary: Get Job Form Template
+      description: Returns the form template for a job.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: activityPath
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: transition
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '204':
+          description: No Content
+        '404':
+          description: Not Found
+
+  /item/{uuid}/roles:
+    get:
+      summary: Get Agent Roles
+      description: Returns the roles of an agent item.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: 'RolesData.json'
+
+  /role:
+    get:
+      summary: List Root Roles
+      description: Lists roles starting from the root.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'PathData.json'
+
+  /role/{path}:
+    get:
+      summary: List Roles at Path
+      description: Lists children roles and agents for a given role path.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: path
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'PathData.json'
+
+  /role/{role}/summary:
+    get:
+      summary: Get Role Summary
+      description: Returns a summary of a role, including subroles and agents.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: role
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: 'RoleSummary.json'
+        '404':
+          description: Not Found
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: cauth

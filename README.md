@@ -29,7 +29,12 @@ CRISTAL-iSE is a description-driven software platform originally developed to tr
    1. update version tag in the parent pom (e.g. from 6.0-SNAPSHOT to 6.1-SNAPSHOT)
    1. `mvn -N versions:update-child-modules`
    1. `git push`
-1. **Step on Github** - TBD
+1. **Steps on GitHub**
    1. tag repo with the release number (e.g. v6.0.0)
-   1. update Release with relase summary - check previous Releases for guidance :)
+   1. update Release with release summary - check previous Releases for guidance :)
    1. close Release
+1. **Steps on the dev machine**
+   1. `git checkout develop`
+   1. update version tag in the parent pom (e.g. from 6.0.0 to 6.1-SNAPSHOT)
+   1. `mvn -N versions:update-child-modules`
+   1. `git push`

@@ -43,6 +43,12 @@ import javax.ws.rs.core.UriInfo;
 import org.cristalise.kernel.common.CriseVertxException;
 
 import com.google.common.collect.ImmutableMap;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.scripting.Script;
+
+import java.util.Map;
 
 @Path("/script")
 public class ScriptAccess extends ResourceAccess {
@@ -107,7 +113,7 @@ public class ScriptAccess extends ResourceAccess {
         AuthData authData = checkAuthCookie(authCookie);
         NewCookie cookie = checkAndCreateNewCookie(authData);
 
-        return handleScriptExecution(headers, scriptName, scriptVersion, inputJson, cookie);
+        return handleScriptExecution(headers, scriptName, scriptVersion, inputJson, cookie, authData.agent);
     }
 
     @POST
@@ -124,7 +130,7 @@ public class ScriptAccess extends ResourceAccess {
         AuthData authData = checkAuthCookie(authCookie);
         NewCookie cookie = checkAndCreateNewCookie(authData);
 
-        return handleScriptExecution(headers, scriptName, scriptVersion, postData, cookie);
+        return handleScriptExecution(headers, scriptName, scriptVersion, postData, cookie, authData.agent);
     }
 
     /**
@@ -136,9 +142,11 @@ public class ScriptAccess extends ResourceAccess {
      * @param cookie
      * @return
      */
-    private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie) {
+    private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie, AgentPath agentPath)  {
         try {
-            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, ImmutableMap.of()).cookie(cookie).build();
+            AgentProxy agent = (AgentProxy) Gateway.getProxy(agentPath);
+            Map<String, Object> additionalInputs = ImmutableMap.of(Script.PARAMETER_AGENT, agent);
+            return scriptUtils.executeScript(headers, null, scriptName, scriptVersion, null, inputJson, additionalInputs).cookie(cookie).build();
         }
         catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();

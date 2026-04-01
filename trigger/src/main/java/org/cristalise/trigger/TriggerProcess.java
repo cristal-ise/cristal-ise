@@ -89,7 +89,7 @@ public class TriggerProcess extends StandardClient {
             String[] tokens = ((String) message.body()).split(":");
             String jobId = tokens[0];
 
-            vertx.executeBlocking(promise -> {
+            vertx.executeBlocking(() -> {
                 try {
                     if (tokens[1].equals("ADD")) add(agent.getJob(jobId));
                     else                         remove(jobId);
@@ -97,9 +97,7 @@ public class TriggerProcess extends StandardClient {
                 catch (ObjectNotFoundException e) {
                     log.error("", e);
                 }
-                promise.complete();
-            }, res -> {
-                //
+                return null;
             });
         });
 
