@@ -1,8 +1,10 @@
 import { Injectable, inject, NgZone, OnDestroy } from '@angular/core';
 import { fromEvent, merge, Subscription, timer } from 'rxjs';
-import { switchMap, throttleTime } from 'rxjs/operators';
+import { filter, switchMap, throttleTime } from 'rxjs/operators';
 import { MessageService } from 'primeng/api';
+import { NavigationEnd, Router, ActivatedRouteSnapshot } from '@angular/router';
 import { AuthService } from './auth.service';
+import { authGuard } from '../guards/auth.guard';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
@@ -13,19 +15,47 @@ export class SessionTimeoutService implements OnDestroy {
   private authService = inject(AuthService);
   private messageService = inject(MessageService);
 
+  private router = inject(Router);
   private timeoutSub?: Subscription;
+  private routerSub?: Subscription;
   private isWarningShown = false;
 
   constructor() {
-    this.initTimeout();
+    // Listen to route changes to enable/disable timeout monitoring
+    this.routerSub = this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => this.checkRouteGuards());
 
-    // Listen to auth changes so we only track idle time when logged in
-    // This assumes authService exposes a way to know if we are authenticated.
-    // If we only start tracking once login succeeds, we can just start it.
-    // However, the best approach is to check if authenticated during the timer evaluation
+    // Check initial route
+    this.checkRouteGuards();
+  }
+
+  private checkRouteGuards() {
+    const isGuarded = this.hasAuthGuard(this.router.routerState.snapshot.root);
+    
+    if (isGuarded) {
+      this.initTimeout();
+    } else {
+      this.stopTimeout();
+    }
+  }
+
+  private hasAuthGuard(snapshot: ActivatedRouteSnapshot): boolean {
+    let current: ActivatedRouteSnapshot | null = snapshot;
+    while (current) {
+      if (current.routeConfig?.canActivate?.includes(authGuard)) {
+        return true;
+      }
+      current = current.firstChild;
+    }
+    return false;
   }
 
   private initTimeout() {
+    if (this.timeoutSub) {
+      return; // Already running
+    }
+
     const { idleTimeoutMinutes, idleWarningMinutes } = environment.auth;
 
     // Disabled if zero or negative
@@ -89,9 +119,27 @@ export class SessionTimeoutService implements OnDestroy {
     });
   }
 
+  private stopTimeout() {
+    if (this.timeoutSub) {
+      this.timeoutSub.unsubscribe();
+      this.timeoutSub = undefined;
+    }
+    
+    // Clear warning if it was shown
+    if (this.isWarningShown) {
+      this.ngZone.run(() => {
+        this.messageService.clear('system');
+        this.isWarningShown = false;
+      });
+    }
+  }
+
   ngOnDestroy() {
     if (this.timeoutSub) {
       this.timeoutSub.unsubscribe();
+    }
+    if (this.routerSub) {
+      this.routerSub.unsubscribe();
     }
   }
 }

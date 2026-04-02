@@ -46,6 +46,9 @@ export class Login implements OnInit {
 
   ngOnInit() {
     if (history.state?.loggedOutByTimeout) {
+      // Clear the state to prevent the message from showing again on page reload
+      history.replaceState({ ...history.state, loggedOutByTimeout: false }, '');
+
       setTimeout(() => {
         this.messageService.add({
           key: 'system',
