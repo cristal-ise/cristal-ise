@@ -1,6 +1,8 @@
 # CRISTAL-iSE functional testing project
 
 ## Run tests in your IDE with docker-compose
+1. Run all tests
+   - `mvn -P integtest -pl testing test`
 1. build local docker image of testing project
    1. `mvn clean install -DskipTests`
    1. `mvn -P docker -pl restapi,testing jib:dockerBuild`
