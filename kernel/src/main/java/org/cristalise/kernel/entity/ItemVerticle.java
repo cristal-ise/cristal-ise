@@ -25,30 +25,36 @@ import static org.cristalise.kernel.SystemProperties.ItemVerticle_includeDebugIn
 import static org.cristalise.kernel.SystemProperties.ItemVerticle_instances;
 import static org.cristalise.kernel.SystemProperties.ItemVerticle_requestTimeoutSeconds;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
+import io.vertx.core.Future;
+import io.vertx.core.VerticleBase;
+import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.serviceproxy.ServiceBinder;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ItemVerticle extends AbstractVerticle {
+public class ItemVerticle extends VerticleBase {
 
     public static final String  ebAddress      = ItemVerticle_ebAddress.getString();
     public static final int     instances      = ItemVerticle_instances.getInteger();
     public static final boolean includeDebug   = ItemVerticle_includeDebugInfo.getBoolean();
     public static final int     requestTimeout = ItemVerticle_requestTimeoutSeconds.getInteger();
 
-    @Override
-    public void start(Promise<Void> startPromise) throws Exception {
-        // start service and register the handler
-        Item service = new TraceableEntity();
+    private MessageConsumer<?> serviceRegistration;
 
-        new ServiceBinder(vertx)
+    @Override
+    public Future<?> start() throws Exception {
+        serviceRegistration = new ServiceBinder(vertx)
                 .setAddress(ebAddress)
                 .setIncludeDebugInfo(includeDebug)
-                .register(Item.class, service);
+                .register(Item.class, new TraceableEntity());
 
-        startPromise.complete();
         log.info("start() - service register done");
+        return serviceRegistration.completion();
+    }
+
+    @Override
+    public Future<?> stop() throws Exception {
+        if (serviceRegistration != null) return serviceRegistration.unregister();
+        else                             return Future.succeededFuture();
     }
 }
