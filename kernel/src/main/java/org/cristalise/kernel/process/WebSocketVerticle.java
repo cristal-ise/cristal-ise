@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.process;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.cristalise.kernel.SystemProperties.WebSocketVerticle_host;
 import static org.cristalise.kernel.SystemProperties.WebSocketVerticle_path;
 import static org.cristalise.kernel.SystemProperties.WebSocketVerticle_port;
@@ -27,10 +28,11 @@ import static org.cristalise.kernel.SystemProperties.WebSocketVerticle_port;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.vertx.core.Future;
+import io.vertx.core.eventbus.Message;
 import org.cristalise.kernel.entity.proxy.ProxyMessage;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
+import io.vertx.core.VerticleBase;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.ServerWebSocket;
@@ -38,95 +40,84 @@ import io.vertx.core.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class WebSocketVerticle extends AbstractVerticle {
+public class WebSocketVerticle extends VerticleBase {
 
-    private final Set<ServerWebSocket> subscribers = ConcurrentHashMap.newKeySet();
-    private HttpServer server;
-    private MessageConsumer<JsonArray> proxyConsumer;
+    String  wsHost = WebSocketVerticle_host.getString();
+    Integer wsPort = WebSocketVerticle_port.getInteger();
+    String  wsPath = getNormalizedWsPath();
+
+    private final Set<ServerWebSocket> proxyMsgSubscribers = ConcurrentHashMap.newKeySet();
+    private HttpServer wsServer;
+    private MessageConsumer<JsonArray> proxyMsgConsumer;
 
     @Override
-    public void start(Promise<Void> startPromise) {
-        String host = WebSocketVerticle_host.getString();
-        int port = WebSocketVerticle_port.getInteger();
-        String path = normalizePath(WebSocketVerticle_path.getString());
+    public Future<?> start() {
+        proxyMsgConsumer = vertx.eventBus().consumer(ProxyMessage.ebAddress, this::publishToSubscribers);
+        wsServer         = vertx.createHttpServer().webSocketHandler(this::handleWebSocket);
 
-        proxyConsumer = vertx.eventBus().consumer(ProxyMessage.ebAddress, message -> {
-            JsonArray proxyMessages = (JsonArray) message.body();
-            publishToSubscribers(proxyMessages);
-        });
-
-        server = vertx.createHttpServer().webSocketHandler(ws -> handleWebSocket(ws, path));
-
-        server.listen(port, host).onComplete(result -> {
-            if (result.succeeded()) {
-                log.info("start() - listening on ws://{}:{}{}", host, port, path);
-                startPromise.complete();
-            }
-            else {
-                if (proxyConsumer != null) proxyConsumer.unregister();
-                startPromise.fail(result.cause());
-            }
-        });
+        return wsServer.listen(wsPort, wsHost)
+            .mapEmpty()
+            .onSuccess(ignored -> log.info("start() - listening on ws://{}:{}{}", wsHost, wsPort, wsPath))
+            .onFailure(error -> {
+                log.error("start() - error starting WebSocket server", error);
+                if (proxyMsgConsumer != null) proxyMsgConsumer.unregister();
+            });
     }
 
-    private String normalizePath(String path) {
-        if (path == null || path.isBlank()) return "/ws/proxy-message";
+    private String getNormalizedWsPath() {
+        String path = WebSocketVerticle_path.getString();
+        if (isBlank(path)) return WebSocketVerticle_path.getDefaultValue().toString();
         return path.startsWith("/") ? path : "/" + path;
     }
 
-    private void handleWebSocket(ServerWebSocket ws, String path) {
-        if (!path.equals(ws.path())) {
+    private void handleWebSocket(ServerWebSocket ws) {
+        if (!wsPath.equals(ws.path())) {
             ws.close();
             return;
         }
 
-        subscribers.add(ws);
-        log.debug("handleWebSocket() - connected:{} subscribers:{}", ws.remoteAddress(), subscribers.size());
+        proxyMsgSubscribers.add(ws);
+        log.debug("handleWebSocket() - connected:{} subscribers:{}", ws.remoteAddress(), proxyMsgSubscribers.size());
 
-        ws.closeHandler(v -> subscribers.remove(ws));
+        ws.closeHandler(v -> proxyMsgSubscribers.remove(ws));
         ws.exceptionHandler(error -> {
             log.debug("handleWebSocket() - websocket failure", error);
-            subscribers.remove(ws);
+            proxyMsgSubscribers.remove(ws);
             if (!ws.isClosed()) ws.close();
         });
     }
 
-    private void publishToSubscribers(JsonArray proxyMessages) {
-        String payload = proxyMessages.encode();
+    private void publishToSubscribers(Message<JsonArray> proxyMessages) {
+        String payload = proxyMessages.body().encode();
 
-        for (ServerWebSocket ws : subscribers) {
+        for (ServerWebSocket ws : proxyMsgSubscribers) {
             if (ws.isClosed()) {
-                subscribers.remove(ws);
-                continue;
-            }
-
-            try {
-                ws.writeTextMessage(payload);
-            }
-            catch (Exception e) {
-                subscribers.remove(ws);
-                if (!ws.isClosed()) ws.close();
+                proxyMsgSubscribers.remove(ws);
+            } else {
+                try {
+                    ws.writeTextMessage(payload);
+                } catch (Exception e) {
+                    log.error("publishToSubscribers() - error messaging proxyMsgSubscribers", e);
+                    proxyMsgSubscribers.remove(ws);
+                    if (!ws.isClosed()) ws.close();
+                }
             }
         }
     }
 
     @Override
-    public void stop(Promise<Void> stopPromise) {
-        if (proxyConsumer != null) proxyConsumer.unregister();
+    public Future<?> stop() {
+        if (proxyMsgConsumer != null) proxyMsgConsumer.unregister();
 
-        for (ServerWebSocket ws : subscribers) {
+        for (ServerWebSocket ws : proxyMsgSubscribers) {
             if (!ws.isClosed()) ws.close();
         }
-        subscribers.clear();
+        proxyMsgSubscribers.clear();
 
-        if (server == null) {
-            stopPromise.complete();
-            return;
+        if (wsServer == null) {
+            return Future.succeededFuture();
         }
 
-        server.close().onComplete(result -> {
-            if (result.succeeded()) stopPromise.complete();
-            else                    stopPromise.fail(result.cause());
-        });
+        return wsServer.close().mapEmpty();
     }
 }
