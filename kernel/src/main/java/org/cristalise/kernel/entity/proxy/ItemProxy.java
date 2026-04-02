@@ -219,7 +219,7 @@ public class ItemProxy {
     private <T> T await(Future<T> future) throws Exception {
         if (Context.isOnVertxThread()) {
             // We are on the Vert.x event loop thread using virtual threads, so we can block
-            return Future.await(future);
+            return future.await();
         }
         else {
             // We are on a platform thread, so we need to wait asynchronously

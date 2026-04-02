@@ -26,6 +26,7 @@ import static org.cristalise.kernel.SystemProperties.ItemServer_Telnet_host;
 import static org.cristalise.kernel.SystemProperties.ItemServer_Telnet_port;
 import static org.cristalise.kernel.SystemProperties.Lookup;
 import static org.cristalise.kernel.SystemProperties.ResourceImportHandler_$typeCode;
+import static org.cristalise.kernel.SystemProperties.WebSocketVerticle_enabled;
 
 import java.net.MalformedURLException;
 import java.util.Enumeration;
@@ -256,6 +257,10 @@ public class Gateway extends ProxyManager
         options.setInstances(1);
         options.setThreadingModel(ThreadingModel.EVENT_LOOP);
         mVertx.deployVerticle(TcpBridgeVerticle.class, options);
+
+        if (WebSocketVerticle_enabled.getBoolean()) {
+            mVertx.deployVerticle(WebSocketVerticle.class, options);
+        }
     }
 
     /**
