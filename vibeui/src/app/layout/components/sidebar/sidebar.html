@@ -7,16 +7,14 @@
       <span class="text-2xl font-black tracking-tighter bg-[var(--vibe-text)] bg-clip-text text-transparent">VIBEUI</span>
     </div>
 
-    <nav class="space-y-2">
+    <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
       @for (item of menuItems; track item.label) {
-        <a [routerLink]="item.routerLink"
-           routerLinkActive="!bg-indigo-500/10 !border-indigo-500/50 shadow-lg shadow-indigo-500/5"
-           [routerLinkActiveOptions]="{exact: true}"
-           class="flex items-center gap-4 px-4 py-3.5 text-[var(--vibe-muted)] hover:text-[var(--vibe-text)] hover:bg-[var(--vibe-faint-bg)] border border-transparent rounded-2xl transition-all duration-300 group">
-          <div class="w-5 flex justify-center">
-            <i [class]="item.icon + ' text-lg group-hover:scale-110 transition-transform'"></i>
-          </div>
-          <span class="font-bold tracking-tight text-sm">{{ item.label }}</span>
+        <a [routerLink]="[item.routerLink]" 
+           routerLinkActive="!bg-indigo-500 !text-white shadow-lg shadow-indigo-500/20"
+           [routerLinkActiveOptions]="{ exact: item.routerLink === '/dashboard' }"
+           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-[var(--vibe-text)] hover:bg-slate-800/40 transition-all duration-300 group">
+          <i [class]="item.icon + ' text-lg group-hover:scale-110 transition-transform'"></i>
+          <span class="font-medium">{{ item.label | transloco }}</span>
         </a>
       }
     </nav>
@@ -24,9 +22,9 @@
 
   <div class="mt-auto p-8">
      <div class="glass-card rounded-2xl p-4 border border-[var(--vibe-glass-border)] bg-indigo-500/5">
-        <p class="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">Pro Plan</p>
-        <p class="text-xs text-slate-400 font-medium mb-4">Unlock advanced analytics and AI features.</p>
-        <p-button label="Upgrade" styleClass="w-full !py-2 !text-xs premium-gradient border-none !rounded-xl font-bold"></p-button>
+        <p class="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-2">{{ 'layout.pro_plan' | transloco }}</p>
+        <p class="text-xs text-slate-400 font-medium mb-4">{{ 'layout.pro_plan_desc' | transloco }}</p>
+        <p-button [label]="'layout.upgrade' | transloco" styleClass="w-full !py-2 !text-xs premium-gradient border-none !rounded-xl font-bold"></p-button>
      </div>
   </div>
 </div>

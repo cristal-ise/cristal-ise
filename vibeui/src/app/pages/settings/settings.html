@@ -1,7 +1,7 @@
 <div class="p-6 max-w-4xl mx-auto">
   <div class="mb-10">
-    <h1 class="text-4xl font-black text-gradient tracking-tightest mb-2">Settings</h1>
-    <p class="text-slate-500 font-medium">Manage your application preferences and appearance</p>
+    <h1 class="text-4xl font-black text-gradient tracking-tightest mb-2">{{ 'settings.title' | transloco }}</h1>
+    <p class="text-slate-500 font-medium">{{ 'settings.manage_prefs' | transloco }}</p>
   </div>
 
   <div class="grid grid-cols-1 gap-8">
@@ -12,16 +12,16 @@
           <i class="pi pi-palette text-2xl"></i>
         </div>
         <div>
-          <h2 class="text-2xl font-bold">Appearance</h2>
-          <p class="text-sm text-slate-500">Customize how the interface looks on your device</p>
+          <h2 class="text-2xl font-bold">{{ 'settings.appearance' | transloco }}</h2>
+          <p class="text-sm text-slate-500">{{ 'settings.appearance_desc' | transloco }}</p>
         </div>
       </div>
 
       <div class="space-y-8">
         <div class="flex items-center justify-between p-4 bg-[var(--vibe-faint-bg)] rounded-2xl border border-[var(--vibe-glass-border)]">
           <div>
-            <h3 class="font-bold mb-1">Color Theme</h3>
-            <p class="text-xs text-slate-500">Choose between light and dark mode</p>
+            <h3 class="font-bold mb-1">{{ 'settings.color_theme' | transloco }}</h3>
+            <p class="text-xs text-slate-500">{{ 'settings.color_theme_desc' | transloco }}</p>
           </div>
           
           <p-selectButton 
@@ -34,7 +34,7 @@
             <ng-template pTemplate="item" let-item>
               <div class="flex items-center gap-2 px-2">
                 <i [class]="item.icon"></i>
-                <span class="font-bold text-sm">{{item.label}}</span>
+                <span class="font-bold text-sm">{{item.label | transloco}}</span>
               </div>
             </ng-template>
           </p-selectButton>
@@ -42,8 +42,8 @@
 
         <div class="flex items-center justify-between p-4 bg-[var(--vibe-faint-bg)] rounded-2xl border border-[var(--vibe-glass-border)] opacity-50">
           <div>
-            <h3 class="font-bold mb-1">Accent Color</h3>
-            <p class="text-xs text-slate-500">Coming soon: Customize your primary accent</p>
+            <h3 class="font-bold mb-1">{{ 'settings.accent_color' | transloco }}</h3>
+            <p class="text-xs text-slate-500">{{ 'settings.coming_soon' | transloco }}</p>
           </div>
           <div class="flex gap-2">
             <div class="w-6 h-6 rounded-full bg-indigo-500"></div>
@@ -63,13 +63,13 @@
           <i class="pi pi-cog text-2xl"></i>
         </div>
         <div>
-          <h2 class="text-2xl font-bold">General</h2>
-          <p class="text-sm text-slate-500">Global application settings and defaults</p>
+          <h2 class="text-2xl font-bold">{{ 'settings.general' | transloco }}</h2>
+          <p class="text-sm text-slate-500">{{ 'settings.general_desc' | transloco }}</p>
         </div>
       </div>
 
       <div class="space-y-6">
-        <p class="text-slate-500 italic text-sm">More settings will be available as features are implemented.</p>
+        <p class="text-slate-500 italic text-sm">{{ 'settings.more_settings' | transloco }}</p>
       </div>
     </div>
   </div>

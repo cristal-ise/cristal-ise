@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { CardModule } from 'primeng/card';
+import { CommonModule } from '@angular/common';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { FormsModule } from '@angular/forms';
@@ -8,16 +9,17 @@ import { ThemeService } from '../../core/services/theme.service';
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CardModule, ButtonModule, SelectButtonModule, FormsModule],
+  imports: [CommonModule, ButtonModule, SelectButtonModule, FormsModule, TranslocoPipe],
   templateUrl: './settings.html',
   styleUrl: './settings.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Settings {
-  themeService = inject(ThemeService);
+  protected readonly themeService = inject(ThemeService);
+  private translocoService = inject(TranslocoService);
 
   themeOptions = [
-    { label: 'Light', value: false, icon: 'pi pi-sun' },
-    { label: 'Dark', value: true, icon: 'pi pi-moon' }
+    { label: 'settings.light', value: false, icon: 'pi pi-sun' },
+    { label: 'settings.dark', value: true, icon: 'pi pi-moon' }
   ];
 }

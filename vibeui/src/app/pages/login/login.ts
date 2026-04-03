@@ -7,11 +7,13 @@ import { CardModule } from 'primeng/card';
 import { InputTextModule } from 'primeng/inputtext';
 import { PasswordModule } from 'primeng/password';
 import { ButtonModule } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 import { DefaultService } from '../../api';
 import { finalize } from 'rxjs';
+import { TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-login',
@@ -24,7 +26,8 @@ import { finalize } from 'rxjs';
     ButtonModule,
     CheckboxModule,
     ReactiveFormsModule,
-    ToastModule
+    ToastModule,
+    TranslocoPipe
   ],
   templateUrl: './login.html',
   styleUrl: './login.css',
@@ -35,6 +38,7 @@ export class Login implements OnInit {
   private router = inject(Router);
   private authService = inject(AuthService);
   private messageService = inject(MessageService);
+  private translocoService = inject(TranslocoService);
 
   loading = signal(false);
 
@@ -53,8 +57,8 @@ export class Login implements OnInit {
         this.messageService.add({
           key: 'system',
           severity: 'info',
-          summary: 'Session Expired',
-          detail: 'You were automatically logged out due to inactivity.',
+          summary: this.translocoService.translate('layout.session_expired'),
+          detail: this.translocoService.translate('layout.session_expired_detail'),
           sticky: true,
           closable: true
         });
@@ -93,18 +97,18 @@ export class Login implements OnInit {
       },
       error: (err) => {
         console.error('Login failed:', err);
-        let errorMsg = 'Invalid credentials';
+        let errorMsg = this.translocoService.translate('login.invalidCredentials');
 
         // Handle JAX-RS JSON error format if provided
         if (err.error && typeof err.error === 'object') {
           errorMsg = err.error.message || err.error.errorMessage || err.error.error || errorMsg;
         } else if (err.status === 401) {
-          errorMsg = 'Incorrect username or password';
+          errorMsg = this.translocoService.translate('login.incorrectUserPass');
         }
 
         this.messageService.add({
           severity: 'error',
-          summary: 'Login Failed',
+          summary: this.translocoService.translate('login.loginFailed'),
           detail: errorMsg,
           life: 3000
         });

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
@@ -6,10 +6,16 @@ import { InputTextModule } from 'primeng/inputtext';
 import { AvatarModule } from 'primeng/avatar';
 import { BadgeModule } from 'primeng/badge';
 import { MenuModule } from 'primeng/menu';
+import { SelectModule } from 'primeng/select';
+import { FormsModule } from '@angular/forms';
 import { MenuItem } from 'primeng/api';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../../core/services/auth.service';
 import { DefaultService } from '../../../api';
 import { finalize } from 'rxjs';
+
+import { LanguageSelector } from '../language-selector/language-selector';
 
 @Component({
   selector: 'app-topbar',
@@ -21,7 +27,11 @@ import { finalize } from 'rxjs';
     InputTextModule, 
     AvatarModule, 
     BadgeModule,
-    MenuModule
+    MenuModule,
+    SelectModule,
+    FormsModule,
+    TranslocoPipe,
+    LanguageSelector
   ],
   templateUrl: './topbar.html',
   styleUrl: './topbar.css',
@@ -33,28 +43,30 @@ import { finalize } from 'rxjs';
 export class Topbar {
   private router = inject(Router);
   private authService = inject(AuthService);
-  private defaultService = inject(DefaultService);
-
-  userMenuItems: MenuItem[] = [
-    {
-      label: 'Profile',
-      icon: 'pi pi-user',
-      routerLink: ['/dashboard/settings']
-    },
-    {
-      label: 'Settings',
-      icon: 'pi pi-cog',
-      routerLink: ['/dashboard/settings']
-    },
-    {
-      separator: true
-    },
-    {
-      label: 'Logout',
-      icon: 'pi pi-sign-out',
-      command: () => this.logout()
-    }
-  ];
+  private translocoService = inject(TranslocoService);
+  
+  protected readonly userMenuItems = computed<MenuItem[]>(() => {
+    return [
+      {
+        label: this.translocoService.translate('layout.profile'),
+        icon: 'pi pi-user',
+        routerLink: ['/dashboard/settings']
+      },
+      {
+        label: this.translocoService.translate('layout.settings'),
+        icon: 'pi pi-cog',
+        routerLink: ['/dashboard/settings']
+      },
+      {
+        separator: true
+      },
+      {
+        label: this.translocoService.translate('layout.logout'),
+        icon: 'pi pi-sign-out',
+        command: () => this.logout()
+      }
+    ];
+  });
 
   logout() {
     this.authService.logout().subscribe({

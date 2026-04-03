@@ -15,13 +15,14 @@
         <span class="text-2xl font-black tracking-tighter bg-white bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">VIBEUI</span>
       </div>
       <div class="hidden md:flex items-center gap-8">
-        <a href="#" class="text-sm font-semibold text-[var(--vibe-muted)] hover:text-[var(--vibe-text)] transition-colors">Features</a>
-        <a href="#" class="text-sm font-semibold text-[var(--vibe-muted)] hover:text-[var(--vibe-text)] transition-colors">Solutions</a>
-        <a href="#" class="text-sm font-semibold text-[var(--vibe-muted)] hover:text-[var(--vibe-text)] transition-colors">Pricing</a>
+        <a href="#" class="text-sm font-semibold text-[var(--vibe-muted)] hover:text-[var(--vibe-text)] transition-colors">{{ 'landing.features' | transloco }}</a>
+        <a href="#" class="text-sm font-semibold text-[var(--vibe-muted)] hover:text-[var(--vibe-text)] transition-colors">{{ 'landing.solutions' | transloco }}</a>
+        <a href="#" class="text-sm font-semibold text-[var(--vibe-muted)] hover:text(--vibe-text)] transition-colors">{{ 'landing.pricing' | transloco }}</a>
       </div>
       <div class="flex items-center gap-4">
-        <p-button label="Sign In" [routerLink]="['/login']" [text]="true" severity="secondary" styleClass="!text-[var(--vibe-muted)] hover:!text-[var(--vibe-text)] font-bold"></p-button>
-        <p-button label="Get Started" [routerLink]="['/dashboard']" [rounded]="true" severity="contrast" styleClass="!px-6 shadow-xl shadow-black/5"></p-button>
+        <app-language-selector class="mr-4"></app-language-selector>
+        <p-button [label]="'landing.login' | transloco" [routerLink]="['/login']" [text]="true" severity="secondary" styleClass="!text-[var(--vibe-muted)] hover:!text-[var(--vibe-text)] font-bold"></p-button>
+        <p-button [label]="'landing.getStarted' | transloco" [routerLink]="['/dashboard']" [rounded]="true" severity="contrast" styleClass="!px-6 shadow-xl shadow-black/5"></p-button>
       </div>
     </div>
   </nav>
@@ -33,36 +34,32 @@
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
           <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
         </span>
-        v2.0 is now live
+        {{ 'landing.v2_live' | transloco }}
       </div>
       <h1 class="text-7xl md:text-9xl font-black tracking-tightest mb-8 leading-[0.9]">
-        Crafted for <br />
-        <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">high-velocity</span> <br />
-        teams.
+        {{ 'landing.hero_crafted' | transloco }} <br />
+        <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">{{ 'landing.hero_velocity' | transloco }}</span> <br />
+        {{ 'landing.hero_teams' | transloco }}
       </h1>
       <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-12 leading-relaxed font-medium">
-        The ultimate enterprise-grade dashboard toolkit. Built with the latest tech stack for unmatched performance and beauty.
+        {{ 'landing.hero_subtitle' | transloco }}
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
-        <p-button label="Start Free Trial" icon="pi pi-sparkles" [routerLink]="['/dashboard']" size="large" [rounded]="true" severity="primary" styleClass="!px-10 !py-4 !text-lg shadow-2xl shadow-indigo-500/20"></p-button>
-        <p-button label="View Components" icon="pi pi-clone" [text]="true" size="large" severity="secondary" styleClass="!text-[var(--vibe-muted)] hover:!text-[var(--vibe-text)] font-bold !text-lg"></p-button>
+        <p-button [label]="'landing.start_trial' | transloco" icon="pi pi-sparkles" [routerLink]="['/dashboard']" size="large" [rounded]="true" severity="primary" styleClass="!px-10 !py-4 !text-lg shadow-2xl shadow-indigo-500/20"></p-button>
+        <p-button [label]="'landing.view_components' | transloco" icon="pi pi-clone" [text]="true" size="large" severity="secondary" styleClass="!text-[var(--vibe-muted)] hover:!text-[var(--vibe-text)] font-bold !text-lg"></p-button>
       </div>
     </div>
 
     <!-- Feature Grid -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      @for (feature of [
-        {title: 'Ultra-Fast Performance', desc: 'Optimized for speed with zoneless change detection and standalone components.', icon: 'pi-bolt', color: 'from-blue-500/20 to-indigo-500/20'},
-        {title: 'Seamless DX', desc: 'Built-in Tailwind 4 support and PrimeNG 21 components for rapid development.', icon: 'pi-code', color: 'from-purple-500/20 to-pink-500/20'},
-        {title: 'Enterprise Ready', desc: 'Secure by design with RBAC, advanced logging, and military-grade encryption.', icon: 'pi-shield', color: 'from-emerald-500/20 to-teal-500/20'}
-      ]; track feature.title) {
+      @for (feature of features; track feature.title) {
         <div class="group relative p-1 rounded-3xl bg-gradient-to-b from-[var(--vibe-glass-border)] to-transparent hover:from-indigo-500/20 transition-all duration-500 cursor-pointer">
           <div class="h-full bg-[var(--vibe-card-bg)] backdrop-blur-xl rounded-[22px] p-8 border border-[var(--vibe-glass-border)] group-hover:border-indigo-500/30 transition-all">
             <div [class]="'w-14 h-14 rounded-2xl bg-gradient-to-br ' + feature.color + ' flex items-center justify-center mb-8 border border-[var(--vibe-glass-border)] group-hover:scale-110 transition-transform duration-500'">
               <i [class]="'pi ' + feature.icon + ' text-2xl text-[var(--vibe-text)]'"></i>
             </div>
-            <h3 class="text-2xl font-bold mb-4 text-[var(--vibe-text)]">{{feature.title}}</h3>
-            <p class="text-slate-400 leading-relaxed font-medium">{{feature.desc}}</p>
+            <h3 class="text-2xl font-bold mb-4 text-[var(--vibe-text)]">{{feature.title | transloco}}</h3>
+            <p class="text-slate-400 leading-relaxed font-medium">{{feature.desc | transloco}}</p>
           </div>
         </div>
       }
@@ -76,7 +73,7 @@
           <div class="w-20 h-20 bg-[var(--vibe-faint-bg)] rounded-full flex items-center justify-center mx-auto mb-6 border border-[var(--vibe-glass-border)]">
              <i class="pi pi-play text-3xl text-[var(--vibe-text)] ml-1"></i>
           </div>
-          <p class="text-xl font-bold text-[var(--vibe-text)]">Watch Platform Tour</p>
+          <p class="text-xl font-bold text-[var(--vibe-text)]">{{ 'landing.watch_tour' | transloco }}</p>
         </div>
       </div>
     </div>

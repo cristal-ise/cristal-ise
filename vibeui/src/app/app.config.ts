@@ -7,8 +7,10 @@ import Aura from '@primeuix/themes/aura';
 import { MessageService } from 'primeng/api';
 
 import { routes } from './app.routes';
-import { provideApi } from './api/provide-api';
+import { provideTransloco } from '@jsverse/transloco';
+import { TranslocoHttpLoader } from './core/services/transloco-loader';
 import { environment } from '../environments/environment';
+import { provideApi } from './api/provide-api';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -28,6 +30,16 @@ export const appConfig: ApplicationConfig = {
                 darkModeSelector: '.my-app-dark'
             }
         }
+    }),
+    provideTransloco({
+        config: {
+            availableLangs: ['en', 'fr', 'de', 'hu'],
+            defaultLang: 'en',
+            fallbackLang: 'en',
+            reRenderOnLangChange: true,
+            prodMode: environment.production,
+        },
+        loader: TranslocoHttpLoader
     })
   ]
 };

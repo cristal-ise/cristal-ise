@@ -11,14 +11,14 @@
       <div class="w-16 h-16 premium-gradient rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-indigo-500/20 mx-auto mb-6 animate-float">
         <i class="pi pi-bolt text-3xl"></i>
       </div>
-      <h2 class="text-4xl font-black text-[var(--vibe-text)] tracking-tight mb-2">Welcome back</h2>
-      <p class="text-[var(--vibe-muted)] font-medium">Please enter your details to sign in</p>
+      <h2 class="text-4xl font-black text-[var(--vibe-text)] tracking-tight mb-2">{{ 'login.welcomeBack' | transloco }}</h2>
+      <p class="text-[var(--vibe-muted)] font-medium">{{ 'login.enterDetails' | transloco }}</p>
     </div>
 
     <div class="glass-card !rounded-[32px] p-8 md:p-10 border border-[var(--vibe-glass-border)] shadow-2xl">
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
         <div class="flex flex-col gap-2">
-          <label for="username" class="text-xs font-bold uppercase tracking-widest text-[var(--vibe-muted)] ml-1">Username</label>
+          <label for="username" class="text-xs font-bold uppercase tracking-widest text-[var(--vibe-muted)] ml-1">{{ 'login.username' | transloco }}</label>
           <div class="relative group">
             <i class="pi pi-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
             <input id="username" type="text" pInputText placeholder="username" formControlName="username"
@@ -28,7 +28,7 @@
 
         <div class="flex flex-col gap-2">
           <div class="flex items-center ml-1">
-            <label for="password" class="text-xs font-bold uppercase tracking-widest text-[var(--vibe-muted)]">Password</label>
+            <label for="password" class="text-xs font-bold uppercase tracking-widest text-[var(--vibe-muted)]">{{ 'login.password' | transloco }}</label>
           </div>
           <p-password id="password" [toggleMask]="true" [feedback]="false" styleClass="w-full" formControlName="password"
             inputStyleClass="w-full !rounded-2xl !py-4 !bg-[var(--vibe-faint-bg)] !border-[var(--vibe-glass-border)] focus:!border-indigo-500/50 focus:!ring-4 focus:!ring-indigo-500/10 !text-[var(--vibe-text)] placeholder:!text-[var(--vibe-muted)] transition-all" 
@@ -38,27 +38,27 @@
         <div class="flex items-center justify-between ml-1">
           <div class="flex items-center gap-3">
             <p-checkbox id="remember" [binary]="true" formControlName="remember"></p-checkbox>
-            <label for="remember" class="text-sm font-medium text-[var(--vibe-muted)] cursor-pointer select-none">Stay signed in</label>
+            <label for="remember" class="text-sm font-medium text-[var(--vibe-muted)] cursor-pointer select-none">{{ 'login.staySignedIn' | transloco }}</label>
           </div>
-          <a href="#" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">Forgot password?</a>
+          <a href="#" class="text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors">{{ 'login.forgotPassword' | transloco }}</a>
         </div>
 
-        <p-button type="submit" label="Sign In" [loading]="loading()" 
+        <p-button type="submit" [label]="'login.signIn' | transloco" [loading]="loading()" 
           styleClass="w-full !rounded-2xl !py-4 premium-gradient border-none shadow-xl shadow-indigo-500/20 font-bold text-lg hover:scale-[1.02] active:scale-[0.98] transition-all"></p-button>
 
         <div class="h-2"></div>
 
         <div class="grid grid-cols-2 gap-4">
-          <p-button label="Google" icon="pi pi-google" [outlined]="true" 
+          <p-button [label]="'login.google' | transloco" icon="pi pi-google" [outlined]="true" 
             styleClass="!rounded-2xl !py-3 w-full !border-[var(--vibe-glass-border)] !text-[var(--vibe-text)] hover:!bg-[var(--vibe-faint-bg)] transition-all font-bold"></p-button>
-          <p-button label="Github" icon="pi pi-github" [outlined]="true" 
+          <p-button [label]="'login.github' | transloco" icon="pi pi-github" [outlined]="true" 
             styleClass="!rounded-2xl !py-3 w-full !border-[var(--vibe-glass-border)] !text-[var(--vibe-text)] hover:!bg-[var(--vibe-faint-bg)] transition-all font-bold"></p-button>
         </div>
       </form>
     </div>
 
     <p class="text-center mt-10 text-slate-400 font-medium">
-      Don't have an account? <a href="#" class="font-bold text-indigo-400 hover:text-indigo-300 transition-colors">Sign up for free</a>
+      {{ 'login.noAccount' | transloco }} <a href="#" class="font-bold text-indigo-400 hover:text-indigo-300 transition-colors">{{ 'login.signUp' | transloco }}</a>
     </p>
   </div>
 </div>

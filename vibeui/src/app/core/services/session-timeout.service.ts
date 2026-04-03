@@ -6,6 +6,7 @@ import { NavigationEnd, Router, ActivatedRouteSnapshot } from '@angular/router';
 import { AuthService } from './auth.service';
 import { authGuard } from '../guards/auth.guard';
 import { environment } from '../../../environments/environment';
+import { TranslocoService } from '@jsverse/transloco';
 
 @Injectable({
   providedIn: 'root'
@@ -14,7 +15,7 @@ export class SessionTimeoutService implements OnDestroy {
   private ngZone = inject(NgZone);
   private authService = inject(AuthService);
   private messageService = inject(MessageService);
-
+  private translocoService = inject(TranslocoService);
   private router = inject(Router);
   private timeoutSub?: Subscription;
   private routerSub?: Subscription;
@@ -103,8 +104,8 @@ export class SessionTimeoutService implements OnDestroy {
               this.messageService.add({
                 key: 'system',
                 severity: 'warn',
-                summary: 'Session Expiring',
-                detail: `You have been inactive. The session will timeout in ${idleWarningMinutes} minute(s). Move your mouse or press a key to stay logged in.`,
+                summary: this.translocoService.translate('layout.session_expiring'),
+                detail: this.translocoService.translate('layout.session_expiring_detail', { minutes: idleWarningMinutes }),
                 sticky: true
               });
             });

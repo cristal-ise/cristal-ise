@@ -2,7 +2,7 @@
   <div class="flex items-center flex-1">
     <div class="relative w-full max-w-md group">
       <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
-      <input type="text" pInputText placeholder="Search for projects, tasks..." 
+      <input type="text" pInputText [placeholder]="'layout.search' | transloco" 
         class="w-full !bg-[var(--vibe-faint-bg)] !border-[var(--vibe-glass-border)] focus:!border-indigo-500/30 focus:!ring-4 focus:!ring-indigo-500/10 !rounded-2xl !pl-12 !py-3 !text-sm !text-[var(--vibe-text)] placeholder:!text-slate-500 transition-all" />
     </div>
   </div>
@@ -13,12 +13,14 @@
           <i pBadge [value]="'3'" severity="danger" styleClass="!text-[8px] !min-w-[14px] !h-[14px]"></i>
       </p-button>
       <p-button icon="pi pi-cog" [routerLink]="['/dashboard/settings']" [rounded]="true" [text]="true" severity="secondary" styleClass="!text-slate-400 hover:!text-[var(--vibe-text)] hover:!bg-[var(--vibe-faint-bg)]"></p-button>
+      
+      <app-language-selector></app-language-selector>
     </div>
 
     <div class="h-8 w-[1px] bg-[var(--vibe-glass-border)] mx-2 hidden md:block"></div>
 
     <div class="flex items-center gap-4 pl-2 cursor-pointer group" (click)="userMenu.toggle($event)">
-      <p-menu #userMenu [model]="userMenuItems" [popup]="true" appendTo="body" styleClass="!shadow-2xl !border-[var(--vibe-glass-border)] !bg-[var(--vibe-glass-bg)] !backdrop-blur-xl !rounded-2xl !p-2">
+      <p-menu #userMenu [model]="userMenuItems()" [popup]="true" appendTo="body" styleClass="!shadow-2xl !border-[var(--vibe-glass-border)] !bg-[var(--vibe-glass-bg)] !backdrop-blur-xl !rounded-2xl !p-2">
         <ng-template #item let-item>
             <a class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 hover:bg-indigo-500/10 group/item">
                 <i [class]="item.icon + ' text-slate-500 group-hover/item:text-indigo-400'"></i>
@@ -28,7 +30,7 @@
       </p-menu>
       <div class="text-right hidden sm:block leading-tight">
         <p class="text-sm font-bold text-[var(--vibe-text)] group-hover:text-indigo-400 transition-colors">Alex Rivera</p>
-        <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Administrator</p>
+        <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">{{ 'layout.admin' | transloco }}</p>
       </div>
       <div class="relative">
         <p-avatar image="https://i.pravatar.cc/150?u=antigravity" shape="circle" size="large" 

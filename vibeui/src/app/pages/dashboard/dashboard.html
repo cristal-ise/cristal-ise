@@ -2,16 +2,16 @@
   <!-- Header -->
   <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
     <div>
-      <h1 class="text-4xl font-black text-[var(--vibe-text)] tracking-tight mb-2">Analytics Overview</h1>
+      <h1 class="text-4xl font-black text-[var(--vibe-text)] tracking-tight mb-2">{{ 'layout.dashboard.analytics_overview' | transloco }}</h1>
       <p class="text-slate-400 font-medium flex items-center gap-2">
         <i class="pi pi-calendar text-indigo-400"></i>
-        Welcome back, Alex. Here's your performance for March 2026.
+        {{ 'layout.dashboard.welcome_back' | transloco: { name: 'Alex', date: 'March 2026' } }}
       </p>
     </div>
     <div class="flex gap-4">
-      <p-button label="Export Data" icon="pi pi-download" [outlined]="true" severity="secondary" 
+      <p-button [label]="'layout.dashboard.export_data' | transloco" icon="pi pi-download" [outlined]="true" severity="secondary" 
         styleClass="!rounded-2xl !px-6 !border-white/10 !text-white hover:!bg-white/5 font-bold"></p-button>
-      <p-button label="Create Report" icon="pi pi-plus" 
+      <p-button [label]="'layout.dashboard.create_report' | transloco" icon="pi pi-plus" 
         styleClass="!rounded-2xl !px-6 premium-gradient border-none shadow-xl shadow-indigo-500/20 font-bold hover:scale-[1.02] active:scale-[0.98] transition-all"></p-button>
     </div>
   </div>
@@ -30,7 +30,7 @@
           </div>
         </div>
         <div>
-          <p class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">{{stat.title}}</p>
+          <p class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">{{stat.title | transloco}}</p>
           <h3 class="text-3xl font-black text-[var(--vibe-text)]">{{stat.value}}</h3>
         </div>
         <!-- Micro sparkline placeholder -->
@@ -48,17 +48,17 @@
       <div class="glass-card !rounded-[32px] p-8 border border-[var(--vibe-glass-border)] h-full">
         <div class="flex items-center justify-between mb-8">
           <div>
-            <h3 class="text-xl font-bold text-[var(--vibe-text)]">Platform Growth</h3>
-            <p class="text-sm text-slate-400 font-medium">Monthly revenue vs expenses</p>
+            <h3 class="text-xl font-bold text-[var(--vibe-text)]">{{ 'layout.dashboard.platform_growth' | transloco }}</h3>
+            <p class="text-sm text-slate-400 font-medium">{{ 'layout.dashboard.revenue_vs_expenses' | transloco }}</p>
           </div>
           <div class="flex gap-2">
              <div class="flex items-center gap-2 px-3 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
                 <div class="w-2 h-2 rounded-full bg-indigo-500"></div>
-                <span class="text-[10px] font-bold text-indigo-400 uppercase">Revenue</span>
+                <span class="text-[10px] font-bold text-indigo-400 uppercase">{{ 'layout.dashboard.revenue' | transloco }}</span>
              </div>
              <div class="flex items-center gap-2 px-3 py-1 rounded-lg bg-pink-500/10 border border-pink-500/20">
                 <div class="w-2 h-2 rounded-full bg-pink-500"></div>
-                <span class="text-[10px] font-bold text-pink-400 uppercase">Expenses</span>
+                <span class="text-[10px] font-bold text-pink-400 uppercase">{{ 'layout.dashboard.expenses' | transloco }}</span>
              </div>
           </div>
         </div>
@@ -72,7 +72,7 @@
     <div>
       <div class="glass-card !rounded-[32px] p-8 border border-[var(--vibe-glass-border)] h-full">
         <div class="flex items-center justify-between mb-8">
-          <h3 class="text-xl font-bold text-[var(--vibe-text)]">Recent Activity</h3>
+          <h3 class="text-xl font-bold text-[var(--vibe-text)]">{{ 'layout.dashboard.recent_activity' | transloco }}</h3>
           <p-button icon="pi pi-ellipsis-h" [text]="true" severity="secondary" styleClass="!text-slate-400"></p-button>
         </div>
         
@@ -88,15 +88,15 @@
               <div class="flex-1">
                 <div class="flex items-center justify-between mb-1">
                   <p class="text-sm font-bold text-[var(--vibe-text)]">{{activity.user}}</p>
-                  <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{{activity.time}}</span>
+                  <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{{ activity.timeKey | transloco: activity.timeParams }}</span>
                 </div>
-                <p class="text-xs text-slate-400 font-medium">{{activity.action}}</p>
+                <p class="text-xs text-slate-400 font-medium">{{ activity.actionKey | transloco: activity.actionParams }}</p>
               </div>
             </div>
           }
         </div>
 
-        <p-button label="View All Events" [text]="true" styleClass="w-full mt-10 !py-4 !rounded-2xl !bg-[var(--vibe-faint-bg)] hover:!bg-[var(--vibe-glass-bg)] !text-[var(--vibe-text)] font-bold transition-all border border-[var(--vibe-glass-border)]"></p-button>
+        <p-button [label]="'layout.dashboard.view_all_events' | transloco" [text]="true" styleClass="w-full mt-10 !py-4 !rounded-2xl !bg-[var(--vibe-faint-bg)] hover:!bg-[var(--vibe-glass-bg)] !text-[var(--vibe-text)] font-bold transition-all border border-[var(--vibe-glass-border)]"></p-button>
       </div>
     </div>
   </div>
