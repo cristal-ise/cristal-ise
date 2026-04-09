@@ -1,5 +1,6 @@
 ---
-trigger: always_on
+apply: by model decision
+instructions: Apply when working on Angular related tasks
 ---
 
 # Persona
