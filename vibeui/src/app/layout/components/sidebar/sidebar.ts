@@ -1,19 +1,38 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
+import { TreeModule } from 'primeng/tree';
+import { TreeNode } from 'primeng/api';
+import { DomainService } from '../../../core/services/domain.service';
+import { Observable, map } from 'rxjs';
+import { PathData } from '../../../api';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [RouterLink, RouterLinkActive, ButtonModule, TranslocoPipe],
+  standalone: true,
+  imports: [RouterLink, ButtonModule, TranslocoPipe, TreeModule, AsyncPipe],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Sidebar {
-  menuItems = [
-    { label: 'layout.dashboard_label', icon: 'pi pi-home', routerLink: '/dashboard' },
-    { label: 'layout.users_label', icon: 'pi pi-users', routerLink: '/dashboard/users' },
-    { label: 'layout.settings_label', icon: 'pi pi-cog', routerLink: '/dashboard/settings' }
-  ];
+  private domainService = inject(DomainService);
+  treeNodes$: Observable<TreeNode[]> = this.domainService
+    .getTreeData()
+    .pipe(
+      map((rows) => {
+        const domainNodes = this.domainService.transformToTreeNodeItems(rows);
+        return [
+          {
+            label: 'layout.dashboard_label',
+            expanded: false,
+            theicon: 'pi pi-home',
+            routerLink: '/dashboard',
+          } as TreeNode,
+          ...domainNodes,
+        ];
+      }),
+    );
 }

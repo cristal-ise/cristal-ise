@@ -1,24 +1,24 @@
 <div class="h-full flex flex-col glass-effect border-r border-[var(--vibe-glass-border)] bg-[var(--vibe-card-bg)]">
-  <div class="p-8">
+  <div class="p-6 pb-0">
     <div class="flex items-center gap-3 mb-10 group cursor-pointer">
-      <div class="w-10 h-10 premium-gradient rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform duration-300">
+      <div class="w-10 h-8 premium-gradient rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform duration-300">
         <i class="pi pi-bolt text-xl"></i>
       </div>
-      <span class="text-2xl font-black tracking-tighter bg-[var(--vibe-text)] bg-clip-text text-transparent">VIBEUI</span>
+      <span class="text-2xl font-black tracking-tighter bg-[var(--vibe-text)] bg-clip-text">VIBEUI</span>
     </div>
-
-    <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
-      @for (item of menuItems; track item.label) {
-        <a [routerLink]="[item.routerLink]" 
-           routerLinkActive="!bg-indigo-500 !text-white shadow-lg shadow-indigo-500/20"
-           [routerLinkActiveOptions]="{ exact: item.routerLink === '/dashboard' }"
-           class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:text-[var(--vibe-text)] hover:bg-slate-800/40 transition-all duration-300 group">
-          <i [class]="item.icon + ' text-lg group-hover:scale-110 transition-transform'"></i>
-          <span class="font-medium">{{ item.label | transloco }}</span>
-        </a>
-      }
-    </nav>
   </div>
+
+  <nav class="flex-1 px-8 py-4 overflow-y-auto custom-scrollbar min-h-0">
+    <p-tree [value]="(treeNodes$ | async) || []" selectionMode="single" class="w-full bg-transparent border-none p-0">
+      <ng-template let-node pTemplate="default">
+        <div [routerLink]="node.routerLink"
+             class="flex items-center gap-3 py-2 rounded-xl text-slate-400 hover:text-[var(--vibe-text)] hover:bg-slate-800/40 transition-all duration-300 group w-full cursor-pointer">
+          <i [class]="node.theicon + ' text-lg group-hover:scale-110 transition-transform'"></i>
+          <span class="font-bold text-xl">{{ node.label | transloco }}</span>
+        </div>
+      </ng-template>
+    </p-tree>
+  </nav>
 
   <div class="mt-auto p-8">
      <div class="glass-card rounded-2xl p-4 border border-[var(--vibe-glass-border)] bg-indigo-500/5">
