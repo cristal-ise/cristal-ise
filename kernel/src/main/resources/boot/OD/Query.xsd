@@ -32,6 +32,16 @@
                         <xs:attribute name="type" type="xs:string" use="required"/>
                     </xs:complexType>
                 </xs:element>
+                <xs:element name="rootElement" minOccurs="0" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:attribute name="value" type="xs:string" use="required"/>
+                    </xs:complexType>
+                </xs:element>
+                <xs:element name="recordElement" minOccurs="0" maxOccurs="1">
+                    <xs:complexType>
+                        <xs:attribute name="value" type="xs:string" use="required"/>
+                    </xs:complexType>
+                </xs:element>
                 <xs:element name="query" minOccurs="1" maxOccurs="1">
                     <xs:complexType>
                         <xs:simpleContent>

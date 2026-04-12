@@ -1267,7 +1267,7 @@ public class Outcome implements C2KLocalObject {
      * @param otherDocument the other XML document
      * @return true if the two XML Documents are identical, otherwise returns false
      */
-    public static boolean isIdentical(Document origDocument, Document otherDocument) {
+    public static boolean isIdentical(Object origDocument, Object otherDocument) {
         Diff xmlDiff = DiffBuilder.compare(origDocument).withTest(otherDocument)
                 .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndAllAttributes))
                 .ignoreComments()
@@ -1281,15 +1281,14 @@ public class Outcome implements C2KLocalObject {
             for (int i = 1; allDiffs.hasNext(); i++) log.info("Diff #{}:{}", i, allDiffs.next());
 
             try {
-                log.debug("expected:{}", serialize(origDocument, false));
-                log.debug("actual:{}", serialize(otherDocument, false));
+                log.debug("expected:{}", origDocument  instanceof Document ? serialize((Document) origDocument,  false) : origDocument);
+                log.debug("actual:{}",   otherDocument instanceof Document ? serialize((Document) otherDocument, false) : otherDocument);
             }
-            catch (InvalidDataException e) {}
-
-            return false;
+            catch (InvalidDataException e) {
+                // nothing to do, exception is printed in the log of serialize()
+            }
         }
-        else
-            return true;
+        return !xmlDiff.hasDifferences();
     }
 
     public boolean hasField(String name) {

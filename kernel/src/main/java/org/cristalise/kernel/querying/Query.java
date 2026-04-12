@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.querying;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.cristalise.kernel.SystemProperties.Resource_useOldImportFormat;
 import static org.cristalise.kernel.process.resource.BuiltInResources.QUERY_RESOURCE;
 
@@ -74,12 +76,12 @@ public class Query implements DescriptionObject {
      * It can be omitted if the query returns a valid XML (i.e. it is an instance of SQLXML of jdbc),
      * or the result has a single record (in this case use recordElement).
      */
-    private String rootElement;
+    private String rootElement = "QueryResult";
     /**
      * Specifies the name of the record element of the XML generated from the result of the query
      * It can be omitted if the record returns a valid XML (i.e. it is an instance of SQLXML of jdbc).
      */
-    private String recordElement;
+    private String recordElement = "Record";
 
     private ArrayList<Parameter> parameters = new ArrayList<Parameter>();
 
@@ -180,25 +182,50 @@ public class Query implements DescriptionObject {
             if(queryDoc.getDocumentElement().hasAttribute("name") )    name    = queryDoc.getDocumentElement().getAttribute("name");
             if(queryDoc.getDocumentElement().hasAttribute("version") ) version = Integer.valueOf(queryDoc.getDocumentElement().getAttribute("version"));
 
-            if(queryDoc.getDocumentElement().hasAttribute("rootElement") )   rootElement   = queryDoc.getDocumentElement().getAttribute("rootElement");
-            if(queryDoc.getDocumentElement().hasAttribute("recordElement") ) recordElement = queryDoc.getDocumentElement().getAttribute("recordElement");
-
-            parseQueryTag(queryDoc.getElementsByTagName("query"));
             parseParameterTag(queryDoc.getElementsByTagName("parameter"));
+            parseRootElementTag(queryDoc.getElementsByTagName("rootElement"));
+            parseRecordElementTag(queryDoc.getElementsByTagName("recordElement"));
+            parseQueryTag(queryDoc.getElementsByTagName("query"));
         }
         catch (Exception ex) {
             log.error("", ex);
-            throw new QueryParsingException("Error parsing Query XML : " + ex.toString());
+            throw new QueryParsingException("Error parsing Query XML", ex);
         }
     }
 
-    private void parseQueryTag(NodeList querytList) throws QueryParsingException {
-        Element queryElem = (Element)querytList.item(0);
+    private void parseRootElementTag(NodeList elemList) throws QueryParsingException {
+        if (elemList.getLength() == 0) return;
+        setRootElement(getTagAttributeValue(elemList, "rootElement"));
+    }
+
+    private void parseRecordElementTag(NodeList elemList) throws QueryParsingException {
+        if (elemList.getLength() == 0) return;
+        setRecordElement( getTagAttributeValue(elemList, "recordElement") );
+    }
+
+    private String getTagAttributeValue(NodeList elemList, String tagName) throws QueryParsingException {
+        Element elem = (Element) elemList.item(0);
+        if (!elem.hasAttribute("value")) {
+            String msg = String.format("Query:%s incomplete XML data, missing '%s' attribute for tag:%s", name, "value", tagName);
+            throw new QueryParsingException(msg);
+        }
+
+        String value = elem.getAttribute("value");
+        if (isBlank(value)) {
+            String msg = String.format("Query:%s incomplete XML data, 'value' attribute is blank for tag:%s", name, tagName);
+            throw new QueryParsingException(msg);
+        }
+
+        return value;
+    }
+
+    private void parseQueryTag(NodeList queryList) throws QueryParsingException {
+        Element queryElem = (Element)queryList.item(0);
 
         if (!queryElem.hasAttribute("language")) throw new QueryParsingException("Query data incomplete, must specify language");
         language = queryElem.getAttribute("language");
 
-        log.debug("parseQueryTag() - Query Language:" + language);
+        log.debug("parseQueryTag() - Query Language:{}", language);
 
         // get source from CDATA
         NodeList queryChildNodes = queryElem.getChildNodes();
@@ -209,7 +236,7 @@ public class Query implements DescriptionObject {
         if (queryChildNodes.item(0) instanceof Text) query = ((Text) queryChildNodes.item(0)).getData();
         else                                         throw new QueryParsingException("Child element of query tag was not text");
 
-        log.debug("parseQueryTag() - query:" + query);
+        log.debug("parseQueryTag() - query:{}", query);
     }
 
     private void parseParameterTag(NodeList paramList) throws ScriptParsingException, ParameterException, ClassNotFoundException {
@@ -227,14 +254,15 @@ public class Query implements DescriptionObject {
     public String getQueryXML() {
         StringBuffer sb = new StringBuffer("<cristalquery name='" + name + "' version='" + version + "'");
 
-        if (StringUtils.isNotBlank(rootElement))   sb.append(" rootElement='"+rootElement+"'");
-        if (StringUtils.isNotBlank(recordElement)) sb.append(" recordElement='"+recordElement+"'");
-
         sb.append(">");
 
-        for(Parameter p: parameters) {
+        for (Parameter p: parameters) {
             sb.append("<parameter name='"+p.getName()+"' type='"+p.getType().getName()+"'/>");
         }
+
+        if (isNotBlank(rootElement))   sb.append("<rootElement value='"+rootElement+"'/>");
+        if (isNotBlank(recordElement)) sb.append("<recordElement value='"+recordElement+"'/>");
+
 
         sb.append("<query language='" + language + "'>"+"<![CDATA[" + query + "]]></query>");
         sb.append("</cristalquery>");
@@ -283,5 +311,9 @@ public class Query implements DescriptionObject {
     @Override
     public BuiltInResources getResourceType() {
         return BuiltInResources.QUERY_RESOURCE;
+    }
+
+    public boolean compareXML(String expected) {
+        return Outcome.isIdentical(expected, getQueryXML());
     }
 }

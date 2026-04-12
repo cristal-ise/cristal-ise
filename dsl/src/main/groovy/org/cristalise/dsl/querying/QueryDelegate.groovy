@@ -35,7 +35,7 @@ class QueryDelegate {
     MarkupBuilder xml
     StringWriter writer
 
-    public QueryDelegate(String m, String n, int v) {
+    QueryDelegate(String m, String n, int v) {
         module = m
         name = n
         version = v
@@ -67,8 +67,16 @@ class QueryDelegate {
             mkp.yieldUnescaped("<![CDATA[ $string ]]>")
         }
     }
+    
+    def rootElement(String root) {
+        xml.rootElement(value: root)
+    }
 
-    public void processClosure(Closure cl) {
+    def recordElement(String record) {
+        xml.recordElement(value: record)
+    }
+
+    void processClosure(Closure cl) {
         assert cl, "Query only works with a valid Closure"
 
         xml.cristalquery(name: name, version: version) {

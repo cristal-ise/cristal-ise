@@ -62,21 +62,21 @@ class QueryBuilder {
     }
 
 
-    public static Query build(String module, String name, int version, Closure cl) {
-        def qb = new QueryBuilder(module, name, version)
+    public static Query build(String module, String name, int version, @DelegatesTo(QueryDelegate) Closure cl) {
+        def qBuilder = new QueryBuilder(module, name, version)
 
         def queryD = new QueryDelegate(module, name, version)
         queryD.processClosure(cl)
 
         //delegate's processClosure() can set these members, so copying the latest values
-        qb.module   = queryD.module
-        qb.name     = queryD.name
-        qb.version  = queryD.version
-        qb.query    = new Query(name, version, (ItemPath)null, queryD.writer.toString())
+        qBuilder.module   = queryD.module
+        qBuilder.name     = queryD.name
+        qBuilder.version  = queryD.version
+        qBuilder.query    = new Query(name, version, (ItemPath)null, queryD.writer.toString())
 
-        qb.query.namespace = module
+        qBuilder.query.namespace = module
 
-        return qb.query
+        return qBuilder.query
     }
 
     /**

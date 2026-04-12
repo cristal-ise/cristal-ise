@@ -20,7 +20,7 @@
  */
 package org.cristalise.dsl.test.querying
 
-import org.cristalise.dsl.test.builders.QueryTestBuilder
+import org.cristalise.dsl.querying.QueryBuilder
 import org.cristalise.kernel.test.utils.CristalTestSetup
 
 import spock.lang.Specification
@@ -31,17 +31,17 @@ import spock.lang.Specification
  *
  */
 class QueryBuilderSpecs extends Specification implements CristalTestSetup {
-    def setup() {
+    def setupSpec() {
         inMemorySetup()
     }
 
-    def cleanup() {
+    def cleanupSpec() {
         cristalCleanup()
     }
 
-    def 'Specifying new query'() {
+    def 'Specifying xquery'() {
         expect:
-        QueryTestBuilder.build("testing", "MyFirstQuery", 0) {
+        QueryBuilder.build("testing", "MyFirstQuery", 0) {
             parameter(name: 'uuid', type: 'java.lang.String')
             query(language: "existdb:xquery") {
 '''<TRList>{
@@ -54,6 +54,8 @@ class QueryBuilderSpecs extends Specification implements CristalTestSetup {
         .compareXML(
 '''<cristalquery name="MyFirstQuery" version="0">
     <parameter name="uuid" type="java.lang.String"/>
+    <rootElement value='QueryResult' />
+    <recordElement value='Record' />
     <query language="existdb:xquery"><![CDATA[
     <TRList>{
     for $prop in collection('weighbridge')/Property[@name='Type']
@@ -62,5 +64,44 @@ class QueryBuilderSpecs extends Specification implements CristalTestSetup {
     }</TRList>
     ]]></query>
 </cristalquery>''')
+    }
+
+    def 'Specifying sql'() {
+        expect:
+        QueryBuilder.build("testing", "MyFirstQuery", 0) {
+            parameter(name: 'domainPath', type: 'java.lang.String')
+            rootElement("MyFirstQueryResult")
+            recordElement("Item")
+            query(language: "sql") {
+"""SELECT ip."UUID",
+    MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Module')  AS "Module",
+        MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Type')    AS "Type",
+        MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Name')    AS "Name",
+        MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Version') AS "Version"
+    FROM "ITEM_PROPERTY" ip
+    LEFT JOIN "DOMAIN_PATH" dp ON ip."UUID" = dp."TARGET"
+    WHERE dp."PATH" LIKE '@{domainPath}%'
+    GROUP BY ip."UUID", dp."PATH"
+    ORDER BY "Type", "Name", "Version";"""
+            }
+        }
+            .compareXML(
+"""<cristalquery name="MyFirstQuery" version="0">
+  <parameter name="domainPath" type="java.lang.String"/>
+  <rootElement value='MyFirstQueryResult' />
+  <recordElement value='Item' />
+  <query language="sql"><![CDATA[ 
+    SELECT ip."UUID",
+    MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Module')  AS "Module",
+        MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Type')    AS "Type",
+        MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Name')    AS "Name",
+        MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Version') AS "Version"
+    FROM "ITEM_PROPERTY" ip
+    LEFT JOIN "DOMAIN_PATH" dp ON ip."UUID" = dp."TARGET"
+    WHERE dp."PATH" LIKE '@{domainPath}%'
+    GROUP BY ip."UUID", dp."PATH"
+    ORDER BY "Type", "Name", "Version";
+ ]]></query>
+</cristalquery>""")
     }
 }

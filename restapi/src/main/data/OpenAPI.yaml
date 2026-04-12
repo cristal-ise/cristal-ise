@@ -604,6 +604,77 @@ paths:
               schema:
                 $ref: 'RolesData.json'
 
+  /query/queryResult:
+    get:
+      summary: Execute Query (GET)
+      description: Executes a query and returns the result as JSON or XML.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: query
+          schema:
+            type: integer
+        - name: inputs
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+    post:
+      summary: Execute Query (POST)
+      description: Executes a query and returns the result as JSON or XML.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: query
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: string
+          application/xml:
+            schema:
+              type: string
+          text/plain:
+            schema:
+              type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: string
+        '404':
+          description: Not Found
+
   /role:
     get:
       summary: List Root Roles
