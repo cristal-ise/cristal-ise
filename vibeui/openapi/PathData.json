@@ -10,5 +10,5 @@
     "uuid": { "type": "string", "format": "uuid" },
     "hasJoblist": { "type": "boolean" }
   },
-  "required": ["name", "type", "url", "path"]
+  "required": ["name", "type", "path"]
 }

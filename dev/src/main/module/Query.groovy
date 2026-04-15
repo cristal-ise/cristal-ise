@@ -20,24 +20,36 @@
  */
 Query("QueryBasicItemList", 0) {
     parameter(name: 'domainPath', type: 'java.lang.String')
+    parameter(name: 'searchText', type: 'java.lang.String')
     parameter(name: 'offset', type: 'java.lang.Integer')
     parameter(name: 'limit', type: 'java.lang.Integer')
     rootElement('BasicItemList')
     recordElement('Item')
     query(language: "sql") {
 '''
-    SELECT ip."UUID",
-    MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Module')  AS "Module",
-        MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Type')    AS "Type",
-        MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Name')    AS "Name",
-        MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Version') AS "Version",
-        COUNT(*) OVER() AS TotalCount
-    FROM "ITEM_PROPERTY" ip
-    LEFT JOIN "DOMAIN_PATH" dp ON ip."UUID" = dp."TARGET"
-    WHERE dp."PATH" LIKE '@{domainPath}%'
-    GROUP BY ip."UUID", dp."PATH"
-    ORDER BY "Type", "Name", "Version"
-    OFFSET @{offset} ROWS FETCH NEXT @{limit} ROWS ONLY;
+WITH
+    params(fullTextSearch) AS (VALUES ('@{searchText}')),
+    pivoted AS (
+        SELECT ip."UUID",
+               MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Module')  AS "Module",
+               MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Type')    AS "Type",
+               MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Name')    AS "Name",
+               MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Version') AS "Version"
+        FROM "ITEM_PROPERTY" ip
+                 LEFT JOIN "DOMAIN_PATH" dp ON ip."UUID" = dp."TARGET"
+        WHERE dp."PATH" LIKE '@{domainPath}%'
+        GROUP BY ip."UUID", dp."PATH"
+    )
+SELECT p."UUID", p."Module", p."Type", p."Name", p."Version", COUNT(*) OVER() AS "TotalCount"
+FROM pivoted p
+    CROSS JOIN params
+WHERE fullTextSearch = ''
+   OR COALESCE("Module", '')  ILIKE '%' || fullTextSearch || '%'
+   OR COALESCE("Type", '')    ILIKE '%' || fullTextSearch || '%'
+   OR COALESCE("Name", '')    ILIKE '%' || fullTextSearch || '%'
+   OR COALESCE("Version", '') ILIKE '%' || fullTextSearch || '%'
+ORDER BY "Type", "Name", "Version"
+OFFSET @{offset} ROWS FETCH NEXT @{limit} ROWS ONLY;
 '''
     }
 }

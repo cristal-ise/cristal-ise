@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { DomainService } from './domain.service';
-import { DefaultService, PagedPathData } from '../../api';
+import { DefaultService, PagedPathData, PathData } from '../../api';
 import { of } from 'rxjs';
 
 describe('DomainService', () => {
@@ -47,7 +47,7 @@ describe('DomainService', () => {
 
   describe('transformToTreeNodeItems', () => {
     it('should transform PathData rows to TreeNode structure', () => {
-      const rows = [
+      const rows: PathData[] = [
         { path: 'domain/folder', name: 'folder', type: 'domain' as any, uuid: '1' },
         { path: 'domain/folder/file', name: 'file', type: 'item' as any, uuid: '2' }
       ];
@@ -62,9 +62,9 @@ describe('DomainService', () => {
     });
 
     it('should handle sorting by path', () => {
-      const rows = [
+      const rows: PathData[] = [
         { path: 'domain/b', name: 'b', type: 'domain' as any },
-        { path: 'domain/a', name: 'a', type: 'domain' as any }
+        { path: 'domain/a', name: 'a', type: 'domain' as any },
       ];
 
       const nodes = service.transformToTreeNodeItems(rows);

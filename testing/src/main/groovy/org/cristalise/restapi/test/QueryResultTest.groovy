@@ -19,6 +19,7 @@ class QueryResultTest extends RestapiTestBase {
     static JsonObject getInputs() {
         JsonObject inputs = new JsonObject()
         inputs.put('domainPath', '/domain/desc/DomainContext')
+        inputs.put('searchText', '')
         inputs.put('offset', 0)
         inputs.put('limit', 10)
         return inputs
@@ -32,6 +33,9 @@ class QueryResultTest extends RestapiTestBase {
         assert JsonPointer.from('/BasicItemList/Item').queryJson(result) instanceof JsonArray 
         def items = JsonPointer.from('/BasicItemList/Item').queryJson(result) as JsonArray
         assert items.size() == 10
+        // this is a sort of hack because the exact number of DomainContext Items is not know
+        assert items.getJsonObject(0).getString('TotalCount').toInteger() >= 32
+        assert items.getJsonObject(0).getString('TotalCount').toInteger() <= 40
     }
 
     @Test
