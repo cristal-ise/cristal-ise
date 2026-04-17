@@ -22,8 +22,8 @@
 -->
 <cristalquery name="TestQueryHistory" version="0">
     <parameter name="uuid" type="java.lang.String"/>
-    <rootElement value='HISTORY' />
-    <recordElement value='EVENT' />
+    <rootElement value='QueryResult' />
+    <recordElement value='OUTCOME' />
     <query language="sql"><![CDATA[
 select "XML" from "OUTCOME" 
 where "UUID" = '@{itemUUID}'

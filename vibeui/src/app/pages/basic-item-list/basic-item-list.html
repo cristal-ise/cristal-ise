@@ -1,0 +1,56 @@
+<div class="space-y-8 animate-fade-in">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+            <h1 class="text-4xl font-black text-slate-400 tracking-tight mb-2">Items</h1>
+            <p class="text-slate-400 font-medium flex items-center gap-2">
+                <i class="pi pi-folder text-indigo-400"></i>
+                {{ domainPath() }}
+            </p>
+        </div>
+    </div>
+
+    <div class="glass-card !rounded-[32px] p-8 border border-[var(--vibe-glass-border)]">
+        <p-table
+            [columns]="selectedColumns()"
+            [value]="items()"
+            [tableStyle]="{ 'min-width': '50rem' }"
+            stripedRows
+            [lazy]="true"
+            (onLazyLoad)="onLazyLoad($event)"
+            [paginator]="true"
+            [rows]="limit()"
+            [totalRecords]="totalRecords()"
+            [first]="offset()"
+            [rowsPerPageOptions]="[10, 20, 50]"
+        >
+            <ng-template pTemplate="caption">
+                <div class="flex justify-end pb-4">
+                    <p-multiSelect
+                        [options]="cols"
+                        [ngModel]="selectedColumns()"
+                        (ngModelChange)="selectedColumns.set($event)"
+                        optionLabel="header"
+                        selectedItemsLabel="{0} columns selected"
+                        [style]="{'min-width': '200px'}"
+                        placeholder="Choose Columns"
+                    />
+                </div>
+            </ng-template>
+            <ng-template pTemplate="header" let-columns>
+                <tr>
+                    @for (col of columns; track col.field) {
+                        <th>{{ col.header }}</th>
+                    }
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item let-columns="columns">
+                <tr>
+                    @for (col of columns; track col.field) {
+                        <td>{{ item[col.field] }}</td>
+                    }
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>

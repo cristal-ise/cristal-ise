@@ -393,7 +393,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
     }
 
     String executeQueryPost(String queryName, Integer version, String inputs, ContentType contentType = JSON, ContentType acceptType = JSON, Status status = OK) {
-        return given()
+        return given().log().all()
             .contentType(contentType)
             .accept(acceptType)
             .cookie(cauthCookie)

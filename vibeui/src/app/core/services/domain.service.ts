@@ -46,7 +46,8 @@ export class DomainService {
             label: part,
             expanded: false,
             theicon: this.getIconForType(isLeaf ? row.type : undefined),
-            routerLink: null,
+            routerLink: isLeaf ? '/dashboard/items' : null,
+            queryParams: isLeaf ? { domainPath: row.path } : null,
             children: isLeaf ? undefined : [],
           } as TreeNode;
 

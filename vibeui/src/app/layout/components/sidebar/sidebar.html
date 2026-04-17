@@ -12,6 +12,7 @@
     <p-tree [value]="(treeNodes$ | async) || []" selectionMode="single" class="w-full bg-transparent border-none p-0">
       <ng-template let-node pTemplate="default">
         <div [routerLink]="node.routerLink"
+             [queryParams]="node.queryParams"
              class="flex items-center gap-3 py-2 rounded-xl text-[var(--vibe-text)] hover:bg-slate-800/40 transition-all duration-300 group w-full cursor-pointer">
           <i [class]="node.theicon + ' text-lg group-hover:scale-110 transition-transform'"></i>
           <span class="font-light text-xl">{{ node.label | transloco }}</span>

@@ -1,7 +1,9 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { DomainService } from './domain.service';
 import { DefaultService, PagedPathData, PathData } from '../../api';
 import { of } from 'rxjs';
+import { provideZonelessChangeDetection } from '@angular/core';
 
 describe('DomainService', () => {
   let service: DomainService;
@@ -14,6 +16,7 @@ describe('DomainService', () => {
 
     TestBed.configureTestingModule({
       providers: [
+        provideZonelessChangeDetection(),
         DomainService,
         { provide: DefaultService, useValue: mockDefaultService }
       ]
@@ -46,7 +49,7 @@ describe('DomainService', () => {
   });
 
   describe('transformToTreeNodeItems', () => {
-    it('should transform PathData rows to TreeNode structure', () => {
+    it('should transform PathData rows to TreeNode structure with routerLink and queryParams', () => {
       const rows: PathData[] = [
         { path: 'domain/folder', name: 'folder', type: 'domain' as any, uuid: '1' },
         { path: 'domain/folder/file', name: 'file', type: 'item' as any, uuid: '2' }
@@ -56,8 +59,12 @@ describe('DomainService', () => {
 
       expect(nodes.length).toBe(1);
       expect(nodes[0].label).toBe('folder');
+      expect((nodes[0] as any).routerLink).toBe('/dashboard/items');
+      expect((nodes[0] as any).queryParams).toEqual({ domainPath: 'domain/folder' });
       expect(nodes[0].children?.length).toBe(1);
       expect(nodes[0].children?.[0].label).toBe('file');
+      expect((nodes[0].children?.[0] as any).routerLink).toBe('/dashboard/items');
+      expect((nodes[0].children?.[0] as any).queryParams).toEqual({ domainPath: 'domain/folder/file' });
       expect(nodes[0].children?.[0].data.uuid).toBe('2');
     });
 

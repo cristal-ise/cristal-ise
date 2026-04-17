@@ -1541,17 +1541,30 @@
 }
 
 .my-app-dark {
-  /* Dark Theme - Deep Oceanic Palette */
-  --vibe-bg: #020617;
-  --vibe-text: #f8fafc;
-  --vibe-faint-bg: rgba(30, 41, 59, 0.5);
-  --vibe-glass-bg: rgba(15, 23, 42, 0.6);
-  --vibe-glass-border: rgba(51, 65, 85, 0.5);
-  --vibe-card-bg: #0f172a;
-  --vibe-card-border: rgba(51, 65, 85, 0.5);
-  --vibe-muted: #94a3b8;
-  --vibe-surface: #0f172a;
+  /* Dark Theme - Aura Indigo Palette */
+  --vibe-bg: #020617; /* Slate 950 */
+  --vibe-text: #f8fafc; /* Slate 50 */
+  --vibe-faint-bg: rgba(30, 41, 59, 0.5); /* Slate 800/50% */
+  --vibe-glass-bg: rgba(15, 23, 42, 0.6); /* Slate 900/60% */
+  --vibe-glass-border: rgba(51, 65, 85, 0.5); /* Slate 700/50% */
+  --vibe-card-bg: #0f172a; /* Slate 900 */
+  --vibe-card-border: rgba(51, 65, 85, 0.5); /* Slate 700/50% */
+  --vibe-muted: #94a3b8; /* Slate 400 */
+  --vibe-surface: #0f172a; /* Slate 900 */
   --vibe-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+
+  /* PrimeNG Component Overrides - Integrated directly */
+  --p-primary-color: var(--vibe-primary);
+  --p-text-color: var(--vibe-text);
+  --p-text-secondary-color: var(--vibe-muted);
+  --p-content-background: var(--vibe-card-bg);
+  --p-content-border-color: var(--vibe-glass-border);
+  --p-datatable-header-cell-background: transparent;
+  --p-datatable-row-background: transparent;
+  --p-datatable-row-striped-background: rgba(255, 255, 255, 0.02);
+  --p-paginator-background: transparent;
+  --p-multiselect-background: var(--vibe-faint-bg);
+  --p-multiselect-panel-background: var(--vibe-card-bg);
 }
 
 body {
