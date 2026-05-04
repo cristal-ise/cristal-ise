@@ -13,7 +13,9 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../../core/services/auth.service';
 import { DefaultService } from '../../../api';
-import { finalize } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { SearchTextService } from '../../../core/services/search-text.service';
 
 import { LanguageSelector } from '../language-selector/language-selector';
 
@@ -22,10 +24,10 @@ import { LanguageSelector } from '../language-selector/language-selector';
   standalone: true,
   imports: [
     CommonModule,
-    RouterLink, 
-    ButtonModule, 
-    InputTextModule, 
-    AvatarModule, 
+    RouterLink,
+    ButtonModule,
+    InputTextModule,
+    AvatarModule,
     BadgeModule,
     MenuModule,
     SelectModule,
@@ -44,7 +46,21 @@ export class Topbar {
   private router = inject(Router);
   private authService = inject(AuthService);
   private translocoService = inject(TranslocoService);
-  
+  private searchService = inject(SearchTextService);
+  private searchSubject = new Subject<string>();
+
+  protected searchText = this.searchService.searchText;
+
+  constructor() {
+    this.searchSubject.pipe(
+      debounceTime(200),
+      distinctUntilChanged(),
+      takeUntilDestroyed()
+    ).subscribe(text => {
+      this.searchService.setSearchText(text);
+    });
+  }
+
   protected readonly userMenuItems = computed<MenuItem[]>(() => {
     return [
       {
@@ -67,6 +83,11 @@ export class Topbar {
       }
     ];
   });
+
+  onSearch(event: Event) {
+    const text = (event.target as HTMLInputElement).value;
+    this.searchSubject.next(text);
+  }
 
   logout() {
     this.authService.logout().subscribe({

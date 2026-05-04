@@ -2,7 +2,7 @@
   <div class="flex items-center flex-1">
     <div class="relative w-full max-w-md group">
       <i class="pi pi-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-indigo-400 transition-colors"></i>
-      <input type="text" pInputText [placeholder]="'layout.search' | transloco" 
+      <input type="text" pInputText [placeholder]="'layout.search' | transloco" (input)="onSearch($event)" [value]="searchText()"
         class="w-full !bg-[var(--vibe-faint-bg)] !border-[var(--vibe-glass-border)] focus:!border-indigo-500/30 focus:!ring-4 focus:!ring-indigo-500/10 !rounded-2xl !pl-12 !py-3 !text-sm !text-[var(--vibe-text)] placeholder:!text-slate-500 transition-all" />
     </div>
   </div>

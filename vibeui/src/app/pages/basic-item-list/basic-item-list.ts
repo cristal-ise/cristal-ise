@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal, computed, effect, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, signal, computed, effect, untracked, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
@@ -7,6 +7,7 @@ import { ItemListService } from '../../core/services/item-list.service';
 import { BasicItemListResultItem } from '../../core/models/basic-item-list-result';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { switchMap, map, combineLatest } from 'rxjs';
+import { SearchTextService } from '../../core/services/search-text.service';
 
 @Component({
   selector: 'app-basic-item-list',
@@ -16,10 +17,12 @@ import { switchMap, map, combineLatest } from 'rxjs';
   styleUrl: './basic-item-list.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BasicItemList {
+export class BasicItemList implements OnDestroy {
   domainPath = input.required<string>();
+  displayPath = computed(() => this.domainPath().replace(/^\/domain/, ''));
 
   private itemListService = inject(ItemListService);
+  private searchTextService = inject(SearchTextService);
 
   offset = signal(0);
   limit = signal(10);
@@ -37,10 +40,15 @@ export class BasicItemList {
   constructor() {
     effect(() => {
       this.domainPath();
+      this.searchTextService.searchText();
       untracked(() => {
         this.offset.set(0);
       });
     });
+  }
+
+  ngOnDestroy() {
+    this.searchTextService.clear();
   }
 
   items = toSignal(
@@ -48,9 +56,10 @@ export class BasicItemList {
       toObservable(this.domainPath),
       toObservable(this.offset),
       toObservable(this.limit),
+      toObservable(this.searchTextService.searchText),
     ]).pipe(
-      switchMap(([path, first, rows]) =>
-        this.itemListService.getBasicItemList(path, '', first, rows),
+      switchMap(([path, first, rows, search]) =>
+        this.itemListService.getBasicItemList(path, search, first, rows),
       ),
       map((result) => result.BasicItemList.Item),
     ),
