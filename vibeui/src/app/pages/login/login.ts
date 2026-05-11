@@ -11,7 +11,6 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-import { DefaultService } from '../../api';
 import { finalize } from 'rxjs';
 import { TranslocoService } from '@jsverse/transloco';
 

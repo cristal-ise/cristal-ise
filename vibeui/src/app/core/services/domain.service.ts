@@ -1,14 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { DefaultService } from '../../api';
 import { PathData } from '../../api/model/pathData';
-import { Observable, map } from 'rxjs';
+import { Observable, map, catchError, throwError } from 'rxjs';
 import { TreeNode } from 'primeng/api';
+import { ApiErrorService } from './api-error.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
 })
 export class DomainService {
   private defaultService = inject(DefaultService);
+  private apiErrorService = inject(ApiErrorService);
 
   /**
    * Fetches tree-like data structures from the domain endpoint.
@@ -16,7 +19,11 @@ export class DomainService {
    */
   getTreeData(): Observable<PathData[]> {
     return this.defaultService.domainGet({ search: 'tree' }).pipe(
-      map(data => data.rows)
+      map(data => data.rows),
+      catchError((error: HttpErrorResponse) => {
+        this.apiErrorService.handleError(error);
+        return throwError(() => error);
+      })
     );
   }
 

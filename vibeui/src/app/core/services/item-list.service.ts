@@ -1,13 +1,16 @@
 import { Injectable, inject } from '@angular/core';
 import { DefaultService } from '../../api';
-import { Observable, map } from 'rxjs';
+import { Observable, map, catchError, throwError } from 'rxjs';
 import { BasicItemListResult } from '../models/basic-item-list-result';
+import { ApiErrorService } from './api-error.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ItemListService {
   private defaultService = inject(DefaultService);
+  private apiErrorService = inject(ApiErrorService);
 
   /**
    * Retrieves a basic list of items based on the specified parameters.
@@ -33,6 +36,12 @@ export class ItemListService {
       .queryQueryResultPost({ name: queryName, version: version, body }, 'body', false, {
         httpHeaderAccept: 'application/json',
       })
-      .pipe(map((result) => result as BasicItemListResult));
+      .pipe(
+        map((result) => result as BasicItemListResult),
+        catchError((error: HttpErrorResponse) => {
+          this.apiErrorService.handleError(error);
+          return throwError(() => error);
+        })
+      );
   }
 }

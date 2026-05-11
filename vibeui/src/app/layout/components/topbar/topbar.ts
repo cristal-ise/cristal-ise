@@ -12,7 +12,6 @@ import { MenuItem } from 'primeng/api';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../../core/services/auth.service';
-import { DefaultService } from '../../../api';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SearchTextService } from '../../../core/services/search-text.service';

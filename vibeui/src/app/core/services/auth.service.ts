@@ -1,7 +1,9 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { Configuration, DefaultService, LoginRequest } from '../../api';
-import { catchError, map, of, tap } from 'rxjs';
+import { catchError, map, of, tap, throwError } from 'rxjs';
+import { ApiErrorService } from './api-error.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -10,6 +12,7 @@ export class AuthService {
   private defaultService = inject(DefaultService);
   private configuration = inject(Configuration);
   private router = inject(Router);
+  private apiErrorService = inject(ApiErrorService);
 
   /**
    * Tracks the authentication status.
@@ -28,7 +31,11 @@ export class AuthService {
    */
   login(loginRequest: LoginRequest) {
     return this.defaultService.loginPost({ loginRequest }).pipe(
-      tap(() => this.isAuthenticated.set(true))
+      tap(() => this.isAuthenticated.set(true)),
+      catchError((error: HttpErrorResponse) => {
+        this.apiErrorService.handleError(error);
+        return throwError(() => error);
+      })
     );
   }
 
@@ -44,7 +51,10 @@ export class AuthService {
       return of(null);
     }
     return this.defaultService.logoutGet({ reason }).pipe(
-      catchError(() => of(null)), // Still logout locally if server call fails
+      catchError((error: HttpErrorResponse) => {
+        this.apiErrorService.handleError(error);
+        return of(null);
+      }), // Still logout locally if server call fails
       tap(() => {
         this.isAuthenticated.set(false);
         if (reason === 'timeout') {
@@ -66,7 +76,8 @@ export class AuthService {
         this.isAuthenticated.set(true);
         return true;
       }),
-      catchError(() => {
+      catchError((error: HttpErrorResponse) => {
+        // We don't show toast for checkSession failure as it's a silent check
         this.isAuthenticated.set(false);
         return of(false);
       })
