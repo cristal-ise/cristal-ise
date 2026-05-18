@@ -128,7 +128,7 @@ public class WebAppExceptionBuilder {
 //            this.message = response.getEntity().toString();
         }
         else {
-            log.debug("exception() - Mapping excpetion '{}' to INTERNAL_SERVER_ERROR", ex.getClass().getSimpleName());
+            log.debug("exception() - Mapping exception '{}' to INTERNAL_SERVER_ERROR", ex.getClass().getSimpleName());
             this.status = Response.Status.INTERNAL_SERVER_ERROR;
         }
 

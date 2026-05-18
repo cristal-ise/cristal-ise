@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal, computed, effect, untracked, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, signal, computed, effect, untracked, OnDestroy, Signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
@@ -6,8 +6,9 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { ItemListService } from '../../core/services/item-list.service';
 import { BasicItemListResultItem } from '../../core/models/basic-item-list-result';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { switchMap, map, combineLatest } from 'rxjs';
+import { switchMap, map, combineLatest, catchError, of } from 'rxjs';
 import { SearchTextService } from '../../core/services/search-text.service';
+import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-basic-item-list',
@@ -18,8 +19,8 @@ import { SearchTextService } from '../../core/services/search-text.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BasicItemList implements OnDestroy {
-  domainPath = input.required<string>();
-  displayPath = computed(() => this.domainPath().replace(/^\/domain/, ''));
+  domainPath: Signal<string> = input.required<string>();
+  displayPath: Signal<string> = computed(() => this.domainPath().replace(/^\/domain/, ''));
 
   private itemListService = inject(ItemListService);
   private searchTextService = inject(SearchTextService);
@@ -51,22 +52,24 @@ export class BasicItemList implements OnDestroy {
     this.searchTextService.clear();
   }
 
-  items = toSignal(
+  items: Signal<BasicItemListResultItem[]> = toSignal(
     combineLatest([
       toObservable(this.domainPath),
       toObservable(this.offset),
       toObservable(this.limit),
       toObservable(this.searchTextService.searchText),
     ]).pipe(
-      switchMap(([path, first, rows, search]) =>
-        this.itemListService.getBasicItemList(path, search, first, rows),
-      ),
-      map((result) => result.BasicItemList.Item),
+      switchMap(([path, first, rows, search]) => this.itemListService.getBasicItemList(path, search, first, rows)),
+      map((result) => result?.BasicItemList?.Item || [] as BasicItemListResultItem[]),
+      catchError((error: HttpErrorResponse) => {
+        // required because signal cannot be undefined 
+        return of([] as BasicItemListResultItem[]);
+      }),
     ),
     { initialValue: [] as BasicItemListResultItem[] },
   );
 
-  totalRecords = computed(() => {
+  totalRecords: Signal<number> = computed(() => {
     const currentItems = this.items();
     return currentItems.length > 0 ? currentItems[0].TotalCount : 0;
   });

@@ -45,7 +45,6 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.json.JSONPointer;
 import org.json.XML;
 
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +62,7 @@ public class QueryUtils extends ItemUtils {
             Integer             queryVersion,
             String              inputJson,
             Map<String, Object> additionalInputs)
-                throws ObjectNotFoundException, UnsupportedOperationException, InvalidDataException, PersistencyException, AccessRightsException
+                throws ObjectNotFoundException, InvalidDataException, PersistencyException, AccessRightsException
     {
         if (queryName == null) {
             throw new ObjectNotFoundException("Name or UUID of Query was missing");
@@ -71,26 +70,17 @@ public class QueryUtils extends ItemUtils {
 
         queryVersion = getQueryVersion(queryName, queryVersion);
 
-        try {
-            Query query = LocalObjectLoader.getQuery(queryName, queryVersion);
-            checkPermissions(query, additionalInputs);
+        Query query = LocalObjectLoader.getQuery(queryName, queryVersion);
+        checkPermissions(query, additionalInputs);
 
-            log.info("executeQuery() - query:{}", query.getName());
+        log.debug("executeQuery() - query:{} inputs:{}", query, inputJson);
 
-            CastorHashMap inputs = parseInputs(inputJson, additionalInputs);
-            query.setParemeterValues(null, null, inputs);
+        CastorHashMap inputs = parseInputs(inputJson, additionalInputs);
+        query.setParemeterValues(null, null, inputs);
 
-            String xmlResult = Gateway.getStorage().executeQuery(query);
+        String xmlResult = Gateway.getStorage().executeQuery(query);
 
-            return createResponse(headers, query, xmlResult);
-        }
-        catch (UnsupportedOperationException | AccessRightsException | InvalidDataException | ObjectNotFoundException | PersistencyException e) {
-            throw e;
-        }
-        catch (Exception e) {
-            log.error("Error executing query", e);
-            throw new InvalidDataException("Error executing query: " + e.getMessage(), e);
-        }
+        return createResponse(headers, query, xmlResult);
     }
 
     private void checkPermissions(Query query, Map<String, Object> additionalInputs) throws AccessRightsException, ObjectNotFoundException {
@@ -106,7 +96,7 @@ public class QueryUtils extends ItemUtils {
         }
     }
 
-    private CastorHashMap parseInputs(String inputJson, Map<String, Object> additionalInputs) throws Exception {
+    private CastorHashMap parseInputs(String inputJson, Map<String, Object> additionalInputs) {
         CastorHashMap inputs = new CastorHashMap();
         if (inputJson != null && !inputJson.isEmpty()) {
             JSONObject json = new JSONObject(URLDecoder.decode(inputJson, StandardCharsets.UTF_8));
@@ -120,19 +110,33 @@ public class QueryUtils extends ItemUtils {
 
     private Response.ResponseBuilder createResponse(HttpHeaders headers, Query query, String xmlResult) {
         if (produceJSON(headers.getAcceptableMediaTypes())) {
+            String rootName = query.getRootElement();
+            String recordName = query.getRecordElement();
+
             JSONObject resultJson = XML.toJSONObject(xmlResult, true);
-            String recordPointer = "/" + query.getRootElement() + "/" + query.getRecordElement();
+
+            var rootElement = resultJson.optJSONObject(rootName);
+
+            if (rootElement == null || rootElement.opt(recordName) == null) {
+                JSONObject emptyRecords   = new JSONObject().put(recordName, new JSONArray());
+                JSONObject emptyResult = new JSONObject().put(rootName, emptyRecords);
+
+                log.info("createResponse() - zero records for query:{}", query);
+                return Response.ok(emptyResult.toString());
+            }
+
+            String recordPointer = "/" + rootName + "/" + recordName;
             var records = resultJson.query(recordPointer);
 
             if (records instanceof JSONObject singleRecordJson) {
-                // workaround for XML.toJSONObject limitation of creating jsonArray for single record
-                JSONObject rootJson      = new JSONObject().put(query.getRecordElement(), new JSONArray().put(singleRecordJson));
-                JSONObject newResultJson = new JSONObject().put(query.getRootElement(), rootJson);
+                // workaround for XML.toJSONObject limitation of creating JsonArray for single record
+                JSONObject record = new JSONObject().put(recordName, new JSONArray().put(singleRecordJson));
+                JSONObject newResult = new JSONObject().put(rootName, record);
 
-                log.info("createResponse() - query:{} returning single record as JSON array", query.getName());
-                return Response.ok(newResultJson.toString());
+                log.info("createResponse() - single record for query:{}", query);
+                return Response.ok(newResult.toString());
             } else {
-                log.info("createResponse() - query:{} returning #{} of records", query.getName(), ((JSONArray)records).length());
+                log.info("createResponse() - #{} records for query:{}", ((JSONArray)records).length(), query);
                 return Response.ok(resultJson.toString());
             }
         } else {

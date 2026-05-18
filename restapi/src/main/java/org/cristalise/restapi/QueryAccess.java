@@ -42,6 +42,7 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import lombok.extern.slf4j.Slf4j;
 import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.lookup.AgentPath;
@@ -51,6 +52,7 @@ import org.cristalise.kernel.scripting.Script;
 import com.google.common.collect.ImmutableMap;
 
 @Path("/query")
+@Slf4j
 public class QueryAccess extends ResourceAccess {
 
     private QueryUtils queryUtils = new QueryUtils();
@@ -140,9 +142,11 @@ public class QueryAccess extends ResourceAccess {
             return queryUtils.executeQuery(headers, queryName, queryVersion, inputJson, additionalInputs).cookie(cookie).build();
         }
         catch (Exception e) {
+            log.error("Error executing query:{} inputs:{} error:{}", queryName, inputJson, e.getMessage());
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
         catch (Throwable t) {
+            log.error("Error executing query:{} inputs:{} error:{}", queryName, inputJson, t.getMessage());
             throw new WebAppExceptionBuilder().exception(new CriseVertxException(t)).newCookie(cookie).build();
         }
     }

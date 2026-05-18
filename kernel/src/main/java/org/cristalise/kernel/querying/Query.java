@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import lombok.ToString;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -61,7 +62,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-@Getter @Setter @Slf4j
+@Getter @Setter @ToString(of = {"name", "version", "language"}) 
+@Slf4j
 public class Query implements DescriptionObject {
 
     private String   namespace;
