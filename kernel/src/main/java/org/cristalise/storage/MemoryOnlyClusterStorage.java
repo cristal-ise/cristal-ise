@@ -61,7 +61,7 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public boolean checkQuerySupport(String language) {
+    public boolean checkQuerySupport(Query query) {
         log.warn("MemoryOnlyClusterStorage DOES NOT Support any query");
         return false;
     }

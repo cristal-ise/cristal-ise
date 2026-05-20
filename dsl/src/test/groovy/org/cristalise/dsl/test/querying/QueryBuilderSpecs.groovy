@@ -39,7 +39,7 @@ class QueryBuilderSpecs extends Specification implements CristalTestSetup {
         cristalCleanup()
     }
 
-    def 'Specifying xquery'() {
+    def 'Specifying xquery without dialect'() {
         expect:
         QueryBuilder.build("testing", "MyFirstQuery", 0) {
             parameter(name: 'uuid', type: 'java.lang.String')
@@ -66,7 +66,7 @@ class QueryBuilderSpecs extends Specification implements CristalTestSetup {
 </cristalquery>''')
     }
 
-    def 'Specifying sql'() {
+    def 'Specifying sql without dialect'() {
         expect:
         QueryBuilder.build("testing", "MyFirstQuery", 0) {
             parameter(name: 'domainPath', type: 'java.lang.String')
@@ -102,6 +102,21 @@ class QueryBuilderSpecs extends Specification implements CristalTestSetup {
     GROUP BY ip."UUID", dp."PATH"
     ORDER BY "Type", "Name", "Version";
  ]]></query>
+</cristalquery>""")
+    }
+
+    def 'Specifying sql with dialect'() {
+        expect:
+        QueryBuilder.build("testing", "MyDialectQuery", 0) {
+            query(language: "sql", dialect: "postgres") {
+                "SELECT * FROM dual"
+            }
+        }
+        .compareXML(
+"""<cristalquery name="MyDialectQuery" version="0">
+    <rootElement value='QueryResult' />
+    <recordElement value='Record' />
+    <query language="sql" dialect="postgres"><![CDATA[ SELECT * FROM dual ]]></query>
 </cristalquery>""")
     }
 }

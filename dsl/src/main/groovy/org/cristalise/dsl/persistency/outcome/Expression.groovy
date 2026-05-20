@@ -20,13 +20,14 @@
  */
 package org.cristalise.dsl.persistency.outcome;
 
-import org.cristalise.kernel.utils.FileStringUtility
 import org.mvel2.templates.CompiledTemplate
 import org.mvel2.templates.TemplateCompiler
 import org.mvel2.templates.TemplateRuntime
 
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+
+import static org.cristalise.kernel.utils.FileStringUtility.resource2String
 
 @CompileStatic @Slf4j
 public class Expression {
@@ -35,7 +36,7 @@ public class Expression {
     private static CompiledTemplate compiledUpdateScript = null
     
     static {
-        String templ = FileStringUtility.url2String(Expression.getResource(updateScriptTemplate))
+        String templ = resource2String(Expression, updateScriptTemplate)
         compiledUpdateScript = TemplateCompiler.compileTemplate(templ);
     }
 

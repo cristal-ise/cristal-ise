@@ -62,7 +62,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-@Getter @Setter @ToString(of = {"name", "version", "language"}) 
+@Getter @Setter @ToString(of = {"name", "version", "language", "dialect"}) 
 @Slf4j
 public class Query implements DescriptionObject {
 
@@ -71,6 +71,7 @@ public class Query implements DescriptionObject {
     private Integer  version = null;
     private ItemPath itemPath;
     private String   language;
+    private String   dialect;
     private String   query;
 
     /**
@@ -115,7 +116,7 @@ public class Query implements DescriptionObject {
     }
 
     public boolean hasParameters() {
-        return parameters != null && parameters.size() > 0; 
+        return parameters != null && !parameters.isEmpty(); 
     }
 
     public Parameter getParameter(String name) {
@@ -227,7 +228,9 @@ public class Query implements DescriptionObject {
         if (!queryElem.hasAttribute("language")) throw new QueryParsingException("Query data incomplete, must specify language");
         language = queryElem.getAttribute("language");
 
-        log.debug("parseQueryTag() - Query Language:{}", language);
+        if (queryElem.hasAttribute("dialect")) dialect = queryElem.getAttribute("dialect");
+
+        log.debug("parseQueryTag() - Query language:{}, dialect:{}", language, dialect);
 
         // get source from CDATA
         NodeList queryChildNodes = queryElem.getChildNodes();
@@ -254,19 +257,19 @@ public class Query implements DescriptionObject {
     }
 
     public String getQueryXML() {
-        StringBuffer sb = new StringBuffer("<cristalquery name='" + name + "' version='" + version + "'");
-
-        sb.append(">");
+        StringBuffer sb = new StringBuffer("<cristalquery name='" + name + "' version='" + version + "'>");
 
         for (Parameter p: parameters) {
-            sb.append("<parameter name='"+p.getName()+"' type='"+p.getType().getName()+"'/>");
+            sb.append("<parameter name='").append(p.getName()).append("' type='").append(p.getType().getName()).append("'/>");
         }
 
-        if (isNotBlank(rootElement))   sb.append("<rootElement value='"+rootElement+"'/>");
-        if (isNotBlank(recordElement)) sb.append("<recordElement value='"+recordElement+"'/>");
+        if (isNotBlank(rootElement))   sb.append("<rootElement value='")  .append(rootElement)  .append("'/>");
+        if (isNotBlank(recordElement)) sb.append("<recordElement value='").append(recordElement).append("'/>");
 
-
-        sb.append("<query language='" + language + "'>"+"<![CDATA[" + query + "]]></query>");
+        sb.append("<query language='").append(language).append("'");
+        if (isNotBlank(dialect)) sb.append(" dialect='").append(dialect).append("'");
+        sb.append(">");
+        sb.append("<![CDATA[").append(query).append("]]></query>");
         sb.append("</cristalquery>");
 
         log.trace("getQueryXML() - xml:\n{}", sb);

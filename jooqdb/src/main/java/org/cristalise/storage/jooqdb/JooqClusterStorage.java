@@ -21,6 +21,7 @@
 package org.cristalise.storage.jooqdb;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.retrieveContext;
 import static org.cristalise.storage.jooqdb.JooqHandler.getPrimaryKeys;
 import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_disableDomainCreateTables;
@@ -70,6 +71,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class JooqClusterStorage extends ClusterStorage {
+
+    private static final String SQL = "SQL";
 
     protected Map<ClusterType, JooqHandler> jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
     protected List<JooqDomainHandler>       domainHandlers = new ArrayList<JooqDomainHandler>();
@@ -233,9 +236,16 @@ public class JooqClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public boolean checkQuerySupport(String language) {
-        String lang = language.trim().toUpperCase();
-        return "SQL".equals(lang) || ("SQL:"+JooqDataSourceHandler.dialect).equals(lang);
+    public boolean checkQuerySupport(Query query) {
+        String lang = query.getLanguage().trim().toUpperCase();
+        String dialect = isNotBlank(query.getDialect()) ? query.getDialect().trim().toUpperCase() : null;
+        String currentDialect = JooqDataSourceHandler.dialect.name();
+
+        if (dialect == null) {
+            return SQL.equals(lang) || "%s:%s".formatted(SQL, currentDialect).equals(lang);
+        } else {
+            return SQL.equals(lang) && currentDialect.equals(dialect);
+        }
     }
 
     @Override
@@ -269,7 +279,7 @@ public class JooqClusterStorage extends ClusterStorage {
 
     @Override
     public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
-        if(!checkQuerySupport(query.getLanguage())) throw new PersistencyException("Unsupported query:"+query.getLanguage());
+        if(!checkQuerySupport(query)) throw new PersistencyException("Unsupported query:"+query.getLanguage());
 
         DSLContext context = retrieveContext(transactionKey);
 

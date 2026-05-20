@@ -25,7 +25,7 @@ Query("QueryBasicItemList", 0) {
     parameter(name: 'limit', type: 'java.lang.Integer')
     rootElement('BasicItemList')
     recordElement('Item')
-    query(language: "sql") {
+    query(language: "sql", dialect: "postgres") {
 '''
 WITH
     params(fullTextSearch) AS (VALUES ('@{searchText}')),

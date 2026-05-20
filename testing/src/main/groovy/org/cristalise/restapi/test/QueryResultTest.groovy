@@ -7,11 +7,15 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 
+import javax.ws.rs.core.Response
+
 import static io.restassured.http.ContentType.JSON
 
 import org.junit.jupiter.api.Test
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
+
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR
 
 @Slf4j @CompileStatic
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -88,5 +92,11 @@ class QueryResultTest extends RestapiTestBase {
 
         String result = executeQueryGet(queryName, 0, jsonInputs, JSON)
         checkResult(result, 1)
+    }
+
+    @Test
+    void testUnsupportedQuery() {
+        executeQueryGet('TestQuery', 0, null, JSON, INTERNAL_SERVER_ERROR)
+        
     }
 }

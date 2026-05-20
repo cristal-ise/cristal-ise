@@ -257,7 +257,7 @@ public class ObjectProperties extends Properties {
     public Outcome convertToOutcome(String processName) throws IOException, InvalidDataException, ObjectNotFoundException {
         List<Map<String, Object>> props = new ArrayList<Map<String, Object>>();
 
-        String templ = FileStringUtility.url2String(this.getClass().getResource("resources/templates/SystemProperties_xml.tmpl"));
+        String templ = FileStringUtility.resource2String(this.getClass(), "resources/templates/SystemProperties_xml.tmpl");
         CompiledTemplate expr = TemplateCompiler.compileTemplate(templ);
 
         for (Entry<Object, Object> entry: entrySet()) {

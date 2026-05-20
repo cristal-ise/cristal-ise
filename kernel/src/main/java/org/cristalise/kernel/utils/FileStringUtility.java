@@ -81,6 +81,17 @@ public class FileStringUtility {
     }
 
     /**
+     * Reads a resource from classpath and converts it to String
+     */
+    static public String resource2String(Class<?> clazz, String resourcePath) throws IOException {
+        URL url = clazz.getResource(resourcePath);
+        if (url == null) {
+            throw new IOException("Resource not found: " + resourcePath);
+        }
+        return url2String(url);
+    }
+
+    /**
      * Reads a file and converts each line to String[]
      */
     static public String[] file2StringArray(File file) throws FileNotFoundException, IOException {

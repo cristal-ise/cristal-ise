@@ -5,7 +5,7 @@
   <parameter name="limit" type="java.lang.Integer"/>
   <rootElement value="BasicItemList"/>
   <recordElement value="Item"/>
-  <query language="sql"><![CDATA[ 
+  <query dialect="postgres" language="sql"><![CDATA[ 
 WITH
     params(fullTextSearch) AS (VALUES ('@{searchText}')),
     pivoted AS (
