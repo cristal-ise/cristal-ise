@@ -20,7 +20,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 })
 export class BasicItemList implements OnDestroy {
   domainPath: Signal<string> = input.required<string>();
-  displayPath: Signal<string> = computed(() => this.domainPath().replace(/^\/domain/, ''));
+  displayPath: Signal<string> = computed(() => this.domainPath()?.substring(this.domainPath()?.lastIndexOf('/') + 1));
 
   private itemListService = inject(ItemListService);
   private searchTextService = inject(SearchTextService);
@@ -28,7 +28,7 @@ export class BasicItemList implements OnDestroy {
   offset = signal(0);
   limit = signal(10);
 
-  cols = [
+  columns = [
     { field: 'Name', header: 'Name' },
     { field: 'Type', header: 'Type' },
     { field: 'Module', header: 'Module' },
@@ -36,7 +36,8 @@ export class BasicItemList implements OnDestroy {
     { field: 'Version', header: 'Version' },
   ];
 
-  selectedColumns = signal([this.cols[0], this.cols[1], this.cols[2], this.cols[3]]);
+  selectedItem = signal<BasicItemListResultItem | undefined>(undefined);
+  selectedColumns = signal([this.columns[0], this.columns[1], this.columns[2], this.columns[3]]);
 
   constructor() {
     effect(() => {
@@ -44,6 +45,7 @@ export class BasicItemList implements OnDestroy {
       this.searchTextService.searchText();
       untracked(() => {
         this.offset.set(0);
+        this.selectedItem.set(undefined);
       });
     });
   }

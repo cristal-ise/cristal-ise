@@ -103,7 +103,7 @@ describe('BasicItemList', () => {
   });
 
   it('should update selected columns', () => {
-    const allCols = component.cols;
+    const allCols = component.columns;
     component.selectedColumns.set(allCols);
     expect(component.selectedColumns().length).toBe(allCols.length);
   });

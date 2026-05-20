@@ -2,17 +2,24 @@
     <!-- Header -->
     <div class="flex items-center gap-3">
         <i class="pi pi-folder text-indigo-400" style="font-size: 1.5rem"></i>
-        <h1 class="text-3xl font-black text-slate-400 tracking-tight">Items of {{ displayPath() }}</h1>
+        <h1 class="text-3xl font-black text-slate-400 tracking-tight">
+            {{ displayPath() }}@if (selectedItem(); as selected) { : {{ selected.Name }} }
+        </h1>
     </div>
 
     <div class="glass-card !rounded-[32px] p-8 border border-[var(--vibe-glass-border)]">
         <p-table
             [columns]="selectedColumns()"
             [value]="items()"
+            selectionMode="single"
+            [selection]="selectedItem()"
+            (selectionChange)="selectedItem.set($event)"
+            dataKey="Name"
             [tableStyle]="{ 'min-width': '50rem' }"
-            stripedRows
             [lazy]="true"
             (onLazyLoad)="onLazyLoad($event)"
+            [rowHover]="true"
+
             [paginator]="true"
             [showCurrentPageReport]="true"
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
@@ -24,7 +31,7 @@
             <ng-template pTemplate="caption">
                 <div class="flex justify-end pb-4">
                     <p-multiSelect
-                        [options]="cols"
+                        [options]="columns"
                         [ngModel]="selectedColumns()"
                         (ngModelChange)="selectedColumns.set($event)"
                         optionLabel="header"
@@ -42,7 +49,7 @@
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-item let-columns="columns">
-                <tr>
+                <tr [pSelectableRow]="item">
                     @for (col of columns; track col.field) {
                         <td>{{ item[col.field] }}</td>
                     }
