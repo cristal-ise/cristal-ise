@@ -20,6 +20,7 @@
  */
 package org.cristalise.restapi;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 import static org.cristalise.restapi.SystemProperties.REST_DefaultBatchSize;
 import static org.cristalise.restapi.SystemProperties.REST_Event_DefaultBatchSize;
@@ -42,6 +43,7 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
@@ -112,17 +114,12 @@ public class ItemHistory extends ItemUtils {
 
     /**
      * 
-     * @param uuid
-     * @param eventId
-     * @param uri
-     * @param json
-     * @return
      */
     private Response.ResponseBuilder getEventOutcome(ItemProxy item, String eventId, UriInfo uri, boolean json, NewCookie cookie) {
         try {
-            Event ev = item.getEvent(Integer.valueOf(eventId));
+            Event ev = item.getEvent(Integer.parseInt(eventId));
 
-            if (ev.getSchemaName() == null || ev.getSchemaName().equals("")) {
+            if (isBlank(ev.getSchemaName())) {
                 throw new ObjectNotFoundException( "This event has no data" );
             }
     

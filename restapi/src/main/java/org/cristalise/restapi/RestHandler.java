@@ -67,11 +67,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 abstract public class RestHandler {
 
-    private ObjectMapper mapper;
+    private final ObjectMapper mapper;
     private boolean requireLogin = true;
 
-    private static Key cookieKey;
-    private static AesCipherService aesCipherService;
+    private static final Key cookieKey;
+    private static final AesCipherService aesCipherService;
 
     public static final String COOKIENAME = "cauth";
     public static final String USERNAME   = "username";
@@ -91,11 +91,11 @@ abstract public class RestHandler {
 
     /**
      * Tries to decrypt AuthData from the cookie string. It will make 5 attempts before throwing the exception.
-     * Check issue https://github.com/cristal-ise/restapi/issues/25
+     * Check github issue #25
      * 
      * @param authData the cookie string
      * @return the decypted {@link AuthData}
-     * @throws InvalidAgentPathException cookie was containing invalid uuid
+     * @throws InvalidItemPathException cookie was containing invalid uuid
      * @throws InvalidDataException Cookie too old
      */
     protected synchronized AuthData decryptAuthData(String authData)
@@ -124,8 +124,6 @@ abstract public class RestHandler {
 
     /**
      * 
-     * @param auth
-     * @return
      */
     protected synchronized String encryptAuthData(AuthData auth) {
         byte[] bytes = aesCipherService.encrypt(auth.getBytes(), cookieKey.getEncoded()).getBytes();
@@ -145,10 +143,10 @@ abstract public class RestHandler {
     }
 
     /**
-     * This method will check if authentication is 30seconds old, if true then it will return NewCookie.
+     * This method will check if authentication is 30 seconds old, if true then it will return NewCookie.
      * Return null if not.
      *
-     * @param authData
+     * @param authData the data about the agent
      * @return NewCookie
      */
     public NewCookie checkAndCreateNewCookie(AuthData authData) {
@@ -167,7 +165,7 @@ abstract public class RestHandler {
      * This method will check if authentication is 30seconds old, if true then it will return NewCookie.
      * Return null if not.
      *
-     * @param authCookie
+     * @param authCookie the cookie sent by the client
      * @return NewCookie
      */
     public NewCookie checkAndCreateNewCookie(Cookie authCookie) {
@@ -181,8 +179,7 @@ abstract public class RestHandler {
 
     public NewCookie createNewCookie(AuthData authData) {
         try {
-            NewCookie cookie = new NewCookie(COOKIENAME, encryptAuthData(authData), "/", null, null, -1, false);
-            return  cookie;
+            return new NewCookie(COOKIENAME, encryptAuthData(authData), "/", null, null, -1, false);
         } catch (Exception e) {
             log.error("Problem building response JSON", e);
             throw new WebAppExceptionBuilder("Problem building response JSON: ", e, Response.Status.INTERNAL_SERVER_ERROR, null).build();
@@ -227,8 +224,7 @@ abstract public class RestHandler {
         }
 
         try {
-            AuthData data = decryptAuthData(authData);
-            return data;
+            return decryptAuthData(authData);
         }
         catch (InvalidItemPathException | InvalidDataException e) {
             log.debug("Invalid agent or login data",  e);
@@ -248,7 +244,7 @@ abstract public class RestHandler {
      * 
      * @param agentName the name of the Agent
      * @param authCookie the cookie sent by the client
-     * @returnAgentProxy
+     * @return AgentProxy
      */
     public AgentProxy getAgent(String agentName, Cookie authCookie) throws ObjectNotFoundException {
         if(authCookie == null) return getAgent(agentName, (String)null);
@@ -385,28 +381,27 @@ abstract public class RestHandler {
 
     /**
      * 
-     * @param ip
      */
     protected  Map<String, Object> makeItemDomainPathsData(ItemPath ip) {
         PagedResult result = Gateway.getLookup().searchAliases(ip, 0, 50);
 
-        Map<String, Object> returnVal = new LinkedHashMap<String, Object>();
-        ArrayList<Object> domainPathesData = new ArrayList<>();
+        Map<String, Object> returnMap = new LinkedHashMap<String, Object>();
+        ArrayList<Object> domainPathArray = new ArrayList<>();
 
-        for (Path p: result.rows) domainPathesData.add(p.getStringPath());
+        for (Path p: result.rows) domainPathArray.add(p.getStringPath());
 
-        if (domainPathesData.size() != 0) {
-            returnVal.put("uuid", ip.getUUID().toString());
-            returnVal.put("name", ((DomainPath)result.rows.get(0)).getName());
-            returnVal.put("domainPaths", domainPathesData);
+        if (!domainPathArray.isEmpty()) {
+            returnMap.put("uuid", ip.getUUID().toString());
+            returnMap.put("name", ((DomainPath)result.rows.getFirst()).getName());
+            returnMap.put("domainPaths", domainPathArray);
         }
         else if (ip instanceof AgentPath) {
-            returnVal.put("uuid", ip.getUUID().toString());
-            returnVal.put("name", ((AgentPath)ip).getAgentName());
-            returnVal.put("error", "Agent has no aliases");
+            returnMap.put("uuid", ip.getUUID().toString());
+            returnMap.put("name", ((AgentPath)ip).getAgentName());
+            returnMap.put("error", "Agent has no aliases");
         }
 
-        return returnVal;
+        return returnMap;
     }
 
     /**

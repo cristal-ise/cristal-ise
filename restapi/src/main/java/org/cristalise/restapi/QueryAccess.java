@@ -55,7 +55,7 @@ import com.google.common.collect.ImmutableMap;
 @Slf4j
 public class QueryAccess extends ResourceAccess {
 
-    private QueryUtils queryUtils = new QueryUtils();
+    private final QueryUtils queryUtils = new QueryUtils();
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)

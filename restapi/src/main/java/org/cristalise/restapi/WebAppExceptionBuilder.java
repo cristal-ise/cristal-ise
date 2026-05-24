@@ -65,7 +65,6 @@ public class WebAppExceptionBuilder {
      * @param ex exception
      * @param code HTTP status of the response
      * @param cookie cookie will be added to the response
-     * @return WebApplicationException Builder
      */
     public WebAppExceptionBuilder(String msg, Exception ex, Response.Status code, NewCookie cookie) {
         if (ex != null) this.exception(ex);
@@ -75,10 +74,7 @@ public class WebAppExceptionBuilder {
     }
 
     /**
-     * Creates a WebApplicationException Builder
-     *
-     * @param ex
-     * @return
+     * 
      */
     public WebAppExceptionBuilder exception(Exception ex) {
         this.exception = ex;
@@ -136,10 +132,7 @@ public class WebAppExceptionBuilder {
     }
 
     /**
-     * Creates a WebApplicationException Builder
-     *
-     * @param message
-     * @return
+     * 
      */
     public WebAppExceptionBuilder message(String message) {
         this.message = message;
@@ -147,10 +140,7 @@ public class WebAppExceptionBuilder {
     }
 
     /**
-     * Creates a WebApplicationException Builder
-     *
-     * @param status
-     * @return
+     * 
      */
     public WebAppExceptionBuilder status(Response.Status status) {
         this.status = status;
@@ -158,10 +148,7 @@ public class WebAppExceptionBuilder {
     }
 
     /**
-     * Creates a WebApplicationException Builder
-     *
-     * @param newCookie
-     * @return
+     * 
      */
     public WebAppExceptionBuilder newCookie(NewCookie newCookie) {
         this.newCookie = newCookie;
@@ -189,10 +176,10 @@ public class WebAppExceptionBuilder {
         else                                                             responseBuilder = Response.status(status);
 
         if (REST_Debug_errorsWithBody.getBoolean()) {
-            StringBuffer sb = new StringBuffer("[errorMessage]");
+            StringBuilder sb = new StringBuilder("[errorMessage]");
             sb.append(message).append("[/errorMessage]");
 
-            if(exception != null) sb.append(" - Exception:" + exception.getMessage());
+            if(exception != null) sb.append(" - Exception:").append(exception.getMessage());
 
             return new WebApplicationException(sb.toString(), responseBuilder.entity(message).build());
         }

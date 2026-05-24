@@ -52,12 +52,8 @@ import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionDescription;
 import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.collection.Dependency;
-import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CriseVertxException;
-import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.InvalidTransitionException;
-import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.Job;
@@ -309,7 +305,7 @@ public abstract class ItemUtils extends RestHandler {
         eventData.put("agent", ev.getAgentPath().getAgentName());
         eventData.put("role", ev.getAgentRole());
 
-        if (ev.getSchemaName() != null && ev.getSchemaName().length()>0) { // add outcome info
+        if (ev.getSchemaName() != null && !ev.getSchemaName().isEmpty()) { // add outcome info
             LinkedHashMap<String, Object> outcomeData = new LinkedHashMap<String, Object>();
             outcomeData.put("name",          ev.getViewName());
             outcomeData.put("schema",        ev.getSchemaName());
@@ -451,7 +447,7 @@ public abstract class ItemUtils extends RestHandler {
     protected String getItemName(ItemPath ip) {
         PagedResult result = Gateway.getLookup().searchAliases(ip, 0, 50);
 
-        if (result.rows.size() > 0) return ((DomainPath)result.rows.get(0)).getName();
+        if (!result.rows.isEmpty()) return ((DomainPath)result.rows.getFirst()).getName();
         else                        return "";
     }
 
@@ -469,8 +465,7 @@ public abstract class ItemUtils extends RestHandler {
         collData.put("isDescription", coll instanceof CollectionDescription);
 
         // include class props for dependencies here, not in member
-        if (coll instanceof Dependency) {
-            Dependency dep = (Dependency)coll;
+        if (coll instanceof Dependency dep) {
             addCollectionProps(collData, dep.getProperties(), dep.getClassProps(), true);
         }
 
@@ -526,8 +521,8 @@ public abstract class ItemUtils extends RestHandler {
             else                                                                 propData.add(propMap);
         }
 
-        if (classPropData.size() > 0 && includeClassProps) collData.put("classIdentifiers", classPropData);
-        if (propData.size() > 0)                           collData.put("properties", propData);
+        if (!classPropData.isEmpty() && includeClassProps) collData.put("classIdentifiers", classPropData);
+        if (!propData.isEmpty())                           collData.put("properties", propData);
     }
 
     /**
@@ -549,8 +544,6 @@ public abstract class ItemUtils extends RestHandler {
 
     /**
      * 
-     * @param props
-     * @return
      */
     public static List<String> getItemNames(Property ...props) {
         PagedResult result = Gateway.getLookup().search(new DomainPath(""), Arrays.asList(props), 0, 1000);
@@ -566,20 +559,6 @@ public abstract class ItemUtils extends RestHandler {
 
     /**
      * 
-     * @param item
-     * @param postData
-     * @param types
-     * @param actPath
-     * @param agent
-     * @return
-     * @throws ObjectNotFoundException
-     * @throws InvalidDataException
-     * @throws OutcomeBuilderException
-     * @throws AccessRightsException
-     * @throws InvalidTransitionException
-     * @throws PersistencyException
-     * @throws ObjectAlreadyExistsException
-     * @throws InvalidCollectionModification
      */
     protected String executePredefinedStep(ItemProxy item, String postData, String contentType, String actPath, AgentProxy agent)
             throws IOException, CriseVertxException, OutcomeBuilderException
@@ -633,9 +612,7 @@ public abstract class ItemUtils extends RestHandler {
     }
 
     /**
-     * @throws CriseVertxException 
-     * @throws OutcomeBuilderException 
-     * 
+     *
      */
     protected String executeJob(ItemProxy item, String outcome, String outcomeType, InputStream attachment, String fileName, 
             String actPath, String transition, AgentProxy agent)

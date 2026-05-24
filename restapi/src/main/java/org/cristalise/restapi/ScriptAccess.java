@@ -53,7 +53,7 @@ import java.util.Map;
 @Path("/script")
 public class ScriptAccess extends ResourceAccess {
 
-    private ScriptUtils scriptUtils = new ScriptUtils();
+    private final ScriptUtils scriptUtils = new ScriptUtils();
     
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -135,12 +135,6 @@ public class ScriptAccess extends ResourceAccess {
 
     /**
      * 
-     * @param headers
-     * @param scriptName
-     * @param scriptVersion
-     * @param inputJson
-     * @param cookie
-     * @return
      */
     private Response handleScriptExecution(HttpHeaders headers, String scriptName, Integer scriptVersion, String inputJson, NewCookie cookie, AgentPath agentPath)  {
         try {
