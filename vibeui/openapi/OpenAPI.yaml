@@ -1,11 +1,11 @@
 openapi: 3.1.0
 info:
-  title: CRISTAL-iSE Item Rest API
+  title: CRISTAL-iSE Rest API
   version: 1.0.0
   description: API for managing CRISTAL Items
 
 servers:
-  - url: /rest
+  - url: /api
 
 paths:
   /login:

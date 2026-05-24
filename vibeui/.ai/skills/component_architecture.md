@@ -18,3 +18,8 @@ Guidelines for building modern, standalone Angular components.
 - Use relative paths for external templates and styles.
 - Avoid `ngClass` and `ngStyle`; use `class` and `style` bindings instead.
 - Use `NgOptimizedImage` for static images (except base64).
+
+## Internationalization
+- Use `i18n` attribute for translatable content.
+- Use `translate` pipe for simple translations.
+- Use `TranslocoService` for more complex translations. 
