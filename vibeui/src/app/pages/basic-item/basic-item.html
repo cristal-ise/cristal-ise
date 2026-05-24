@@ -1,0 +1,63 @@
+<div class="space-y-8 animate-fade-in">
+    <!-- Header with Back Button -->
+    <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+            <i class="pi pi-info-circle text-indigo-400" style="font-size: 1.5rem"></i>
+            <h1 class="text-3xl font-black text-slate-400 tracking-tight">
+                @if (item()) {
+                    {{ headerText() }}
+                } @else {
+                    Loading Item Details...
+                }
+            </h1>
+        </div>
+    </div>
+
+    @if (item(); as itemData) {
+        <div class="glass-card !rounded-[32px] p-8 border border-[var(--vibe-glass-border)]">
+            <p-tabs value="details">
+                <p-tablist class="mb-6">
+                    <p-tab value="details">Details</p-tab>
+                    @for (col of collections(); track col.name) {
+                        <p-tab [value]="'collection_' + col.name">{{ col.name }}</p-tab>
+                    }
+                    <p-tab value="viewpoints">Viewpoints</p-tab>
+                    <p-tab value="history">History</p-tab>
+                </p-tablist>
+
+                <p-tabpanels>
+                    <!-- Details Tab Panel -->
+                    <p-tabpanel value="details">
+                        <basic-item-details [itemData]="itemData" />
+                    </p-tabpanel>
+
+                    <!-- Collection Tabs Panels -->
+                    @for (col of collections(); track col.name) {
+                        <p-tabpanel [value]="'collection_' + col.name">
+                            <div class="text-center text-slate-500 py-12">
+                                <i class="pi pi-folder-open text-3xl mb-3 block"></i>
+                                Collection data is empty for this development.
+                            </div>
+                        </p-tabpanel>
+                    }
+
+                    <!-- Viewpoints Tab Panel -->
+                    <p-tabpanel value="viewpoints">
+                        <div class="text-center text-slate-500 py-12">
+                            <i class="pi pi-eye text-3xl mb-3 block"></i>
+                            Viewpoints data is empty for this development.
+                        </div>
+                    </p-tabpanel>
+
+                    <!-- History Tab Panel -->
+                    <p-tabpanel value="history">
+                        <div class="text-center text-slate-500 py-12">
+                            <i class="pi pi-history text-3xl mb-3 block"></i>
+                            History data is empty for this development.
+                        </div>
+                    </p-tabpanel>
+                </p-tabpanels>
+            </p-tabs>
+        </div>
+    }
+</div>

@@ -6,12 +6,14 @@ import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
 import { BasicItemList } from './basic-item-list';
 import { ItemListService } from '../../core/services/item-list.service';
+import { Router } from '@angular/router';
 import { of } from 'rxjs';
 
 describe('BasicItemList', () => {
   let component: BasicItemList;
   let fixture: ComponentFixture<BasicItemList>;
   let itemListServiceMock: any;
+  let routerMock: any;
 
   const mockItems = [
     { UUID: '1', Module: 'm1', Type: 't1', Name: 'n1', Version: '1.0', TotalCount: 1 }
@@ -26,10 +28,15 @@ describe('BasicItemList', () => {
       }))
     };
 
+    routerMock = {
+      navigate: vi.fn()
+    };
+
     await TestBed.configureTestingModule({
       imports: [BasicItemList],
       providers: [
         { provide: ItemListService, useValue: itemListServiceMock },
+        { provide: Router, useValue: routerMock },
         provideHttpClient(),
         provideNoopAnimations(),
         providePrimeNG({
@@ -106,5 +113,10 @@ describe('BasicItemList', () => {
     const allCols = component.columns;
     component.selectedColumns.set(allCols);
     expect(component.selectedColumns().length).toBe(allCols.length);
+  });
+
+  it('should navigate to item details when viewDetails is called', () => {
+    component.viewDetails('test-uuid-123');
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/dashboard/items', 'test-uuid-123']);
   });
 });

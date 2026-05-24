@@ -1,0 +1,83 @@
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+  <!-- Core Metadata Card -->
+  <p-card id="core-metadata">
+    <ng-template #title>
+      <div><i class="pi pi-tag"></i> Core Metadata</div>
+    </ng-template>
+    <p-table [value]="coreMetadata()">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Attribute</th>
+          <th>Value</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-meta>
+        <tr>
+          <td>{{ meta.label }}</td>
+          <td>
+            @if (meta.isAgent) {
+              @if (meta.value) {
+                <i class="pi pi-check"></i> Yes
+              } @else {
+                <i class="pi pi-times"></i> No
+              }
+            } @else {
+              {{ meta.value }}
+            }
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+
+  <!-- Related Links Card -->
+  <p-card id="related-links">
+    <ng-template #title>
+      <div><i class="pi pi-link"></i> Related References</div>
+    </ng-template>
+    <p-table [value]="relatedReferences()">
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Reference</th>
+          <th>Link</th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-ref>
+        <tr>
+          <td>{{ ref.label }}</td>
+          <td>
+            <a [href]="ref.value" target="_blank" [title]="ref.value">
+              {{ ref.value }}
+            </a>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<!-- Properties Card -->
+<p-card id="properties">
+  <ng-template #title>
+    <div><i class="pi pi-list"></i> Properties</div>
+  </ng-template>
+  <p-table [value]="itemData().properties || []">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Property Name</th>
+        <th>Value</th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-prop>
+      <tr>
+        <td>{{ prop.name }}</td>
+        <td>{{ prop.value }}</td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="2">No properties defined for this item.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>

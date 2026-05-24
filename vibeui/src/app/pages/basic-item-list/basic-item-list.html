@@ -46,6 +46,7 @@
                     @for (col of columns; track col.field) {
                         <th>{{ col.header }}</th>
                     }
+                    <th class="w-24">Actions</th>
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-item let-columns="columns">
@@ -53,6 +54,9 @@
                     @for (col of columns; track col.field) {
                         <td>{{ item[col.field] }}</td>
                     }
+                    <td>
+                        <p-button icon="pi pi-eye" [text]="true" severity="primary" (click)="viewDetails(item.UUID)"></p-button>
+                    </td>
                 </tr>
             </ng-template>
         </p-table>
