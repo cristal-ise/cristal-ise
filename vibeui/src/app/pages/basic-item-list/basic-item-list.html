@@ -22,7 +22,7 @@
 
             [paginator]="true"
             [showCurrentPageReport]="true"
-            currentPageReportTemplate="Showing {first} to {last} of {totalRecords} entries"
+            [currentPageReportTemplate]="'itemList.showing_entries' | transloco"
             [rows]="limit()"
             [totalRecords]="totalRecords()"
             [first]="offset()"
@@ -35,18 +35,25 @@
                         [ngModel]="selectedColumns()"
                         (ngModelChange)="selectedColumns.set($event)"
                         optionLabel="header"
-                        selectedItemsLabel="{0} columns selected"
+                        [selectedItemsLabel]="'itemList.columns_selected' | transloco:{ count: selectedColumns().length }"
                         [style]="{'min-width': '200px'}"
-                        placeholder="Choose Columns"
-                    />
+                        [placeholder]="'itemList.choose_columns' | transloco"
+                    >
+                        <ng-template let-option pTemplate="item">
+                            {{ option.header | transloco }}
+                        </ng-template>
+                        <ng-template let-value pTemplate="selectedItems">
+                            {{ 'itemList.columns_selected' | transloco:{ count: value?.length || 0 } }}
+                        </ng-template>
+                    </p-multiSelect>
                 </div>
             </ng-template>
             <ng-template pTemplate="header" let-columns>
                 <tr>
                     @for (col of columns; track col.field) {
-                        <th>{{ col.header }}</th>
+                        <th>{{ col.header | transloco }}</th>
                     }
-                    <th class="w-24">Actions</th>
+                    <th class="w-24">{{ 'itemList.actions' | transloco }}</th>
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-item let-columns="columns">

@@ -1,5 +1,5 @@
 /**
- * CRISTAL-iSE Item Rest API
+ * CRISTAL-iSE Rest API
  *
  * 
  *

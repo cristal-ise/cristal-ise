@@ -7,12 +7,12 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { EventDataTransitionOneOf } from './eventDataTransitionOneOf';
 
 
-export interface RoleSummary { 
-    name: string;
-    hasJobList: boolean;
-    subroles?: { [key: string]: string; };
-    agents?: { [key: string]: string; };
-}
+/**
+ * @type EventDataTransition
+ * @export
+ */
+export type EventDataTransition = EventDataTransitionOneOf | string;
 

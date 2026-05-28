@@ -76,7 +76,7 @@ export class AuthService {
         this.isAuthenticated.set(true);
         return true;
       }),
-      catchError((error: HttpErrorResponse) => {
+      catchError(() => {
         // We don't show toast for checkSession failure as it's a silent check
         this.isAuthenticated.set(false);
         return of(false);

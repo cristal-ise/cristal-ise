@@ -9,10 +9,8 @@
  */
 
 
-export interface RoleSummary { 
+export interface EnumeratedLink { 
     name: string;
-    hasJobList: boolean;
-    subroles?: { [key: string]: string; };
-    agents?: { [key: string]: string; };
+    url: string;
 }
 

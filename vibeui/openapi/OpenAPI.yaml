@@ -1,11 +1,11 @@
-openapi: 3.1.0
+/openapi: 3.1.0
 info:
   title: CRISTAL-iSE Rest API
   version: 1.0.0
   description: API for managing CRISTAL Items
 
 servers:
-  - url: /api
+  - url: http://localhost:8081/api
 
 paths:
   /login:
@@ -603,6 +603,360 @@ paths:
             application/json:
               schema:
                 $ref: 'RolesData.json'
+
+  /item/{uuid}/outcome:
+    get:
+      summary: Get Outcome Schemas
+      description: Returns a list of outcome schemas associated with the item.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'EnumeratedLink.json'
+
+  /item/{uuid}/outcome/{schema}:
+    get:
+      summary: Get Outcome Versions
+      description: Returns a list of versions for a specific outcome schema.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: schema
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'EnumeratedLink.json'
+
+  /item/{uuid}/outcome/{schema}/{version}:
+    get:
+      summary: Get Outcome Events
+      description: Returns a list of events for a specific outcome schema and version.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: schema
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'EnumeratedLink.json'
+
+  /item/{uuid}/outcome/{schema}/{version}/{event}:
+    get:
+      summary: Get Outcome Data
+      description: Returns the outcome data for a specific event as JSON or XML.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: schema
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: event
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: string
+            text/xml:
+              schema:
+                type: string
+            text/plain:
+              schema:
+                type: string
+
+  /item/{uuid}/attachment:
+    get:
+      summary: Get Attachment Schemas
+      description: Returns a list of attachment schemas associated with the item.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'EnumeratedLink.json'
+
+  /item/{uuid}/attachment/{schema}:
+    get:
+      summary: Get Attachment Versions
+      description: Returns a list of versions for a specific attachment schema.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: schema
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'EnumeratedLink.json'
+
+  /item/{uuid}/attachment/{schema}/{version}:
+    get:
+      summary: Get Attachment Events
+      description: Returns a list of events for a specific attachment schema and version.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: schema
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'EnumeratedLink.json'
+
+  /item/{uuid}/attachment/{schema}/{version}/{event}:
+    get:
+      summary: Get Attachment Binary Data
+      description: Returns the binary data of an attachment.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: schema
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: event
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: inline
+          in: query
+          schema:
+            type: string
+          description: If provided, the response will be sent with Content-Disposition inline.
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+
+  /item/{uuid}/history:
+    get:
+      summary: List Item Events
+      description: Returns a paginated list of events for the item.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: start
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: batch
+          in: query
+          schema:
+            type: integer
+        - name: descending
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'EventData.json'
+
+  /item/{uuid}/history/{eventId}:
+    get:
+      summary: Get Single Event
+      description: Returns details of a specific event.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: 'EventData.json'
+        '404':
+          description: Not Found
+
+  /item/{uuid}/history/{eventId}/data:
+    get:
+      summary: Get Event Outcome Data
+      description: Returns the outcome data associated with a specific event.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+            application/xml:
+              schema:
+                type: string
+            text/xml:
+              schema:
+                type: string
+        '404':
+          description: Not Found
 
   /query/queryResult:
     get:

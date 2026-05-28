@@ -1,0 +1,41 @@
+<p-table
+    [value]="historyItems()"
+    [columns]="columns"
+    [paginator]="true"
+    [rows]="10"
+    [showCurrentPageReport]="true"
+    [currentPageReportTemplate]="'history.showing_entries' | transloco"
+    [rowsPerPageOptions]="[10, 20, 50]"
+    styleClass="p-datatable-sm">
+    <ng-template pTemplate="header" let-columns>
+        <tr>
+            @for (col of columns; track col.field) {
+                <th>{{ col.header | transloco }}</th>
+            }
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-event let-columns="columns">
+        <tr>
+            @for (col of columns; track col.field) {
+                <td>
+                    @if (col.field === 'timestamp') {
+                        {{ event.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}
+                    } @else if (col.field === 'transition') {
+                        {{ getTransitionName(event.transition) | transloco }}
+                    } @else if (col.field === 'activity.name') {
+                        {{ event.activity?.name }}
+                    } @else if (col.field === 'outcome.schema') {
+                        {{ (event.outcome?.schema || 'history.na') | transloco }}
+                    } @else {
+                        {{ event[col.field] }}
+                    }
+                </td>
+            }
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage" let-columns>
+        <tr>
+            <td [attr.colspan]="columns.length" class="text-center py-4">{{ 'history.no_records' | transloco }}</td>
+        </tr>
+    </ng-template>
+</p-table>

@@ -100,5 +100,36 @@
     "more_settings": "More settings will be available as features are implemented.",
     "light": "Light",
     "dark": "Dark"
+  },
+  "history": {
+    "timestamp": "Timestamp",
+    "agent": "Agent",
+    "role": "Role",
+    "activity": "Activity",
+    "transition": "Transition",
+    "outcome": "Outcome",
+    "showing_entries": "Showing {first} to {last} of {totalRecords} entries",
+    "no_records": "No history records found for this item.",
+    "na": "N/A"
+  },
+  "itemList": {
+    "name": "Name",
+    "type": "Type",
+    "module": "Module",
+    "uuid": "UUID",
+    "version": "Version",
+    "actions": "Actions",
+    "choose_columns": "Choose Columns",
+    "columns_selected": "{{count}} columns selected",
+    "showing_entries": "Showing {first} to {last} of {totalRecords} entries"
+  },
+  "item": {
+    "loading": "Loading Item Details...",
+    "details": "Details",
+    "viewpoints": "Viewpoints",
+    "history": "History",
+    "empty_collection": "Collection data is empty for this development.",
+    "empty_viewpoints": "Viewpoints data is empty for this development.",
+    "back": "Back"
   }
 }

@@ -9,10 +9,9 @@
  */
 
 
-export interface RoleSummary { 
+export interface EventDataActivity { 
     name: string;
-    hasJobList: boolean;
-    subroles?: { [key: string]: string; };
-    agents?: { [key: string]: string; };
+    path: string;
+    type: string;
 }
 

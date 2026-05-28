@@ -9,10 +9,11 @@
  */
 
 
-export interface RoleSummary { 
+export interface EventDataTransitionOneOf { 
     name: string;
-    hasJobList: boolean;
-    subroles?: { [key: string]: string; };
-    agents?: { [key: string]: string; };
+    origin: string;
+    target: string;
+    stateMachine: string;
+    stateMachineVersion: number;
 }
 

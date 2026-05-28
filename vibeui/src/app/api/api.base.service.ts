@@ -1,5 +1,5 @@
 /**
- * CRISTAL-iSE Item Rest API
+ * CRISTAL-iSE Rest API
  *
  * 
  *
@@ -13,7 +13,7 @@ import { Configuration } from './configuration';
 import { OpenApiHttpParams, QueryParamStyle, concatHttpParamsObject} from './query.params';
 
 export class BaseService {
-    protected basePath = '/rest';
+    protected basePath = 'http://localhost:8081/api';
     public defaultHeaders = new HttpHeaders();
     public configuration: Configuration;
     public encoder: HttpParameterCodec;

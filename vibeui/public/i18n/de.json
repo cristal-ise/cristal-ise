@@ -101,5 +101,36 @@
     "more_settings": "Weitere Einstellungen werden verfügbar sein, sobald Funktionen implementiert sind.",
     "light": "Hell",
     "dark": "Dunkel"
+  },
+  "history": {
+    "timestamp": "Zeitstempel",
+    "agent": "Agent",
+    "role": "Rolle",
+    "activity": "Aktivität",
+    "transition": "Übergang",
+    "outcome": "Ergebnis",
+    "showing_entries": "Anzeige von {first} bis {last} von {totalRecords} Einträgen",
+    "no_records": "Keine Historieneinträge für diesen Artikel gefunden.",
+    "na": "N/A"
+  },
+  "itemList": {
+    "name": "Name",
+    "type": "Typ",
+    "module": "Modul",
+    "uuid": "UUID",
+    "version": "Version",
+    "actions": "Aktionen",
+    "choose_columns": "Spalten auswählen",
+    "columns_selected": "{{count}} Spalten ausgewählt",
+    "showing_entries": "Anzeige von {first} bis {last} von {totalRecords} Einträgen"
+  },
+  "item": {
+    "loading": "Lade Artikeldetails...",
+    "details": "Details",
+    "viewpoints": "Ansichtspunkte",
+    "history": "Verlauf",
+    "empty_collection": "Sammlungsdaten sind für diese Entwicklung leer.",
+    "empty_viewpoints": "Ansichtspunktdaten sind für diese Entwicklung leer.",
+    "back": "Zurück"
   }
 }

@@ -10,6 +10,12 @@ git_push.sh
 index.ts
 model/collectionSummary.ts
 model/domainPathGet200Response.ts
+model/enumeratedLink.ts
+model/eventData.ts
+model/eventDataActivity.ts
+model/eventDataOutcome.ts
+model/eventDataTransition.ts
+model/eventDataTransitionOneOf.ts
 model/itemAliases.ts
 model/itemSummary.ts
 model/itemUuidJobGet200Response.ts

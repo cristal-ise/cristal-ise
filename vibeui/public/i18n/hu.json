@@ -101,5 +101,36 @@
     "more_settings": "További beállítások válnak elérhetővé a funkciók megvalósításakor.",
     "light": "Világos",
     "dark": "Sötét"
+  },
+  "history": {
+    "timestamp": "Időbélyeg",
+    "agent": "Ügynök",
+    "role": "Szerepkör",
+    "activity": "Tevékenység",
+    "transition": "Átmenet",
+    "outcome": "Eredmény",
+    "showing_entries": "Megjelenítés: {first} - {last} / {totalRecords} bejegyzés",
+    "no_records": "Nem található előzmény ehhez az elemhez.",
+    "na": "N/A"
+  },
+  "itemList": {
+    "name": "Név",
+    "type": "Típus",
+    "module": "Modul",
+    "uuid": "UUID",
+    "version": "Verzió",
+    "actions": "Műveletek",
+    "choose_columns": "Oszlopok kiválasztása",
+    "columns_selected": "{{count}} oszlop kiválasztva",
+    "showing_entries": "Megjelenítés: {first} - {last} / {totalRecords} bejegyzés"
+  },
+  "item": {
+    "loading": "Elem részleteinek betöltése...",
+    "details": "Részletek",
+    "viewpoints": "Nézőpontok",
+    "history": "Előzmények",
+    "empty_collection": "A gyűjtemény adatai üresek ehhez a fejlesztéshez.",
+    "empty_viewpoints": "A nézőpont adatai üresek ehhez a fejlesztéshez.",
+    "back": "Vissza"
   }
 }

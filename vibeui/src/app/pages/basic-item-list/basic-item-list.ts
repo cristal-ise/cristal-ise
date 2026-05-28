@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { ButtonModule } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Router } from '@angular/router';
 import { ItemListService } from '../../core/services/item-list.service';
 import { BasicItemListResultItem } from '../../core/models/basic-item-list-result';
@@ -15,7 +16,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 @Component({
   selector: 'app-basic-item-list',
   standalone: true,
-  imports: [CommonModule, TableModule, MultiSelectModule, FormsModule, ButtonModule],
+  imports: [CommonModule, TableModule, MultiSelectModule, FormsModule, ButtonModule, TranslocoPipe],
   templateUrl: './basic-item-list.html',
   styleUrl: './basic-item-list.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,15 +33,15 @@ export class BasicItemList implements OnDestroy {
   limit = signal(10);
 
   columns = [
-    { field: 'Name', header: 'Name' },
-    { field: 'Type', header: 'Type' },
-    { field: 'Module', header: 'Module' },
-    { field: 'UUID', header: 'UUID' },
-    { field: 'Version', header: 'Version' },
+    { field: 'Name', header: 'itemList.name' },
+    { field: 'Type', header: 'itemList.type' },
+    { field: 'Module', header: 'itemList.module' },
+    { field: 'UUID', header: 'itemList.uuid' },
+    { field: 'Version', header: 'itemList.version' },
   ];
 
   selectedItem = signal<BasicItemListResultItem | undefined>(undefined);
-  selectedColumns = signal([this.columns[0], this.columns[1], this.columns[2], this.columns[3]]);
+  selectedColumns = signal([this.columns[0], this.columns[1], this.columns[2]]);
 
   constructor() {
     effect(() => {
@@ -67,7 +68,7 @@ export class BasicItemList implements OnDestroy {
       switchMap(([path, first, rows, search]) => this.itemListService.getBasicItemList(path, search, first, rows)),
       map((result) => result?.BasicItemList?.Item || [] as BasicItemListResultItem[]),
       catchError((error: HttpErrorResponse) => {
-        // required because signal cannot be undefined 
+        // required because signal cannot be undefined
         return of([] as BasicItemListResultItem[]);
       }),
     ),

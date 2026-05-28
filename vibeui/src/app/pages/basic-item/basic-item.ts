@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, input, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TabsModule } from 'primeng/tabs';
 import { ButtonModule } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { BasicItemDetails } from './basic-item-details/basic-item-details';
+import { BasicItemHistory } from './basic-item-history/basic-item-history';
 import { DefaultService } from '../../api';
 import { ItemSummary } from '../../api';
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
@@ -13,13 +15,14 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-basic-item',
-  imports: [CommonModule, TabsModule, ButtonModule, BasicItemDetails],
+  imports: [CommonModule, TabsModule, ButtonModule, TranslocoPipe, BasicItemDetails, BasicItemHistory],
   templateUrl: './basic-item.html',
   styleUrl: './basic-item.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BasicItem {
   uuid = input.required<string>();
+  activeTab = signal<any>('details');
 
   private defaultService = inject(DefaultService);
   private apiErrorService = inject(ApiErrorService);
