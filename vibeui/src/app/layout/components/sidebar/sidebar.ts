@@ -29,7 +29,7 @@ export class Sidebar {
             label: 'layout.dashboard_label',
             expanded: false,
             theicon: 'pi pi-home',
-            routerLink: '/dashboard',
+            routerLink: '/admin',
           } as TreeNode,
           ...domainNodes,
         ];

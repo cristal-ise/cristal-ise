@@ -65,12 +65,12 @@ export class Topbar {
       {
         label: this.translocoService.translate('layout.profile'),
         icon: 'pi pi-user',
-        routerLink: ['/dashboard/settings']
+        routerLink: ['/admin/settings']
       },
       {
         label: this.translocoService.translate('layout.settings'),
         icon: 'pi pi-cog',
-        routerLink: ['/dashboard/settings']
+        routerLink: ['/admin/settings']
       },
       {
         separator: true

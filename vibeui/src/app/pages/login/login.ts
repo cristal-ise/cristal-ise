@@ -90,7 +90,7 @@ export class Login implements OnInit {
     ).subscribe({
       next: (result) => {
         console.log('Login successful:', result);
-        const returnUrl = this.authService.redirectUrl || '/dashboard';
+        const returnUrl = this.authService.redirectUrl || '/admin';
         this.authService.redirectUrl = null; // Clear to prevent stale redirects
         this.router.navigateByUrl(returnUrl);
       },

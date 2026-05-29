@@ -22,7 +22,7 @@
       <div class="flex items-center gap-4">
         <app-language-selector class="mr-4"></app-language-selector>
         <p-button [label]="'landing.login' | transloco" [routerLink]="['/login']" [text]="true" severity="secondary" styleClass="!text-[var(--vibe-muted)] hover:!text-[var(--vibe-text)] font-bold"></p-button>
-        <p-button [label]="'landing.getStarted' | transloco" [routerLink]="['/dashboard']" [rounded]="true" severity="contrast" styleClass="!px-6 shadow-xl shadow-black/5"></p-button>
+        <p-button [label]="'landing.getStarted' | transloco" [routerLink]="['/admin']" [rounded]="true" severity="contrast" styleClass="!px-6 shadow-xl shadow-black/5"></p-button>
       </div>
     </div>
   </nav>
@@ -45,7 +45,7 @@
         {{ 'landing.hero_subtitle' | transloco }}
       </p>
       <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
-        <p-button [label]="'landing.start_trial' | transloco" icon="pi pi-sparkles" [routerLink]="['/dashboard']" size="large" [rounded]="true" severity="primary" styleClass="!px-10 !py-4 !text-lg shadow-2xl shadow-indigo-500/20"></p-button>
+        <p-button [label]="'landing.start_trial' | transloco" icon="pi pi-sparkles" [routerLink]="['/admin']" size="large" [rounded]="true" severity="primary" styleClass="!px-10 !py-4 !text-lg shadow-2xl shadow-indigo-500/20"></p-button>
         <p-button [label]="'landing.view_components' | transloco" icon="pi pi-clone" [text]="true" size="large" severity="secondary" styleClass="!text-[var(--vibe-muted)] hover:!text-[var(--vibe-text)] font-bold !text-lg"></p-button>
       </div>
     </div>

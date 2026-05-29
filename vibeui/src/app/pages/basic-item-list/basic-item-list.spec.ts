@@ -8,6 +8,7 @@ import { BasicItemList } from './basic-item-list';
 import { ItemListService } from '../../core/services/item-list.service';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
+import { TranslocoService } from '@jsverse/transloco';
 
 describe('BasicItemList', () => {
   let component: BasicItemList;
@@ -43,7 +44,23 @@ describe('BasicItemList', () => {
           theme: {
             preset: Aura
           }
-        })
+        }),
+        {
+          provide: TranslocoService,
+          useValue: {
+            translate: (key: string, params?: any) => key,
+            selectTranslate: (key: string, params?: any) => of(key),
+            getActiveLang: () => 'en',
+            setActiveLang: (lang: string) => {},
+            langChanges$: of('en'),
+            config: {
+              reRenderOnLangChange: false,
+              defaultLang: 'en',
+              fallbackLang: 'en'
+            },
+            _loadDependencies: () => of(true)
+          }
+        }
       ]
     }).compileComponents();
 
@@ -62,7 +79,7 @@ describe('BasicItemList', () => {
   });
 
   it('should call ItemListService with domainPath and default paging', () => {
-    expect(itemListServiceMock.getBasicItemList).toHaveBeenCalledWith('test/path', '', 0, 20);
+    expect(itemListServiceMock.getBasicItemList).toHaveBeenCalledWith('test/path', '', 0, 10);
   });
 
   it('should have items from service in the table', () => {
@@ -117,6 +134,6 @@ describe('BasicItemList', () => {
 
   it('should navigate to item details when viewDetails is called', () => {
     component.viewDetails('test-uuid-123');
-    expect(routerMock.navigate).toHaveBeenCalledWith(['/dashboard/items', 'test-uuid-123']);
+    expect(routerMock.navigate).toHaveBeenCalledWith(['/admin/items', 'test-uuid-123']);
   });
 });

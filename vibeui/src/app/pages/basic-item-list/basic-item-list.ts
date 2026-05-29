@@ -90,6 +90,6 @@ export class BasicItemList implements OnDestroy {
   }
 
   viewDetails(uuid: string) {
-    this.router.navigate(['/dashboard/items', uuid]);
+    this.router.navigate(['/admin/items', uuid]);
   }
 }

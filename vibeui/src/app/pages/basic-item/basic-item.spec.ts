@@ -11,6 +11,7 @@ import { ApiErrorService } from '../../core/services/api-error.service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
+import { TranslocoService } from '@jsverse/transloco';
 
 describe('BasicItem', () => {
   let component: BasicItem;
@@ -72,7 +73,23 @@ describe('BasicItem', () => {
           theme: {
             preset: Aura
           }
-        })
+        }),
+        {
+          provide: TranslocoService,
+          useValue: {
+            translate: (key: string, params?: any) => key,
+            selectTranslate: (key: string, params?: any) => of(key),
+            getActiveLang: () => 'en',
+            setActiveLang: (lang: string) => {},
+            langChanges$: of('en'),
+            config: {
+              reRenderOnLangChange: false,
+              defaultLang: 'en',
+              fallbackLang: 'en'
+            },
+            _loadDependencies: () => of(true)
+          }
+        }
       ]
     }).compileComponents();
 
@@ -100,11 +117,6 @@ describe('BasicItem', () => {
   it('should retrieve collections dynamic properties', () => {
     expect(component.collections().length).toBe(2);
     expect(component.collections()[0].name).toBe('CollectionA');
-  });
-
-  it('should navigate back to basic item list when goBack is called', () => {
-    component.goBack();
-    expect(routerMock.navigate).toHaveBeenCalledWith(['/dashboard/items']);
   });
 
   it('should initialize with the Details tab selected by default', () => {

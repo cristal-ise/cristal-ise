@@ -4,6 +4,7 @@ import { DomainService } from './domain.service';
 import { DefaultService, PagedPathData, PathData } from '../../api';
 import { of } from 'rxjs';
 import { provideZonelessChangeDetection } from '@angular/core';
+import { ApiErrorService } from './api-error.service';
 
 describe('DomainService', () => {
   let service: DomainService;
@@ -18,7 +19,8 @@ describe('DomainService', () => {
       providers: [
         provideZonelessChangeDetection(),
         DomainService,
-        { provide: DefaultService, useValue: mockDefaultService }
+        { provide: DefaultService, useValue: mockDefaultService },
+        { provide: ApiErrorService, useValue: { handleError: vi.fn() } }
       ]
     });
 
@@ -59,11 +61,11 @@ describe('DomainService', () => {
 
       expect(nodes.length).toBe(1);
       expect(nodes[0].label).toBe('folder');
-      expect((nodes[0] as any).routerLink).toBe('/dashboard/items');
+      expect((nodes[0] as any).routerLink).toBe('/admin/items');
       expect((nodes[0] as any).queryParams).toEqual({ domainPath: 'domain/folder' });
       expect(nodes[0].children?.length).toBe(1);
       expect(nodes[0].children?.[0].label).toBe('file');
-      expect((nodes[0].children?.[0] as any).routerLink).toBe('/dashboard/items');
+      expect((nodes[0].children?.[0] as any).routerLink).toBe('/admin/items');
       expect((nodes[0].children?.[0] as any).queryParams).toEqual({ domainPath: 'domain/folder/file' });
       expect(nodes[0].children?.[0].data.uuid).toBe('2');
     });
