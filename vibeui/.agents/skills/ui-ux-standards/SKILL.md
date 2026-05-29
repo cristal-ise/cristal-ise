@@ -1,3 +1,8 @@
+---
+name: ui-ux-standards
+description: Guidelines for styling frameworks (Tailwind, PrimeNG), accessibility (A11y, WCAG AA), and strict TypeScript typing standards.
+---
+
 # Skill: UI/UX and Accessibility Standards
 
 Guidelines for building premium, accessible user interfaces using PrimeNG and Tailwind CSS.

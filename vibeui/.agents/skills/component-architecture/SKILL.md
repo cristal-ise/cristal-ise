@@ -1,10 +1,15 @@
+---
+name: component-architecture
+description: Guidelines for building modern Angular standalone components, including signals-based inputs/outputs, OnPush change detection, control flow, templates, styling, and basic internationalization.
+---
+
 # Skill: Component Architecture
 
 Guidelines for building modern, standalone Angular components.
 
 ## Core Principles
 - **Standalone Components**: Always use standalone components. Do NOT use `NgModules`.
-- **Decorator Settings**: Do NOT set `standalone: true` in `@Component` (handled by the framework version).
+- **Decorator Settings**: Do NOT set `standalone: true` in `@Component` (handled automatically by the framework version).
 - **Change Detection**: Always set `changeDetection: ChangeDetectionStrategy.OnPush`.
 - **Control Flow**: Use native control flow (`@if`, `@for`, `@switch`) instead of structural directives (`*ngIf`, etc.).
 
@@ -22,4 +27,4 @@ Guidelines for building modern, standalone Angular components.
 ## Internationalization
 - Use `i18n` attribute for translatable content.
 - Use `translate` pipe for simple translations.
-- Use `TranslocoService` for more complex translations. 
+- Use `TranslocoService` for more complex translations.

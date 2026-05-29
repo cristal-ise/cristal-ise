@@ -1,3 +1,8 @@
+---
+name: reactive-state
+description: Guidelines for managing state using Angular Signals, computed signals, effects, services, dependency injection, and modern reactive patterns.
+---
+
 # Skill: Reactive State Management
 
 Guidelines for managing state using Angular Signals and modern reactive patterns.
