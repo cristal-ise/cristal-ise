@@ -11,7 +11,6 @@ import { PathData } from '../../../api';
 
 @Component({
   selector: 'app-sidebar',
-  standalone: true,
   imports: [RouterLink, ButtonModule, TranslocoPipe, TreeModule, AsyncPipe],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.css',

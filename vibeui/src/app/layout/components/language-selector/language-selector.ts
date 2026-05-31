@@ -6,10 +6,9 @@ import { TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-language-selector',
-  standalone: true,
   imports: [CommonModule, SelectModule, FormsModule, NgOptimizedImage],
   template: `
-    <p-select [options]="languages" [ngModel]="currentLang()" (ngModelChange)="setLanguage($event)" 
+    <p-select [options]="languages" [ngModel]="currentLang()" (ngModelChange)="setLanguage($event)"
       optionLabel="label" optionValue="code" [styleClass]="styleClass()" [panelStyle]="{'min-width': '160px'}">
       <ng-template #selectedItem let-selectedOption>
           <div class="flex items-center gap-3 px-2">
@@ -40,7 +39,7 @@ import { TranslocoService } from '@jsverse/transloco';
 })
 export class LanguageSelector {
   private translocoService = inject(TranslocoService);
-  
+
   styleClass = input<string>('!bg-transparent !border-none !shadow-none !p-0 !min-w-[140px]');
   labelClass = input<string>('text-xs font-bold text-[var(--vibe-text)]');
 

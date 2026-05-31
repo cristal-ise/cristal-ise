@@ -8,7 +8,7 @@ import { BasicItemList } from './basic-item-list';
 import { ItemListService } from '../../core/services/item-list.service';
 import { Router } from '@angular/router';
 import { of } from 'rxjs';
-import { TranslocoService } from '@jsverse/transloco';
+import { TranslocoService, TranslocoTestingModule } from '@jsverse/transloco';
 
 describe('BasicItemList', () => {
   let component: BasicItemList;
@@ -34,7 +34,16 @@ describe('BasicItemList', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [BasicItemList],
+      imports: [
+        BasicItemList,
+        TranslocoTestingModule.forRoot({
+          langs: {},
+          translocoConfig: {
+            defaultLang: 'en',
+            fallbackLang: 'en',
+          },
+        }),
+      ],
       providers: [
         { provide: ItemListService, useValue: itemListServiceMock },
         { provide: Router, useValue: routerMock },
@@ -45,22 +54,6 @@ describe('BasicItemList', () => {
             preset: Aura
           }
         }),
-        {
-          provide: TranslocoService,
-          useValue: {
-            translate: (key: string, params?: any) => key,
-            selectTranslate: (key: string, params?: any) => of(key),
-            getActiveLang: () => 'en',
-            setActiveLang: (lang: string) => {},
-            langChanges$: of('en'),
-            config: {
-              reRenderOnLangChange: false,
-              defaultLang: 'en',
-              fallbackLang: 'en'
-            },
-            _loadDependencies: () => of(true)
-          }
-        }
       ]
     }).compileComponents();
 

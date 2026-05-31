@@ -8,7 +8,6 @@ import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-settings',
-  standalone: true,
   imports: [CommonModule, ButtonModule, SelectButtonModule, FormsModule, TranslocoPipe],
   templateUrl: './settings.html',
   styleUrl: './settings.css',

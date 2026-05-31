@@ -20,7 +20,6 @@ import { LanguageSelector } from '../language-selector/language-selector';
 
 @Component({
   selector: 'app-topbar',
-  standalone: true,
   imports: [
     CommonModule,
     RouterLink,

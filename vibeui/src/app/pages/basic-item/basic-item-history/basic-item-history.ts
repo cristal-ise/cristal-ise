@@ -10,7 +10,6 @@ import { ApiErrorService } from '../../../core/services/api-error.service';
 
 @Component({
   selector: 'basic-item-history',
-  standalone: true,
   imports: [CommonModule, TableModule, TranslocoPipe],
   templateUrl: './basic-item-history.html',
   styleUrl: './basic-item-history.css',

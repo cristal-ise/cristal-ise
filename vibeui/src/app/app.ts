@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostListener } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ThemeService } from './core/services/theme.service';
 import { AuthService } from './core/services/auth.service';
@@ -11,7 +11,10 @@ import { ToastModule } from 'primeng/toast';
   imports: [RouterOutlet, ToastModule],
   templateUrl: './app.html',
   styleUrl: './app.css',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(window:beforeunload)': 'onWindowClose()'
+  }
 })
 export class AppComponent implements OnInit {
   title = 'vibeui';
@@ -24,7 +27,6 @@ export class AppComponent implements OnInit {
     this.authService.checkSession().subscribe();
   }
 
-  @HostListener('window:beforeunload')
   onWindowClose() {
     if (this.authService.isAuthenticated()) {
       this.authService.logout('windowClose').subscribe();

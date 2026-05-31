@@ -3,6 +3,9 @@ import { AuthService } from './auth.service';
 import { DefaultService, Configuration } from '../../api';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
+import { MessageService } from 'primeng/api';
+import { TranslocoTestingModule } from '@jsverse/transloco';
+import { ApiErrorService } from './api-error.service';
 
 describe('AuthService Timeout and Window Close', () => {
   let service: AuthService;
@@ -22,8 +25,19 @@ describe('AuthService Timeout and Window Close', () => {
     mockConfiguration = new Configuration({ basePath: 'http://localhost:8080/api' });
 
     TestBed.configureTestingModule({
+      imports: [
+        TranslocoTestingModule.forRoot({
+          langs: {},
+          translocoConfig: {
+            defaultLang: 'en',
+            fallbackLang: 'en',
+          },
+        }),
+      ],
       providers: [
         AuthService,
+        ApiErrorService,
+        { provide: MessageService, useValue: { add: vi.fn(), clear: vi.fn() } },
         { provide: DefaultService, useValue: mockDefaultService },
         { provide: Router, useValue: mockRouter },
         { provide: Configuration, useValue: mockConfiguration }
@@ -31,7 +45,7 @@ describe('AuthService Timeout and Window Close', () => {
     });
 
     service = TestBed.inject(AuthService);
-    
+
     // Set initial state to authenticated to test logout state changes
     service.isAuthenticated.set(true);
   });
@@ -71,7 +85,7 @@ describe('AuthService Timeout and Window Close', () => {
       expect(service.isAuthenticated()).toBe(false);
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/']);
     });
-    
+
     it('should still logout locally if server call fails during timeout', () => {
       mockDefaultService.logoutGet.mockReturnValue(throwError(() => new Error('Network error')));
 

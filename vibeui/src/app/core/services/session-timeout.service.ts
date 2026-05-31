@@ -33,7 +33,7 @@ export class SessionTimeoutService implements OnDestroy {
 
   private checkRouteGuards() {
     const isGuarded = this.hasAuthGuard(this.router.routerState.snapshot.root);
-    
+
     if (isGuarded) {
       this.initTimeout();
     } else {
@@ -125,7 +125,7 @@ export class SessionTimeoutService implements OnDestroy {
       this.timeoutSub.unsubscribe();
       this.timeoutSub = undefined;
     }
-    
+
     // Clear warning if it was shown
     if (this.isWarningShown) {
       this.ngZone.run(() => {

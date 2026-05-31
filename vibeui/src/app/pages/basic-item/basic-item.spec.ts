@@ -11,7 +11,7 @@ import { ApiErrorService } from '../../core/services/api-error.service';
 import { Router } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
-import { TranslocoService } from '@jsverse/transloco';
+import { TranslocoService, TranslocoTestingModule } from '@jsverse/transloco';
 
 describe('BasicItem', () => {
   let component: BasicItem;
@@ -62,7 +62,16 @@ describe('BasicItem', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [BasicItem],
+      imports: [
+        BasicItem,
+        TranslocoTestingModule.forRoot({
+          langs: {},
+          translocoConfig: {
+            defaultLang: 'en',
+            fallbackLang: 'en',
+          },
+        }),
+      ],
       providers: [
         { provide: DefaultService, useValue: defaultServiceMock },
         { provide: ApiErrorService, useValue: apiErrorServiceMock },
@@ -74,22 +83,6 @@ describe('BasicItem', () => {
             preset: Aura
           }
         }),
-        {
-          provide: TranslocoService,
-          useValue: {
-            translate: (key: string, params?: any) => key,
-            selectTranslate: (key: string, params?: any) => of(key),
-            getActiveLang: () => 'en',
-            setActiveLang: (lang: string) => {},
-            langChanges$: of('en'),
-            config: {
-              reRenderOnLangChange: false,
-              defaultLang: 'en',
-              fallbackLang: 'en'
-            },
-            _loadDependencies: () => of(true)
-          }
-        }
       ]
     }).compileComponents();
 

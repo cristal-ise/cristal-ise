@@ -15,7 +15,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
   selector: 'app-basic-item-list',
-  standalone: true,
   imports: [CommonModule, TableModule, MultiSelectModule, FormsModule, ButtonModule, TranslocoPipe],
   templateUrl: './basic-item-list.html',
   styleUrl: './basic-item-list.css',
