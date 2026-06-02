@@ -40,9 +40,10 @@ export class BasicItemHistory {
     { field: 'timestamp', header: 'history.timestamp' },
     { field: 'agent', header: 'history.agent' },
     { field: 'role', header: 'history.role' },
-    { field: 'activity.name', header: 'history.activity' },
+    { field: 'activity', header: 'history.activity' },
     { field: 'transition', header: 'history.transition' },
-    { field: 'outcome.schema', header: 'history.outcome' },
+    { field: 'schema', header: 'history.schema' },
+    { field: 'details', header: 'history.details' },
   ];
 
   getTransitionName(transition: any): string {

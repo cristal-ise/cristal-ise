@@ -5,8 +5,7 @@
     [rows]="10"
     [showCurrentPageReport]="true"
     [currentPageReportTemplate]="'history.showing_entries' | transloco"
-    [rowsPerPageOptions]="[10, 20, 50]"
-    styleClass="p-datatable-sm">
+    [rowsPerPageOptions]="[10, 20, 50]">
     <ng-template pTemplate="header" let-columns>
         <tr>
             @for (col of columns; track col.field) {
@@ -22,9 +21,9 @@
                         {{ event.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}
                     } @else if (col.field === 'transition') {
                         {{ getTransitionName(event.transition) | transloco }}
-                    } @else if (col.field === 'activity.name') {
+                    } @else if (col.field === 'activity') {
                       <span [itemData]="event.activity?.name"></span>
-                    } @else if (col.field === 'outcome.schema') {
+                    } @else if (col.field === 'schema') {
                       <span [itemData]="event.outcome?.schema || 'history.na'"></span>
                     } @else {
                       <span [itemData]="event[col.field]"></span>

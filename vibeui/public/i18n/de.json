@@ -108,7 +108,8 @@
     "role": "Rolle",
     "activity": "Aktivität",
     "transition": "Übergang",
-    "outcome": "Ergebnis",
+    "schema": "Schema",
+    "details": "Details",
     "showing_entries": "Anzeige von {first} bis {last} von {totalRecords} Einträgen",
     "no_records": "Keine Historieneinträge für diesen Artikel gefunden.",
     "na": "N/A"

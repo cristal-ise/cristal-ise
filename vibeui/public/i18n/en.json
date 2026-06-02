@@ -107,7 +107,8 @@
     "role": "Role",
     "activity": "Activity",
     "transition": "Transition",
-    "outcome": "Outcome",
+    "schema": "Schema",
+    "details": "Details",
     "showing_entries": "Showing {first} to {last} of {totalRecords} entries",
     "no_records": "No history records found for this item.",
     "na": "N/A"

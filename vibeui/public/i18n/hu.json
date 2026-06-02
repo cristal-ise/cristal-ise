@@ -108,7 +108,8 @@
     "role": "Szerepkör",
     "activity": "Tevékenység",
     "transition": "Átmenet",
-    "outcome": "Eredmény",
+    "schema": "Séma",
+    "details": "Részletek",
     "showing_entries": "Megjelenítés: {first} - {last} / {totalRecords} bejegyzés",
     "no_records": "Nem található előzmény ehhez az elemhez.",
     "na": "N/A"
