@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { DefaultService } from '../../api';
+import { DefaultService, ItemAliases } from '../../api';
 import { PathData } from '../../api/model/pathData';
-import { Observable, map, catchError, throwError } from 'rxjs';
+import { Observable, map, catchError, throwError, Subject, bufferTime, ReplaySubject, of } from 'rxjs';
 import { TreeNode } from 'primeng/api';
 import { ApiErrorService } from './api-error.service';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -12,6 +12,78 @@ import { HttpErrorResponse } from '@angular/common/http';
 export class DomainService {
   private defaultService = inject(DefaultService);
   private apiErrorService = inject(ApiErrorService);
+
+  private uuidToNameCache = new Map<string, string>();
+  private resolvedUuidsSubject = new Subject<string>();
+  private pendingResolveRequests = new Map<string, ReplaySubject<string>>();
+
+  constructor() {
+    this.resolvedUuidsSubject.pipe(
+      bufferTime(100)
+    ).subscribe(uuids => {
+      if (uuids.length === 0) return;
+
+      const uniqueUuids = Array.from(new Set(uuids));
+      this.resolveAliases(uniqueUuids).subscribe({
+        next: (aliases) => {
+          const aliasMap = new Map(aliases.map(a => [a.uuid, a.name]));
+          uniqueUuids.forEach(uuid => {
+            const name = aliasMap.get(uuid) || uuid;
+            if (aliasMap.has(uuid) && aliasMap.get(uuid)) {
+              this.uuidToNameCache.set(uuid, name);
+            }
+            const pending = this.pendingResolveRequests.get(uuid);
+            if (pending) {
+              pending.next(name);
+              pending.complete();
+              this.pendingResolveRequests.delete(uuid);
+            }
+          });
+        },
+        error: () => {
+          uniqueUuids.forEach(uuid => {
+            const pending = this.pendingResolveRequests.get(uuid);
+            if (pending) {
+              pending.next(uuid); // Fallback to UUID
+              pending.complete();
+              this.pendingResolveRequests.delete(uuid);
+            }
+          });
+        }
+      });
+    });
+  }
+
+  /**
+   * Resolves a single UUID to a name. Uses batching and caching.
+   */
+  resolveUuid(uuid: string): Observable<string> {
+    const cachedName = this.uuidToNameCache.get(uuid);
+    if (cachedName) {
+      return of(cachedName);
+    }
+
+    if (!this.pendingResolveRequests.has(uuid)) {
+      this.pendingResolveRequests.set(uuid, new ReplaySubject<string>(1));
+      this.resolvedUuidsSubject.next(uuid);
+    }
+
+    return this.pendingResolveRequests.get(uuid)!;
+  }
+
+  /**
+   * Calls the /domain/aliases endpoint to resolve multiple UUIDs.
+   */
+  resolveAliases(uuids: string[]): Observable<ItemAliases[]> {
+    const search = JSON.stringify(uuids).replace(/"/g, "'");
+    return this.defaultService.domainPathGet({ path: 'aliases', search }).pipe(
+      map(data => data as ItemAliases[]),
+      catchError((error: HttpErrorResponse) => {
+        this.apiErrorService.handleError(error);
+        return throwError(() => error);
+      })
+    );
+  }
 
   /**
    * Fetches tree-like data structures from the domain endpoint.

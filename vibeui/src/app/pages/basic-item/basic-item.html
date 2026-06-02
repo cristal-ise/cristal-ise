@@ -5,7 +5,7 @@
             <i class="pi pi-info-circle text-indigo-400" style="font-size: 1.5rem"></i>
             <h1 class="text-3xl font-black text-slate-400 tracking-tight">
                 @if (item()) {
-                    {{ headerText() }}
+                    {{ item()!.type || '' }} : <span [itemData]="item()!.name"></span>
                 } @else {
                     {{ 'item.loading' | transloco }}
                 }
@@ -28,7 +28,7 @@
                 <p-tabpanels>
                     <!-- Details Tab Panel -->
                     <p-tabpanel value="details">
-                        <basic-item-details [itemData]="itemData" />
+                        <basic-item-details [itemSummary]="itemData" />
                     </p-tabpanel>
 
                     <!-- Collection Tabs Panels -->

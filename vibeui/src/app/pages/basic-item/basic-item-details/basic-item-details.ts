@@ -11,21 +11,21 @@ import { ItemSummary } from '../../../api';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BasicItemDetails {
-  itemData = input.required<ItemSummary>();
+  itemSummary = input.required<ItemSummary>();
 
   coreMetadata = computed(() => [
-    { label: 'Name', value: this.itemData().name },
-    { label: 'UUID', value: this.itemData().uuid },
-    { label: 'Type', value: this.itemData().type || 'N/A' },
-    { label: 'Agent', value: this.itemData().isAgent, isAgent: true },
-    { label: 'Domain Paths', value: this.itemData().domainPaths.join(', ') },
+    { label: 'Name', value: this.itemSummary().name },
+    { label: 'UUID', value: this.itemSummary().uuid },
+    { label: 'Type', value: this.itemSummary().type || 'N/A' },
+    { label: 'Agent', value: this.itemSummary().isAgent, isAgent: true },
+    { label: 'Domain Paths', value: this.itemSummary().domainPaths.join(', ') },
   ]);
 
   relatedReferences = computed(() => [
-    { label: 'Workflow', value: this.itemData().workflow, isLink: true },
-    { label: 'History', value: this.itemData().history, isLink: true },
-    { label: 'Outcome', value: this.itemData().outcome, isLink: true },
-    { label: 'Attachment', value: this.itemData().attachment, isLink: true },
-    { label: 'Job', value: this.itemData().job, isLink: true },
+    { label: 'Workflow', value: this.itemSummary().workflow, isLink: true },
+    { label: 'History', value: this.itemSummary().history, isLink: true },
+    { label: 'Outcome', value: this.itemSummary().outcome, isLink: true },
+    { label: 'Attachment', value: this.itemSummary().attachment, isLink: true },
+    { label: 'Job', value: this.itemSummary().job, isLink: true },
   ]);
 }

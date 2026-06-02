@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, signal, computed } f
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { ItemDataDirective } from '../../../core/directives/item-data.directive';
 import { DefaultService, EventData } from '../../../api';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of, switchMap } from 'rxjs';
@@ -10,7 +11,7 @@ import { ApiErrorService } from '../../../core/services/api-error.service';
 
 @Component({
   selector: 'basic-item-history',
-  imports: [CommonModule, TableModule, TranslocoPipe],
+  imports: [CommonModule, TableModule, TranslocoPipe, ItemDataDirective],
   templateUrl: './basic-item-history.html',
   styleUrl: './basic-item-history.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

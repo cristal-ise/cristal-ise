@@ -23,11 +23,11 @@
                     } @else if (col.field === 'transition') {
                         {{ getTransitionName(event.transition) | transloco }}
                     } @else if (col.field === 'activity.name') {
-                        {{ event.activity?.name }}
+                      <span [itemData]="event.activity?.name"></span>
                     } @else if (col.field === 'outcome.schema') {
-                        {{ (event.outcome?.schema || 'history.na') | transloco }}
+                      <span [itemData]="event.outcome?.schema || 'history.na'"></span>
                     } @else {
-                        {{ event[col.field] }}
+                      <span [itemData]="event[col.field]"></span>
                     }
                 </td>
             }

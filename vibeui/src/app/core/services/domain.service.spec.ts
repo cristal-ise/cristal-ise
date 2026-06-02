@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { DomainService } from './domain.service';
-import { DefaultService, PagedPathData, PathData } from '../../api';
-import { of } from 'rxjs';
+import { DefaultService, PagedPathData, PathData, ItemAliases } from '../../api';
+import { of, throwError } from 'rxjs';
 import { provideZonelessChangeDetection } from '@angular/core';
 import { ApiErrorService } from './api-error.service';
 
@@ -11,8 +11,10 @@ describe('DomainService', () => {
   let mockDefaultService: any;
 
   beforeEach(() => {
+    vi.useFakeTimers();
     mockDefaultService = {
-      domainGet: vi.fn()
+      domainGet: vi.fn(),
+      domainPathGet: vi.fn()
     };
 
     TestBed.configureTestingModule({
@@ -25,6 +27,11 @@ describe('DomainService', () => {
     });
 
     service = TestBed.inject(DomainService);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
   it('should be created', () => {
@@ -80,6 +87,80 @@ describe('DomainService', () => {
 
       expect(nodes[0].label).toBe('a');
       expect(nodes[1].label).toBe('b');
+    });
+  });
+
+  describe('resolveAliases', () => {
+    it('should call domainPathGet with correct parameters', () => {
+      const uuids = ['uuid1', 'uuid2'];
+      const mockAliases: ItemAliases[] = [
+        { uuid: 'uuid1', name: 'Name 1' },
+        { uuid: 'uuid2', name: 'Name 2' }
+      ];
+      mockDefaultService.domainPathGet.mockReturnValue(of(mockAliases));
+
+      service.resolveAliases(uuids).subscribe(res => {
+        expect(res).toEqual(mockAliases);
+      });
+
+      expect(mockDefaultService.domainPathGet).toHaveBeenCalledWith({
+        path: 'aliases',
+        search: "['uuid1','uuid2']"
+      });
+    });
+  });
+
+  describe('resolveUuid', () => {
+    it('should batch multiple calls within 100ms', () => {
+      const mockAliases: ItemAliases[] = [
+        { uuid: 'uuid1', name: 'Name 1' },
+        { uuid: 'uuid2', name: 'Name 2' }
+      ];
+      mockDefaultService.domainPathGet.mockReturnValue(of(mockAliases));
+
+      let res1, res2;
+      service.resolveUuid('uuid1').subscribe(val => res1 = val);
+      service.resolveUuid('uuid2').subscribe(val => res2 = val);
+
+      expect(mockDefaultService.domainPathGet).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(100);
+
+      expect(mockDefaultService.domainPathGet).toHaveBeenCalledTimes(1);
+      expect(res1).toBe('Name 1');
+      expect(res2).toBe('Name 2');
+    });
+
+    it('should cache resolved UUIDs', () => {
+      const mockAliases: ItemAliases[] = [
+        { uuid: 'uuid1', name: 'Name 1' }
+      ];
+      mockDefaultService.domainPathGet.mockReturnValue(of(mockAliases));
+
+      let res1;
+      service.resolveUuid('uuid1').subscribe(val => res1 = val);
+      vi.advanceTimersByTime(100);
+
+      expect(mockDefaultService.domainPathGet).toHaveBeenCalledTimes(1);
+      expect(res1).toBe('Name 1');
+
+      // Second call for same UUID
+      let res2;
+      service.resolveUuid('uuid1').subscribe(val => res2 = val);
+      vi.advanceTimersByTime(100);
+
+      expect(mockDefaultService.domainPathGet).toHaveBeenCalledTimes(1); // Still 1
+      expect(res2).toBe('Name 1');
+    });
+
+    it('should fall back to UUID if resolution fails', () => {
+      mockDefaultService.domainPathGet.mockReturnValue(of([]));
+
+      let res;
+      service.resolveUuid('unknown-uuid').subscribe(val => res = val);
+      vi.advanceTimersByTime(100);
+
+      expect(res).toBe('unknown-uuid');
     });
   });
 });

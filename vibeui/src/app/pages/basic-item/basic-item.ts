@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { TabsModule } from 'primeng/tabs';
 import { ButtonModule } from 'primeng/button';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { ItemDataDirective } from '../../core/directives/item-data.directive';
 import { BasicItemDetails } from './basic-item-details/basic-item-details';
 import { BasicItemHistory } from './basic-item-history/basic-item-history';
 import { DefaultService } from '../../api';
@@ -15,7 +16,7 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-basic-item',
-  imports: [CommonModule, TabsModule, ButtonModule, TranslocoPipe, BasicItemDetails, BasicItemHistory],
+  imports: [CommonModule, TabsModule, ButtonModule, TranslocoPipe, ItemDataDirective, BasicItemDetails, BasicItemHistory],
   templateUrl: './basic-item.html',
   styleUrl: './basic-item.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,13 +39,6 @@ export class BasicItem {
   );
 
   item = toSignal(this.itemSummary$, { initialValue: null as ItemSummary | null });
-
-  // Header format: {itemType} : {ItemName}
-  headerText = computed(() => {
-    const summary = this.item();
-    if (!summary) return '';
-    return `${summary.type || ''} : ${summary.name || ''}`;
-  });
 
   // dynamic tabs from collections
   collections = computed(() => {

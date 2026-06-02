@@ -103,10 +103,6 @@ describe('BasicItem', () => {
     expect(defaultServiceMock.itemUuidGet).toHaveBeenCalledWith({ uuid: 'test-uuid-123' });
   });
 
-  it('should compute the correct headerText', () => {
-    expect(component.headerText()).toBe('TestItemType : TestItemName');
-  });
-
   it('should retrieve collections dynamic properties', () => {
     expect(component.collections().length).toBe(2);
     expect(component.collections()[0].name).toBe('CollectionA');

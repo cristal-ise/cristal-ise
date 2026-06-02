@@ -61,7 +61,7 @@
   <ng-template #title>
     <div><i class="pi pi-list"></i> Properties</div>
   </ng-template>
-  <p-table [value]="itemData().properties || []">
+  <p-table [value]="itemSummary().properties || []">
     <ng-template pTemplate="header">
       <tr>
         <th>Property Name</th>
