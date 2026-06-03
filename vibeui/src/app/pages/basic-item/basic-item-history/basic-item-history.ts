@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TableModule } from 'primeng/table';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -8,10 +8,12 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of, switchMap } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ApiErrorService } from '../../../core/services/api-error.service';
+import { Router } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
 
 @Component({
   selector: 'basic-item-history',
-  imports: [CommonModule, TableModule, TranslocoPipe, ItemDataDirective],
+  imports: [CommonModule, TableModule, TranslocoPipe, ItemDataDirective, ButtonModule],
   templateUrl: './basic-item-history.html',
   styleUrl: './basic-item-history.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -21,6 +23,7 @@ export class BasicItemHistory {
 
   private defaultService = inject(DefaultService);
   private apiErrorService = inject(ApiErrorService);
+  private router = inject(Router);
 
   historyItems = toSignal(
     toObservable(this.uuid).pipe(
@@ -51,5 +54,12 @@ export class BasicItemHistory {
       return transition;
     }
     return transition?.name || 'history.na';
+  }
+
+  navigateToOutcomeView(event: EventData) {
+    const schema = event.outcome?.schema;
+    const schemaVersion = event.outcome?.schemaVersion;
+
+    this.router.navigate(['/admin/items', this.uuid(), schema, schemaVersion, event.id]);
   }
 }

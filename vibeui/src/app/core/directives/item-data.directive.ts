@@ -34,7 +34,6 @@ export class ItemDataDirective {
   }
 
   private handleUuid(uuid: string): void {
-    console.log('Handling UUID:', uuid);
     this.domainService.resolveUuid(uuid).subscribe(name => {
       this.el.nativeElement.textContent = this.translocoService.translate(name);
       this.el.nativeElement.style.cursor = 'pointer';
@@ -47,7 +46,6 @@ export class ItemDataDirective {
   }
 
   private handleText(text: string): void {
-    console.log('Handling text:', text);
     this.el.nativeElement.textContent = this.translocoService.translate(text);
     this.el.nativeElement.style.cursor = 'default';
     this.el.nativeElement.style.textDecoration = 'none';

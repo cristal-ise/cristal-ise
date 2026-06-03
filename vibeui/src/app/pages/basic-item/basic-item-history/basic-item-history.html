@@ -1,40 +1,45 @@
 <p-table
-    [value]="historyItems()"
-    [columns]="columns"
-    [paginator]="true"
-    [rows]="10"
-    [showCurrentPageReport]="true"
-    [currentPageReportTemplate]="'history.showing_entries' | transloco"
-    [rowsPerPageOptions]="[10, 20, 50]">
-    <ng-template pTemplate="header" let-columns>
-        <tr>
-            @for (col of columns; track col.field) {
-                <th>{{ col.header | transloco }}</th>
+  [value]="historyItems()"
+  [columns]="columns"
+  [paginator]="true"
+  [rows]="10"
+  [rowHover]="true"
+  [showCurrentPageReport]="true"
+  [currentPageReportTemplate]="'history.showing_entries' | transloco"
+  [rowsPerPageOptions]="[10, 20, 50]">
+  <ng-template pTemplate="header" let-columns>
+    <tr>
+      @for (col of columns; track col.field) {
+        <th>{{ col.header | transloco }}</th>
+      }
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-event let-columns="columns">
+    <tr>
+      @for (col of columns; track col.field) {
+        <td>
+          @if (col.field === 'timestamp') {
+            {{ event.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}
+          } @else if (col.field === 'transition') {
+            {{ getTransitionName(event.transition) | transloco }}
+          } @else if (col.field === 'activity') {
+            <span [itemData]="event.activity?.name"></span>
+          } @else if (col.field === 'schema') {
+            <span [itemData]="event.outcome?.schema || 'history.na'"></span>
+          } @else if (col.field === 'details') {
+            @if (event.outcome) {
+              <p-button icon="pi pi-eye" [text]="true" severity="primary" (onClick)="navigateToOutcomeView(event)"></p-button>
             }
-        </tr>
-    </ng-template>
-    <ng-template pTemplate="body" let-event let-columns="columns">
-        <tr>
-            @for (col of columns; track col.field) {
-                <td>
-                    @if (col.field === 'timestamp') {
-                        {{ event.timestamp | date:'yyyy-MM-dd HH:mm:ss' }}
-                    } @else if (col.field === 'transition') {
-                        {{ getTransitionName(event.transition) | transloco }}
-                    } @else if (col.field === 'activity') {
-                      <span [itemData]="event.activity?.name"></span>
-                    } @else if (col.field === 'schema') {
-                      <span [itemData]="event.outcome?.schema || 'history.na'"></span>
-                    } @else {
-                      <span [itemData]="event[col.field]"></span>
-                    }
-                </td>
-            }
-        </tr>
-    </ng-template>
-    <ng-template pTemplate="emptymessage" let-columns>
-        <tr>
-            <td [attr.colspan]="columns.length" class="text-center py-4">{{ 'history.no_records' | transloco }}</td>
-        </tr>
-    </ng-template>
+          } @else {
+            <span [itemData]="event[col.field]"></span>
+          }
+        </td>
+      }
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage" let-columns>
+    <tr>
+      <td [attr.colspan]="columns.length" class="text-center py-4">{{ 'history.no_records' | transloco }}</td>
+    </tr>
+  </ng-template>
 </p-table>
