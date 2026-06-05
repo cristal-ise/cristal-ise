@@ -42,7 +42,7 @@ describe('BasicItemDetails', () => {
 
     fixture = TestBed.createComponent(BasicItemDetails);
     component = fixture.componentInstance;
-    fixture.componentRef.setInput('itemData', mockItemSummary);
+    fixture.componentRef.setInput('itemSummary', mockItemSummary);
     fixture.detectChanges();
   });
 

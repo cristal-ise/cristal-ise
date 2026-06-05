@@ -122,8 +122,8 @@ public class ItemHistory extends ItemUtils {
             if (isBlank(ev.getSchemaName())) {
                 throw new ObjectNotFoundException( "This event has no data" );
             }
-    
-            Outcome oc = (Outcome) item.getObject(OUTCOME+"/"+ev.getSchemaName()+"/"+ev.getSchemaVersion()+"/"+ev.getID());
+
+            Outcome oc = item.getOutcome(ev);
             return getOutcomeResponse(oc, ev, json, cookie);
         }
         catch (ObjectNotFoundException e) {

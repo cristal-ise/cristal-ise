@@ -57,9 +57,6 @@ export class BasicItemHistory {
   }
 
   navigateToOutcomeView(event: EventData) {
-    const schema = event.outcome?.schema;
-    const schemaVersion = event.outcome?.schemaVersion;
-
-    this.router.navigate(['/admin/items', this.uuid(), schema, schemaVersion, event.id]);
+    this.router.navigate(['/admin/items', this.uuid(), 'history', event.id, 'data']);
   }
 }

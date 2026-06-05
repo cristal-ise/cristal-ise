@@ -12,7 +12,6 @@ import { toSignal, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, of, switchMap } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ApiErrorService } from '../../core/services/api-error.service';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-basic-item',
@@ -27,16 +26,16 @@ export class BasicItem {
 
   private defaultService = inject(DefaultService);
   private apiErrorService = inject(ApiErrorService);
-  private router = inject(Router);
 
-  itemSummary$ = toObservable(this.uuid).pipe(
-    switchMap(uuid => this.defaultService.itemUuidGet({ uuid }).pipe(
-      catchError((error: HttpErrorResponse) => {
-        this.apiErrorService.handleError(error);
-        return of(null);
-      })
-    ))
-  );
+  itemSummary$ = toObservable(this.uuid)
+    .pipe(
+      switchMap(uuid => this.defaultService.itemUuidGet({ uuid })
+        .pipe(catchError((error: HttpErrorResponse) => {
+          this.apiErrorService.handleError(error);
+          return of(null);
+        })
+      ))
+    );
 
   item = toSignal(this.itemSummary$, { initialValue: null as ItemSummary | null });
 
