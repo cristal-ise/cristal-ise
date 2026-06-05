@@ -25,10 +25,7 @@ import static org.cristalise.dsl.SystemProperties.DSL_Module_BindingConvention_v
 import org.apache.commons.lang3.StringUtils
 import org.cristalise.dev.dsl.item.CRUDItem
 import org.cristalise.dev.dsl.module.CRUDModuleDelegate
-import org.cristalise.dsl.SystemProperties
-import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.BuiltInResources
-import org.cristalise.kernel.utils.FileStringUtility
 import org.mvel2.integration.impl.MapVariableResolverFactory
 import org.mvel2.templates.CompiledTemplate
 import org.mvel2.templates.SimpleTemplateRegistry
@@ -44,6 +41,8 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
+
+import static org.cristalise.kernel.utils.FileStringUtility.resource2String
 
 /**
  * Class generating the following DSL files. 
@@ -111,7 +110,7 @@ class CRUDGenerator {
         templates.each { templName ->
             log.debug('compiling MVEL template:{}', templName)
 
-            String templStr = FileStringUtility.url2String(this.getClass().getResource(templateRoot + templName))
+            String templStr = resource2String(this.getClass(), templateRoot + templName)
             CompiledTemplate expr = TemplateCompiler.compileTemplate(templStr);
 
             if (expr) templateRegistry.addNamedTemplate(templName, expr)
@@ -397,7 +396,6 @@ class CRUDGenerator {
         else {
             println "Please provide itemTypes or moduleFile"
             cli.usage()
-            return
         }
     }
 }

@@ -93,7 +93,7 @@ public class Script implements DescriptionObject {
 
     static {
         try {
-            String templ = FileStringUtility.url2String(Script.class.getResource(scriptTemplate));
+            String templ = FileStringUtility.resource2String(Script.class, scriptTemplate);
             compiledScriptTemplate = TemplateCompiler.compileTemplate(templ);
         }
         catch (IOException e) {

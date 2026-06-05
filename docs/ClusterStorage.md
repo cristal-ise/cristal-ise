@@ -27,8 +27,8 @@ ClusterStorage is an abstract class in the org.cristalise.kernel.persistency pac
 
 There are two methods to support execution of [Query](../Query):
 
-* `boolean checkQuerySupport(String language)` - Checks is the Query is supported by the ClusterStorage implementation.
-* `String executeQuery(Query query)` - Perform a query and return the result as an XML. AgenProxy.execute(job) validates the result agains the Schema associated with the Job.
+* `boolean checkQuerySupport(Query query)` - Checks if the Query is supported by the ClusterStorage implementation.
+* `String executeQuery(Query query)` - Perform a query and return the result as an XML.
 
 
 # The sequence of get() implementation

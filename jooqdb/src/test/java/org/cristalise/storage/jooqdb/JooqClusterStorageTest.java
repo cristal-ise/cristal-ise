@@ -229,7 +229,7 @@ public class JooqClusterStorageTest extends JooqTestConfigurationBase {
     @Test
     public void queryOutcomeTest() throws Exception {
         String queryXml          = new String(Files.readAllBytes(Paths.get("src/test/data/TestQueryOutcome.xml")));
-        String expectedResultXml = new String(Files.readAllBytes(Paths.get("src/test/data/"+uuid+"/Outcome.PredefinedStepOutcome.0.0")));
+        String expectedResultXml = new String(Files.readAllBytes(Paths.get("src/test/data/TestQueryOutcomeResult.xml")));
 
         Query q = new Query(queryXml);
         q.setStringParameter("itemUUID", uuid);

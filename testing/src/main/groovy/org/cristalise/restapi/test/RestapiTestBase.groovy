@@ -365,7 +365,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         return uuid
     }
 
-    void createNewRole(String name, ContentType type) {
+    String createNewRole(String name, ContentType type) {
         def newRole = new ImportRole(name)
         newRole.jobList = false
         def param = Gateway.marshaller.marshall(newRole)
@@ -376,5 +376,34 @@ class RestapiTestBase extends KernelScenarioTestBase {
         executePredefStep(serverItemUUID, ImportImportRole.class, type, param)
 
         resolveRole(name)
+    }
+
+    String executeQueryGet(String queryName, Integer version, String inputs, ContentType acceptType = JSON, Status status = OK) {
+        return given()
+            .accept(acceptType)
+            .cookie(cauthCookie)
+            .queryParam('name', queryName)
+            .queryParam('version', version)
+            .queryParam('inputs', inputs)
+        .when()
+            .get(apiUri+"/query/queryResult")
+        .then()
+            .statusCode(status.statusCode)
+        .extract().response().body().asString()
+    }
+
+    String executeQueryPost(String queryName, Integer version, String inputs, ContentType contentType = JSON, ContentType acceptType = JSON, Status status = OK) {
+        return given().log().all()
+            .contentType(contentType)
+            .accept(acceptType)
+            .cookie(cauthCookie)
+            .queryParam('name', queryName)
+            .queryParam('version', version)
+            .body(inputs)
+        .when()
+            .post(apiUri+"/query/queryResult")
+        .then()
+            .statusCode(status.statusCode)
+        .extract().response().body().asString()
     }
 }

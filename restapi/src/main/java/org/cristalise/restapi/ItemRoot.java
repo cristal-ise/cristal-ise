@@ -81,7 +81,7 @@ import lombok.extern.slf4j.Slf4j;
 @Path("/item/{uuid}") @Slf4j
 public class ItemRoot extends ItemUtils {
 
-    private ScriptUtils scriptUtils = new ScriptUtils();
+    private final ScriptUtils scriptUtils = new ScriptUtils();
 
     @GET
     @Path("name")
@@ -289,7 +289,7 @@ public class ItemRoot extends ItemUtils {
 
             if (queryName != null) {
                 query = LocalObjectLoader.getQuery(queryName, queryVersion);
-                return returnQueryResult(queryName, item, null, query, jsonFlag).cookie(cookie).build();
+                return returnQueryResult(item, query, jsonFlag).cookie(cookie).build();
             } else {
                 throw new WebAppExceptionBuilder()
                         .message("Name or UUID of Query was missing")
@@ -302,8 +302,7 @@ public class ItemRoot extends ItemUtils {
         }
     }
 
-    private Response.ResponseBuilder returnQueryResult(String queryName, ItemProxy item,
-                                       Object object, Query query, boolean jsonFlag) throws PersistencyException {
+    private Response.ResponseBuilder returnQueryResult(ItemProxy item, Query query, boolean jsonFlag) throws PersistencyException {
         String xmlResult = item.executeQuery(query);
 
         if (jsonFlag) return Response.ok(XML.toJSONObject(xmlResult, true).toString());
@@ -429,7 +428,7 @@ public class ItemRoot extends ItemUtils {
         log.info("requestTransition() - {}://{}:{}", item, actPath, transition);
 
         try {
-            String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).get(0);
+            String contentType = headers.getRequestHeader(HttpHeaders.CONTENT_TYPE).getFirst();
 
             log.debug("requestTransition() outcome:'{}' contentType:'{}'", outcome, contentType);
 
@@ -579,12 +578,6 @@ public class ItemRoot extends ItemUtils {
 
     /**
      * 
-     * @param uuid
-     * @param actPath
-     * @param transition
-     * @param authCookie
-     * @param uri
-     * @return
      */
     private Response getJobForm(
             String uuid, 
@@ -654,7 +647,7 @@ public class ItemRoot extends ItemUtils {
         for (String key: uri.getQueryParameters().keySet()) {
             List<String> qparams = uri.getQueryParameters().get(key);
 
-            if (qparams.size() == 1 && qparams.get(0).length() == 0) return key;
+            if (qparams.size() == 1 && qparams.getFirst().isEmpty()) return key;
         }
 
         throw new InvalidDataException("Must specify transition name");

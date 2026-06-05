@@ -51,15 +51,7 @@ public class SchemaAccess extends ResourceAccess {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    /**
-     * Documentation of listAllSchemas
-     * 
-     * @param start
-     * @param batchSize
-     * @param authCookie
-     * @param uri
-     * @return
-     */
+
     public Response listAllSchemas(
             @DefaultValue("0") @QueryParam("start") Integer start,
             @QueryParam("batch")                    Integer batchSize,

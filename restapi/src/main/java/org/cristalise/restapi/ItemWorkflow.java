@@ -105,12 +105,11 @@ public class ItemWorkflow extends ItemUtils {
         Vertex vertex = domain.getChildrenGraphModel().getStartVertex();
 
         do {
-            if (vertex instanceof Activity) {
-                Activity act = (Activity) vertex;
+            if (vertex instanceof Activity act) {
 
                 tasks.add(getGanttTask(wf.getItemUUID(), wf.getItemUUID(), act));
 
-                int outEdgeIds[] = act.getOutEdgeIds();
+                int[] outEdgeIds = act.getOutEdgeIds();
 
                 if (outEdgeIds != null && outEdgeIds.length == 1) {
                     Next edge = (Next)domain.getChildrenGraphModel().resolveEdge(outEdgeIds[0]);

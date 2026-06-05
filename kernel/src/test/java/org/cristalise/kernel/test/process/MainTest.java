@@ -33,18 +33,21 @@ import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.SchemaValidator;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
-import org.cristalise.kernel.utils.FileStringUtility;
 import org.junit.Before;
 import org.junit.Test;
 
 import lombok.extern.slf4j.Slf4j;
+
+import static org.cristalise.kernel.utils.FileStringUtility.loadConfigFile;
+import static org.cristalise.kernel.utils.FileStringUtility.resource2String;
+import static org.cristalise.kernel.utils.FileStringUtility.url2String;
 
 @Slf4j
 public class MainTest {
 
     @Before
     public void setup() throws InvalidDataException, IOException {
-        Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
+        Properties props = loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
     }
 
@@ -58,7 +61,7 @@ public class MainTest {
         validators.put("context", new OutcomeValidator(getSchema("DomainContext",         0, "boot/OD/DomainContext.xsd")));
         validators.put("OD",      new SchemaValidator());
 
-        String bootItems = FileStringUtility.url2String(Gateway.getResource().getKernelResourceURL("boot/allbootitems.txt"));
+        String bootItems = url2String(Gateway.getResource().getKernelResourceURL("boot/allbootitems.txt"));
         StringTokenizer str = new StringTokenizer(bootItems, "\n\r");
         while (str.hasMoreTokens()) {
             String thisItem = str.nextToken();
@@ -66,14 +69,14 @@ public class MainTest {
             String id = str2.nextToken();
             assert id != null;
             String itemType = str2.nextToken(), resName = str2.nextToken();
-            log.info("Validating " + itemType+" "+resName);
+            log.info("Validating {} {}", itemType, resName);
             OutcomeValidator validator = validators.get(itemType);
             String data = Gateway.getResource().getTextResource(
                     null, "boot/" + itemType + "/"+ resName + (itemType.equals("OD") ? ".xsd" : ".xml"));
             assert data != null : "Boot " + itemType + " data item " + thisItem + " not found";
             String errors = validator.validate(data);
 
-            assert errors.length() == 0 : "Kernel resource " + itemType + " "+ resName + " has errors :" + errors;
+            assert errors.isEmpty() : "Kernel resource " + itemType + " "+ resName + " has errors :" + errors;
 
             //Outcome and Script cannot be marshaled
             if (!itemType.equals("OD") && !itemType.equals("SC")) {
@@ -85,7 +88,7 @@ public class MainTest {
                 long now = System.currentTimeMillis();
                 log.info("Marshall/remarshall of " + itemType + " "+ resName + " took " + (now - then) + "ms");
                 errors = validator.validate(remarshalled);
-                assert errors.length() == 0 : "Remarshalled resource " + itemType + " "+ resName + " has errors :" + errors + "\nRemarshalled form:\n" + remarshalled;
+                assert errors.isEmpty() : "Remarshalled resource " + itemType + " "+ resName + " has errors :" + errors + "\nRemarshalled form:\n" + remarshalled;
                 // XMLDiff cannot be used here, because remarshalled xml will have lot of extra optional attributes
                 //assert new Outcome(data).isIdentical(new Outcome(remarshalled));
             }
@@ -105,9 +108,9 @@ public class MainTest {
     public void testScriptParsing() throws Exception {
         OutcomeValidator valid = new OutcomeValidator(getSchema("Script", 0, "boot/OD/Script.xsd"));
 
-        String testScriptString = FileStringUtility.url2String(MainTest.class.getResource("/TestScript.xml"));
+        String testScriptString = resource2String(MainTest.class, "/TestScript.xml");
         String errors = valid.validate(testScriptString);
-        assert errors.length() == 0 : "Test script not valid to schema: " + errors;
+        assert errors.isEmpty() : "Test script not valid to schema: " + errors;
 
         Script testScript = new Script("TestScript", 0, null, testScriptString);
         assert testScript.getInputParams().size() == 1 : "Script input param count wrong";
@@ -124,7 +127,7 @@ public class MainTest {
     @Test
     public void testStateMachine() throws Exception {
         log.info("Validating test state machine");
-        String smXml = FileStringUtility.url2String(MainTest.class.getResource("/TestStateMachine.xml"));
+        String smXml = resource2String(MainTest.class, "/TestStateMachine.xml");
         StateMachine sm = (StateMachine) Gateway.getMarshaller().unmarshall(smXml);
         sm.validate();
         assert sm.isCoherent() : "Test StateMachine is reporting that it is not coherent";

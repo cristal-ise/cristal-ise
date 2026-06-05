@@ -143,7 +143,7 @@ public class XMLClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public boolean checkQuerySupport(String language) {
+    public boolean checkQuerySupport(Query query) {
         log.warn("XMLClusterStorage DOES NOT Support any query");
         return false;
     }

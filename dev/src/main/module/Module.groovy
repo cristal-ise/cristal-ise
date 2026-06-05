@@ -57,6 +57,7 @@ Module(ns: 'dev', name: 'CristaliseDev', version: 0) {
     include(moduleDir+'/CrudFactory.groovy')
     include(moduleDir+'/Schema.groovy')
     include(moduleDir+'/Script.groovy')
+    include(moduleDir+'/Query.groovy')
     include(moduleDir+'/Activity.groovy')
     include(moduleDir+'/Workflow.groovy')
     include(moduleDir+'/Item.groovy')

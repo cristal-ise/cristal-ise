@@ -1,0 +1,44 @@
+:host {
+  display: block;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.premium-select-button :host ::ng-deep {
+  .p-selectbutton {
+    background: var(--vibe-faint-bg);
+    border: 1px solid var(--vibe-glass-border);
+    border-radius: 12px;
+    padding: 4px;
+    display: flex;
+    gap: 4px;
+  }
+
+  .p-button {
+    background: transparent;
+    border: none;
+    color: var(--vibe-muted);
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 8px 16px;
+
+    &:hover {
+      background: var(--vibe-faint-bg);
+      color: var(--vibe-text);
+    }
+
+    &.p-highlight {
+      background: var(--vibe-primary);
+      color: white;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+      
+      &:hover {
+        background: var(--vibe-primary-dark);
+      }
+    }
+  }
+}

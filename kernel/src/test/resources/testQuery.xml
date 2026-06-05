@@ -22,6 +22,8 @@
 -->
 <cristalquery name="TestQuery" version="0">
     <parameter name="uuid" type="java.lang.String"/>
+    <rootElement value='QueryResult' />
+    <recordElement value='Record' />
     <query language="existdb:xquery"><![CDATA[
 <TRList>{
     for $prop in collection('weighbridge')/Property[@name='Type']
