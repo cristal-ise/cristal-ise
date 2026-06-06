@@ -195,13 +195,13 @@ public class ClusterStorageManager {
     /**
      * Check which storage can execute the given query
      *
-     * @param language the language of the query
+     * @param query the query
      * @return the found store or null
      */
-    private ClusterStorage findStorageForQuery(String language) {
+    private ClusterStorage findStorageForQuery(Query query) {
         for (String element : clusterPriority) {
             ClusterStorage store = allStores.get(element);
-            if (store.checkQuerySupport(language) ) return store;
+            if (store.checkQuerySupport(query) ) return store;
         }
         return null;
     }
@@ -264,7 +264,7 @@ public class ClusterStorageManager {
      * @throws PersistencyException
      */
     public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
-        ClusterStorage reader = findStorageForQuery(query.getLanguage());
+        ClusterStorage reader = findStorageForQuery(query);
 
         if (reader != null) return reader.executeQuery(query, transactionKey);
         else                throw new PersistencyException("No storage was found supporting language:"+query.getLanguage()+" query:"+query.getName());

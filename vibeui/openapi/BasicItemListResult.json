@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BasicItemListResult",
+  "type": "object",
+  "properties": {
+    "BasicItemList": {
+      "type": "object",
+      "properties": {
+        "Item": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "UUID": {
+                "type": "string",
+                "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+                "description": "The unique identifier of the Item."
+              },
+              "Module": {
+                "type": "string",
+                "description": "The module property of the Item."
+              },
+              "Type": {
+                "type": "string",
+                "description": "The type property of the Item."
+              },
+              "Name": {
+                "type": "string",
+                "description": "The name property of the Item."
+              },
+              "Version": {
+                "type": "string",
+                "description": "The version property of the Item."
+              },
+              "TotalCount": {
+                "type": "integer",
+                "description": "The total number of items matching the query criteria (window function result)."
+              }
+            },
+            "required": ["UUID", "Module", "Type", "Name", "Version", "TotalCount"]
+          }
+        }
+      },
+      "required": ["Item"]
+    }
+  },
+  "required": ["BasicItemList"]
+}

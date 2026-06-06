@@ -132,12 +132,12 @@ public abstract class ClusterStorage {
     public abstract short queryClusterSupport(ClusterType clusterType);
 
     /**
-     * Checks whether the storage support the given type of query or not
+     * Checks whether the storage supports the given type of query or not
      * 
-     * @param language type of the query (e.g. SQL/XQuery/XPath/....)
+     * @param query the query to be checked
      * @return whether the Storage supports the type of the query or not
      */
-    public abstract boolean checkQuerySupport(String language);
+    public abstract boolean checkQuerySupport(Query query);
 
     /**
      * @return A full name of this storage for logging

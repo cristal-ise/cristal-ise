@@ -1,0 +1,71 @@
+<div class="space-y-8 animate-fade-in">
+    <!-- Header -->
+    <div class="flex items-center gap-3">
+        <i class="pi pi-folder text-indigo-400" style="font-size: 1.5rem"></i>
+        <h1 class="text-3xl font-black text-slate-400 tracking-tight">
+            {{ displayPath() }}@if (selectedItem(); as selected) { : {{ selected.Name }} }
+        </h1>
+    </div>
+
+    <div class="glass-card !rounded-[32px] p-8 border border-[var(--vibe-glass-border)]">
+        <p-table
+            [columns]="selectedColumns()"
+            [value]="items()"
+            selectionMode="single"
+            [selection]="selectedItem()"
+            (selectionChange)="selectedItem.set($event)"
+            dataKey="Name"
+            [tableStyle]="{ 'min-width': '50rem' }"
+            [lazy]="true"
+            (onLazyLoad)="onLazyLoad($event)"
+            [rowHover]="true"
+
+            [paginator]="true"
+            [showCurrentPageReport]="true"
+            [currentPageReportTemplate]="'itemList.showing_entries' | transloco"
+            [rows]="limit()"
+            [totalRecords]="totalRecords()"
+            [first]="offset()"
+            [rowsPerPageOptions]="[10, 20, 50]"
+        >
+            <ng-template pTemplate="caption">
+                <div class="flex justify-end pb-4">
+                    <p-multiSelect
+                        [options]="columns"
+                        [ngModel]="selectedColumns()"
+                        (ngModelChange)="selectedColumns.set($event)"
+                        optionLabel="header"
+                        [selectedItemsLabel]="'itemList.columns_selected' | transloco:{ count: selectedColumns().length }"
+                        [style]="{'min-width': '200px'}"
+                        [placeholder]="'itemList.choose_columns' | transloco"
+                    >
+                        <ng-template let-option pTemplate="item">
+                            {{ option.header | transloco }}
+                        </ng-template>
+                        <ng-template let-value pTemplate="selectedItems">
+                            {{ 'itemList.columns_selected' | transloco:{ count: value?.length || 0 } }}
+                        </ng-template>
+                    </p-multiSelect>
+                </div>
+            </ng-template>
+            <ng-template pTemplate="header" let-columns>
+                <tr>
+                    @for (col of columns; track col.field) {
+                        <th>{{ col.header | transloco }}</th>
+                    }
+                    <th class="w-24">{{ 'itemList.actions' | transloco }}</th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-item let-columns="columns">
+                <tr [pSelectableRow]="item">
+                    @for (col of columns; track col.field) {
+                        <td>{{ item[col.field] }}</td>
+                    }
+                    <td>
+                        <p-button icon="pi pi-eye" [text]="true" severity="primary" (onClick)="viewDetails(item.UUID)"></p-button>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>

@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -102,7 +101,7 @@ public abstract class FileBasedClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public boolean checkQuerySupport(String language) {
+    public boolean checkQuerySupport(Query query) {
         log.warn("{} DOES NOT Support any query", getClass().getSimpleName());
         return false;
     }

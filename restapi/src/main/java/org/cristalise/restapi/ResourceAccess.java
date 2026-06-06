@@ -139,34 +139,20 @@ public class ResourceAccess extends ItemUtils {
 
     public Response.ResponseBuilder getResource(BuiltInResources resource, String name, Integer version, boolean json, NewCookie cookie) {
         try {
-            String result;
-            switch (resource) {
-                case SCHEMA_RESOURCE:
-                    result = LocalObjectLoader.getSchema(name,version).getSchemaData(); 
-                    break;
-                case STATE_MACHINE_RESOURCE:
-                    result = Gateway.getMarshaller().marshall(LocalObjectLoader.getStateMachine(name,version));
-                    break;
-                case SCRIPT_RESOURCE:
-                    result = LocalObjectLoader.getScript(name,version).getScriptData();
-                    break;
-                case QUERY_RESOURCE:
-                    result = LocalObjectLoader.getQuery(name,version).getQueryXML();
-                    break;
-                case ELEM_ACT_DESC_RESOURCE:
-                    result = Gateway.getMarshaller().marshall(LocalObjectLoader.getElemActDef(name,version));
-                    break;
-                case COMP_ACT_DESC_RESOURCE:
-                    result = Gateway.getMarshaller().marshall(LocalObjectLoader.getCompActDef(name,version));
-                    break;
-                default:
-                    throw new WebAppExceptionBuilder()
-                        .message(resource.name()+" "+name+" v"+version+" not handle")
+            String result = switch (resource) {
+                case SCHEMA_RESOURCE        -> LocalObjectLoader.getSchema(name, version).getSchemaData();
+                case STATE_MACHINE_RESOURCE -> Gateway.getMarshaller().marshall(LocalObjectLoader.getStateMachine(name, version));
+                case SCRIPT_RESOURCE        -> LocalObjectLoader.getScript(name, version).getScriptData();
+                case QUERY_RESOURCE         -> LocalObjectLoader.getQuery(name, version).getQueryXML();
+                case ELEM_ACT_DESC_RESOURCE -> Gateway.getMarshaller().marshall(LocalObjectLoader.getElemActDef(name, version));
+                case COMP_ACT_DESC_RESOURCE -> Gateway.getMarshaller().marshall(LocalObjectLoader.getCompActDef(name, version));
+                default -> throw new WebAppExceptionBuilder()
+                        .message(resource.name() + " " + name + " v" + version + " not handle")
                         .status(Status.BAD_REQUEST)
                         .build();
-            }
+            };
 
-            if(json) result = XML.toJSONObject(result, true).toString();
+            if (json) result = XML.toJSONObject(result, true).toString();
 
             return Response.ok(result);
         }

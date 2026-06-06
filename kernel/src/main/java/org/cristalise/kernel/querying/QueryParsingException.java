@@ -35,4 +35,12 @@ public class QueryParsingException extends Exception {
     public QueryParsingException(String msg) {
         super(msg);
     }
+
+    public QueryParsingException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
+
+    public QueryParsingException(Throwable cause) {
+        super(cause);
+    }
 }

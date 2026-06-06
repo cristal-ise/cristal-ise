@@ -23,7 +23,6 @@ package org.cristalise.restapi;
 import static org.cristalise.kernel.SystemProperties.Module_Versioning_strict;
 
 import java.net.URLDecoder;
-import java.nio.file.AccessDeniedException;
 import java.util.Date;
 import java.util.Map;
 
@@ -61,11 +60,6 @@ public class ScriptUtils extends ItemUtils {
     
     /**
      * 
-     * @param item
-     * @param script
-     * @return
-     * @throws ScriptingEngineException
-     * @throws InvalidDataException
      */
     protected Object executeScript(ItemProxy item, final Script script, CastorHashMap inputs)
             throws ScriptingEngineException, InvalidDataException {
@@ -165,15 +159,6 @@ public class ScriptUtils extends ItemUtils {
     
     /**
      * 
-     * @param scriptName
-     * @param item
-     * @param schema
-     * @param script
-     * @param jsonFlag whether the response is a JSON or XML
-     * @return
-     * @throws ObjectNotFoundException
-     * @throws ScriptingEngineException
-     * @throws InvalidDataException
      */
     protected Response.ResponseBuilder runScript(ItemProxy item, final Schema schema, final Script script, CastorHashMap inputs, boolean jsonFlag)
             throws ScriptingEngineException, InvalidDataException, ObjectNotFoundException

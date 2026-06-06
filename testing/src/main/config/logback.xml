@@ -50,6 +50,7 @@
   <logger name="org.cristalise.kernel.entity.imports" level="INFO"/>
   <logger name="org.cristalise.kernel.process.Bootstrap" level="INFO"/>
   <logger name="org.cristalise.kernel.process.StandardServer" level="INFO"/>
+  <logger name="org.cristalise.kernel.restapi.WebAppExceptionBuilder" level="DEBUG"/>
 
   <!-- Fine tune log level of some of the components -->
   <!-- avoid java.lang.Integer output parameter initialisation warning-->
