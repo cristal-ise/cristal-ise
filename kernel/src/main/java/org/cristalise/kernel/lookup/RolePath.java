@@ -20,12 +20,14 @@
  */
 package org.cristalise.kernel.lookup;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.persistency.ClusterType;
@@ -106,10 +108,12 @@ public class RolePath extends Path {
         setPermissions(newPermissions);
     }
 
+    @JsonIgnore
     public RolePath getParent() throws ObjectNotFoundException {
         return getParent(null);
     }
 
+    @JsonIgnore
     public RolePath getParent(TransactionKey transactionKey) throws ObjectNotFoundException {
         if (mPath.length < 2) return null;
 
@@ -119,6 +123,7 @@ public class RolePath extends Path {
     /**
      * @return Returns the hasJobList.
      */
+    @JsonProperty( "hasJobList")
     public boolean hasJobList() {
         return hasJobList;
     }
@@ -126,18 +131,17 @@ public class RolePath extends Path {
     /**
      * @param hasJobList The hasJobList to set.
      */
+    @JsonProperty("hasJobList")
     public void setHasJobList(boolean hasJobList) {
         this.hasJobList = hasJobList;
     }
 
-    public Set<String> getPermissions() {
-        return this.permissions;
-    }
-
+    @JsonProperty("permissions")
     public List<String> getPermissionsList() {
         return new ArrayList<>(permissions);
     }
 
+    @JsonProperty("permissions")
     public void setPermissions(List<String> newPermissions) {
         if (newPermissions != null) {
             this.permissions.clear();
@@ -145,6 +149,12 @@ public class RolePath extends Path {
         }
     }
 
+    @JsonIgnore
+    public Set<String> getPermissions() {
+        return this.permissions;
+    }
+
+    @JsonIgnore
     public void setPermissions(Set<String> newPermissions) {
         if (newPermissions != null) {
             this.permissions.clear();
@@ -152,39 +162,45 @@ public class RolePath extends Path {
         }
     }
 
+    @JsonIgnore
     public Iterator<Path> getChildren() {
         return getChildren(null);
     }
 
+    @JsonIgnore
     public Iterator<Path> getChildren(TransactionKey transactionKey) {
-        return Gateway.getLookup().getChildren(this, transactionKey);
+        if (Gateway.getLookup() == null) return null;
+        return Gateway.getLookup().getChildren((RolePath)this, transactionKey);
     }
 
     @Override
     public String dump() {
-        StringBuffer dump = new StringBuffer("RolePath: {\n");
+        StringBuilder dump = new StringBuilder("RolePath: {\n");
 
-        dump.append("  Path:"    + toString() + "\n");
-        dump.append("  JobList:" + hasJobList + "\n");
+        dump.append("  Path:").append(this).append("\n");
+        dump.append("  JobList:").append(hasJobList).append("\n");
 
-        for(String p: permissions) dump.append("  Permission:" + p + "\n");
+        for (String p: permissions) dump.append("  Permission:").append(p).append("\n");
 
         dump.append("}\n");
 
         return dump.toString();
     }
 
+    @JsonIgnore
     @Override
     public String getRoot() {
         return "role";
     }
 
+    @JsonIgnore
     @Override
     public String getName() {
         if (mPath.length > 0) return mPath[mPath.length - 1];
         else                  return getRoot();
     }
 
+    @JsonIgnore
     @Override
     public String getClusterPath() {
         return ClusterType.PATH + "/Role/" + StringUtils.join(mPath, "");

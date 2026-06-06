@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.utils;
 
+import java.util.Objects;
 import java.util.Properties;
 
 import org.apache.commons.beanutils.converters.BooleanConverter;
@@ -223,7 +224,7 @@ public interface SystemPropertyOperations {
      * To support this the SystemProperty name is based on {@link String#format(String, Object...)} 
      * i.e. it contains string like 'OutcomeInit.%s'. 
      * 
-     * @param nameArgs array of Strings to be used in {@link String#format(String, Object...)}.
+     * @param args array of Strings to be used in {@link String#format(String, Object...)}.
      * to retrieve the actual name of the SystemProperty. Can be null.
      * @return the value of the SystemProperty as Integer. If no value is provided return configured default value 
      * if available otherwise return null
@@ -243,7 +244,7 @@ public interface SystemPropertyOperations {
      * i.e. it contains string like 'OutcomeInit.%s'. 
      * 
      * @param defaultOverwrite Use this value as default. Overwrites the default value defined in the enum. Can be null.
-     * @param nameArgs array of Strings to be used in {@link String#format(String, Object...)} 
+     * @param args array of Strings to be used in {@link String#format(String, Object...)} 
      * to retrieve the actual name of the SystemProperty. Can be null.
      * @return the value of the SystemProperty as Integer. If no value is provided return configured default value 
      * if available otherwise return null
@@ -261,7 +262,7 @@ public interface SystemPropertyOperations {
 
     /**
      * @return the value of the SystemProperty as Boolean. If no value is provided return the configured 
-     * default value if available otherwise return null.
+     * default value if available, otherwise return null.
      * 
      * @implNote Based on {@link BooleanConverter}
      */
@@ -287,7 +288,7 @@ public interface SystemPropertyOperations {
      * To support this the SystemProperty name is based on {@link String#format(String, Object...)} 
      * i.e. it contains string like 'OutcomeInit.%s'. 
      * 
-     * @param nameArgs array of Strings to be used in {@link String#format(String, Object...)}.
+     * @param args array of Strings to be used in {@link String#format(String, Object...)}.
      * to retrieve the actual name of the SystemProperty. Can be null.
      * @return the value of the SystemProperty as Boolean. If no value is provided return configured default value 
      * if available otherwise return null
@@ -307,10 +308,10 @@ public interface SystemPropertyOperations {
      * i.e. it contains string like 'OutcomeInit.%s'. 
      * 
      * @param defaultOverwrite Use this value as default. Overwrites the default value defined in the enum. Can be null.
-     * @param nameArgs array of Strings to be used in {@link String#format(String, Object...)} 
+     * @param args array of Strings to be used in {@link String#format(String, Object...)} 
      * to retrieve the actual name of the SystemProperty. Can be null.
-     * @return the value of the SystemProperty as Boolean. If no value is provided return configured default value 
-     * if available otherwise return null
+     * @return the value of the SystemProperty as Boolean. If no value is provided, returns configured default value 
+     * if available otherwise returns null
      * 
      * @implNote Based on {@link BooleanConverter}
      */
@@ -337,8 +338,6 @@ public interface SystemPropertyOperations {
      * @throws ReflectiveOperationException No value was available for the SystemProperty.
      * 
      * @implNote Based on {@link StringConverter}
-     * 
-     * @return
      */
     default Object getInstance(Object... nameArgs) throws ReflectiveOperationException {
         String actualValue = getString(nameArgs);

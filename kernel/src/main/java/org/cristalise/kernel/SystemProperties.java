@@ -280,7 +280,7 @@ public enum SystemProperties implements SystemPropertyOperations {
     Module_Versioning_strict("Module.Versioning.strict", false),
     /**
      * Enable to use DOM instead of string during {@link Outcome#validate()}. Default value is 'false'.
-     * It was added to investigate strange Apache Xerces xml corruption issue. Default value 'false' is 
+     * It was added to investigate strange Apache Xerces xml corruption issue. Default value 'false' it is 
      * required since the migration to java 17 and the xerces dependency update on pom.xml
      */
     Outcome_Validation_useDOM("Outcome.Validation.useDOM", false),

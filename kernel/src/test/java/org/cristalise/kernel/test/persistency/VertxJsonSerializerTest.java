@@ -25,13 +25,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.utils.VertxJsonSerializer;
+import org.cristalise.kernel.utils.VertxJsonMarshaller;
 import io.vertx.core.json.JsonObject;
 import org.junit.Test;
 
 public class VertxJsonSerializerTest {
 
-    private final VertxJsonSerializer serializer = new VertxJsonSerializer();
+    private final VertxJsonMarshaller serializer = new VertxJsonMarshaller();
 
     @Test
     public void testUntypedRoundTripJsonObject() throws Exception {

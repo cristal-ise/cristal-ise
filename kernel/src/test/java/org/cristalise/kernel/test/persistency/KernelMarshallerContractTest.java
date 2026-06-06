@@ -28,22 +28,21 @@ import java.util.Properties;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.test.process.MainTest;
-import org.cristalise.kernel.utils.CastorSerializerAdapter;
 import org.cristalise.kernel.utils.FileStringUtility;
-import org.cristalise.kernel.utils.KernelSerializer;
+import org.cristalise.kernel.utils.KernelMarshaller;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class KernelSerializerContractTest {
+public class KernelMarshallerContractTest {
 
-    private static KernelSerializer serializer;
+    private static KernelMarshaller serializer;
 
     @BeforeClass
     public static void setup() throws Exception {
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
-        serializer = new CastorSerializerAdapter(Gateway.getMarshaller());
+        serializer = Gateway.getMarshaller();
     }
 
     @AfterClass
@@ -53,7 +52,7 @@ public class KernelSerializerContractTest {
 
     @Test
     public void gatewaySerializerIsInitialized() {
-        assertNotNull(Gateway.getSerializer());
+        assertNotNull(Gateway.getMarshaller());
     }
 
     @Test

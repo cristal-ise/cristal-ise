@@ -22,7 +22,7 @@ package org.cristalise.kernel.utils;
 
 import org.cristalise.kernel.common.InvalidDataException;
 
-public interface KernelSerializer {
+public interface KernelMarshaller {
     String marshall(Object obj) throws InvalidDataException;
     Object unmarshall(String data) throws InvalidDataException;
     <T> T unmarshall(String data, Class<T> type) throws InvalidDataException;

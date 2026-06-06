@@ -24,20 +24,31 @@ import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cristalise.kernel.common.InvalidDataException;
+import io.vertx.core.json.jackson.DatabindCodec;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.json.Json;
 
 @Slf4j
-public class VertxJsonSerializer implements KernelSerializer {
+public class VertxJsonMarshaller implements KernelMarshaller {
+
+    static {
+        ObjectMapper mapper = DatabindCodec.mapper();
+        //mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    }
 
     @Override
     public String marshall(Object obj) throws InvalidDataException {
         if (obj == null) return "null";
 
         try {
-            return Json.encode(obj);
+            String json = Json.encodePrettily(obj);
+            String className = obj.getClass().getSimpleName();
+
+            log.info("marshall() - class:{} => {}", className, json);
+            return json;
         }
         catch (Exception ex) {
-            log.error("marshall() - failed", ex);
+            log.trace("marshall() - failed", ex);
             throw new InvalidDataException("marshall failed", ex);
         }
     }
@@ -51,7 +62,7 @@ public class VertxJsonSerializer implements KernelSerializer {
             return Json.decodeValue(data);
         }
         catch (Exception ex) {
-            log.error("marshall() - failed", ex);
+            log.trace("marshall() - failed", ex);
             throw new InvalidDataException("unmarshall failed", ex);
         }
     }
@@ -66,7 +77,7 @@ public class VertxJsonSerializer implements KernelSerializer {
             return Json.decodeValue(data, type);
         }
         catch (Exception ex) {
-            log.error("marshall() - failed", ex);
+            log.trace("marshall() - failed", ex);
             throw new InvalidDataException("unmarshall failed", ex);
         }
     }

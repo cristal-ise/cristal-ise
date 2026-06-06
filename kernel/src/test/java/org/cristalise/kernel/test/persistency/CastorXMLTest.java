@@ -182,7 +182,7 @@ public class CastorXMLTest {
 
     @Test
     public void testCastorItemPath() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
 
         ItemPath item      = new ItemPath(UUID.randomUUID());
         ItemPath itemPrime = (ItemPath) marshaller.unmarshall(marshaller.marshall(item));
@@ -194,7 +194,7 @@ public class CastorXMLTest {
 
     @Test
     public void testCastorAgentPath() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
 
         AgentPath agent      = new AgentPath(UUID.randomUUID(), "toto");
         AgentPath agentPrime = (AgentPath) marshaller.unmarshall(marshaller.marshall(agent));
@@ -207,7 +207,7 @@ public class CastorXMLTest {
 
     @Test
     public void testCastorDomainPath_Context() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
 
         DomainPath domain      = new DomainPath("/domain/path");
         DomainPath domainPrime = (DomainPath) marshaller.unmarshall(marshaller.marshall(domain));
@@ -219,7 +219,7 @@ public class CastorXMLTest {
 
     @Test
     public void testCastorDomainPath_WithTarget() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
 
         DomainPath domain      = new DomainPath("/domain/path", new ItemPath());
         DomainPath domainPrime = (DomainPath) marshaller.unmarshall(marshaller.marshall(domain));
@@ -232,7 +232,7 @@ public class CastorXMLTest {
 
     @Test
     public void testCastorRolePath() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
 
         RolePath role      = new RolePath("Minion", false, Arrays.asList("permission1", "permission2")) ;
         RolePath rolePrime = (RolePath) marshaller.unmarshall(marshaller.marshall(role));
@@ -247,7 +247,7 @@ public class CastorXMLTest {
 
     @Test
     public void testCastorErrorInfo() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
 
         try {
             //Trigger exception for testing ErrorInfo
@@ -271,7 +271,7 @@ public class CastorXMLTest {
 
     @Test
     public void testCastorJobArrayList() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
 
         CastorHashMap actProps = new CastorHashMap();
         actProps.setBuiltInProperty(STATE_MACHINE_NAME, "Default");
@@ -298,7 +298,7 @@ public class CastorXMLTest {
 
     @Test
     public void testGraphMultiPointEdge() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
 
         GraphableEdge edge = new Next();
 
@@ -316,7 +316,7 @@ public class CastorXMLTest {
 
     @Test
     public void testPropertyDescriptionList() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
         Schema schema = LocalObjectLoader.getSchema("PropertyDescription", 0);
 
         PropertyDescriptionList pdl = new PropertyDescriptionList();
@@ -338,7 +338,7 @@ public class CastorXMLTest {
 
     @Test
     public void testPropertyArrayList() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
 
         PropertyArrayList pal = new PropertyArrayList();
         pal.list.add(new Property("Name", null, false));
@@ -351,7 +351,7 @@ public class CastorXMLTest {
 
     @Test
     public void testCastorDependency() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
         Schema schema = LocalObjectLoader.getSchema("Dependency", 0);
 
         //THIS is not the correct way of creating a new Dependency, it is used here to make testing possible
@@ -379,7 +379,7 @@ public class CastorXMLTest {
 
     @Test
     public void testCastorImportRole() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
 
         ImportRole role = new ImportRole();
         role.setName("TestRole");
@@ -400,7 +400,7 @@ public class CastorXMLTest {
 
     @Test
     public void testCastorImportAgent() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
 
         ImportAgent agent = new ImportAgent("TestAgent", "pwd");
         agent.addRoles(Arrays.asList(new RolePath("TestRole")));
@@ -417,7 +417,7 @@ public class CastorXMLTest {
 
     @Test
     public void testCastorImportItem() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
 
         ImportItem item = new ImportItem("name", "initialPath", new ItemPath(), "wf");
         ImportDependency id = new ImportDependency("Cars");
@@ -439,7 +439,7 @@ public class CastorXMLTest {
 
     @Test
     public void testCastorHashMap() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
         String chmOrigXml = new String(Files.readAllBytes(Paths.get("src/test/data/ActPropsTest.xml")));
         CastorHashMap chmOrig = (CastorHashMap) marshaller.unmarshall(chmOrigXml);
 
@@ -450,7 +450,7 @@ public class CastorXMLTest {
 
     @Test
     public void testCastorSearchFilter() throws Exception {
-        CastorXMLUtility marshaller = Gateway.getMarshaller();
+        var marshaller = Gateway.getMarshaller();
 
         SearchFilter sf = new SearchFilter();
         sf.setSearchRoot("/integTest/Doctors");

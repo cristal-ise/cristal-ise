@@ -20,7 +20,7 @@
  */
 package org.cristalise.kernel.lookup;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
@@ -38,8 +38,12 @@ public class SearchFilter {
      * Method required to be backward compatible with castor marshalling. check issue #518
      * @return
      */
-    public ArrayList<Property> getProperties() {
+    public List<Property> getProperties() {
         return properties.list;
+    }
+
+    public void setProperties(List<Property> newProps) {
+        this.properties = new PropertyArrayList(newProps);
     }
 
     @Override

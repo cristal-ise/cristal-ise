@@ -38,17 +38,16 @@ import lombok.extern.slf4j.Slf4j;
  * ClusterStorages, only simple gets and puts. This may be implemented on top
  * of the storage implementation separately.
  * 
- * <p>Each item is indexed by its {@link ItemPath}, which is may be constructed from its
- * UUID, equivalent {@link SystemKey} object, or 
+ * <p>Each item is indexed by its {@link ItemPath}, which is may be constructed from its UUID
  * 
  * <p>Each first-level path under the Item is defined as a Cluster. Different
  * Clusters may be stored in different places. Each ClusterStorage must support
- * {@link #get(ItemPath, String)} and
- * {@link #getClusterContents(ItemPath, String)} for clusters they return
+ * {@link #get(ItemPath, String, TransactionKey)} and
+ * {@link #getClusterContents(ItemPath, ClusterType, TransactionKey)} for clusters they return
  * {@link #READ} and {@link #READWRITE} from queryClusterSupport and
- * {@link #put(ItemPath, C2KLocalObject)} and {@link #delete(ItemPath, String)}
+ * {@link #put(ItemPath, C2KLocalObject, TransactionKey)} and {@link #delete(ItemPath, String, TransactionKey)}
  * for clusters they return {@link #WRITE} and {@link #READWRITE} from
- * {@link #getClusterContents(ItemPath, String)}. Operations that have not been
+ * {@link #getClusterContents(ItemPath, ClusterType, TransactionKey)}. Operations that have not been
  * declared as not supported should throw a PersistencyException. If a
  * cluster does not exist, get should return null, and delete should return with
  * no action.
@@ -56,26 +55,26 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public abstract class ClusterStorage {
     /**
-     * Constant to return from {@link #queryClusterSupport(String)} for Cluster
+     * Constant to return from {@link #queryClusterSupport(ClusterType)} for Cluster
      * types this storage does not support.
      */
     public static final short NONE = 0;
     /**
-     * Constant to return from {@link #queryClusterSupport(String)} for Cluster
+     * Constant to return from {@link #queryClusterSupport(ClusterType)} for Cluster
      * types this storage can read from a database but not write. An example
      * would be pre-existing data in a database that is mapped to Items in some
      * way.
      */
     public static final short READ = 1;
     /**
-     * Constant to return from {@link #queryClusterSupport(String)} for Cluster
+     * Constant to return from {@link #queryClusterSupport(ClusterType)} for Cluster
      * types this storage can write to a database but not read. An example would
      * be a realtime database export of data, which is transformed in an
      * unrecoverable way for use in other systems.
      */
     public static final short WRITE = 2;
     /**
-     * Constant to return from {@link #queryClusterSupport(String)} for data
+     * Constant to return from {@link #queryClusterSupport(ClusterType)} for data
      * stores that CRISTAL may use for both reading and writing for the given
      * Cluster type.
      */
@@ -85,9 +84,6 @@ public abstract class ClusterStorage {
      * Connects to the storage. It must be possible to retrieve CRISTAL local
      * objects after this method returns.
      * 
-     * @param auth
-     *            The Authenticator instance that the user or server logged in
-     *            with.
      * @throws PersistencyException
      *             If storage initialization failed
      */
@@ -104,7 +100,7 @@ public abstract class ClusterStorage {
 
     /**
      * Informs the ClusterSorage that the Boostrap process has finished. It enables the implementation
-     * to perform domain specific tasks
+     * to perform domain-specific tasks
      * 
      * @throws PersistencyException Database error
      */
@@ -112,7 +108,7 @@ public abstract class ClusterStorage {
 
     /**
      * Informs the ClusterSorage that the start server process has finished. It enables the implementation
-     * to perform domain specific tasks
+     * to perform domain-specific tasks
      * 
      * @throws PersistencyException Database error
      */
@@ -161,7 +157,7 @@ public abstract class ClusterStorage {
      */
     protected static ClusterType getClusterType(String path) {
         try {
-            if (path == null || path.length() == 0) return ClusterType.ROOT;
+            if (path == null || path.isEmpty()) return ClusterType.ROOT;
 
             int start = path.charAt(0) == '/' ? 1 : 0;
             int end = path.indexOf('/', start + 1);
@@ -276,11 +272,11 @@ public abstract class ClusterStorage {
     /**
      * Queries the local path below the given type and returns the possible next elements.
      * 
-     * @param itemPath
-     * @param type
+     * @param itemPath The Item to query
+     * @param type The type of cluster to query
      * @param transactionKey the key of the transaction, can be null
-     * @return
-     * @throws PersistencyException
+     * @return A String array of the possible next path elements
+     * @throws PersistencyException When an error occurred during the query
      */
     public String[] getClusterContents(ItemPath itemPath, ClusterType type, TransactionKey transactionKey) throws PersistencyException {
         return getClusterContents(itemPath, type.getName(), transactionKey);
@@ -304,8 +300,8 @@ public abstract class ClusterStorage {
             if (type != null) 
                 types.add(type);
             else 
-                log.warn("Cannot convert content '{}' to ClusterType", content);
-                //throw new PersistencyException("Cannot convert content '"+content+"' to ClusterType");
+                //log.warn("Cannot convert content '{}' to ClusterType", content);
+                throw new PersistencyException("Cannot convert content '"+content+"' to ClusterType");
         }
 
         return types.toArray(new ClusterType[0]);

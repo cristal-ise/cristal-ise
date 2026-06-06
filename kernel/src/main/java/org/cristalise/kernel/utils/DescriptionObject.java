@@ -24,6 +24,7 @@ import static org.cristalise.kernel.SystemProperties.Resource_useOldImportFormat
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
@@ -48,33 +49,35 @@ import org.exolab.castor.xml.ValidationException;
 
 public interface DescriptionObject {
 
-    public String getNamespace();
-    public String getName();
-    public Integer getVersion();
-    public ItemPath getItemPath();
+    String getNamespace();
+    String getName();
+    Integer getVersion();
+    ItemPath getItemPath();
 
-    public void setNamespace(String ns);
-    public void setName(String name);
-    public void setVersion(Integer version);
-    public void setItemPath(ItemPath path);
+    void setNamespace(String ns);
+    void setName(String name);
+    void setVersion(Integer version);
+    void setItemPath(ItemPath path);
 
-    public String getItemID();
-    public BuiltInResources getResourceType();
+    String getItemID();
+    BuiltInResources getResourceType();
 
-    default public String getXml(boolean prettyPrint) throws InvalidDataException {
+    @JsonIgnore
+    default String getXml(boolean prettyPrint) throws InvalidDataException {
         String xml = Gateway.getMarshaller().marshall(this);
 
         if (prettyPrint) return new Outcome(xml).getData(true);
         else             return xml;
     }
 
-    default public String getXml() throws InvalidDataException {
+    @JsonIgnore
+    default String getXml() throws InvalidDataException {
         return getXml(true);
     }
 
-    public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException;
+    CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException;
 
-    default public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
+    default void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
         BuiltInResources type = getResourceType();
         String versionPostfix = getVersion() == null ? "" : "_" + getVersion();
         String extention = type == SCHEMA_RESOURCE ? ".xsd" : ".xml";
@@ -102,7 +105,7 @@ public interface DescriptionObject {
         }
     }
 
-    default public Dependency makeDescCollection(BuiltInCollections collection, TransactionKey transactionKey, DescriptionObject... descs) throws InvalidDataException {
+    default Dependency makeDescCollection(BuiltInCollections collection, TransactionKey transactionKey, DescriptionObject... descs) throws InvalidDataException {
         //TODO: restrict membership based on kernel property desc
         Dependency descDep = new Dependency(collection.getName());
         if (getVersion() != null && this.getVersion() > -1) {
@@ -122,13 +125,13 @@ public interface DescriptionObject {
         return descDep;
     }
 
-    default public Outcome toOutcome() throws CriseVertxException, MarshalException, ValidationException, IOException, MappingException {
+    default Outcome toOutcome() throws CriseVertxException, MarshalException, ValidationException, IOException, MappingException {
         String schemaName = getResourceType().getSchemaName();
         Schema schema = LocalObjectLoader.getSchema(schemaName, 0);
         return new Outcome(getXml(false), schema);
     }
 
-    default public boolean exists(TransactionKey transactionKey) {
+    default boolean exists(TransactionKey transactionKey) {
         String path = getResourceType().getTypeRoot() + "/" + getNamespace() + "/" + getName();
         return new DomainPath(path).exists(transactionKey);
     }

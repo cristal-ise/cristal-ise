@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.lookup;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -74,6 +76,7 @@ public abstract class Path implements C2KLocalObject {
             mPath =  new String[0];
     }
 
+    @JsonProperty("path")
     public void setPath(String path) {
         setPath(StringUtils.split(path, delim));
     }
@@ -86,8 +89,11 @@ public abstract class Path implements C2KLocalObject {
     abstract public String getRoot();
 
     //these methods declared here to provide backward compatibility
+    @JsonIgnore
     public UUID getUUID() { return null; }
+    @JsonIgnore
     public ItemPath getItemPath() throws ObjectNotFoundException { return getItemPath(null); }
+    @JsonIgnore
     public ItemPath getItemPath(TransactionKey transactionKey) throws ObjectNotFoundException { return null; }
 
     /**
@@ -98,14 +104,17 @@ public abstract class Path implements C2KLocalObject {
     }
 
 
+    @JsonIgnore
     public String[] getPath() {
         return mPath;
     }
 
+    @JsonProperty("path")
     public String getStringPath() {
         return getStringPath(true);
     }
 
+    @JsonIgnore
     public String getStringPath(boolean addRoot) {
         String rootSegment = "";
 
@@ -118,15 +127,18 @@ public abstract class Path implements C2KLocalObject {
     /**
      * @deprecated bad method name, use getStringPath() instead
      */
+    @JsonIgnore
     @Deprecated
     public String getString() {
         return getStringPath();
     }
 
+    @JsonIgnore
     public boolean exists() {
         return exists(null);
     }
 
+    @JsonIgnore
     public boolean exists(TransactionKey transactionKey) {
         if (Gateway.getLookup() == null) return false;
         return Gateway.getLookup().exists(this, transactionKey);
@@ -140,7 +152,9 @@ public abstract class Path implements C2KLocalObject {
     @Override
     public boolean equals(Object path) {
         if (path == null) return false;
-        return toString().equals(path.toString());
+        if (this == path) return true;
+        if (path instanceof String) return toString().equals(path);
+        else                        return toString().equals(path.toString());
     }
 
     @Override
@@ -149,7 +163,7 @@ public abstract class Path implements C2KLocalObject {
     }
 
     public String dump() {
-        StringBuffer comp = new StringBuffer("Components: { ");
+        StringBuilder comp = new StringBuilder("Components: { ");
 
         for (String element : mPath) comp.append("'").append(element).append("' ");
 
@@ -161,6 +175,7 @@ public abstract class Path implements C2KLocalObject {
         throw new IllegalStateException("This method should not be called");
     }
 
+    @JsonIgnore
     @Override
     public ClusterType getClusterType() {
         return ClusterType.PATH;

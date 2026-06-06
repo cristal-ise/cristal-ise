@@ -23,11 +23,11 @@ package org.cristalise.kernel.utils;
 import java.util.Objects;
 import org.cristalise.kernel.common.InvalidDataException;
 
-public class CastorSerializerAdapter implements KernelSerializer {
+public class CastorXMLMarshaller implements KernelMarshaller {
 
     private final CastorXMLUtility marshaller;
 
-    public CastorSerializerAdapter(CastorXMLUtility marshaller) {
+    public CastorXMLMarshaller(CastorXMLUtility marshaller) {
         this.marshaller = Objects.requireNonNull(marshaller, "marshaller");
     }
 

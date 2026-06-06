@@ -62,9 +62,9 @@ import org.cristalise.kernel.process.resource.Resource;
 import org.cristalise.kernel.process.resource.ResourceImportHandler;
 import org.cristalise.kernel.process.resource.ResourceLoader;
 import org.cristalise.kernel.security.SecurityManager;
-import org.cristalise.kernel.utils.CastorSerializerAdapter;
+import org.cristalise.kernel.utils.CastorXMLMarshaller;
 import org.cristalise.kernel.utils.CastorXMLUtility;
-import org.cristalise.kernel.utils.KernelSerializer;
+import org.cristalise.kernel.utils.KernelMarshaller;
 import org.cristalise.kernel.utils.ObjectProperties;
 
 import com.hazelcast.config.Config;
@@ -110,8 +110,7 @@ public class Gateway extends ProxyManager
     static private Lookup                mLookup;
     static private LookupManager         mLookupManager = null;
     static private ClusterStorageManager mStorage;
-    static private CastorXMLUtility      mMarshaller;
-    static private KernelSerializer      mSerializer;
+    static private KernelMarshaller      mMarshaller;
     static private ResourceLoader        mResource;
     static private SecurityManager       mSecurityManager = null;
 
@@ -162,8 +161,8 @@ public class Gateway extends ProxyManager
         // load kernel mapfiles giving the resourse loader and the properties of
         // the application to be able to configure castor
         try {
-            mMarshaller = new CastorXMLUtility(mResource, props, mResource.getKernelResourceURL("mapFiles/"));
-            mSerializer = new CastorSerializerAdapter(mMarshaller);
+            var marshaller = new CastorXMLUtility(mResource, props, mResource.getKernelResourceURL("mapFiles/"));
+            mMarshaller = new CastorXMLMarshaller(marshaller);
         }
         catch (MalformedURLException e1) {
             throw new InvalidDataException("Invalid Resource Location");
@@ -488,7 +487,6 @@ public class Gateway extends ProxyManager
         mModules = null;
         mResource = null;
         mMarshaller = null;
-        mSerializer = null;
         mC2KProps.clear();
 
         log.info("close() - DONE.");
@@ -517,12 +515,8 @@ public class Gateway extends ProxyManager
         return mStorage;
     }
 
-    static public CastorXMLUtility getMarshaller() {
+    static public KernelMarshaller getMarshaller() {
         return mMarshaller;
-    }
-
-    static public KernelSerializer getSerializer() {
-        return mSerializer;
     }
 
     static public ResourceLoader getResource() {
