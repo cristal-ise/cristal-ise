@@ -20,8 +20,11 @@
  */
 package org.cristalise.dev.test.dsl.module
 
+import org.cristalise.dev.dsl.module.CRUDModule
 import org.cristalise.dev.dsl.module.OpenApiParser
 import org.junit.jupiter.api.Test
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
 
 class OpenApiParserTest {
 
@@ -52,6 +55,7 @@ components:
           type: integer
           description: The year the car was made
         owner:
+          type: object
           $ref: '#/components/schemas/Owner'
 
     Owner:
@@ -76,8 +80,7 @@ components:
         def p = new OpenApiParser(name: 'test')
         
         def m = p.parse(text)
-        
-        println m.plantUml
+        assertModue(m)
     }
 
     @Test
@@ -107,7 +110,8 @@ components:
             "type": "integer"
           },
           "owner": {
-            "$ref": "#/components/schemas/Car"
+            "type": "object",
+            "$ref": "#/components/schemas/Owner"
           }
         }
       },
@@ -136,9 +140,49 @@ components:
 }
 '''
         def p = new OpenApiParser(name: 'test')
-        
-        def m = p.parse(text)
-        
-        println m.plantUml
+
+      CRUDModule m = p.parse(text)
+
+      assertModue(m)
     }
+
+  private void assertModue(CRUDModule m) {
+    println m.plantUml
+
+    assert m.name == 'test'
+    assert m.items.size() == 2
+    assert m.items.containsKey('Car')
+    assert m.items.containsKey('Owner')
+
+    def car = m.items['Car']
+    assert car.name == 'Car'
+    assert car.fields.size() == 5
+    assert car.fields.containsKey('Make')
+    assert car.fields.containsKey('Model')
+    assert car.fields.containsKey('Year')
+    assert car.fields.containsKey('Id')
+
+    def owner = m.items['Owner']
+    assert owner.name == 'Owner'
+    assert owner.fields.size() == 3
+    assert owner.fields.containsKey('Name')
+    assert owner.fields.containsKey('Email')
+    assert owner.fields.containsKey('Id')
+
+    assert car.dependencies.size() == 1
+    def carDep = car.dependencies['Owner']
+    assert carDep.name == 'Owner'
+    assert carDep.from == 'Car'
+    assert carDep.to == 'Owner'
+    assert carDep.cardinality == OneToOne
+    assert carDep.type == Bidirectional
+
+    assert owner.dependencies.size() == 1
+    def ownerDep = owner.dependencies['Cars']
+    assert ownerDep.name == 'Cars'
+    assert ownerDep.from == 'Owner'
+    assert ownerDep.to == 'Car'
+    assert ownerDep.cardinality == OneToMany
+    assert ownerDep.type == Bidirectional
+  }
 }
