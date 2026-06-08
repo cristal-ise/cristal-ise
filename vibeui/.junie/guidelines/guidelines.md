@@ -51,6 +51,54 @@ export class AppComponent {
 </section>
 ```
 
+Example of a component with many inputs reacting to changes:
+
+```ts
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { CommonModule, JsonPipe } from '@angular/common';
+import { DefaultService } from '../../api';
+import { toSignal, toObservable } from '@angular/core/rxjs-interop';
+import { switchMap, of, catchError, combineLatest } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
+import { ApiErrorService } from '../../core/services/api-error.service';
+
+@Component({
+  selector: 'app-basic-outcome-view',
+  imports: [CommonModule, JsonPipe],
+  templateUrl: './basic-outcome-view.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class BasicOutcomeView {
+  uuid = input.required<string>();
+  eventId = input.required<string>();
+
+  private defaultService = inject(DefaultService);
+  private apiErrorService = inject(ApiErrorService);
+
+  private inputsCombined = combineLatest([toObservable(this.uuid), toObservable(this.eventId)]);
+
+  data = toSignal(
+    this.inputsCombined.pipe(
+      switchMap(([uuid, eventId]) =>
+        this.defaultService.itemUuidHistoryEventIdDataGet({ uuid: uuid, eventId: eventId }).pipe(
+          catchError((error: HttpErrorResponse) => {
+            this.apiErrorService.handleError(error);
+            return of(null);
+          }),
+        ),
+      ),
+    ),
+  );
+}
+```
+
+```html
+<div class="p-4">
+  <h3>Outcome Data - uuid:{{ uuid() }} eventId:{{ eventId() }}</h3>
+  <pre>{{ data() | json }}</pre>
+</div>
+```
+
 When you update a component, be sure to put the logic in the ts file, the styles in the css file and the html template in the html file.
 
 ## Resources

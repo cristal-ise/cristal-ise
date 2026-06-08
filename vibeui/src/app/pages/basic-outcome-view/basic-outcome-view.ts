@@ -19,8 +19,10 @@ export class BasicOutcomeView {
   private defaultService = inject(DefaultService);
   private apiErrorService = inject(ApiErrorService);
 
+  private inputsCombined = combineLatest([toObservable(this.uuid), toObservable(this.eventId)]);
+
   data = toSignal(
-    combineLatest([toObservable(this.uuid), toObservable(this.eventId)]).pipe(
+    this.inputsCombined.pipe(
       switchMap(([uuid, eventId]) =>
         this.defaultService.itemUuidHistoryEventIdDataGet({ uuid: uuid, eventId: eventId }).pipe(
           catchError((error: HttpErrorResponse) => {
