@@ -194,7 +194,7 @@ class CRUDGeneratorTest {
             rootPackage: 'org.cristalise.devtest',
             moduleNs:    'devtest',
             inputFile:   null
-        ]
+        ] as Map<String, Object>
 
         generator.generateModuleDSL(inputs)
     }
@@ -212,6 +212,6 @@ class CRUDGeneratorTest {
         script.setDelegate(this)
         script.run()
 
-        //assert checkGitStatus()
+        assert checkGitStatus()
     }
 }

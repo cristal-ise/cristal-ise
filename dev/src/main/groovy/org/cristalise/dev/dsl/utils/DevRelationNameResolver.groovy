@@ -34,7 +34,7 @@ class DevRelationNameResolver implements RelationNameResolver {
         log.debug('resolveChildRelationName() - parentName:{} childName:{}', parentName, childName)
 
         if      (parentName == 'Item'   && childName == 'dependency') return 'dependencies'
-        else if (parentName == 'Module' && childName == 'Item')       return 'items'
+        else if (parentName == 'Module' && (childName == 'Item' || childName == 'Agent')) return 'items'
 
         //code copied from DefaultRelationNameResolver and optimised to use English.plural()
         String childNamePlural = English.plural(childName)

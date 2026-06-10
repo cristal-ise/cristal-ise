@@ -20,11 +20,7 @@
  */
 package org.cristalise.dsl.test.persistency.outcome
 
-import org.cristalise.dsl.persistency.outcome.Attribute;
-import org.cristalise.dsl.persistency.outcome.Field
-import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.dsl.test.builders.SchemaTestBuilder
-import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.CristalTestSetup

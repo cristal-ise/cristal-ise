@@ -23,6 +23,12 @@
     "caption" : "Registration Plate",
     "align" : "left",
     "width" : 100
+  }, {
+    "source" : "itemField",
+    "field" : "Make",
+    "caption" : "Make",
+    "align" : "left",
+    "width" : 100
   } ],
   "sort" : {
     "field" : "Name",

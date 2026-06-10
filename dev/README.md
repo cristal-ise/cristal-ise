@@ -12,8 +12,9 @@ Development module to enable basic (crud level) management of Items
    `--main groovy.ui.GroovyMain --encoding UTF8 "${workspace_loc:cristalise-dev}/src/main/module/Module.groovy"`
 1. On the Classpath tab 'Restore Default Entries' - restores maven dependencies
 
-## Maven commands to DSL generation
-- `mvn exec:java@module`
+## Maven commands to scaffold Items and to DSL generation
+- `mvn exec:java@scaffold -Dlogback.configurationFile=bin/logback-simple.xml`
+- `mvn exec:java@module -Dlogback.configurationFile=bin/logback-simple.xml`
 
 ### Docker commands to setup development
 - `docker pull postgres:16`

@@ -24,6 +24,11 @@ Schema('Motorcycle', 0) {
       name: 'RegistrationPlate', 
       type: 'string'
     )
+    field(
+      name: 'Make', 
+      type: 'string',
+      values: ['BMW','Suzuki']
+    )
 
 
     field(name: 'State', type: 'string', values: states)
@@ -39,6 +44,11 @@ Schema('Motorcycle_Details', 0) {
     field(
       name: 'RegistrationPlate', 
       type: 'string'
+    )
+    field(
+      name: 'Make', 
+      type: 'string',
+      values: ['BMW','Suzuki']
     )
 
 
