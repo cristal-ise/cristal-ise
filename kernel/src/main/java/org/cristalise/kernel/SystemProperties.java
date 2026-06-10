@@ -85,8 +85,6 @@ import lombok.Getter;
  * @see #Outcome_Validation_useDOM
  * @see #OutcomeInit_$name
  * @see #OutcomeInit_jobUseViewpoint
- * @see #Resource_moduleUseFileNameWithVersion
- * @see #Resource_useOldImportFormat
  * @see #ResourceImportHandler_$typeCode
  * @see #RoutingScript_enforceStringReturnValue
  * @see #Script_EngineOverride_$lang
@@ -297,15 +295,6 @@ public enum SystemProperties implements SystemPropertyOperations {
      * Use last Outcome instance instead of OutcomeInitiator. Default value is false.
      */
     OutcomeInit_jobUseViewpoint("OutcomeInit.jobUseViewpoint", false),
-    /**
-     * Comma separated list of modules namespaces, that use file names with version. Default value is empty string.
-     */
-    Resource_moduleUseFileNameWithVersion("Resource.moduleUseFileNameWithVersion", ""),
-    /**
-     * Enables to use the deprecated module resource format when exporting the
-     * {@link DescriptionObject}. Default value is 'false'.
-     */
-    Resource_useOldImportFormat("Resource.useOldImportFormat", false),
     /**
      * Specifies a custom ResourceImportHandler implementation, allowing modules to define their 
      * own resource types, or override the import of the core ones. The type code can be any string, 
