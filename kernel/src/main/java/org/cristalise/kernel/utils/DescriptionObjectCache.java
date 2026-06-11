@@ -114,9 +114,8 @@ public abstract class DescriptionObjectCache<D extends DescriptionObject> {
                     log.trace("loadObjectFromBootstrap() - FOUND in module:{} textResourcePath:{}", module.getName(), res.getResourceFileName());
 
                     String resData = Gateway.getResource().getTextResource(module.getNs(), res.getResourceFileName());
-                    // if it has no UUID a random UUID is assigned 
-                    String uuid = res.getID() == null ? UUID.randomUUID().toString() : res.getID();
-                    return buildObject(name, 0, new ItemPath(uuid), resData);
+                    // NOTE that res.getItemPath() can be null
+                    return buildObject(name, 0, res.getItemPath(), resData);
                 }
             }
         }

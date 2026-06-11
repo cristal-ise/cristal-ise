@@ -317,14 +317,15 @@ class CRUDGenerator {
             log.info('generateCRUDModule() - generating item:{}', item.name)
 
             def inputs = [
-                item:           item,
-                version:        0,
-                moduleNs:       crudModule.namespace,
-                rootPackage:    crudModule.rootPackage,
-                useConstructor: false,
-                isAgent:        false,
-                generatedName:  false,
-                inputFile:      null
+                item:             item,
+                version:          0,
+                moduleNs:         crudModule.namespace,
+                rootPackage:      crudModule.rootPackage,
+                generateProperty: crudModule.generateProperty,
+                useConstructor:   false,
+                isAgent:          false,
+                generatedName:    false,
+                inputFile:        null
             ]
 
             generateItemDSL(inputs)

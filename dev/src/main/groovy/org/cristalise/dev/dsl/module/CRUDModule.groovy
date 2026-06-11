@@ -32,7 +32,8 @@ class CRUDModule {
     String name
     String namespace
     String rootPackage
-    
+    Boolean generateProperty = false
+
     /**
      * Set this to true in the DSL file to trigger the generation of the Module.groovy
      */
