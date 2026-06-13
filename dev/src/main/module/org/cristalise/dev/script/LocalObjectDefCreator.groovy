@@ -1,9 +1,4 @@
-<cristalscript>
-  <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
-  <param name="agent" type="org.cristalise.kernel.entity.proxy.AgentProxy"/>
-  <param name="job" type="org.cristalise.kernel.entity.Job"/>
-  <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo"/>
-  <script language="groovy" name="CollDescCreator"><![CDATA[ /**
+/**
  * This file is part of the CRISTAL-iSE Development Module.
  * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
@@ -25,12 +20,17 @@
  */
 package org.cristalise.dev.script
 
-import org.cristalise.kernel.common.ObjectNotFoundException
-import org.cristalise.kernel.lifecycle.instance.predefined.AddNewCollectionDescription
+import org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription
+import org.cristalise.kernel.process.resource.DefaultResourceImportHandler
 
-def name = job.getOutcome().getField("Name");
-def type = job.getOutcome().getField("Type");
+String name    = job.getOutcome().getField("ObjectName")
+String folder  = job.getOutcome().getField("SubFolder")
+DefaultResourceImportHandler handler = new DefaultResourceImportHandler(job.getActPropString("NewType"))
 
-agent.execute(item, AddNewCollectionDescription, name, type);
- ]]></script>
-</cristalscript>
+// Find the root of that object type
+String domPath = handler.getTypeRoot()
+if (folder != null) domPath = domPath + "/" + folder
+
+String[] params = [name, domPath] as String[]
+
+agent.execute(item, CreateItemFromDescription, params)

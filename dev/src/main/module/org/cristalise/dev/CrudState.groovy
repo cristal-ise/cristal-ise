@@ -1,9 +1,4 @@
-<cristalscript>
-  <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
-  <param name="agent" type="org.cristalise.kernel.entity.proxy.AgentProxy"/>
-  <param name="job" type="org.cristalise.kernel.entity.Job"/>
-  <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo"/>
-  <script language="groovy" name="CollDescCreator"><![CDATA[ /**
+/**
  * This file is part of the CRISTAL-iSE Development Module.
  * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
@@ -23,14 +18,25 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.dev.script
+package org.cristalise.dev
 
-import org.cristalise.kernel.common.ObjectNotFoundException
-import org.cristalise.kernel.lifecycle.instance.predefined.AddNewCollectionDescription
+states = ['ACTIVE', 'INACTIVE']
 
-def name = job.getOutcome().getField("Name");
-def type = job.getOutcome().getField("Type");
+Activity('CrudState_Activate', 0) {
+    Property('ItemProperty.State': states[0])
+}
 
-agent.execute(item, AddNewCollectionDescription, name, type);
- ]]></script>
-</cristalscript>
+Activity('CrudState_Deactivate', 0) {
+    Property('ItemProperty.State': states[1])
+}
+
+Workflow('CrudState_Manage', 0) {
+    Layout {
+        LoopInfinitive {
+            OrSplit(RoutingExpr: 'property//State') {
+                Block(Alias: 'INACTIVE')  { Act('Activate',   $crudState_Activate_ActivityDef) }
+                Block(Alias: '!INACTIVE') { Act('Deactivate', $crudState_Deactivate_ActivityDef) }
+            }
+        }
+    }
+}

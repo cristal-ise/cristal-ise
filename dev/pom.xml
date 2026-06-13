@@ -230,7 +230,7 @@
             </goals>
             <configuration>
               <mainClass>org.codehaus.groovy.tools.GroovyStarter</mainClass>
-              <commandlineArgs>--main groovy.ui.GroovyMain --encoding UTF-8 src/main/module/Module.groovy</commandlineArgs>
+              <commandlineArgs>--main groovy.ui.GroovyMain --encoding UTF-8 src/main/module/org/cristalise/dev/Module.groovy</commandlineArgs>
               <cleanupDaemonThreads>false</cleanupDaemonThreads>
               <includePluginDependencies>true</includePluginDependencies>
               <includeProjectDependencies>true</includeProjectDependencies>

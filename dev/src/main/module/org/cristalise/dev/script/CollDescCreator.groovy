@@ -18,23 +18,12 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-states = ['ACTIVE', 'INACTIVE']
+package org.cristalise.dev.script
 
-Activity('CrudState_Activate', 0) {
-    Property('ItemProperty.State': states[0])
-}
+import org.cristalise.kernel.common.ObjectNotFoundException
+import org.cristalise.kernel.lifecycle.instance.predefined.AddNewCollectionDescription
 
-Activity('CrudState_Deactivate', 0) {
-    Property('ItemProperty.State': states[1])
-}
+def name = job.getOutcome().getField("Name");
+def type = job.getOutcome().getField("Type");
 
-Workflow('CrudState_Manage', 0) {
-    Layout {
-        LoopInfinitive {
-            OrSplit(RoutingExpr: 'property//State') {
-                Block(Alias: 'INACTIVE')  { Act('Activate',   $crudState_Activate_ActivityDef) }
-                Block(Alias: '!INACTIVE') { Act('Deactivate', $crudState_Deactivate_ActivityDef) }
-            }
-        }
-    }
-}
+agent.execute(item, AddNewCollectionDescription, name, type);

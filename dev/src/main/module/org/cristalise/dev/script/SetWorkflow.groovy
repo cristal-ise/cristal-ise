@@ -1,9 +1,4 @@
-<cristalscript>
-  <param name="item" type="org.cristalise.kernel.entity.proxy.ItemProxy"/>
-  <param name="agent" type="org.cristalise.kernel.entity.proxy.AgentProxy"/>
-  <param name="job" type="org.cristalise.kernel.entity.Job"/>
-  <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo"/>
-  <script language="groovy" name="SetWorkflow"><![CDATA[ /**
+/**
  * This file is part of the CRISTAL-iSE Development Module.
  * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
@@ -65,5 +60,3 @@ void updateWorkflowCollection(ItemProxy item, AgentProxy agent, String wfDefName
 
     agent.execute(item, AddC2KObject, params);
 }
- ]]></script>
-</cristalscript>

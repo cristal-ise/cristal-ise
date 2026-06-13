@@ -18,24 +18,4 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-import static org.cristalise.dev.utils.CrudFactoryHelper.*
-
-import org.cristalise.kernel.entity.proxy.ItemProxy
-import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep
-import org.cristalise.kernel.lifecycle.instance.predefined.agent.SetAgentPassword
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
-import groovy.transform.Field
-
-@Field final Logger log = LoggerFactory.getLogger('org.cristalise.dev.scripts.CrudFactory.InstantiateItem')
-
-def outcome = job.getOutcome()
-def newItemName = getItemName(item, outcome) //this could be meaningless for Items with generated name
-def predefStep = getPredefStep(item)
-def params = getParams(item, agent, job, newItemName)
-
-def returnValue = agent.execute(item, predefStep, params)
-newItemName = PredefinedStep.getDataList(returnValue)[0] // may contain the valid generated name
-
-outcome.setField('Name', newItemName)
+package org.cristalise.dev.script

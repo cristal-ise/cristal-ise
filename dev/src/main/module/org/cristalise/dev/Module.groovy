@@ -18,6 +18,8 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+package org.cristalise.dev
+
 
  @BaseScript(org.cristalise.dsl.module.ModuleScriptBase)
 import groovy.transform.BaseScript

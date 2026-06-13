@@ -1,4 +1,4 @@
-/*
+/**
  * This file is part of the CRISTAL-iSE Development Module.
  * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
@@ -18,22 +18,26 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+package org.cristalise.dev.script
 
-var name   = job.getOutcome().getField("Name");
-var folder = job.getOutcome().getField("SubFolder");
-var roles  = job.getOutcome().getField("InitialRoles");
-var pwd    = job.getOutcome().getField("Password");
+import static org.cristalise.dev.utils.CrudFactoryHelper.*
 
-var root = job.getActPropString("Root");
-if (root == null) root = item.getProperty("Root", null, null);
+import org.cristalise.kernel.entity.proxy.ItemProxy
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep
+import org.cristalise.kernel.lifecycle.instance.predefined.agent.SetAgentPassword
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
-var domPath = (root != null ? root : "") + "/" + (folder != null ? folder : "");
+import groovy.transform.Field
 
-// Create new Item
-var params = new Array(4);
-params[0] = name;
-params[1] = domPath;
-params[2] = roles;
-params[3] = pwd;
+@Field final Logger log = LoggerFactory.getLogger('org.cristalise.dev.scripts.CrudFactory.InstantiateItem')
 
-agent.execute(item, "CreateAgentFromDescription", params);
+def outcome = job.getOutcome()
+def newItemName = getItemName(item, outcome) //this could be meaningless for Items with generated name
+def predefStep = getPredefStep(item)
+def params = getParams(item, agent, job, newItemName)
+
+def returnValue = agent.execute(item, predefStep, params)
+newItemName = PredefinedStep.getDataList(returnValue)[0] // may contain the valid generated name
+
+outcome.setField('Name', newItemName)

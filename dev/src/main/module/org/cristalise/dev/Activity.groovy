@@ -18,10 +18,19 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-import org.cristalise.kernel.common.ObjectNotFoundException
-import org.cristalise.kernel.lifecycle.instance.predefined.AddNewCollectionDescription
+package org.cristalise.dev
 
-def name = job.getOutcome().getField("Name");
-def type = job.getOutcome().getField("Type");
+Activity('CreateNewLocalObjectDef', 0) {
+    Property(Description: 'Create a new C2KLocalObject Definition')
+    AbstractProperty(NewType: '')
 
-agent.execute(item, AddNewCollectionDescription, name, type);
+    Schema($newDevObjectDef_Schema)
+    Script($localObjectDefCreator_Script)
+}
+
+Activity('CreateAgent', 0) {
+    Property(Description: 'Create a new Agent from its Description')
+
+    Schema($newAgent_Schema)
+    Script($instantiateAgent_Script)
+}

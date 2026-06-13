@@ -18,6 +18,8 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+package org.cristalise.dev
+
 import static org.cristalise.kernel.collection.BuiltInCollections.*
 import static org.cristalise.kernel.process.resource.BuiltInResources.*
 
@@ -41,7 +43,7 @@ Script('CollDescCreator', 0) {
     input('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
     input('job', 'org.cristalise.kernel.entity.Job')
     output('errors', 'org.cristalise.kernel.scripting.ErrorInfo')
-    script('groovy', "src/main/module/script/CollDescCreator.groovy")
+    script('groovy', "src/main/module/org/cristalise/dev/script/CollDescCreator.groovy")
 }
 
 Script('SetWorkflow', 0) {
@@ -49,7 +51,7 @@ Script('SetWorkflow', 0) {
     input('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
     input('job', 'org.cristalise.kernel.entity.Job')
     output('errors', 'org.cristalise.kernel.scripting.ErrorInfo')
-    script('groovy', "src/main/module/script/SetWorkflow.groovy")
+    script('groovy', "src/main/module/org/cristalise/dev/script/SetWorkflow.groovy")
 }
 
 Script('InstantiateItem', 0) {
@@ -57,7 +59,7 @@ Script('InstantiateItem', 0) {
     input('agent', 'org.cristalise.kernel.entity.proxy.AgentProxy')
     input('job', 'org.cristalise.kernel.entity.Job')
     output('errors', 'org.cristalise.kernel.scripting.ErrorInfo')
-    script('javascript', "src/main/module/script/InstantiateItem.js")
+    script('groovy', "src/main/module/org/cristalise/dev/script/InstantiateItem.groovy")
 }
 
 Activity('CreateItem', 0) {

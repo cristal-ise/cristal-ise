@@ -1,4 +1,4 @@
-/*
+/**
  * This file is part of the CRISTAL-iSE Development Module.
  * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
  *
@@ -18,18 +18,9 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+package org.cristalise.dev
 
-// Get parameters from outcome
-var name = job.getOutcome().getField("ObjectName");
-var folder = job.getOutcome().getField("SubFolder");
-var root = job.getActPropString("Root");
-if (root == null) root = item.getProperty("Root", null, null);
 
-var domPath = (root != null ? root : "") + "/" + (folder != null ? folder : "");
-
-// Create new Item
-var params = new Array(2);
-params[0] = name;
-params[1] = domPath;
-
-agent.execute(item, "CreateItemFromDescription", params);
+Workflow('AgentFactoryWf', 0) {
+    ElemActDef($createAgent_ActivityDef)
+}

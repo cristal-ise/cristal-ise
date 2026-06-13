@@ -18,6 +18,8 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+package org.cristalise.dev.script
+
 import org.cristalise.dev.utils.PredefinedStepsOutcomeBuilder
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep

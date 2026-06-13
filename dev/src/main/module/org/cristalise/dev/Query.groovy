@@ -18,6 +18,8 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+package org.cristalise.dev
+
 Query("QueryBasicItemList", 0) {
     parameter(name: 'domainPath', type: 'java.lang.String')
     parameter(name: 'searchText', type: 'java.lang.String')

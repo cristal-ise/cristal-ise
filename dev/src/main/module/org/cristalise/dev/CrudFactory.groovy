@@ -18,6 +18,8 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+package org.cristalise.dev
+
 Schema('CrudFactory_NewInstanceDetails', 0) {
     struct(name: 'CrudFactory_NewInstanceDetails', useSequence: true) {
         field(name: 'Name',      type: 'string',  documentation: 'The Name of the new instance, it can be generated')
