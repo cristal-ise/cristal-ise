@@ -130,7 +130,15 @@
     "viewpoints": "Viewpoints",
     "history": "History",
     "empty_collection": "Collection data is empty for this development.",
-    "empty_viewpoints": "Viewpoints data is empty for this development.",
-    "back": "Back"
+    "empty_viewpoints": "Viewpoints data is empty for this development."
+  },
+  "itemData": {
+    "headers": {
+      "nameVersion": "Schema Name / Version",
+      "viewpoint": "Count / Viewpoint",
+      "agent": "Agent",
+      "timestamp": "Timestamp",
+      "details": "Details"
+    }
   }
 }
