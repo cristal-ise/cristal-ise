@@ -131,7 +131,15 @@
     "viewpoints": "Nézőpontok",
     "history": "Előzmények",
     "empty_collection": "A gyűjtemény adatai üresek ehhez a fejlesztéshez.",
-    "empty_viewpoints": "A nézőpont adatai üresek ehhez a fejlesztéshez.",
-    "back": "Vissza"
+    "empty_viewpoints": "A nézőpont adatai üresek ehhez a fejlesztéshez."
+  },
+  "itemData": {
+    "headers": {
+      "nameVersion": "Séma Név / Verzió",
+      "viewpoint": "Mennyiség / Nézőpont",
+      "agent": "Ügynök",
+      "timestamp": "Időbélyeg",
+      "details": "Részletek"
+    }
   }
 }

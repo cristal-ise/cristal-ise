@@ -1,5 +1,5 @@
 ---
-apply: always
+trigger: always_on
 ---
 
 # Persona
@@ -115,6 +115,11 @@ When you update a component, be sure to put the logic in the TS file, the styles
 - Design services around a single responsibility.
 - Use `providedIn: 'root'` for singleton services.
 - Use the `inject()` function instead of constructor injection.
+- Reference: [Angular Signals](https://angular.dev/essentials/signals)
+
+## Backend Services
+- Services interacting with the backend must base their REST API calls on the definitions described by the OpenAPI specification files in the `openapi` directory.
+- Use `npm run generate:api` to regenerate/update the API client code in the `src/app/api` directory when definitions in the `openapi` directory change.
 
 ### UI Components & Styling
 - Use PrimeNG Components.

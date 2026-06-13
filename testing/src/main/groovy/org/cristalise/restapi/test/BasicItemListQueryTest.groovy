@@ -7,8 +7,6 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.TestInstance
 
-import javax.ws.rs.core.Response
-
 import static io.restassured.http.ContentType.JSON
 
 import org.junit.jupiter.api.Test
@@ -19,7 +17,7 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR
 
 @Slf4j @CompileStatic
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class QueryResultTest extends RestapiTestBase {
+class BasicItemListQueryTest extends RestapiTestBase {
     
     String queryName = 'QueryBasicItemList'
     Integer limit = 10
