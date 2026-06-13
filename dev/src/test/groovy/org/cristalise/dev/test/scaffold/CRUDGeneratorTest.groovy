@@ -58,10 +58,23 @@ class CRUDGeneratorTest {
         )
     }
 
+    public boolean isGitTestResourceStatusClean() {
+        Status gitStatus = gitRepo
+            .status()
+            .addPath('dev/src/test/module')
+            .addPath('dev/src/test/resources')
+            .call()
 
-    public boolean checkGitStatus() {
-        Status gitStatus = gitRepo.status().call()
-        if (!gitStatus.isClean()) gitStatus.getModified().each { log.info('checkGitStatus() - changed file:{}', it) }
+        if (!gitStatus.isClean()) {
+            gitStatus.getModified().each {log.info('gitTestResourceStatusClean() - modified file:{}', it) }
+            gitStatus.getChanged().each { log.info('gitTestResourceStatusClean() - changed file:{}', it) }
+            gitStatus.getAdded().each { log.info('gitTestResourceStatusClean() - added file:{}', it) }
+            gitStatus.getMissing().each { log.info('gitTestResourceStatusClean() - missing file:{}', it) }
+            gitStatus.getConflicting().each { log.info('gitTestResourceStatusClean() - conflicting file:{}', it) }
+            gitStatus.getRemoved().each { log.info('gitTestResourceStatusClean() - removed file:{}', it) }
+            gitStatus.getUntracked().each { log.info('gitTestResourceStatusClean() - untracked file:{}', it) }
+        }
+
         return gitStatus.isClean()
     } 
 
@@ -212,6 +225,6 @@ class CRUDGeneratorTest {
         script.setDelegate(this)
         script.run()
 
-        assert checkGitStatus()
+        assert isGitTestResourceStatusClean()
     }
 }
