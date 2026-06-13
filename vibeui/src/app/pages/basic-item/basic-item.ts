@@ -6,6 +6,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { ItemDataDirective } from '../../core/directives/item-data.directive';
 import { BasicItemDetails } from './basic-item-details/basic-item-details';
 import { BasicItemHistory } from './basic-item-history/basic-item-history';
+import { BasicItemData } from './basic-item-data/basic-item-data';
 import { DefaultService } from '../../api';
 import { ItemSummary } from '../../api';
 import { toSignal, toObservable } from '@angular/core/rxjs-interop';
@@ -15,7 +16,7 @@ import { ApiErrorService } from '../../core/services/api-error.service';
 
 @Component({
   selector: 'app-basic-item',
-  imports: [CommonModule, TabsModule, ButtonModule, TranslocoPipe, ItemDataDirective, BasicItemDetails, BasicItemHistory],
+  imports: [CommonModule, TabsModule, ButtonModule, TranslocoPipe, ItemDataDirective, BasicItemDetails, BasicItemHistory, BasicItemData],
   templateUrl: './basic-item.html',
   styleUrl: './basic-item.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

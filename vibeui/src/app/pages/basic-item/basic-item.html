@@ -43,10 +43,9 @@
 
                     <!-- Viewpoints Tab Panel -->
                     <p-tabpanel value="viewpoints">
-                        <div class="text-center text-slate-500 py-12">
-                            <i class="pi pi-eye text-3xl mb-3 block"></i>
-                            {{ 'item.empty_viewpoints' | transloco }}
-                        </div>
+                        @if (activeTab() === 'viewpoints') {
+                            <basic-item-data [uuid]="itemData.uuid" />
+                        }
                     </p-tabpanel>
 
                     <!-- History Tab Panel -->

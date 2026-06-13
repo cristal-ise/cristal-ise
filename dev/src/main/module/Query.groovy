@@ -53,3 +53,50 @@ OFFSET @{offset} ROWS FETCH NEXT @{limit} ROWS ONLY;
 '''
     }
 }
+
+Query("CountOutcomeSchema", 0) {
+    parameter(name: 'uuid', type: 'java.lang.String')
+    parameter(name: 'offset', type: 'java.lang.Integer')
+    parameter(name: 'limit', type: 'java.lang.Integer')
+    rootElement('OutcomeSchema')
+    recordElement('Record')
+    query(language: "sql", dialect: "postgres") {
+        '''
+select "SCHEMA_NAME", count(*) as COUNT from "OUTCOME"
+where "UUID" = '@{uuid}'
+group by "SCHEMA_NAME";
+'''
+    }
+}
+
+Query("JoinOutcomeWithViewpoint", 0) {
+    parameter(name: 'uuid', type: 'java.lang.String')
+    parameter(name: 'schema', type: 'java.lang.String')
+    parameter(name: 'offset', type: 'java.lang.Integer')
+    parameter(name: 'limit', type: 'java.lang.Integer')
+    rootElement('OutcomeWithViewpoint')
+    recordElement('Record')
+    query(language: "sql", dialect: "postgres") {
+'''
+select o."SCHEMA_NAME",
+       o."SCHEMA_VERSION",
+       o."EVENT_ID",
+       e."TIMESTAMP",
+       e."AGENT_UUID",
+       v."NAME"         as "VIEWPOINT",
+       COUNT(*) OVER () AS "TotalCount"
+from "OUTCOME" o
+         left join "VIEWPOINT" v
+                   on o."UUID" = v."UUID"
+                       and o."SCHEMA_NAME" = v."SCHEMA_NAME"
+                       and o."SCHEMA_VERSION" = v."SCHEMA_VERSION"
+                       and o."EVENT_ID" = v."EVENT_ID"
+         left join "EVENT" e
+                   on o."UUID" = e."UUID"
+                       and o."EVENT_ID" = e."ID"
+where o."UUID" = '@{uuid}' and o."SCHEMA_NAME" = '@{schema}'
+order by o."SCHEMA_NAME" ASC, o."SCHEMA_VERSION" ASC, o."EVENT_ID" DESC
+limit @{limit} offset @{offset};
+'''
+    }
+}
