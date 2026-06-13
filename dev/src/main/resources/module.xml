@@ -63,6 +63,8 @@
     <ScriptResource name="LocalObjectDefCreator" version="0"/>
     <ScriptResource name="New" version="0"/>
     <QueryResource name="QueryBasicItemList" version="0"/>
+    <QueryResource name="CountOutcomeSchema" version="0"/>
+    <QueryResource name="JoinOutcomeWithViewpoint" version="0"/>
     <Activity name="CreateNewLocalObjectDef" version="0">
       <Schema name="NewDevObjectDef" version="0"/>
       <Script name="LocalObjectDefCreator" version="0"/>
