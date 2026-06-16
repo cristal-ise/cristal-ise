@@ -18,12 +18,12 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+@BaseScript(ModuleScriptBase)
 package org.cristalise.dev
 
-
- @BaseScript(org.cristalise.dsl.module.ModuleScriptBase)
-import groovy.transform.BaseScript
 import groovy.transform.SourceURI
+import groovy.transform.BaseScript
+import org.cristalise.dsl.module.ModuleScriptBase
 
 @SourceURI
 URI scriptUri
@@ -64,4 +64,8 @@ Module(ns: 'dev', name: 'CristaliseDev', version: 0) {
     include(moduleDir+'/Workflow.groovy')
     include(moduleDir+'/Item.groovy')
     include(moduleDir+'/Description.groovy')
+
+    include(moduleDir+'/vibecoding/llmConnection/LlmConnection.groovy')
+    include(moduleDir+'/vibecoding/vibeConversation/VibeConversation.groovy')
+    include(moduleDir+'/vibecoding/vibeCoder/VibeCoder.groovy')
 }

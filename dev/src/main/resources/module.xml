@@ -34,6 +34,9 @@
     <PropertyDescriptionResource name="ItemDesc" version="0"/>
     <PropertyDescriptionResource name="RoleDesc" version="0"/>
     <PropertyDescriptionResource name="DomainContext" version="0"/>
+    <PropertyDescriptionResource name="LlmConnection" version="0"/>
+    <PropertyDescriptionResource name="VibeConversation" version="0"/>
+    <PropertyDescriptionResource name="VibeCoder" version="0"/>
     <Activity name="CrudState_Activate" version="0"/>
     <Activity name="CrudState_Deactivate" version="0"/>
     <Workflow name="CrudState_Manage" version="0">
@@ -117,5 +120,64 @@
       <Activity name="DefineNewCollection" version="0"/>
     </Workflow>
     <ItemResource name="DescriptionFactory" version="0"/>
+    <SchemaResource name="LlmConnection" version="0"/>
+    <SchemaResource name="LlmConnection_Details" version="0"/>
+    <Activity name="LlmConnection_Update" version="0">
+      <Schema name="LlmConnection_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
+    </Activity>
+    <ScriptResource name="LlmConnection_Aggregate" version="0"/>
+    <ScriptResource name="LlmConnection_QueryList" version="0"/>
+    <Activity name="LlmConnection_Aggregate" version="0">
+      <Schema name="LlmConnection" version="0"/>
+      <Script name="LlmConnection_Aggregate" version="0"/>
+    </Activity>
+    <Workflow name="LlmConnection_Workflow" version="0">
+      <Activity name="LlmConnection_Update" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
+    </Workflow>
+    <ItemResource name="LlmConnectionFactory" version="0"/>
+    <SchemaResource name="VibeConversation" version="0"/>
+    <SchemaResource name="VibeConversation_Details" version="0"/>
+    <Activity name="VibeConversation_Update" version="0">
+      <Schema name="VibeConversation_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
+    </Activity>
+    <ScriptResource name="VibeConversation_Aggregate" version="0"/>
+    <ScriptResource name="VibeConversation_QueryList" version="0"/>
+    <Activity name="VibeConversation_Aggregate" version="0">
+      <Schema name="VibeConversation" version="0"/>
+      <Script name="VibeConversation_Aggregate" version="0"/>
+    </Activity>
+    <Workflow name="VibeConversation_ManageLlmConnection" version="0">
+      <Activity name="CrudEntity_ChangeDependecy" version="0"/>
+    </Workflow>
+    <Workflow name="VibeConversation_Workflow" version="0">
+      <Activity name="VibeConversation_Update" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
+      <Activity name="VibeConversation_ManageLlmConnection" version="0"/>
+    </Workflow>
+    <ItemResource name="VibeConversationFactory" version="0"/>
+    <SchemaResource name="VibeCoder" version="0"/>
+    <SchemaResource name="VibeCoder_Details" version="0"/>
+    <Activity name="VibeCoder_Update" version="0">
+      <Schema name="VibeCoder_Details" version="0"/>
+      <Script name="CrudEntity_ChangeName" version="0"/>
+    </Activity>
+    <ScriptResource name="VibeCoder_Aggregate" version="0"/>
+    <ScriptResource name="VibeCoder_QueryList" version="0"/>
+    <Activity name="VibeCoder_Aggregate" version="0">
+      <Schema name="VibeCoder" version="0"/>
+      <Script name="VibeCoder_Aggregate" version="0"/>
+    </Activity>
+    <Workflow name="VibeCoder_ManageVibeConversations" version="0">
+      <Activity name="CrudEntity_ChangeDependecy" version="0"/>
+    </Workflow>
+    <Workflow name="VibeCoder_Workflow" version="0">
+      <Activity name="VibeCoder_Update" version="0"/>
+      <Activity name="CrudState_Manage" version="0"/>
+      <Activity name="VibeCoder_ManageVibeConversations" version="0"/>
+    </Workflow>
+    <ItemResource name="VibeCoderFactory" version="0"/>
   </Imports>
 </CristalModule>

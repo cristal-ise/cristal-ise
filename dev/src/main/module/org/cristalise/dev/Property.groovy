@@ -112,3 +112,21 @@ PropertyDescriptionList('DomainContext', 0) {
     PropertyDesc(name: 'Type',   isMutable: false, isClassIdentifier: true,  defaultValue: 'DomainContext')
     PropertyDesc(name: 'Module', isMutable: false, isClassIdentifier: false, defaultValue: '')
 }
+
+PropertyDescriptionList('LlmConnection', 0) {
+    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
+    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'LlmConnection')
+    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
+}
+
+PropertyDescriptionList('VibeConversation', 0) {
+    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
+    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'VibeConversation')
+    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
+}
+
+PropertyDescriptionList('VibeCoder', 0) {
+    PropertyDesc(name: 'Name',  isMutable: true,  isClassIdentifier: false)
+    PropertyDesc(name: 'Type',  isMutable: false, isClassIdentifier: true,  defaultValue: 'VibeCoder')
+    PropertyDesc(name: 'State', isMutable: true,  isClassIdentifier: false, defaultValue: 'ACTIVE')
+}

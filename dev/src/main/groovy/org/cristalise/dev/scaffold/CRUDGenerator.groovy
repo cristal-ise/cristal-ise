@@ -20,6 +20,8 @@
  */
 package org.cristalise.dev.scaffold
 
+import org.cristalise.dev.dsl.item.CRUDAgent
+
 import static org.cristalise.dsl.SystemProperties.DSL_Module_BindingConvention_variablePrefix
 
 import org.apache.commons.lang3.StringUtils
@@ -323,7 +325,7 @@ class CRUDGenerator {
                 rootPackage:      crudModule.rootPackage,
                 generateProperty: crudModule.generateProperty,
                 useConstructor:   false,
-                isAgent:          false,
+                isAgent:          item instanceof CRUDAgent,
                 generatedName:    false,
                 inputFile:        null
             ]
