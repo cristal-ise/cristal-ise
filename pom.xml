@@ -64,6 +64,7 @@
     <logback.version>1.5.17</logback.version>
     <spock.version>2.4-groovy-4.0</spock.version>
     <spockReports.version>2.5.1-groovy-4.0</spockReports.version>
+    <langchain4j.version>1.16.3</langchain4j.version>
   </properties>
 
   <description>Cristal-ise is a description-driven software platform originally developed to track the construction of
@@ -324,6 +325,13 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>dev.langchain4j</groupId>
+        <artifactId>langchain4j-bom</artifactId>
+        <version>${langchain4j.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <dependency>
         <groupId>io.vertx</groupId>
         <artifactId>vertx-stack-depchain</artifactId>
