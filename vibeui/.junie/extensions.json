@@ -3,6 +3,10 @@
         "url": "https://github.com/JetBrains/junie-extensions",
         "extensions": [
             "context7"
-        ]
+        ],
+        "source": {
+            "type": "git",
+            "url": "https://github.com/JetBrains/junie-extensions"
+        }
     }
 }
