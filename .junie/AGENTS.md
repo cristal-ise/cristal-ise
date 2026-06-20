@@ -1,5 +1,19 @@
 # CRISTAL-iSE Project Guidelines
 
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked on GitHub via the `gh` CLI. External PRs are not a request surface. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Using default triage labels (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Multi-context layout using `CONTEXT-MAP.md` at the root. See `docs/agents/domain.md`.
+
 ## Project Overview
 CRISTAL-iSE is a description-driven software platform for No-Code/Low-Code application development. It manages business objects called Items, which are configured via descriptions.
 
