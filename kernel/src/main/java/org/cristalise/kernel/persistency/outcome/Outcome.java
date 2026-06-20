@@ -20,22 +20,27 @@
  */
 package org.cristalise.kernel.persistency.outcome;
 
-import static org.cristalise.kernel.SystemProperties.Outcome_Validation_useDOM;
-import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.StringTokenizer;
-import java.util.TreeMap;
-import java.util.function.Consumer;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.process.AbstractMain;
+import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.w3c.dom.*;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xmlunit.builder.DiffBuilder;
+import org.xmlunit.diff.DefaultNodeMatcher;
+import org.xmlunit.diff.Diff;
+import org.xmlunit.diff.Difference;
+import org.xmlunit.diff.ElementSelectors;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -51,33 +56,13 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import java.io.*;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
 
-import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.AbstractMain;
-import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xmlunit.builder.DiffBuilder;
-import org.xmlunit.diff.DefaultNodeMatcher;
-import org.xmlunit.diff.Diff;
-import org.xmlunit.diff.Difference;
-import org.xmlunit.diff.ElementSelectors;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
+import static org.cristalise.kernel.SystemProperties.Outcome_Validation_useDOM;
+import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 
 /**
  * A C2KLocalObject encapsulating management of XML data. It has methods to manipulate and validate the XML,
@@ -925,7 +910,7 @@ public class Outcome implements C2KLocalObject {
             NodeList elements = element.getElementsByTagName(name);
             if (hasSingleField(elements)) {
                 if (elements.getLength() > 1) {
-                    log.warn("getField() - '{}' was found multiple times, returning first occurance", name);
+                    log.warn("getField() - '{}' was found multiple times, returning first occurrence", name);
                 }
 
                 return getNodeValue(elements.item(0));
