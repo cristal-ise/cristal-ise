@@ -3,7 +3,7 @@
 These elements form the backbone of the CRISTAL-iSE Schema DSL, defining the XML structure and data types.
 
 ## struct
-Defines an XML element which contains other elements (equivalent to `xs:complexType`).
+Defines an XML element which contains other elements (equivalent to `xs:complexType`). Ensure child order is defined for a `tight` UI flow.
 
 | Property | Type | Purpose |
 | :--- | :--- | :--- |

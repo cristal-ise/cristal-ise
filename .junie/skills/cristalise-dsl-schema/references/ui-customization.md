@@ -1,6 +1,6 @@
 # UI Customization via dynamicForms
 
-`dynamicForms` provides hints to the WebUI (vibeui) on how to render elements.
+`dynamicForms` provides hints to the WebUI (vibeui) on how to render elements. Aim for a `tight` layout by grouping related fields.
 
 ## Struct Properties
 
