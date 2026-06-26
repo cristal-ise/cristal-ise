@@ -15,6 +15,24 @@ Schema('Employee', 1) {
 }
 ```
 
+### Employee Record with expression
+
+```groovy
+Schema('Patient_Details', 0) {
+  struct(name: 'Patient_Details') {
+    field(name: 'DateOfBirth', type: 'date')
+    field(name: 'DateOfDeath', type: 'date', multiplicity: '0..1')
+    field(name: 'Age', type: 'integer') {
+      expression(
+        imports: ['java.time.Period', 'java.time.LocalDate'],
+        inputFields: ['DateOfBirth, DateOfDeath'],
+        expression: 'Period.between(DateOfBirth, DateOfDeath ?: LocalDate.now()).getYears()'
+      )
+    }
+  }
+}
+```
+
 ### Validation and Computed Fields
 ```groovy
 field(name: 'Age', type: 'integer') {
