@@ -25,7 +25,7 @@ _Avoid_: AccessRight, Privilege
 ### Metadata & Configuration
 
 **Description**:
-An Item containing all the logic (Lifecycle) to maintain the data describing other Items. Descriptions have Activities for both creating Items and editing the data/structure used to create Items.
+An Item containing all the logic (Lifecycle) to maintain the data describing other Items. Descriptions have Activities for both creating Items and editing the data/structure used to create Items. See [Description types](#Description Types) for more details.
 _Avoid_: Template, Blueprint
 
 **Factory**:
@@ -35,6 +35,34 @@ _Avoid_: Builder, Creator
 **Property**:
 A key-value pair used as metadata by the kernel for identification and typing of Items.
 _Avoid_: Attribute, Field, Metadata
+
+### Description Types
+
+**ImportItem**: A Description Item that defines the complete structure, properties, collections, workflow, and lifecycle for creating new Items. _Avoid_: Template, Blueprint
+
+**ImportAgent**: A Description Item that defines an Agent, including its Roles and permissions. _Avoid_: User
+
+**ImportRole**: A Description Item that defines a Role, including its permissions.
+
+**Module**: A Description Item that defines a collection of Items that implement a set of functionalities, with its own namespace and version. _Avoid_: Package, Component, Library
+
+**PropertyDescriptionList**: A Description Item that defines the metadata properties (Property/ItemProperty) used for identification and typing of Items, including their names, default values, and mutability. _Avoid_: Attribute, Field, Metadata
+
+**Schema**: A Description Item that defines the structure of data that is stored or computed in the system, specifying the fields, types, and constraints for Outcomes. _Avoid_: DataModel, DataStructure
+
+**Script**: A Description Item that encapsulates executable code (using JSR-223 API) that can be associated with Activities or execute as GET endpoints. _Avoid_: Code, Function, Procedure
+
+**Query**: A Description Item that encapsulates data selection logic that can execute as GET endpoints or be associated with Activities. _Avoid_: SQLQuery, DataQuery
+
+**StateMachine**: A Description Item that defines the possible transitions during the execution of an Activity, managing internal state within that Activity. _Avoid_: StateDiagram, TransitionModel
+
+**ActivityDef**: A Description Item that defines a Service/Task/Endpoint within an Item's Lifecycle, representing a PUT/POST operation with write transaction. Base class for ElementaryActivityDef and CompositeActivityDef. _Avoid_: Operation, Action, Method
+
+**ElementaryActivityDef**: A Description Item that defines a single, atomic Activity within an Item's Lifecycle. _Avoid_: Operation, Action, Method
+
+**CompositeActivityDef**: A Description Item that defines a composite Activity that coordinates multiple sub-Activities within an Item's Lifecycle. _Avoid_: Operation, Action, Method
+
+**DomainContext**: A Description Item that defines the domain namespace and context for Items. _Avoid_: Path, Domain, URI
 
 ### Relationships
 
