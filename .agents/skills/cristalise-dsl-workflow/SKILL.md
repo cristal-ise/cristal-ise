@@ -1,7 +1,6 @@
 ---
 name: cristalise-dsl-workflow
-description: Complete reference for defining workflows in CRISTAL-iSE DSL. Use when creating or modifying workflow definitions.
-disable-model-invocation: true
+description: Complete reference for defining workflows in CRISTAL-iSE DSL. Use when creating or modifying workflow definitions, or when another skill needs workflow pattern details.
 ---
 
 # CRISTAL-iSE Workflow DSL

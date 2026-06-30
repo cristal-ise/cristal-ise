@@ -1,6 +1,6 @@
 ---
 name: cristalise-dsl-schema
-description: CRISTAL-iSE Schema DSL guidelines. Use when developing or modifying CRISTAL-iSE Schemas using the Groovy-based Domain Specific Language (DSL) to ensure fluent and valid construct creation.
+description: Complete reference for defining schemas in CRISTAL-iSE DSL. Use when developing or modifying Schema definitions for Outcomes, or when another skill needs schema structure details.
 ---
 
 # CRISTAL-iSE Schema DSL
