@@ -19,10 +19,44 @@ This router skill cures the **cognitive load** of remembering which cristalise-d
 | **[cristalise-dsl-schema](#cristalise-dsl-schema)** | Schema/Outcome definitions | Developing or modifying Outcome structures, structs, fields, UI hints | **Complete** |
 | **[cristalise-dsl-module](#cristalise-dsl-module)** | Module definitions | Defining Item containers, dependencies, and module-level constructs | **Placeholder** |
 | **[cristalise-dsl-item](#cristalise-dsl-item)** | Item definitions | Creating and configuring individual Items and their properties | **Placeholder** |
-| **[cristalise-dsl-script](#cristalise-dsl-script)** | Script definitions | Writing Groovy/JavaScript scripts for routing, validation, computations | **Placeholder** |
+| **[cristalise-dsl-script](#cristalise-dsl-script)** | Script definitions | Writing Groovy/JavaScript scripts for routing, validation, computations | **Complete** |
 | **[cristalise-dsl-query](#cristalise-dsl-query)** | Query definitions | Defining queries for listOfValues, dynamic data fetching | **Placeholder** |
 
 ## Individual Skill Reference
+
+### cristalise-dsl-module
+
+**Status**: Placeholder — Content TBD
+
+Use when defining **Module** constructs — containers for organizing Items, managing dependencies, and establishing module-level configurations. This skill will provide:
+
+- Module definition syntax and structure
+- Dependency management between modules
+- Module-level properties and configurations
+- Best practices for module organization
+
+**Location**: [`../cristalise-dsl-module/SKILL.md](../cristalise-dsl-module/SKILL.md)
+
+**Leading Words**: Module, dependency, container, configuration
+
+---
+
+### cristalise-dsl-item
+
+**Status**: Placeholder — Content TBD
+
+Use when creating and configuring individual **Items** — the business objects at the heart of CRISTAL-iSE. This skill will provide:
+
+- Item definition syntax
+- Property configuration (Module, Name, Type)
+- Item lifecycle integration
+- Relationship definitions between Items
+
+**Location**: [`../cristalise-dsl-item/SKILL.md](../cristalise-dsl-item/SKILL.md)
+
+**Leading Words**: Item, property, Type, Module, Name, relationship
+
+---
 
 ### cristalise-dsl-workflow
 
@@ -61,55 +95,24 @@ Use when developing or modifying **Schema** definitions for CRISTAL-iSE **Outcom
 
 ---
 
-### cristalise-dsl-module
-
-**Status**: Placeholder — Content TBD
-
-Use when defining **Module** constructs — containers for organizing Items, managing dependencies, and establishing module-level configurations. This skill will provide:
-
-- Module definition syntax and structure
-- Dependency management between modules
-- Module-level properties and configurations
-- Best practices for module organization
-
-**Location**: [`../cristalise-dsl-module/SKILL.md](../cristalise-dsl-module/SKILL.md)
-
-**Leading Words**: Module, dependency, container, configuration
-
----
-
-### cristalise-dsl-item
-
-**Status**: Placeholder — Content TBD
-
-Use when creating and configuring individual **Items** — the business objects at the heart of CRISTAL-iSE. This skill will provide:
-
-- Item definition syntax
-- Property configuration (Module, Name, Type)
-- Item lifecycle integration
-- Relationship definitions between Items
-
-**Location**: [`../cristalise-dsl-item/SKILL.md](../cristalise-dsl-item/SKILL.md)
-
-**Leading Words**: Item, property, Type, Module, Name, relationship
-
----
-
 ### cristalise-dsl-script
 
-**Status**: Placeholder — Content TBD
+**Status**: Complete
 
-Use when writing **Script** definitions for routing logic, validation rules, and computed fields. This skill will provide:
+Use when writing **Script** definitions for routing logic, validation rules, computations, and other dynamic behaviour. This skill provides:
 
-- Groovy script syntax for routing
-- JavaScript expression support
-- Variable binding and scope rules
-- Common script patterns and examples
-- Error handling in scripts
+- Complete Script resource DSL syntax
+- File-based script approach with external references
+- Input/output parameter contracts
+- Binding variables (item, agent, job)
+- Script inclusion and reuse patterns
+- Error handling with ErrorInfo
+- Standard script patterns (Aggregate, QueryList)
+- MVEL2 template integration
 
 **Location**: [`../cristalise-dsl-script/SKILL.md](../cristalise-dsl-script/SKILL.md)
 
-**Leading Words**: Script, routing, expression, Groovy, JavaScript, binding, variable
+**Leading Words**: Script, Groovy, routing, expression, binding, variable, input, output, parameter
 
 ---
 
@@ -184,5 +187,5 @@ All cristalise-dsl-* skills follow consistent patterns:
 - [cristalise-dsl-schema](../cristalise-dsl-schema/SKILL.md) — Complete schema DSL reference
 - [cristalise-dsl-module](../cristalise-dsl-module/SKILL.md) — Module DSL reference (placeholder)
 - [cristalise-dsl-item](../cristalise-dsl-item/SKILL.md) — Item DSL reference (placeholder)
-- [cristalise-dsl-script](../cristalise-dsl-script/SKILL.md) — Script DSL reference (placeholder)
+- [cristalise-dsl-script](../cristalise-dsl-script/SKILL.md) — Complete Script DSL reference
 - [cristalise-dsl-query](../cristalise-dsl-query/SKILL.md) — Query DSL reference (placeholder)

@@ -24,17 +24,6 @@ The following variables are available in the Groovy expression:
 - `schema`: The `Schema` object.
 - `builder`: `OutcomeBuilder` instance.
 
-## Example
-
-```groovy
-field(name: 'TotalAmount', type: 'decimal') {
-    expression(
-        inputFields: ['Quantity', 'UnitPrice'],
-        expression: 'Quantity * UnitPrice'
-    )
-}
-```
-
 ## Limitations
 - Input fields must be at the same level as the computed field.
 - Only `UpdateScript` is currently generated.

@@ -48,17 +48,3 @@ Used within `field` to provide options for selection widgets.
 | `propertyNames` | String | Comma-separated ItemProperty names. |
 | `inputName` | String | Name of the input variable for the script/query. |
 | `values` | List<String> | Static list of options. |
-
-## Examples
-
-### Layout and Update
-```groovy
-field(name: 'Country', type: 'string') {
-    dynamicForms(type: 'SELECT', updateFields: ['City'])
-    listOfValues(queryRef: 'GetCountries:0')
-}
-field(name: 'City', type: 'string') {
-    dynamicForms(type: 'SELECT')
-    listOfValues(queryRef: 'GetCities:0', inputName: 'Country')
-}
-```

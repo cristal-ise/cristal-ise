@@ -49,13 +49,27 @@ field(name: 'Age', type: 'integer') {
 ### Complex UI Layout
 ```groovy
 struct(name: 'ContactInfo', useSequence: true) {
-    dynamicForms(label: 'Contact Information', container: 'ui-g-12')
-    field(name: 'Email', type: 'string') {
-        dynamicForms(label: 'Email Address', container: 'ui-g-6')
-        warning(pattern: '^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$', message: 'Invalid email format')
-    }
-    field(name: 'Phone', type: 'string') {
-        dynamicForms(label: 'Phone Number', container: 'ui-g-6', mask: '(999) 999-9999')
-    }
+  dynamicForms(label: 'Contact Information', container: 'ui-g-12')
+  field(name: 'Email', type: 'string') {
+    dynamicForms(label: 'Email Address', container: 'ui-g-6')
+    warning(pattern: '^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$', message: 'Invalid email format')
+  }
+  field(name: 'Phone', type: 'string') {
+    dynamicForms(label: 'Phone Number', container: 'ui-g-6', mask: '(999) 999-9999')
+  }
+}
+```
+
+### UI Layout and Update
+```groovy
+struct(name: 'Address', useSequence: true) {
+  field(name: 'Country', type: 'string') {
+    dynamicForms(type: 'SELECT', updateFields: ['City'])
+    listOfValues(queryRef: 'GetCountries:0')
+  }
+  field(name: 'City', type: 'string') {
+    dynamicForms(type: 'SELECT')
+    listOfValues(scriptRef: 'GetCities:0', inputName: 'Country')
+  }
 }
 ```
