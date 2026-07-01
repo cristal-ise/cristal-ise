@@ -3,15 +3,15 @@
 ### Basic Employee Record
 ```groovy
 Schema('Employee', 1) {
-    struct(name: 'Employee', documentation: 'Core employee record', useSequence: true) {
-        field(name: 'ID', type: 'integer')
-        field(name: 'FullName', type: 'string') {
-            dynamicForms(label: 'Full Name', container: 'ui-g-6')
-        }
-        field(name: 'Department', type: 'string') {
-            listOfValues(queryRef: 'GetDepartments:0')
-        }
+  struct(name: 'Employee', documentation: 'Core employee record', useSequence: true) {
+    field(name: 'ID', type: 'integer')
+    field(name: 'FullName', type: 'string') {
+      dynamicForms(label: 'Full Name', container: 'ui-g-6')
     }
+    field(name: 'Department', type: 'string') {
+      listOfValues(queryRef: 'GetDepartments:0')
+    }
+  }
 }
 ```
 
@@ -24,9 +24,9 @@ Schema('Patient_Details', 0) {
     field(name: 'DateOfDeath', type: 'date', multiplicity: '0..1')
     field(name: 'Age', type: 'integer') {
       expression(
-        imports: ['java.time.Period', 'java.time.LocalDate'],
-        inputFields: ['DateOfBirth, DateOfDeath'],
-        expression: 'Period.between(DateOfBirth, DateOfDeath ?: LocalDate.now()).getYears()'
+          imports: ['java.time.Period', 'java.time.LocalDate'],
+          inputFields: ['DateOfBirth, DateOfDeath'],
+          expression: 'Period.between(DateOfBirth, DateOfDeath ?: LocalDate.now()).getYears()'
       )
     }
   }
@@ -36,13 +36,13 @@ Schema('Patient_Details', 0) {
 ### Validation and Computed Fields
 ```groovy
 field(name: 'Age', type: 'integer') {
-    dynamicForms(disabled: true) // Computed, so user shouldn't edit
-    expression(
-        imports: ['java.time.Period', 'java.time.LocalDate'],
-        inputFields: ['BirthDate'],
-        expression: 'Period.between(BirthDate, LocalDate.now()).getYears()'
-    )
-    warning(expression: 'element.value >= 18', message: 'Employee must be at least 18 years old')
+  dynamicForms(disabled: true) // Computed, so user shouldn't edit
+  expression(
+      imports: ['java.time.Period', 'java.time.LocalDate'],
+      inputFields: ['BirthDate'],
+      expression: 'Period.between(BirthDate, LocalDate.now()).getYears()'
+  )
+  warning(expression: 'element.value >= 18', message: 'Employee must be at least 18 years old')
 }
 ```
 
@@ -60,7 +60,7 @@ struct(name: 'ContactInfo', useSequence: true) {
 }
 ```
 
-### UI Layout and Update
+### Update UI form listOfValues using Script or Query
 ```groovy
 struct(name: 'Address', useSequence: true) {
   field(name: 'Country', type: 'string') {

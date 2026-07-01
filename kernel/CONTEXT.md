@@ -78,6 +78,19 @@ _Avoid_: List, Array
 A concrete Collection implementation with a graph layout for modeling real-world compositions on a two-dimensional canvas.
 _Avoid_: Composition, Structure
 
+**CollectionDescription**:
+A template collection that can be instantiated to create actual collections. Used in Description Items to define collection structure and member constraints.
+Implementations: AggregationDescription, DependencyDescription
+_Avoid_: CollectionTemplate, CollectionBlueprint
+
+**AggregationDescription**:
+A CollectionDescription implementation that creates Aggregation instances with graph layout.
+_Avoid_: AggregationTemplate
+
+**DependencyDescription**:
+A CollectionDescription implementation that creates Dependency instances with type constraints.
+_Avoid_: DependencyTemplate
+
 ### Lifecycle Management
 
 **Activity**:
@@ -95,6 +108,32 @@ _Avoid_: StateDiagram, TransitionModel
 **PredefinedStep**:
 A special Activity implemented within the kernel that executes core functionality during Activity transaction processing.
 _Avoid_: BuiltInActivity, KernelActivity
+
+#### PredefinedStep Implementations
+
+**AddNewCollectionDescription**:
+Creates a new collection description template (Aggregation or Dependency) within an Item, which can be instantiated during Item creation.
+_Avoid_: CreateCollectionTemplate
+
+**CreateItemFromDescription**:
+Instantiates a new Item from a Description Item by copying its workflow, properties, and CollectionDescriptions during Activity execution.
+_Avoid_: InstantiateFromTemplate, CloneItem
+
+**CreateAgentFromDescription**:
+Instantiates a new Agent from a Description Item, including its Roles and permissions, during Activity execution.
+_Avoid_: CreateUserFromTemplate
+
+**CreateNewCollectionVersion**:
+Creates a snapshot version of an existing collection, enabling versioned collection states.
+_Avoid_: VersionCollection, SnapshotCollection
+
+**AddMemberToCollection**:
+Adds a member Item to a Dependency collection during Activity execution, optionally triggering a MemberAddScript.
+_Avoid_: AddToCollection, InsertMember
+
+**Erase**:
+Deletes all objects and domain paths for an Item during Activity execution. Irreversible operation.
+_Avoid_: DeleteItem, RemoveItem
 
 ### Data & Execution
 
