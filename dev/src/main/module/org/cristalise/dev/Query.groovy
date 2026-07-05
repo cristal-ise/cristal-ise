@@ -33,6 +33,7 @@ WITH
     params(fullTextSearch) AS (VALUES ('@{searchText}')),
     pivoted AS (
         SELECT ip."UUID",
+               dp."PATH" AS "Path",
                MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Module')  AS "Module",
                MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Type')    AS "Type",
                MAX(ip."VALUE") FILTER (WHERE ip."NAME" = 'Name')    AS "Name",
@@ -42,7 +43,7 @@ WITH
         WHERE dp."PATH" LIKE '@{domainPath}%'
         GROUP BY ip."UUID", dp."PATH"
     )
-SELECT p."UUID", p."Module", p."Type", p."Name", p."Version", COUNT(*) OVER() AS "TotalCount"
+SELECT p."UUID", p."Module", p."Type", p."Name", p."Version", p."Path", COUNT(*) OVER() AS "TotalCount"
 FROM pivoted p
     CROSS JOIN params
 WHERE fullTextSearch = ''

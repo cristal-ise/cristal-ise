@@ -120,6 +120,7 @@
     "module": "Modul",
     "uuid": "UUID",
     "version": "Version",
+    "path": "Pfad",
     "actions": "Aktionen",
     "choose_columns": "Spalten auswählen",
     "columns_selected": "{{count}} Spalten ausgewählt",

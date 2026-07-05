@@ -1,6 +1,6 @@
-<Item initialPath="/dev" name="LlmConnectionFactory" ns="dev" version="0" workflow="CrudFactory_Workflow" workflowVer="0">
+<Item initialPath="/vibecoding" name="LlmConnectionFactory" ns="dev" version="0" workflow="CrudFactory_Workflow" workflowVer="0">
   <Property mutable="false" name="Type">Factory</Property>
-  <Property mutable="false" name="Root">/dev/LlmConnections</Property>
+  <Property mutable="false" name="Root">/vibecoding/LlmConnections</Property>
   <Property mutable="false" name="UpdateSchema">LlmConnection_Details:0</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/LlmConnection_0.xml</Outcome>
   <Dependency classProps="" isDescription="false" name="workflow">

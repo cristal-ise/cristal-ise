@@ -120,6 +120,7 @@
     "module": "Modul",
     "uuid": "UUID",
     "version": "Verzió",
+    "path": "Elérési Út",
     "actions": "Műveletek",
     "choose_columns": "Oszlopok kiválasztása",
     "columns_selected": "{{count}} oszlop kiválasztva",

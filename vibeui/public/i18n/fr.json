@@ -120,6 +120,7 @@
     "module": "Module",
     "uuid": "UUID",
     "version": "Version",
+    "path": "Chemin",
     "actions": "Actions",
     "choose_columns": "Choisir les colonnes",
     "columns_selected": "{{count}} colonnes sélectionnées",

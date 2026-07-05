@@ -4,6 +4,7 @@ export interface BasicItemListResultItem {
   Type: string;
   Name: string;
   Version: string;
+  Path: string;
   TotalCount: number;
 }
 
