@@ -1,7 +1,6 @@
-import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
-import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
-import static org.cristalise.kernel.collection.Collection.Cardinality.*
-import static org.cristalise.kernel.collection.Collection.Type.*
+import static org.cristalise.kernel.collection.BuiltInCollections.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.ManyToOne
+import static org.cristalise.kernel.collection.Collection.Type.Bidirectional
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 
 def detailsSchema = Schema("Patient_Details", 0) {
@@ -52,7 +51,7 @@ def aggregateEA = Activity("Patient_Aggregate", 0) {
     Script(aggregateScript)
 }
 
-def patientWf = Workflow(name: "Patient_Workflow", version: 0, generate: true) {
+Workflow(name: "Patient_Workflow", version: 0, generate: true) {
     Layout {
         Act('SetDetails', setDetailsEA)
         Act('SetUrinSample', urinalysisEA)
@@ -79,19 +78,19 @@ Item(name: 'PatientFactory', version: 0, folder: '/integTest', workflow: 'CrudFa
     }
 
     Dependency('workflow') {
-        Member(patientWf) {
-            Property('Version': 0)
-        }
+        Member($patient_Workflow_CompositeActivityDef)
+    }
+
+    Dependency(SCHEMA_INITIALISE) {
+        Member($patient_Details_Schema)
     }
 
     Dependency(MASTER_SCHEMA) {
-        Member(itemPath: '/desc/Schema/integTest/Patient') {
-            Property('Version': 0)
-        }
+        Member($patient_Schema)
     }
 
     Dependency(AGGREGATE_SCRIPT) {
-        Member(itemPath: '/desc/Script/integTest/Patient_Aggregate') {
+        Member($patient_Aggregate_Script) {
             Property('Version': 0)
         }
     }

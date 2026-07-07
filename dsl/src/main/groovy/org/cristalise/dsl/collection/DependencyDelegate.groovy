@@ -20,6 +20,8 @@
  */
 package org.cristalise.dsl.collection
 
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.cristalise.dsl.property.PropertyBuilder
 import org.cristalise.dsl.property.PropertyDelegate
 import org.cristalise.kernel.collection.Dependency
@@ -29,11 +31,8 @@ import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.lookup.Path
 import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.BuiltInResources
-import org.cristalise.kernel.property.PropertyDescriptionList
+import org.cristalise.kernel.utils.CastorHashMap
 import org.cristalise.kernel.utils.DescriptionObject
-
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 
 /**
  * 
@@ -104,6 +103,14 @@ class DependencyDelegate {
             DependencyMemberDelegate delegate = new DependencyMemberDelegate()
             delegate.processClosure(cl)
             member.properties << delegate.props
+        } else {
+            if (attrs.itemPath instanceof DescriptionObject) {
+                def descVersion = (attrs.itemPath as DescriptionObject).version
+                member.properties << new CastorHashMap(Version: descVersion)
+            }
+            else {
+                throw new IllegalArgumentException("Missing version for itemPath: $iPathStr")
+            }
         }
     }
 

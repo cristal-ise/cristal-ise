@@ -9,6 +9,7 @@
         <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
         <KeyValuePair Key="DependencyTo" String="Patients" isAbstract="false"/>
         <KeyValuePair Key="DependencyCardinality" String="ManyToOne" isAbstract="false"/>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
       </MemberProperties>
     </DependencyMember>
     <CollectionProperties>
@@ -19,6 +20,14 @@
   </Dependency>
   <Dependency classProps="" isDescription="false" name="workflow">
     <DependencyMember itemPath="/desc/ActivityDesc/integTest/Patient_Workflow">
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
+    </DependencyMember>
+    <CollectionProperties/>
+  </Dependency>
+  <Dependency classProps="" isDescription="false" name="SchemaInitialise">
+    <DependencyMember itemPath="/desc/Schema/integTest/Patient_Details">
       <MemberProperties>
         <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
       </MemberProperties>

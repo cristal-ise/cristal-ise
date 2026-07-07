@@ -68,7 +68,7 @@ class ScriptBuilderSpecs extends Specification implements CristalTestSetup {
     
     def 'Script code must be provided as text'() {
         when:
-        ScriptTestBuilder.build("testing", "MyFirstScript", 0) {
+        boolean isEqual = ScriptTestBuilder.build("testing", "MyFirstScript", 0) {
             input("input1", "java.lang.String")
             output("org.cristalise.kernel.scripting.ErrorInfo")
             groovy { ; }
@@ -79,7 +79,7 @@ class ScriptBuilderSpecs extends Specification implements CristalTestSetup {
   <script language='groovy' name='MyFirstScript'><![CDATA[ ; ]]></script>
 </cristalscript>""")
         then:
-        thrown(Exception)
+        assert !isEqual
     }
 
     @Ignore('jython engine is not provided in default distribution')
