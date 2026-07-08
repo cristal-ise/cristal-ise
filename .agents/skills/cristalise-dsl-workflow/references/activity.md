@@ -20,12 +20,12 @@
 Act('WorkflowVertexName', $activityDef_Variable)
 
 // Without explicit name - uses ActivityDef name
-Act($activityDef_Variable)
+Act($update_ActivityDef)
 ```
 
 ### ElemAct
 
-**ElemAct** is an alias for Act with Elementary Activity:
+**ElemAct** is an alias for Act with Complexity = Elementary:
 
 ```groovy
 ElemAct('Name', $elemAct_Def)
@@ -41,7 +41,7 @@ EA('Name', $elemAct_Def)
 
 ### CompAct
 
-**CompAct** is an alias for Act with Composite Activity:
+**CompAct** is an alias for Act with Complexity = Composite:
 
 ```groovy
 CompAct('Name', $compAct_Def)
@@ -55,11 +55,48 @@ CompAct('Name', $compAct_Def)
 CA('Name', $compAct_Def)
 ```
 
+## Inline Activity Definitions
+Creates the ActivityDef Item as well when used within the workflow Layout
+
+### ElemActDef
+
+Define an Elementary ActivityDef inline:
+
+```groovy
+ElemActDef(name: 'ActivityName', version: 0) {
+    Property((OUTCOME_INIT): 'Empty')
+    Schema($schema_Variable)
+    Script($script_Variable)
+}
+```
+
+#### Common Properties
+
+- `OUTCOME_INIT` — Initial outcome state (e.g., 'Empty')
+- `AGENT_ROLE` — Agent role for execution (e.g., 'UserCode')
+- `AGENT_NAME` — Specific agent name
+
+### CompActDef
+
+Define a Composite ActivityDef inline with its own Layout:
+
+```groovy
+CompActDef(name: 'CompositeName', version: 0) {
+    Property(key: 'value')
+    Schema($schema_Variable)
+    StateMachine($stateMachine_Variable)
+    Layout {
+        // Nested workflow patterns
+        Act($some_Activity)
+    }
+}
+```
+
 ## Best Practices
 
-### Using Composite ActivityDef for Subflows
+### Use Composite ActivityDef for Subflows
 
-**Use CompositeActivityDef to group and name complex subflows** when your workflow contains logical sections that should be:
+**Use CompActDef to group and name complex subflows** when your workflow contains logical sections that:
 - **Reusable** across multiple workflows
 - **Named** for clarity and maintainability
 - **Encapsulated** to hide complexity
@@ -71,7 +108,7 @@ Workflow('OrderProcessing_Workflow', 0, generate: true) {
     Layout {
         // Main workflow flow
         Act('ReceiveOrder', $receiveOrder_ActivityDef)
-        
+
         // Encapsulate payment processing as a named subflow
         CompActDef(name: 'ProcessPayment', version: 0) {
             Layout {
@@ -176,44 +213,6 @@ Workflow('DataProcessing_Workflow', 0, generate: true) {
 | Subflow reference | Descriptive subflow name | `CompAct('PaymentProcessing', $payment_CompActDef)` |
 | Inline CompActDef | Subflow purpose | `CompActDef(name: 'Validation', version: 0)` |
 
-## Inline Activity Definitions
-
-### ElemActDef
-
-Define an Elementary ActivityDef inline:
-
-```groovy
-ElemActDef(name: 'ActivityName', version: 0) {
-    Property((OUTCOME_INIT): 'Empty')
-    Schema($schema_Variable)
-    Script($script_Variable)
-}
-```
-
-#### Common Properties
-
-- `OUTCOME_INIT` — Initial outcome state (e.g., 'Empty')
-- `AGENT_ROLE` — Agent role for execution (e.g., 'UserCode')
-- `AGENT_NAME` — Specific agent name
-
-### CompActDef
-
-Define a Composite ActivityDef inline with its own Layout:
-
-```groovy
-CompActDef(name: 'CompositeName', version: 0) {
-    Property(key: 'value')
-    Schema($schema_Variable)
-    StateMachine($stateMachine_Variable)
-    Layout {
-        // Nested workflow patterns
-        Act($some_Activity)
-    }
-}
-```
-
-**Best Practice:** Use CompActDef to create named subflows within your workflow. The `name` parameter becomes the vertex name in the parent workflow, while the internal Layout defines the subflow's logic.
-
 ## Properties on Activities
 
 Set properties when referencing Activities:
@@ -229,16 +228,7 @@ Act('MyAct', $actDef) {
 
 ## Common Built-in Property Keys
 
-| Key | Type | Description |
-|-----|------|-------------|
-| `AGENT_ROLE` | String | Agent role for execution |
-| `AGENT_NAME` | String | Specific agent name |
-| `OUTCOME_INIT` | String | Initial outcome state |
-| `ROUTING_SCRIPT_NAME` | String | Routing script name |
-| `ROUTING_SCRIPT_VERSION` | Integer | Routing script version |
-| `ROUTING_EXPR` | String | Routing expression |
-| `DEPENDENCY_NAME` | String | Dependency name |
-| `ACTIVITY_DEF_NAME` | String | Activity definition name |
+Check `org.cristalise.kernel.graph.model.BuiltInVertexProperties` enum for properties that have specific usage with the system
 
 ## See Also
 

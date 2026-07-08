@@ -28,13 +28,12 @@ $ + convertToValidName(obj.name) + '_' + obj.class.simpleName
 **Examples:**
 
 | Object Type | Name | Variable Name |
-|-------------|------|---------------|
-| ActivityDef | `Create` | `$create_ActivityDef` |
-| ActivityDef | `MyActivity` | `$myActivity_ActivityDef` |
+|----------|------|---------------|
+| Activity | `Create` | `$create_ActivityDef` |
+| Workflow | `MyWorkflow` | `$myWorkflow_CompositeActivityDef` |
 | Schema | `Patient` | `$patient_Schema` |
 | Script | `Validate` | `$validate_Script` |
 | Query | `FindItems` | `$findItems_Query` |
-| Workflow | `MyWorkflow` | `$myWorkflow_Workflow` |
 
 ### Name Conversion Rules
 
@@ -52,11 +51,6 @@ The `convertToValidName()` method:
 For objects that are not DescriptionObjects, the system uses **default bean keys** to extract a name:
 - Default keys: `id`, `key`, `name` (configurable via `DSL_Module_BindingConvention_defaulBeanKeys`)
 - The first non-null property value is used
-
-```groovy
-// If an object has a 'name' property with value 'myObject'
-// Creates: $myObject
-```
 
 ## Configuration Properties
 

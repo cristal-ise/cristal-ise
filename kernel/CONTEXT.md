@@ -25,11 +25,13 @@ _Avoid_: AccessRight, Privilege
 ### Metadata & Configuration
 
 **Description**:
-An Item containing all the logic (Lifecycle) to maintain the data describing other Items. Descriptions have Activities for both creating Items and editing the data/structure used to create Items. See [Description types](#Description Types) for more details.
+An Item containing all the logic (Lifecycle) to maintain the data describing other Items. Descriptions have Activities for both creating Items and editing the data/structure used to create Items. See system-provided [Description types](#Description Types) for more details. User can define Descriptions. 
+_Synonym_: Description Item
 _Avoid_: Template, Blueprint
 
 **Factory**:
-A simplified form of Description that only contains Activities for creating Items, without the editing capabilities.
+A simplified form of Description that only contains one Activity to create Items, without the editing capabilities and all data required to create other Items is hardcoded in the Description itself. This is the most commonly used form of Description Item defined by the user.
+_Synonym_: Factory Item
 _Avoid_: Builder, Creator
 
 **Property**:
@@ -37,32 +39,41 @@ A key-value pair used as metadata by the kernel for identification and typing of
 _Avoid_: Attribute, Field, Metadata
 
 ### Description Types
+System-provided Description Items which are also represented as java classes in the kernel.
 
-**ImportItem**: A Description Item that defines the complete structure, properties, collections, workflow, and lifecycle for creating new Items. _Avoid_: Template, Blueprint
+**ImportItem**: A Description Item that defines the complete structure, properties, collections, workflow, and lifecycle for creating new Items.
+_Avoid_: Template, Blueprint
 
-**ImportAgent**: A Description Item that defines an Agent, including its Roles and permissions. _Avoid_: User
+**ImportAgent**: A Description Item that defines an Agent withput a workflow, including its Roles. 
+_Avoid_: User
 
 **ImportRole**: A Description Item that defines a Role, including its permissions.
 
 **Module**: A Description Item that defines a collection of Items that implement a set of functionalities, with its own namespace and version. _Avoid_: Package, Component, Library
 
-**PropertyDescriptionList**: A Description Item that defines the metadata properties (Property/ItemProperty) used for identification and typing of Items, including their names, default values, and mutability. _Avoid_: Attribute, Field, Metadata
+**PropertyDescriptionList**: A Description Item that defines the metadata properties (Property/ItemProperty) used for identification and typing of Items, including their names, default values, and mutability.
+_Avoid_: Attribute, Field, Metadata
 
-**Schema**: A Description Item that defines the structure of data that is stored or computed in the system, specifying the fields, types, and constraints for Outcomes. _Avoid_: DataModel, DataStructure
+**Schema**: A Description Item that defines the structure of data that is stored or computed in the system, specifying the fields, types, and constraints for Outcomes.
+_Avoid_: DataModel, DataStructure
 
-**Script**: A Description Item that encapsulates executable code (using JSR-223 API) that can be associated with Activities or execute as GET endpoints. _Avoid_: Code, Function, Procedure
+**Script**: A Description Item that encapsulates executable code (using JSR-223 API) that can be associated with Activities or execute as GET endpoints.
+_Avoid_: Code, Function, Procedure
 
-**Query**: A Description Item that encapsulates data selection logic that can execute as GET endpoints or be associated with Activities. _Avoid_: SQLQuery, DataQuery
+**Query**: A Description Item that encapsulates data selection logic that can execute as GET endpoints or be associated with Activities.
+_Avoid_: SQLQuery, DataQuery
 
-**StateMachine**: A Description Item that defines the possible transitions during the execution of an Activity, managing internal state within that Activity. _Avoid_: StateDiagram, TransitionModel
+**StateMachine**: A Description Item that defines the possible transitions during the execution of an Activity, managing internal state within that Activity.
+_Avoid_: StateDiagram, TransitionModel
 
-**ActivityDef**: A Description Item that defines a Service/Task/Endpoint within an Item's Lifecycle, representing a PUT/POST operation with write transaction. Base class for ElementaryActivityDef and CompositeActivityDef. _Avoid_: Operation, Action, Method
+**ActivityDef**: A Description Item that defines a Service/Task/Endpoint within an Item's Lifecycle, representing a PUT/POST operation with write transaction. Base class for CompositeActivityDef.
+_Avoid_: Operation, Action, Method
 
-**ElementaryActivityDef**: A Description Item that defines a single, atomic Activity within an Item's Lifecycle. _Avoid_: Operation, Action, Method
+**CompositeActivityDef**: A Description Item that defines a composite Activity that coordinates multiple sub-Activities within an Item's Lifecycle.
+_Avoid_: Operation, Action, Method
 
-**CompositeActivityDef**: A Description Item that defines a composite Activity that coordinates multiple sub-Activities within an Item's Lifecycle. _Avoid_: Operation, Action, Method
-
-**DomainContext**: A Description Item that defines the domain namespace and context for Items. _Avoid_: Path, Domain, URI
+**DomainContext**: A Description Item that defines the domain namespace and context for Items.
+_Avoid_: Path, Domain, URI
 
 ### Relationships
 
@@ -79,7 +90,7 @@ A concrete Collection implementation with a graph layout for modeling real-world
 _Avoid_: Composition, Structure
 
 **CollectionDescription**:
-A template collection that can be instantiated to create actual collections. Used in Description Items to define collection structure and member constraints.
+A Collection that can be instantiated to create actual Collections. Used in Description Items to define Collection structure and member constraints of the instance Items.
 Implementations: AggregationDescription, DependencyDescription
 _Avoid_: CollectionTemplate, CollectionBlueprint
 
@@ -112,7 +123,7 @@ _Avoid_: BuiltInActivity, KernelActivity
 #### PredefinedStep Implementations
 
 **AddNewCollectionDescription**:
-Creates a new collection description template (Aggregation or Dependency) within an Item, which can be instantiated during Item creation.
+Creates a new collection description (AggregationDescription or DependencyDescription) within an Item, which can be instantiated  during Item creation.
 _Avoid_: CreateCollectionTemplate
 
 **CreateItemFromDescription**:
