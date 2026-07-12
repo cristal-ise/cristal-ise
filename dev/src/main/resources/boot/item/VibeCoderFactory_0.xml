@@ -3,7 +3,7 @@
   <Property mutable="false" name="Root">/vibecoding/VibeCoders</Property>
   <Property mutable="false" name="CreateAgent">true</Property>
   <Property mutable="true" name="DefaultRoles">Admin</Property>
-  <Property mutable="false" name="UpdateSchema">VibeCoder_Details:0</Property>
+  <Property mutable="false" name="UpdateSchemaURN">VibeCoder_Details:0</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/VibeCoder_0.xml</Outcome>
   <Dependency classProps="" isDescription="false" name="workflow">
     <DependencyMember itemPath="/desc/ActivityDesc/dev/VibeCoder_Workflow">
@@ -32,9 +32,10 @@
   <Dependency classProps="" isDescription="true" name="VibeConversations">
     <DependencyMember itemPath="/desc/PropertyDesc/dev/VibeConversation">
       <MemberProperties>
-        <KeyValuePair Key="DependencyTo" String="VibeCoders" isAbstract="false"/>
         <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+        <KeyValuePair Key="DependencyTo" String="VibeCoders" isAbstract="false"/>
         <KeyValuePair Key="DependencyCardinality" String="ManyToMany" isAbstract="false"/>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
       </MemberProperties>
     </DependencyMember>
     <CollectionProperties>

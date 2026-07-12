@@ -20,15 +20,13 @@
  */
 package org.cristalise.dev.vibecoding.vibeConversation
 
-import static org.apache.commons.lang3.StringUtils.*
-import static org.cristalise.kernel.collection.Collection.Cardinality.*
-import static org.cristalise.kernel.collection.Collection.Type.*
-import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
-import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
-import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
-import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
+
+import static org.cristalise.kernel.collection.BuiltInCollections.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.ManyToMany
+import static org.cristalise.kernel.collection.Collection.Cardinality.ManyToOne
+import static org.cristalise.kernel.collection.Collection.Type.Bidirectional
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
-import static org.cristalise.kernel.property.BuiltInItemProperties.*;
+import static org.cristalise.kernel.property.BuiltInItemProperties.UPDATE_SCHEMA_URN;
 
 /**
  * VibeConversation Item
@@ -142,7 +140,7 @@ Item(name: 'VibeConversationFactory', version: 0, folder: '/vibecoding', workflo
 
 
 
-  InmutableProperty((UPDATE_SCHEMA): 'VibeConversation_Details:0')
+  InmutableProperty((UPDATE_SCHEMA_URN): 'VibeConversation_Details:0')
 
 
   Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/VibeConversation_0.xml')

@@ -44,9 +44,9 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.property.BuiltInItemProperties;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
-import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
 import java.util.ArrayList;
@@ -176,7 +176,7 @@ public class CreateItemFromDescription extends PredefinedStep {
     public String getItemName(ItemPath descItemPath, String newName, TransactionKey transactionKey) 
             throws InvalidDataException, PersistencyException, ObjectCannotBeUpdated, ObjectNotFoundException
     {
-        // Check if Name is generated
+        // Check if Name shall be generated
         if (FACTORY_GENERATED_NAME.equals(newName)) {
             try {
                 String  prefix  = getPropertyValue(descItemPath, ID_PREFIX, "", transactionKey);
@@ -274,25 +274,26 @@ public class CreateItemFromDescription extends PredefinedStep {
 
         if (props == null) {
             // copy properties -- intend to create from propdesc
-            PropertyDescriptionList pdList = getPropertyDescriptionOutcome(descItem.getPath(), descVer, transactionKey);
+            var pdList = getPropertyDescriptionOutcome(descItem.getPath(), descVer, transactionKey);
             props  = pdList.instantiate(initProps);
 
             addToCache(cacheKey, props);
         }
 
-        // set Name prop or create if not present
-        boolean foundName = false;
+        addBuiltInProperty(NAME, newName, props, true);
+
+        return props;
+    }
+
+    private static void addBuiltInProperty(BuiltInItemProperties builtInProp, String value, PropertyArrayList props, boolean mutable) {
         for (Property prop : props.list) {
-            if (prop.getName().equals(NAME.toString())) {
-                foundName = true;
-                prop.setValue(newName);
-                break;
+            if (prop.getName().equals(builtInProp.toString())) {
+                prop.setValue(value);
+                return;
             }
         }
 
-        if (!foundName) props.list.add(new Property(NAME, newName, true));
-
-        return props;
+        props.list.add(new Property(builtInProp, value, mutable));
     }
 
     /**

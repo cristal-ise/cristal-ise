@@ -61,6 +61,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.cristalise.kernel.SystemProperties.Outcome_Validation_useDOM;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 
@@ -153,7 +154,7 @@ public class Outcome implements C2KLocalObject {
             mDOM = parse(xml);
         }
         catch (IOException | SAXException ex) {
-            log.error("INVALID XML - schema:"+(null == mSchema ? null : mSchema.getName())+"\n"+xml, ex);
+            log.error("INVALID XML - schema:{}\n{}", null == mSchema ? null : mSchema.getName(), xml, ex);
             throw new InvalidDataException("XML not valid for schema:"+mSchema+" error:"+ex.getMessage());
         }
     }
@@ -173,7 +174,7 @@ public class Outcome implements C2KLocalObject {
             mDOM = parse(xml);
         }
         catch (IOException | SAXException ex) {
-            log.error("INVALID XML - schema:"+(null == mSchema ? null : mSchema.getName())+"\n"+xml, ex);
+            log.error("INVALID XML - schema:{}\n{}", null == mSchema ? null : mSchema.getName(), xml, ex);
             throw new InvalidDataException("XML not valid for schema:"+mSchema+" error:"+ex.getMessage());
         }
     }
@@ -244,45 +245,44 @@ public class Outcome implements C2KLocalObject {
                 mSchema = LocalObjectLoader.getSchema(mSchemaName, mSchemaVersion, transactionKey);
             }
             catch (ObjectNotFoundException | InvalidDataException e) {
-                log.debug("Cannot retrieve Schema object", e);
+                log.debug("getSchema() - Cannot retrieve Schema:{} version:{}", mSchemaName, mSchemaVersion, e);
             }
         }
         return mSchema;
     }
 
     /**
-     * Retrieves the SchemaName, Version, EevetnId triplet from the path. Check getClusterPath() implementation
+     * Retrieves the SchemaName, Version and EventId triplet from the path. Check getClusterPath() implementation
      *
      * @param path the ClusterPath to work with
      * @throws PersistencyException path was incorrect
      * @throws InvalidDataException Schema was not found or the Path has incorrect data
      */
     protected void setMetaDataFromPath(String path) throws PersistencyException, InvalidDataException {
-        StringTokenizer tok = new StringTokenizer(path,"/");
+        StringTokenizer tokens = new StringTokenizer(path,"/");
 
-        if (tok.countTokens() != 3 && !(tok.nextToken().equals(OUTCOME.getName())))
+        if (tokens.countTokens() != 3 && !(tokens.nextToken().equals(OUTCOME.getName())))
             throw new PersistencyException("Outcome path must have three components:" + path);
 
-        String schemaName = tok.nextToken();
-        String verString  = tok.nextToken();
-        String objId      = tok.nextToken();
+        String schemaName = tokens.nextToken();
+        String versionStr = tokens.nextToken();
+        String eventIdStr = tokens.nextToken();
 
         try {
-            Integer schemaVersion = Integer.valueOf(verString);
-            mSchema = LocalObjectLoader.getSchema(schemaName, schemaVersion);
-            mID = Integer.valueOf(objId);
+            mSchema = LocalObjectLoader.getSchema(schemaName, Integer.parseInt(versionStr));
+            mID = Integer.valueOf(eventIdStr);
         }
         catch (NumberFormatException ex) {
-            throw new InvalidDataException("Version or EventID was an invalid number version:"+verString + " eventID:" + objId);
+            throw new InvalidDataException("Problem loading schema:"+schemaName+" because Version:"+ versionStr +" or EventID:"+eventIdStr+" was an invalid number");
         }
         catch (ObjectNotFoundException e) {
             log.error("", e);
-            throw new InvalidDataException("Problem loading schema:"+schemaName+" version:"+verString);
+            throw new InvalidDataException("Problem loading schema:"+path);
         }
     }
 
     /**
-     * Evaluates the given XPath expression thread-safely and efficiently. It starts fromt he root Node.
+     * Evaluates the given XPath expression thread-safely and efficiently. It starts from the root Node.
      *
      * @param xpathExpr the XPath expression
      * @return the result of the evaluated expression
@@ -334,9 +334,9 @@ public class Outcome implements C2KLocalObject {
         String error = validate();
 
         if (StringUtils.isNotBlank(error)) {
-            log.error("Outcome not valid: " + error);
-            log.error("XML: \n"+getData());
-            log.error("XSD: \n"+getSchema().getXSD());
+            log.error("Outcome not valid: {}", error);
+            log.error("XML: \n{}", getData());
+            log.error("XSD: \n{}", getSchema().getXSD());
             throw new InvalidDataException(error);
         }
     }
@@ -347,7 +347,7 @@ public class Outcome implements C2KLocalObject {
             mID = Integer.valueOf(name);
         }
         catch (NumberFormatException e) {
-            log.error("Invalid id set on Outcome:"+name);
+            log.error("Invalid id set on Outcome:{}", name);
         }
     }
 
@@ -377,7 +377,7 @@ public class Outcome implements C2KLocalObject {
             NodeList nodeChildren = node.getChildNodes();
 
             if (nodeChildren.getLength() == 0) {
-                log.trace("getNodeValue() - No child/text node for node:"+node.getNodeName()+" => returning null");
+                log.trace("getNodeValue() - No child/text node for node:{} => returning null", node.getNodeName());
                 //throw new InvalidDataException("No child/text node for element '"+node.getNodeName()+"'");
                 return null;
             }
@@ -538,7 +538,7 @@ public class Outcome implements C2KLocalObject {
      */
     public void setAttribute(Element element, String name, String data, boolean remove) throws InvalidDataException {
         if (data == null && remove) {
-            log.debug("setAttribute() - removing name:"+name);
+            log.debug("setAttribute() - removing name:{}", name);
 
             if (element.hasAttribute(name)) element.removeAttribute(name);
             return;
@@ -627,7 +627,7 @@ public class Outcome implements C2KLocalObject {
 
         if (hasSingleField(elements)) {
             if (data == null && remove) {
-                log.debug("setField() - removing name:"+name);
+                log.debug("setField() - removing name:{}", name);
                 element.removeChild(elements.item(0));
                 return;
             }
@@ -715,8 +715,8 @@ public class Outcome implements C2KLocalObject {
         Node field = getNodeByXPath(xpath);
 
         if (field == null) {
-            log.error("Xpath '"+xpath+"' is invalid", getData());
-            throw new InvalidDataException("Xpath '"+xpath+"' is invalid");
+            log.error("setFieldByXPath() - Xpath '{}' is invalid for outcome:\n{}", xpath, getData());
+            throw new InvalidDataException("Xpath '"+xpath+"' is invalid for outcome");
         }
         else
             setNodeValue(field, data);
@@ -774,7 +774,7 @@ public class Outcome implements C2KLocalObject {
         if (mSchema != null) {
             return mSchema.getName();
         }
-        else if (StringUtils.isNoneBlank(mSchemaName)) {
+        else if (isNotBlank(mSchemaName)) {
             return mSchemaName;
         }
 
@@ -972,7 +972,7 @@ public class Outcome implements C2KLocalObject {
         Node nodeToTemove = getNodeByXPath(xpathExpr);
 
         if (nodeToTemove == null) {
-            log.error("Xpath '"+xpathExpr+"' is invalid\n" + getData());
+            log.error("Xpath '{}' is invalid\n{}", xpathExpr, getData());
             throw new InvalidDataException("Xpath '"+xpathExpr+"' is invalid");
         }
 

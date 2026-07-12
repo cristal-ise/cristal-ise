@@ -22,50 +22,60 @@
 package org.cristalise.kernel.property;
 
 import org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription;
+import org.cristalise.kernel.process.Bootstrap;
 
 
 /**
  * Helper enumeration to make built-in Property names easier to maintain and document
  */
 public enum BuiltInItemProperties {
-    AGGREGATE_SCRIPT_URN("AggregateScriptURN"),
-
     /**
-     * Used in description Items to manage Elementary or Composite Activity Definition
+     * Used in Description Items to manage Elementary or Composite ActivityDef
      */
     COMPLEXITY("Complexity"),
 
     /**
-     *  Used for generating Names: the prefix (e.g. PR) used as a beginning of the Name
+     *  Used for generating Names in {@link CreateItemFromDescription}: the prefix (e.g. PR) used as a beginning of the Name
      */
     ID_PREFIX("IDPrefix"),
 
     /**
-     * 
+     * The Propoerty is created and updated during {@link Bootstrap} in the so-called Server Item, 
+     * from a file on the classes created during hte build of the kernel.
      */
     KERNEL_VERSION("KernelVersion"),
 
     /**
-     * Used for generating Names: the length of the number part left padded by zeros
+     * Used for generating Names in {@link CreateItemFromDescription}: the length of the number part left padded by zeros
      */
     LEFT_PAD_SIZE("LeftPadSize"),
 
     /**
-     *  Used for generating Names: the last number used to generate a Name
+     *  Used for generating Names {@link CreateItemFromDescription}: the last number used to generate a Name
      */
     LAST_COUNT("LastCount"),
 
+    /**
+     * Represents the unique resource name (URN) of a Schema identifying and 
+     * associating it with Item(s) as an Master Schema. 
+     */
     MASTER_SCHEMA_URN("MasterSchemaURN"),
 
     /**
-     * The name or ID of the Item, specified by the Factory Item and sent as the first parameter in the
+     * The name or the generated ID of the Item, specified by the Factory Item and sent as the first parameter in the
      * {@link CreateItemFromDescription} predefined Step or generated during the execution of {@link CreateItemFromDescription}.
      * It will be automatically added even if it was not defined.
      */
     NAME("Name"),
 
+    /**
+     * 
+     */
     NAMESPACE("Namespace"),
 
+    /**
+     * 
+     */
     MODULE("Module"),
 
     /**
@@ -89,6 +99,9 @@ public enum BuiltInItemProperties {
      */
     SECURITY_DOMAIN("SecurityDomain"),
 
+    /**
+     * 
+     */
     VERSION("Version"),
 
     /**
@@ -116,10 +129,18 @@ public enum BuiltInItemProperties {
     STATE_MACHINE_URN("StateMachineURN"),
 
     /**
-     * The Name or the UUID of the Schema Item and its Version separated by colon ':'. It is specified in Factory Items
-     * is used while creating new Items.
+     * The Name or the UUID of the Script Item and its Version separated by colon ':'. 
+     * Represents the unique resource name (URN) for Script identifying and 
+     * associating it with Item(s) as an Aggregate Script. 
      */
-    UPDATE_SCHEMA("UpdateSchema"),
+    AGGREGATE_SCRIPT_URN("AggregateScriptURN"),
+
+    /**
+     * The Name or the UUID of the Schema Item and its Version separated by colon ':'. 
+     * Represents the unique resource name (URN) for Schema identifying and 
+     * associating it with Item(s) as an Update Schema. 
+     */
+    UPDATE_SCHEMA_URN("UpdateSchemaURN"),
 
     /**
      * The UUID of the Workflow Item and its Version number separated by colon ':'

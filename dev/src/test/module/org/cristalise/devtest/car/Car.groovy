@@ -23,10 +23,7 @@ package org.cristalise.devtest.car
 import static org.apache.commons.lang3.StringUtils.*
 import static org.cristalise.kernel.collection.Collection.Cardinality.*
 import static org.cristalise.kernel.collection.Collection.Type.*
-import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
-import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
-import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
-import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
+import static org.cristalise.kernel.collection.BuiltInCollections.*
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 import static org.cristalise.kernel.property.BuiltInItemProperties.*;
 
@@ -128,7 +125,7 @@ Item(name: 'CarFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_
 
 
 
-  InmutableProperty((UPDATE_SCHEMA): 'Car_Details:0')
+  InmutableProperty((UPDATE_SCHEMA_URN): 'Car_Details:0')
 
 
   Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/Car_0.xml')

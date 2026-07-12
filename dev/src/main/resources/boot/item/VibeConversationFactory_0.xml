@@ -1,7 +1,7 @@
 <Item initialPath="/vibecoding" name="VibeConversationFactory" ns="dev" version="0" workflow="CrudFactory_Workflow" workflowVer="0">
   <Property mutable="false" name="Type">Factory</Property>
   <Property mutable="false" name="Root">/vibecoding/VibeConversations</Property>
-  <Property mutable="false" name="UpdateSchema">VibeConversation_Details:0</Property>
+  <Property mutable="false" name="UpdateSchemaURN">VibeConversation_Details:0</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/VibeConversation_0.xml</Outcome>
   <Dependency classProps="" isDescription="false" name="workflow">
     <DependencyMember itemPath="/desc/ActivityDesc/dev/VibeConversation_Workflow">
@@ -30,9 +30,10 @@
   <Dependency classProps="" isDescription="true" name="LlmConnection">
     <DependencyMember itemPath="/desc/PropertyDesc/dev/LlmConnection">
       <MemberProperties>
-        <KeyValuePair Key="DependencyTo" String="VibeConversations" isAbstract="false"/>
         <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+        <KeyValuePair Key="DependencyTo" String="VibeConversations" isAbstract="false"/>
         <KeyValuePair Key="DependencyCardinality" String="ManyToOne" isAbstract="false"/>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
       </MemberProperties>
     </DependencyMember>
     <CollectionProperties>
@@ -44,9 +45,10 @@
   <Dependency classProps="" isDescription="true" name="VibeCoders">
     <DependencyMember itemPath="/desc/PropertyDesc/dev/VibeCoder">
       <MemberProperties>
-        <KeyValuePair Key="DependencyTo" String="VibeConversations" isAbstract="false"/>
         <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+        <KeyValuePair Key="DependencyTo" String="VibeConversations" isAbstract="false"/>
         <KeyValuePair Key="DependencyCardinality" String="ManyToMany" isAbstract="false"/>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
       </MemberProperties>
     </DependencyMember>
     <CollectionProperties>

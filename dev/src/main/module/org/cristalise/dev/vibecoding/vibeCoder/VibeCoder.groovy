@@ -20,15 +20,12 @@
  */
 package org.cristalise.dev.vibecoding.vibeCoder
 
-import static org.apache.commons.lang3.StringUtils.*
-import static org.cristalise.kernel.collection.Collection.Cardinality.*
-import static org.cristalise.kernel.collection.Collection.Type.*
-import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
-import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
-import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
-import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
+
+import static org.cristalise.kernel.collection.BuiltInCollections.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.ManyToMany
+import static org.cristalise.kernel.collection.Collection.Type.Bidirectional
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
-import static org.cristalise.kernel.property.BuiltInItemProperties.*;
+import static org.cristalise.kernel.property.BuiltInItemProperties.UPDATE_SCHEMA_URN;
 
 /**
  * VibeCoder Item
@@ -157,7 +154,7 @@ Item(name: 'VibeCoderFactory', version: 0, folder: '/vibecoding', workflow: 'Cru
 
 
 
-  InmutableProperty((UPDATE_SCHEMA): 'VibeCoder_Details:0')
+  InmutableProperty((UPDATE_SCHEMA_URN): 'VibeCoder_Details:0')
 
 
   Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/VibeCoder_0.xml')

@@ -23,10 +23,7 @@ package org.cristalise.devtest.testAgent
 import static org.apache.commons.lang3.StringUtils.*
 import static org.cristalise.kernel.collection.Collection.Cardinality.*
 import static org.cristalise.kernel.collection.Collection.Type.*
-import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
-import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
-import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
-import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
+import static org.cristalise.kernel.collection.BuiltInCollections.*
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
 import static org.cristalise.kernel.property.BuiltInItemProperties.*;
 
@@ -109,7 +106,7 @@ Item(name: 'TestAgentFactory', version: 0, folder: '/devtest', workflow: 'CrudFa
 
 
 
-  InmutableProperty((UPDATE_SCHEMA): 'TestAgent_Details:0')
+  InmutableProperty((UPDATE_SCHEMA_URN): 'TestAgent_Details:0')
 
 
   Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestAgent_0.xml')

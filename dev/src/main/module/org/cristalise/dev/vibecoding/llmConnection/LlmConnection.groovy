@@ -20,15 +20,12 @@
  */
 package org.cristalise.dev.vibecoding.llmConnection
 
-import static org.apache.commons.lang3.StringUtils.*
-import static org.cristalise.kernel.collection.Collection.Cardinality.*
-import static org.cristalise.kernel.collection.Collection.Type.*
-import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
-import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
-import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
-import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
+
+import static org.cristalise.kernel.collection.BuiltInCollections.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.OneToMany
+import static org.cristalise.kernel.collection.Collection.Type.Bidirectional
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
-import static org.cristalise.kernel.property.BuiltInItemProperties.*;
+import static org.cristalise.kernel.property.BuiltInItemProperties.UPDATE_SCHEMA_URN;
 
 /**
  * LlmConnection Item
@@ -199,7 +196,7 @@ Item(name: 'LlmConnectionFactory', version: 0, folder: '/vibecoding', workflow: 
 
 
 
-  InmutableProperty((UPDATE_SCHEMA): 'LlmConnection_Details:0')
+  InmutableProperty((UPDATE_SCHEMA_URN): 'LlmConnection_Details:0')
 
 
   Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/LlmConnection_0.xml')

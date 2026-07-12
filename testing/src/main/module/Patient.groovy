@@ -1,7 +1,9 @@
-import static org.cristalise.kernel.collection.BuiltInCollections.*
+import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
+import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
 import static org.cristalise.kernel.collection.Collection.Cardinality.ManyToOne
 import static org.cristalise.kernel.collection.Collection.Type.Bidirectional
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
+import static org.cristalise.kernel.property.BuiltInItemProperties.UPDATE_SCHEMA_URN
 
 def detailsSchema = Schema("Patient_Details", 0) {
     struct(name: 'PatientDetails') {
@@ -64,7 +66,7 @@ Workflow(name: "Patient_Workflow", version: 0, generate: true) {
 Item(name: 'PatientFactory', version: 0, folder: '/integTest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': '/integTest/Patients')
-    InmutableProperty('UpdateSchema': 'Patient_Details:0')
+    InmutableProperty((UPDATE_SCHEMA_URN): 'Patient_Details:0')
 
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/Patient_0.xml')
 
@@ -79,10 +81,6 @@ Item(name: 'PatientFactory', version: 0, folder: '/integTest', workflow: 'CrudFa
 
     Dependency('workflow') {
         Member($patient_Workflow_CompositeActivityDef)
-    }
-
-    Dependency(SCHEMA_INITIALISE) {
-        Member($patient_Details_Schema)
     }
 
     Dependency(MASTER_SCHEMA) {

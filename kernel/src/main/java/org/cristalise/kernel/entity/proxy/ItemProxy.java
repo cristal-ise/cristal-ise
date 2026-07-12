@@ -1542,7 +1542,7 @@ public class ItemProxy {
             else                                     schemaVersion = (Integer)initSchemaVersion;
         }
         else {
-            String[] nameAndVersion = getProperty(UPDATE_SCHEMA).split(":");
+            String[] nameAndVersion = getProperty(UPDATE_SCHEMA_URN).split(":");
             schemaName = nameAndVersion[0];
             schemaVersion = Integer.parseInt(nameAndVersion[1]);
         }
