@@ -68,6 +68,7 @@ _Avoid_: StateDiagram, TransitionModel
 
 **ActivityDef**: A Description Item that defines a Service/Task/Endpoint within an Item's Lifecycle, representing a PUT/POST operation with write transaction. Base class for CompositeActivityDef.
 _Avoid_: Operation, Action, Method
+_Synonym_: ActivityDesc.
 
 **CompositeActivityDef**: A Description Item that defines a composite Activity that coordinates multiple sub-Activities within an Item's Lifecycle.
 _Avoid_: Operation, Action, Method
@@ -82,15 +83,15 @@ An abstract relationship container that references other Items. Collections can 
 _Avoid_: Relationship, Association
 
 **Dependency**:
-A concrete Collection implementation containing a variable number of members (like an array or list). Dependencies never contain empty slots or duplicated members.
+A concrete Collection implementation containing a variable number of members (like an array or list) of the same Type of Item. Dependencies never contain empty slots or duplicated members similar to Sets in java.
 _Avoid_: List, Array
 
 **Aggregation**:
-A concrete Collection implementation with a graph layout for modeling real-world compositions on a two-dimensional canvas.
+A concrete Collection implementation with a graph layout for modelling real-world compositions on a two-dimensional canvas.
 _Avoid_: Composition, Structure
 
 **CollectionDescription**:
-A Collection that can be instantiated to create actual Collections. Used in Description Items to define Collection structure and member constraints of the instance Items.
+A Collection that can be instantiated to create actual Collections. Used in Description/Factory Items to define Collection structure and member constraints of the instance Items.
 Implementations: AggregationDescription, DependencyDescription
 _Avoid_: CollectionTemplate, CollectionBlueprint
 
@@ -99,7 +100,7 @@ A CollectionDescription implementation that creates Aggregation instances with g
 _Avoid_: AggregationTemplate
 
 **DependencyDescription**:
-A CollectionDescription implementation that creates Dependency instances with type constraints.
+A CollectionDescription implementation that creates Dependency instances with Type constraints.
 _Avoid_: DependencyTemplate
 
 ### Lifecycle Management
@@ -185,5 +186,5 @@ _Avoid_: Package, Component, Library
 ### Security
 
 **SecurityManager**:
-The kernel wrapper around Apache Shiro API that handles Agent authentication and permission checking for Activity execution.
+The kernel wrapper around Apache Shiro API that handles Agent authentication and Permission checking for Activity, Script and Query execution.
 _Avoid_: AuthManager, PermissionManager

@@ -39,7 +39,7 @@ CRISTAL-iSE is a description-driven software platform for No-Code/Low-Code appli
 - `vibeui`: Angular-based modern UI.
 - `dev`: Development and bootstrap utilities.
 
-## General Guidelines for Junie
+## General Guidelines
 - **Java Engineering**: Apply modern Java standards (Java 21+) and follow the `java-engineer` skill rules. For complex Java tasks, delegate to the `@java-engineer` subagent.
 - **Coding Style**: Use Lombok for boilerplate. Follow existing Java/Groovy style.
 - **Logging**: Use SLF4J with Logback.

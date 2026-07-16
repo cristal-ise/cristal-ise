@@ -16,9 +16,9 @@ This router skill cures the **cognitive load** of remembering which cristalise-d
 | Skill | Domain | Use When | Status |
 |-------|--------|----------|--------|
 | **[cristalise-dsl-workflow](#cristalise-dsl-workflow)** | Workflow definitions | Creating or modifying Item lifecycle workflows with Activities, Splits, Joins | **Complete** |
-| **[cristalise-dsl-schema](#cristalise-dsl-schema)** | Schema/Outcome definitions | Developing or modifying Outcome structures, structs, fields, UI hints | **Complete** |
+| **[cristalise-dsl-schema](#cristalise-dsl-schema)** | Schema/Outcome definitions | Developing or modifying Outcome structures, structs, fields, UI hints | **Incomplete** |
 | **[cristalise-dsl-module](#cristalise-dsl-module)** | Module definitions | Defining Item containers, dependencies, and module-level constructs | **Placeholder** |
-| **[cristalise-dsl-item](#cristalise-dsl-item)** | Item definitions | Creating and configuring individual Items and their properties | **Placeholder** |
+| **[cristalise-dsl-item](#cristalise-dsl-item)** | Item definitions | Creating and configuring individual Items, Agents, Entities, Resources, and their properties | **Complete** |
 | **[cristalise-dsl-script](#cristalise-dsl-script)** | Script definitions | Writing Groovy/JavaScript scripts for routing, validation, computations | **Complete** |
 | **[cristalise-dsl-query](#cristalise-dsl-query)** | Query definitions | Defining queries for listOfValues, dynamic data fetching | **Placeholder** |
 
@@ -43,18 +43,20 @@ Use when defining **Module** constructs — containers for organizing Items, man
 
 ### cristalise-dsl-item
 
-**Status**: Placeholder — Content TBD
+**Status**: Complete
 
-Use when creating and configuring individual **Items** — the business objects at the heart of CRISTAL-iSE. This skill will provide:
+Use when creating and configuring individual **Items** — the business objects at the heart of CRISTAL-iSE. This skill provides:
 
-- Item definition syntax
-- Property configuration (Module, Name, Type)
-- Item lifecycle integration
-- Relationship definitions between Items
+- Complete Item definition syntax and constructor attributes
+- Property configuration (Module, Name, Type, InmutableProperty, Property)
+- Outcome reference syntax for Schema binding
+- Dependency and DependencyDescription for relationship definitions
+- Full ImportItem Description Item reference
+- Item lifecycle integration with Workflow
 
 **Location**: [`../cristalise-dsl-item/SKILL.md](../cristalise-dsl-item/SKILL.md)
 
-**Leading Words**: Item, property, Type, Module, Name, relationship
+**Leading Words**: Item, Agent, Entity, Resource, Description, CRUD, property, Type, Module, Name, relationship
 
 ---
 
@@ -143,7 +145,7 @@ When writing CRISTAL-iSE DSL files, use this table to find the right skill:
 | Item lifecycle with Activities, Splits, Joins | cristalise-dsl-workflow | Workflow |
 | Data structure for business Outcomes | cristalise-dsl-schema | Schema |
 | Container for organizing Items | cristalise-dsl-module | Module |
-| Individual business objects | cristalise-dsl-item | Item |
+| Individual business objects | cristalise-dsl-item | Item, Agent, Entity, Resource, Description, CRUD |
 | Routing logic, validation, computations | cristalise-dsl-script | Script |
 | Dynamic data sources, listOfValues | cristalise-dsl-query | Query |
 
@@ -186,6 +188,6 @@ All cristalise-dsl-* skills follow consistent patterns:
 - [cristalise-dsl-workflow](../cristalise-dsl-workflow/SKILL.md) — Complete workflow DSL reference
 - [cristalise-dsl-schema](../cristalise-dsl-schema/SKILL.md) — Complete schema DSL reference
 - [cristalise-dsl-module](../cristalise-dsl-module/SKILL.md) — Module DSL reference (placeholder)
-- [cristalise-dsl-item](../cristalise-dsl-item/SKILL.md) — Item DSL reference (placeholder)
+- [cristalise-dsl-item](../cristalise-dsl-item/SKILL.md) — Complete Item DSL reference
 - [cristalise-dsl-script](../cristalise-dsl-script/SKILL.md) — Complete Script DSL reference
 - [cristalise-dsl-query](../cristalise-dsl-query/SKILL.md) — Query DSL reference (placeholder)
