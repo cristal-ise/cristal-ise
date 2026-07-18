@@ -20,6 +20,10 @@ _Avoid_: Group, UserGroup
 
 **Permission**:
 A Shiro WildcardPermission string following the format `domain:action:target` that controls access to Activities on Items.
+
+- `domain`: it is the Type of the Item. Can be overridden by the Item Property `BuiltInItemProperties.SECURITY_DOMAIN`
+- `action`: it is the Name of the Activity or Query or Script. Can be overridden by the Activty property `BuiltInVertexProperties.SECURITY_ACTION`
+- `target`: it is the UUID or Name of the Item that the Activity/Query/Script is executed on
 _Avoid_: AccessRight, Privilege
 
 ### Metadata & Configuration

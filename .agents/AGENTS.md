@@ -40,6 +40,7 @@ CRISTAL-iSE is a description-driven software platform for No-Code/Low-Code appli
 - `dev`: Development and bootstrap utilities.
 
 ## General Guidelines
+- **Reporting information**: Be extremely concise and sacrifice grammar for the sake of concision.
 - **Java Engineering**: Apply modern Java standards (Java 21+) and follow the `java-engineer` skill rules. For complex Java tasks, delegate to the `@java-engineer` subagent.
 - **Coding Style**: Use Lombok for boilerplate. Follow existing Java/Groovy style.
 - **Logging**: Use SLF4J with Logback.

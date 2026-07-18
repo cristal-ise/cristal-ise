@@ -20,14 +20,8 @@
  */
 package org.cristalise.kernel.security;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.cristalise.kernel.SystemProperties.Shiro_iniFile;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SECURITY_ACTION;
-import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
-import static org.cristalise.kernel.property.BuiltInItemProperties.SECURITY_DOMAIN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
-
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
@@ -47,12 +41,15 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.PropertyUtility;
-
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.cristalise.kernel.utils.FileStringUtility;
 
 import java.io.IOException;
+
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.cristalise.kernel.SystemProperties.Shiro_iniFile;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SECURITY_ACTION;
+import static org.cristalise.kernel.property.BuiltInItemProperties.*;
 
 @Getter
 @Slf4j
@@ -278,13 +275,18 @@ public class SecurityManager {
     }
 
     /**
+     * Checks whether the specified agent has permission to perform a built-in action
+     * on a specified item within the context of a transaction.
      *
-     * @param agent
-     * @param builtInAction
-     * @param itemPath
-     * @return
-     * @throws AccessRightsException
-     * @throws ObjectNotFoundException Item was not found
+     * @param agent           the {@code AgentPath} representing the agent whose permissions
+     *                        are being checked
+     * @param builtInAction   the {@code BuiltInAction} representing the action being evaluated
+     * @param itemPath        the {@code ItemPath} representing the target resource
+     * @param transactionKey  the {@code TransactionKey} representing the transaction context
+     * @return {@code true} if the agent has the required permissions, {@code false} otherwise
+     * @throws AccessRightsException   if there is an error determining access rights
+     * @throws ObjectNotFoundException if any of the specified objects (e.g., agent, action,
+     *                                 or resource) cannot be found
      */
     public boolean checkPermissions(AgentPath agent, BuiltInAction builtInAction, ItemPath itemPath, TransactionKey transactionKey)
             throws AccessRightsException, ObjectNotFoundException
