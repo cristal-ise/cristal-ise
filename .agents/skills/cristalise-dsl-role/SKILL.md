@@ -85,5 +85,5 @@ Role(name: 'QA') {
 - [writing-cristalise-dsl](../writing-cristalise-dsl/SKILL.md) — Router for all DSL skills
 - [cristalise-dsl-item](../cristalise-dsl-item/SKILL.md) — Items and Agents that use Roles
 - [cristalise-dsl-module](../cristalise-dsl-module/SKILL.md) — Modules define Roles
-- [kernel/CONTEXT.md](../../../kernel/CONTEXT.md) — Domain definitions for Role and Permission
+- [kernel/CONTEXT.md](../../../kernel/CONTEXT.md) — Domain definitions of Leading Words
 - [Apache Shiro Permissions](https://shiro.apache.org/permissions.html) — WildcardPermission syntax reference
