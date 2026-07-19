@@ -1,6 +1,6 @@
 ---
 name: writing-cristalise-dsl
-description: Reference for writing CRISTAL-iSE DSL files. Use when developing CRISTAL-iSE applications and need to write workflows, schemas, modules, items, scripts, or queries using the Groovy DSL.
+description: Router skill for writing CRISTAL-iSE DSL files. Use when developing CRISTAL-iSE applications and need to write DomainContext, PropertyDesc, Workflows, Schemas, Modules, Items, Agents, Roles, Scripts or Queries using the Groovy DSL.
 ---
 
 A **CRISTAL-iSE DSL file** defines the structure and behavior of CRISTAL-iSE applications using the Groovy-based Domain Specific Language. This skill is the **router** that directs you to the appropriate cristalise-dsl-* skill based on what you're writing.
@@ -21,6 +21,7 @@ This router skill cures the **cognitive load** of remembering which cristalise-d
 | **[cristalise-dsl-item](#cristalise-dsl-item)** | Item definitions | Creating and configuring individual Items, Agents, Entities, Resources, and their properties | **Complete** |
 | **[cristalise-dsl-script](#cristalise-dsl-script)** | Script definitions | Writing Groovy/JavaScript scripts for routing, validation, computations | **Complete** |
 | **[cristalise-dsl-query](#cristalise-dsl-query)** | Query definitions | Defining queries for listOfValues, dynamic data fetching | **Placeholder** |
+| **[cristalise-dsl-role](#cristalise-dsl-role)** | Role definitions | Defining Roles and Permissions for access control | **Complete** |
 
 ## Individual Skill Reference
 
@@ -134,6 +135,26 @@ Use when defining **Query** constructs for dynamic data fetching, listOfValues p
 
 **Leading Words**: Query, listOfValues, parameter, data, fetch, dynamic
 
+---
+
+### cristalise-dsl-role
+
+**Status**: Complete
+
+Use when defining **Role** constructs — named collections of Permissions that can be assigned to Agents for access control. This skill provides:
+
+- Complete Role definition syntax and attributes
+- Permission configuration (string and map format)
+- Shiro WildcardPermission syntax reference
+- CRISTAL-iSE domain:action:target mapping
+- Best practices for restrictive permissions
+
+**Location**: [`../cristalise-dsl-role/SKILL.md](../cristalise-dsl-role/SKILL.md)`
+
+**Leading Words**: Role, Permission, jobList, Shiro, WildcardPermission
+
+---
+
 ## How to Use This Router
 
 When writing CRISTAL-iSE DSL files, use this table to find the right skill:
@@ -148,6 +169,7 @@ When writing CRISTAL-iSE DSL files, use this table to find the right skill:
 | Individual business objects | cristalise-dsl-item | Item, Agent, Entity, Resource, Description, CRUD |
 | Routing logic, validation, computations | cristalise-dsl-script | Script |
 | Dynamic data sources, listOfValues | cristalise-dsl-query | Query |
+| Role and Permission definitions | cristalise-dsl-role | Role |
 
 ### Invocation Strategy
 
@@ -169,7 +191,7 @@ All cristalise-dsl-* skills follow consistent patterns:
 - Starting to write any CRISTAL-iSE DSL file and need to find the right reference
 - Unsure which cristalise-dsl-* skill covers your specific DSL writing task
 - Exploring the DSL documentation catalog for CRISTAL-iSE development
-- When the agent mentions writing workflows, schemas, modules, items, scripts, or queries
+- When the agent mentions writing workflows, schemas, modules, items, scripts, queries, or roles
 
 ## When to Use Individual Skills
 
@@ -181,6 +203,7 @@ All cristalise-dsl-* skills follow consistent patterns:
 | Configure individual business objects and their properties | cristalise-dsl-item |
 | Write Groovy/JavaScript for routing, validation, or computations | cristalise-dsl-script |
 | Define dynamic data sources for listOfValues or runtime access | cristalise-dsl-query |
+| Define Roles and Permissions for access control | cristalise-dsl-role |
 
 ## See Also
 
@@ -191,3 +214,4 @@ All cristalise-dsl-* skills follow consistent patterns:
 - [cristalise-dsl-item](../cristalise-dsl-item/SKILL.md) — Complete Item DSL reference
 - [cristalise-dsl-script](../cristalise-dsl-script/SKILL.md) — Complete Script DSL reference
 - [cristalise-dsl-query](../cristalise-dsl-query/SKILL.md) — Query DSL reference (placeholder)
+- [cristalise-dsl-role](../cristalise-dsl-role/SKILL.md) — Complete Role DSL reference
