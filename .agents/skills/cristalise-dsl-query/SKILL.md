@@ -1,6 +1,6 @@
 ---
 name: cristalise-dsl-query
-description: Complete reference for defining queries in CRISTAL-iSE DSL. Use when creating queries for listOfValues, dynamic data fetching, or runtime data access, or when another skill needs query definition details.
+description: Complete reference for defining Query Items in CRISTAL-iSE DSL. Use when creating queries for listOfValues, dynamic data fetching, or runtime data access, or when another skill needs query definition details.
 ---
 
 # CRISTAL-iSE Query DSL

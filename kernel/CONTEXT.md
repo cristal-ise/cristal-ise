@@ -38,8 +38,8 @@ A simplified form of Description that only contains one Activity to create Items
 _Synonym_: Factory Item
 _Avoid_: Builder, Creator
 
-**Property**:
-A key-value pair used as metadata by the kernel for identification and typing of Items.
+**Item Property**:
+A key-value pair used as metadata by the kernel for identification and typing of Items, including their names, type, default values, and mutability.
 _Avoid_: Attribute, Field, Metadata
 
 ### Description Types
@@ -55,7 +55,7 @@ _Avoid_: User
 
 **Module**: A Description Item that defines a collection of Items that implement a set of functionalities, with its own namespace and version. _Avoid_: Package, Component, Library
 
-**PropertyDescriptionList**: A Description Item that defines the metadata properties (Property/ItemProperty) used for identification and typing of Items, including their names, default values, and mutability.
+**PropertyDescriptionList**: A Description Item that defines Item Properties used by Factory and Description Items when instantiating new Items.
 _Avoid_: Attribute, Field, Metadata
 
 **Schema**: A Description Item that defines the structure of data that is stored or computed in the system, specifying the fields, types, and constraints for Outcomes.

@@ -1,6 +1,6 @@
 ---
 name: cristalise-dsl-module
-description: Complete reference for defining modules in CRISTAL-iSE DSL. Use when creating or modifying module definitions, dependencies, and module-level configurations, or when another skill needs module organization details.
+description: Complete reference for defining Module Items in CRISTAL-iSE DSL. Use when creating or modifying module definitions, dependencies, and module-level configurations, or when another skill needs module organization details.
 ---
 
 # CRISTAL-iSE Module DSL

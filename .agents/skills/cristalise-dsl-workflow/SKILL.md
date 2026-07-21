@@ -1,6 +1,6 @@
 ---
 name: cristalise-dsl-workflow
-description: Complete reference for defining workflows in CRISTAL-iSE DSL. Use when creating or modifying workflow definitions, or when another skill needs workflow pattern details.
+description: Complete reference for defining CompositeActivityDef Items, also known aa Workflow Items in CRISTAL-iSE DSL. Use when creating or modifying workflow definitions, or when another skill needs workflow pattern details.
 ---
 
 # CRISTAL-iSE Workflow DSL
@@ -71,13 +71,13 @@ Workflow('ParallelWorkflow', 0, generate: true) {
 
 ## Workflow Pattern Summary
 
-| Pattern | Symbol | Execution | Branches | Routing | Join |
-|---------|--------|-----------|----------|---------|------|
-| AndSplit | ↔ | Parallel | All | N/A | AndJoin |
-| OrSplit | ╱╲ | Conditional | 0 or more | Required | Join |
-| XOrSplit | ╳ | Exclusive | Exactly 1 | Required | Join |
-| Loop | ↻ | Repetitive | 1 (repeated) | Optional | LoopJoin |
-| LoopInfinitive | ↻∞ | Continuous | 1 (continuous) | N/A | LoopJoin |
+| Pattern | Execution | Branches | Routing |
+|---------|-----------|----------|--------|
+| AndSplit | Parallel | All | N/A | 
+| OrSplit | Conditional | 0 or more | Required |
+| XOrSplit | Exclusive | Exactly 1 | Required |
+| Loop | Repetitive | 1 (repeated) | Optional |
+| LoopInfinitive | Continuous | 1 (continuous) | N/A |
 
 ## Key Rules
 

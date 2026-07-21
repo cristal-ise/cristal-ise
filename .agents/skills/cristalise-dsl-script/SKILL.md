@@ -1,6 +1,6 @@
 ---
 name: cristalise-dsl-script
-description: Complete reference for defining scripts in CRISTAL-iSE DSL. Use when writing Groovy or JavaScript scripts for routing, validation, or computations, or when another skill needs scripting pattern details.
+description: Complete reference for defining Script Items in CRISTAL-iSE DSL. Use when writing Groovy or JavaScript scripts for routing, validation, or computations, or when another skill needs scripting pattern details.
 ---
 
 # CRISTAL-iSE Script DSL

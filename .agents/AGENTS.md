@@ -32,7 +32,7 @@ CRISTAL-iSE is a description-driven software platform for No-Code/Low-Code appli
 - `in-memory-lookup`: In-memory storage for testing.
 - `xpath-outcome-initiator`: XML/XPath based outcome generation.
 - `restapi`: JAX-RS wrapper for CRISTAL Client API.
-- `dsl`: Domain Specific Language for CRISTAL objects.
+- `dsl`: Domain-Specific Language (DSL) for CRISTAL objects.
 - `trigger`: Quartz-based scheduling.
 - `gui`: Swing-based administrative UI.
 - `testing`: Integration testing project.
@@ -40,7 +40,11 @@ CRISTAL-iSE is a description-driven software platform for No-Code/Low-Code appli
 - `dev`: Development and bootstrap utilities.
 
 ## General Guidelines
+- **Source of Truth**: Use 'kernel/CONTEXT.md' together with the code. Avoid using files in 'docs' because most of them are outdated. Also, avoid using text in Javadoc unless instructed explicitly.
 - **Reporting information**: Be extremely concise and sacrifice grammar for the sake of concision.
+- **Asking Questions**: Be specific and direct. Avoid asking multiple questions at once. Offer explicit choices whenever it is available.
+
+## General Guidelines for Development
 - **Java Engineering**: Apply modern Java standards (Java 21+) and follow the `java-engineer` skill rules. For complex Java tasks, delegate to the `@java-engineer` subagent.
 - **Coding Style**: Use Lombok for boilerplate. Follow existing Java/Groovy style.
 - **Logging**: Use SLF4J with Logback.

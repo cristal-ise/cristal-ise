@@ -1,6 +1,6 @@
 ---
 name: cristalise-dsl-domain
-description: Complete reference for defining domain contexts in CRISTAL-iSE DSL. Use when creating or modifying DomainContext, domain namespaces, or when another skill needs domain configuration details.
+description: Complete reference for defining DomainContext Items in CRISTAL-iSE DSL. Use when creating or modifying DomainContext or when another skill needs domain configuration details.
 ---
 
 # CRISTAL-iSE Domain DSL

@@ -1,6 +1,6 @@
 ---
 name: cristalise-dsl-role
-description: Complete reference for defining roles in CRISTAL-iSE DSL. Use when developing or modifying Role and Permission, or when another cristalise-dsl skill references roles.
+description: Complete reference for defining Role Items in CRISTAL-iSE DSL. Use when developing or modifying Role and Permission, or when another cristalise-dsl skill references roles.
 ---
 
 # CRISTAL-iSE Role DSL

@@ -1,6 +1,6 @@
 ---
 name: cristalise-dsl-item
-description: Complete reference for defining Items, Agents, Entities, and Resources in CRISTAL-iSE DSL. Use when creating or modifying Item, Agent, or Description definitions, configuring CRUD operations, properties, outcomes, dependencies, or when another skill needs Item structure details.
+description: Complete reference for defining Items, Agents in CRISTAL-iSE DSL. Use when creating or modifying Item, Agent, or Description, Factory Items, configuring CRUD operations, properties, outcomes, dependencies, or when another skill needs Item structure details.
 ---
 
 # CRISTAL-iSE Item DSL

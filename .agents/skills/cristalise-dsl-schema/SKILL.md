@@ -1,6 +1,6 @@
 ---
 name: cristalise-dsl-schema
-description: Complete reference for defining schemas in CRISTAL-iSE DSL. Use when developing or modifying Schema definitions for Outcomes, or when another cristalise-dsl skill references schema.
+description: Complete reference for defining Schema Items in CRISTAL-iSE DSL. Use when developing or modifying Schema definitions for Outcomes, or when another cristalise-dsl skill references schema.
 ---
 
 # CRISTAL-iSE Schema DSL
