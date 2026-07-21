@@ -26,26 +26,6 @@ Property('Enabled': true)
 ImmutableProperty('Root': '/module/MyModule')
 ```
 
-## Mandatory Properties
-Every **Item** MUST have these **Properties**:
-
-1. **Name**: It is added automatically by the system using the **name** attribute of the **Item** (check the example). It is mutable.
-2. **Module**: The module to which the Item belongs. It is immutable.
-3. **Type**: The classification of the Item (ImportItem, Factory, ProductionOrder, etc.). It is immutable.
-4. **Version**: The version of the Item. It is mutable.
-5. **State**: The state of the Item, whether it is ACTIVE or INACTIVE. It is mutable.
-
-Example:
-```groovy
-Item(name: 'Customer', folder: '/module/CRM', workflow: $customer_Workflow) {
-    InmutableProperty('Module': 'CRM')
-    InmutableProperty('Type': 'ImportItem')
-    
-    // Additional properties
-    Property('Description': 'Customer business object')
-}
-```
-
 ## When to Use Each
 
 In case of uncertainty, ask the user about the purpose of the property.
@@ -64,6 +44,15 @@ In case of uncertainty, ask the user about the purpose of the property.
 
 ### BuiltInItemProperties
 Use values of enum `org.cristalise.kernel.property.BuiltInItemProperties` when defining Properties. The Javadoc contains all necessary information.
+
+### Mandatory Properties
+- **Name**: It is automatically added by the system using the **name** attribute of the **Item**
+- **Type**
+- **Module**
+- **Version**
+
+### Optional Properties
+- **State**
 
 ## Common Property Patterns
 
