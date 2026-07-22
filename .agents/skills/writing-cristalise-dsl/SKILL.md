@@ -17,7 +17,7 @@ This router skill cures the **cognitive load** of remembering which cristalise-d
 |---------------------------------------------------------|-------------------------------------------|-----------------|
 | **[cristalise-dsl-workflow](#cristalise-dsl-workflow)** | Workflow/CompositeActivityDef definitions | **Complete**    |
 | **[cristalise-dsl-schema](#cristalise-dsl-schema)**     | Schema/Outcome definition                 | **Incomplete**  |
-| **[cristalise-dsl-property](#cristalise-dsl-property)** | PropertyDesc definitions                  | **Placeholder** |
+| **[cristalise-dsl-property](#cristalise-dsl-property)** | PropertyDesc definitions                  | **Complete**    |
 | **[cristalise-dsl-module](#cristalise-dsl-module)**     | Module definitions                        | **Placeholder** |
 | **[cristalise-dsl-item](#cristalise-dsl-item)**         | Item definitions                          | **Complete**    |
 | **[cristalise-dsl-script](#cristalise-dsl-script)**     | Script definitions                        | **Complete**    |
@@ -46,18 +46,19 @@ Use when defining **Module** constructs — containers for organizing Items, man
 
 ### cristalise-dsl-property
 
-**Status**: Placeholder — Content TBD
+**Status**: Complete
 
-Use when creating or modifying **Property** constructs — mutable and immutable key-value metadata pairs that define Item configuration, classification, and behavior. This skill will provide:
+Use when creating or modifying **PropertyDescriptionList** constructs — containers for PropertyDesc definitions that establish metadata schemas for Item types. This skill provides:
 
-- Property vs InmutableProperty syntax and usage
-- Property configuration patterns
-- Type constraints and validation rules
-- Best practices for property organization
+- PropertyDescriptionList and PropertyDesc syntax and structure
+- Complete reference for name, defaultValue, isMutable, isClassIdentifier, isTransitive attributes
+- Key rules and default behavior for property descriptions
+- Best practices for organizing property metadata
+- Error handling guide with common issues
 
 **Location**: [`../cristalise-dsl-property/SKILL.md`](../cristalise-dsl-property/SKILL.md)
 
-**Leading Words**: Property, InmutableProperty, metadata, configuration, mutable, immutable
+**Leading Words**: PropertyDescriptionList, PropertyDesc, metadata, schema, mutable, immutable, classIdentifier, transitive
 
 ---
 
@@ -250,7 +251,7 @@ All cristalise-dsl-* skills follow consistent patterns:
 - [writing-great-skills](../writing-great-skills/SKILL.md) — The blueprint for skill writing principles
 - [cristalise-dsl-workflow](../cristalise-dsl-workflow/SKILL.md) — Complete workflow DSL reference
 - [cristalise-dsl-schema](../cristalise-dsl-schema/SKILL.md) — Complete schema DSL reference
-- [cristalise-dsl-property](../cristalise-dsl-property/SKILL.md) — Property DSL reference (placeholder)
+- [cristalise-dsl-property](../cristalise-dsl-property/SKILL.md) — Complete PropertyDescriptionList DSL reference
 - [cristalise-dsl-module](../cristalise-dsl-module/SKILL.md) — Module DSL reference (placeholder)
 - [cristalise-dsl-item](../cristalise-dsl-item/SKILL.md) — Complete Item DSL reference
 - [cristalise-dsl-script](../cristalise-dsl-script/SKILL.md) — Complete Script DSL reference
