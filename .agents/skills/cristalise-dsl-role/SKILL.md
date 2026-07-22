@@ -57,11 +57,11 @@ Role(name: 'QA') {
 
 ## Core Concepts
 
-| Concept | File | Description |
-|---------|------|-------------|
-| **Role** | Inline | A Description Item that defines a named collection of Permissions |
-| **Permission** | [references/permission.md](references/permission.md) | Shiro WildcardPermission string in format `domain:action:target` |
-| **jobList** | Inline | Boolean flag indicating if the Role can view the job list |
+| Concept        | File                                   | Description                                                       |
+|----------------|----------------------------------------|-------------------------------------------------------------------|
+| **Role**       | Inline                                 | A Description Item that defines a named collection of Permissions |
+| **Permission** | [permission](references/permission.md) | Shiro WildcardPermission string in format `domain:action:target`  |
+| **jobList**    | Inline                                 | Boolean flag indicating if the Role can view the job list         |
 
 ## Reference Files
 
