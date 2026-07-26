@@ -157,7 +157,6 @@ cristalise-dsl-item/
 ## See Also
 
 - [writing-cristalise-dsl](../writing-cristalise-dsl/SKILL.md) — Router for all DSL skills
-- [writing-great-skills](../writing-great-skills/SKILL.md) — Blueprint for skill writing principles
 - [cristalise-dsl-workflow](../cristalise-dsl-workflow/SKILL.md) — Complete workflow DSL reference
 - [cristalise-dsl-schema](../cristalise-dsl-schema/SKILL.md) — Complete schema DSL reference
 - [cristalise-dsl-module](../cristalise-dsl-module/SKILL.md) — Module DSL reference

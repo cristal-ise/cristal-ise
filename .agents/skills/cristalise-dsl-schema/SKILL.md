@@ -46,3 +46,10 @@ Use `schema-dsl` when defining or modifying CRISTAL-iSE Outcomes. This skill ens
 1. **Verify availability** of `org.cristalise.dsl.persistency.outcome.SchemaBuilder`.
 2. **Test generation** using `org.cristalise.dsl.test.builders.SchemaTestBuilder`.
 3. **Completion Criterion**: The generated `sb.schema.schemaData` contains all defined elements with correct XSD types and multiplicities.
+
+## See Also
+
+- [writing-cristalise-dsl](../writing-cristalise-dsl/SKILL.md) — Router for all DSL skills
+- [cristalise-dsl-item](../cristalise-dsl-item/SKILL.md) — Items and Agents that use Schemas
+- [cristalise-dsl-module](../cristalise-dsl-module/SKILL.md) — Modules define Roles
+- [kernel/CONTEXT.md](../../../kernel/CONTEXT.md) — Domain definitions of Leading Words

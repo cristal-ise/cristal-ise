@@ -3,7 +3,7 @@ name: writing-cristalise-dsl
 description: Router skill for writing CRISTAL-iSE DSL files. Use when developing CRISTAL-iSE applications and need to write DomainContext, PropertyDescList, Workflows, Schemas, Modules, Items, Agents, Roles, Scripts, Queries, or Domains using the Groovy DSL.
 ---
 
-A **CRISTAL-iSE DSL file** defines the structure and behavior of CRISTAL-iSE applications using the Groovy-based Domain Specific Language. This skill is the **router** that directs you to the appropriate cristalise-dsl-* skill based on what you're writing.
+A **CRISTAL-iSE DSL file** defines the structure and behavior of CRISTAL-iSE applications using the Groovy-based Domain Specific Language - DSL. This skill is the **router** that directs you to the appropriate cristalise-dsl-* skill based on what you're writing.
 
 **Bold terms** are defined in the individual DSL skill files or in their referenced glossaries.
 
@@ -13,23 +13,23 @@ This router skill cures the **cognitive load** of remembering which cristalise-d
 
 ## DSL Skill Catalog
 
-| Skill                                                   | Domain                                    | Status          |
-|---------------------------------------------------------|-------------------------------------------|-----------------|
-| **[cristalise-dsl-workflow](#cristalise-dsl-workflow)** | Workflow/CompositeActivityDef definitions | **Complete**    |
-| **[cristalise-dsl-schema](#cristalise-dsl-schema)**     | Schema/Outcome definition                 | **Incomplete**  |
-| **[cristalise-dsl-property](#cristalise-dsl-property)** | PropertyDesc definitions                  | **Complete**    |
-| **[cristalise-dsl-module](#cristalise-dsl-module)**     | Module definitions                        | **Placeholder** |
-| **[cristalise-dsl-item](#cristalise-dsl-item)**         | Item definitions                          | **Complete**    |
-| **[cristalise-dsl-script](#cristalise-dsl-script)**     | Script definitions                        | **Complete**    |
-| **[cristalise-dsl-query](#cristalise-dsl-query)**       | Query definitions                         | **Placeholder** |
-| **[cristalise-dsl-role](#cristalise-dsl-role)**         | Role definitions                          | **Complete**    |
-| **[cristalise-dsl-domain](#cristalise-dsl-domain)**     | DomainContext definitions                 | **Complete**    |
+| Skill                                                   | Domain                                    | Status         |
+|---------------------------------------------------------|-------------------------------------------|----------------|
+| **[cristalise-dsl-workflow](#cristalise-dsl-workflow)** | Workflow/CompositeActivityDef definitions | **Complete**   |
+| **[cristalise-dsl-schema](#cristalise-dsl-schema)**     | Schema/Outcome definition                 | **Incomplete** |
+| **[cristalise-dsl-property](#cristalise-dsl-property)** | PropertyDesc definitions                  | **Complete**   |
+| **[cristalise-dsl-module](#cristalise-dsl-module)**     | Module definitions                        | **Complete**   |
+| **[cristalise-dsl-item](#cristalise-dsl-item)**         | Item definitions                          | **Complete**   |
+| **[cristalise-dsl-script](#cristalise-dsl-script)**     | Script definitions                        | **Complete**   |
+| **[cristalise-dsl-query](#cristalise-dsl-query)**       | Query definitions                         | **Complete**   |
+| **[cristalise-dsl-role](#cristalise-dsl-role)**         | Role definitions                          | **Complete**   |
+| **[cristalise-dsl-domain](#cristalise-dsl-domain)**     | DomainContext definitions                 | **Complete**   |
 
 ## Individual Skill Reference
 
 ### cristalise-dsl-module
 
-**Status**: Placeholder — Content TBD
+**Status**: Complete
 
 Use when defining **Module** constructs — containers for organizing Items, managing dependencies, and establishing module-level configurations. This skill will provide:
 
@@ -52,8 +52,8 @@ Use when creating or modifying **PropertyDescriptionList** constructs — contai
 
 - PropertyDescriptionList and PropertyDesc syntax and structure
 - Complete reference for name, defaultValue, isMutable, isClassIdentifier, isTransitive attributes
-- Key rules and default behavior for property descriptions
-- Best practices for organizing property metadata
+- Key rules and default behaviour for property descriptions
+- Best practices for organising property metadata
 - Error handling guide with common issues
 
 **Location**: [`../cristalise-dsl-property/SKILL.md`](../cristalise-dsl-property/SKILL.md)
@@ -234,27 +234,19 @@ All cristalise-dsl-* skills follow consistent patterns:
 
 ## When to Use Individual Skills
 
-| Task | Use Skill |
-|------|-----------|
-| Define Item lifecycle with Activities, Splits, Joins | cristalise-dsl-workflow |
-| Create data structure for business Outcomes | cristalise-dsl-schema |
-| Configure Property and InmutableProperty metadata | cristalise-dsl-property |
-| Organize Items into logical containers with dependencies | cristalise-dsl-module |
-| Configure individual business objects and their properties | cristalise-dsl-item |
-| Write Groovy/JavaScript for routing, validation, or computations | cristalise-dsl-script |
-| Define dynamic data sources for listOfValues or runtime access | cristalise-dsl-query |
-| Define Roles and Permissions for access control | cristalise-dsl-role |
-| Define DomainContext and domain namespaces | cristalise-dsl-domain |
+| Task                                                             | Use Skill               |
+|------------------------------------------------------------------|-------------------------|
+| Define Item lifecycle with Activities, Splits, Joins             | cristalise-dsl-workflow |
+| Create data structure for business Outcomes                      | cristalise-dsl-schema   |
+| Configure Property and InmutableProperty metadata                | cristalise-dsl-property |
+| Organize Items into logical containers with dependencies         | cristalise-dsl-module   |
+| Configure individual business objects and their properties       | cristalise-dsl-item     |
+| Write Groovy/JavaScript for routing, validation, or computations | cristalise-dsl-script   |
+| Define dynamic data sources for listOfValues or runtime access   | cristalise-dsl-query    |
+| Define Roles and Permissions for access control                  | cristalise-dsl-role     |
+| Define DomainContext and domain namespaces                       | cristalise-dsl-domain   |
 
 ## See Also
 
 - [writing-great-skills](../writing-great-skills/SKILL.md) — The blueprint for skill writing principles
-- [cristalise-dsl-workflow](../cristalise-dsl-workflow/SKILL.md) — Complete workflow DSL reference
-- [cristalise-dsl-schema](../cristalise-dsl-schema/SKILL.md) — Complete schema DSL reference
-- [cristalise-dsl-property](../cristalise-dsl-property/SKILL.md) — Complete PropertyDescriptionList DSL reference
-- [cristalise-dsl-module](../cristalise-dsl-module/SKILL.md) — Module DSL reference (placeholder)
-- [cristalise-dsl-item](../cristalise-dsl-item/SKILL.md) — Complete Item DSL reference
-- [cristalise-dsl-script](../cristalise-dsl-script/SKILL.md) — Complete Script DSL reference
-- [cristalise-dsl-query](../cristalise-dsl-query/SKILL.md) — Query DSL reference (placeholder)
-- [cristalise-dsl-role](../cristalise-dsl-role/SKILL.md) — Complete Role DSL reference
-- [cristalise-dsl-domain](../cristalise-dsl-domain/SKILL.md) — Complete DomainContext DSL reference
+- [kernel/CONTEXT.md](../../../kernel/CONTEXT.md) — Core CRISTAL-iSE domain definitions

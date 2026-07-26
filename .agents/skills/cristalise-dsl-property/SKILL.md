@@ -5,7 +5,7 @@ description: Complete reference for defining PropertyDescriptionList Items in CR
 
 # CRISTAL-iSE PropertyDescriptionList DSL
 
-**PropertyDescriptionList** defines metadata descriptions for Item types in CRISTAL-iSE. It specifies which properties an Item type can have, their default values, mutability, and whether they serve as class identifiers. PropertyDescriptionLists are referenced by Items via the `Outcome` construct and are used throughout the system for validation and UI rendering.
+**PropertyDescriptionList** defines metadata descriptions for Item types in CRISTAL-iSE. It specifies which properties an Item type can have, their default values, mutability, and whether they serve as class identifiers. PropertyDescriptionLists are referenced by Items via the `Outcome` construct, instantiated in PrdefiendStep `CreateItemFromDescription` and are used throughout the system for dependencies, validation, UI rendering. Since an Item Property (e.g. Type) can be a `classIdentifier` the definition of a PropertyDescriptionList is considered a forward declaration of an Item. 
 
 ## Quick Start
 

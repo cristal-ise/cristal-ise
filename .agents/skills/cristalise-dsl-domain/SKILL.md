@@ -77,7 +77,6 @@ cristalise-dsl-domain/
 ## See Also
 
 - [writing-cristalise-dsl](../writing-cristalise-dsl/SKILL.md) — Router for all DSL skills
-- [writing-great-skills](../writing-great-skills/SKILL.md) — Blueprint for skill writing principles
 - [cristalise-dsl-item](../cristalise-dsl-item/SKILL.md) — Complete Item DSL reference
 - [cristalise-dsl-module](../cristalise-dsl-module/SKILL.md) — Module DSL reference
 - [kernel/CONTEXT.md](../../../kernel/CONTEXT.md) — Domain definitions of Leading Words

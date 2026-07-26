@@ -69,6 +69,6 @@ Start with 'Minimal Example' in [EXAMPLES.md](EXAMPLES.md).
 ## See Also
 
 - [writing-cristalise-dsl](../writing-cristalise-dsl/SKILL.md) — Router for all DSL skills
+- [cristalise-dsl-item](../cristalise-dsl-item/SKILL.md) — Items and Agents that use Scripts
 - [cristalise-dsl-workflow](../cristalise-dsl-workflow/SKILL.md) — Workflow DSL for routing script usage
-- [cristalise-dsl-workflow](../cristalise-dsl-workflow/SKILL.md) — Workflow DSL for Script linkage patterns
-- [writing-great-skills](../writing-great-skills/SKILL.md) — The blueprint for skill writing principles
+- [kernel/CONTEXT.md](../../../kernel/CONTEXT.md) — Domain definitions of Leading Words

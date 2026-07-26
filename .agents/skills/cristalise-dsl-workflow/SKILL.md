@@ -194,13 +194,6 @@ Root/
 
 ## See Also
 
-- [references/workflow.md](references/workflow.md)
-- [references/layout.md](references/layout.md)
-- [references/activity.md](references/activity.md)
-- [references/binding.md](references/binding.md)
-- [references/block.md](references/block.md)
-- [references/splits.md](references/splits.md)
-- [references/routing.md](references/routing.md)
-- [references/properties.md](references/properties.md)
-- [EXAMPLES.md](EXAMPLES.md)
-- [GLOSSARY.md](GLOSSARY.md)
+- [writing-cristalise-dsl](../writing-cristalise-dsl/SKILL.md) — Router for all DSL skills
+- [cristalise-dsl-item](../cristalise-dsl-item/SKILL.md) — Items and Agents that has Lifecycle 
+- [kernel/CONTEXT.md](../../../kernel/CONTEXT.md) — Domain definitions of Leading Words
