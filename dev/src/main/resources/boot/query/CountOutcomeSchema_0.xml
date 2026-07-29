@@ -1,0 +1,12 @@
+<cristalquery name="CountOutcomeSchema" version="0">
+  <parameter name="uuid" type="java.lang.String"/>
+  <parameter name="offset" type="java.lang.Integer"/>
+  <parameter name="limit" type="java.lang.Integer"/>
+  <rootElement value="OutcomeSchema"/>
+  <recordElement value="Record"/>
+  <query dialect="postgres" language="sql"><![CDATA[ 
+select "SCHEMA_NAME", count(*) as COUNT from "OUTCOME"
+where "UUID" = '@{uuid}'
+group by "SCHEMA_NAME";
+ ]]></query>
+</cristalquery>

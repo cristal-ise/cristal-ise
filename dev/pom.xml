@@ -222,22 +222,33 @@
             <version>${logback.version}</version>
           </dependency>
         </dependencies>
-              <executions>
-                <execution>
-                  <id>module</id>
-                  <goals>
-                    <goal>java</goal>
-                  </goals>
-                  <configuration>
-                    <mainClass>org.codehaus.groovy.tools.GroovyStarter</mainClass>
-                    <commandlineArgs>--main groovy.ui.GroovyMain --encoding UTF-8 src/main/module/Module.groovy</commandlineArgs>
-                    <cleanupDaemonThreads>false</cleanupDaemonThreads>
-                    <includePluginDependencies>true</includePluginDependencies>
-                    <includeProjectDependencies>true</includeProjectDependencies>
-                  </configuration>
-                </execution>
-              </executions>
-            </plugin>
+        <executions>
+          <execution>
+            <id>module</id>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>org.codehaus.groovy.tools.GroovyStarter</mainClass>
+              <commandlineArgs>--main groovy.ui.GroovyMain --encoding UTF-8 src/main/module/org/cristalise/dev/Module.groovy</commandlineArgs>
+              <cleanupDaemonThreads>false</cleanupDaemonThreads>
+              <includePluginDependencies>true</includePluginDependencies>
+              <includeProjectDependencies>true</includeProjectDependencies>
+            </configuration>
+          </execution>
+          <execution>
+            <id>scaffold</id>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>org.cristalise.dev.scaffold.CRUDGenerator</mainClass>
+              <commandlineArgs>-r src/main -w src/main/data/webui -m src/main/data/ScaffoldModule.groovy</commandlineArgs>
+              <cleanupDaemonThreads>false</cleanupDaemonThreads>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -313,6 +324,14 @@
 
   <dependencies>
     <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>dev.langchain4j</groupId>
+      <artifactId>langchain4j-mistral-ai</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-dsl</artifactId>
       <version>${project.parent.version}</version>
@@ -347,6 +366,10 @@
       <artifactId>evo-inflector</artifactId>
       <version>1.3</version>
     </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.awaitility</groupId>
@@ -372,11 +395,6 @@
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-inmemory-lookup</artifactId>
       <version>${project.parent.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

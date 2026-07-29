@@ -22,7 +22,6 @@ package org.cristalise.kernel.querying;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.cristalise.kernel.SystemProperties.Resource_useOldImportFormat;
 import static org.cristalise.kernel.process.resource.BuiltInResources.QUERY_RESOURCE;
 
 import java.io.File;
@@ -291,20 +290,10 @@ public class Query implements DescriptionObject {
 
         if (imports == null) return;
 
-        if (Resource_useOldImportFormat.getBoolean()) {
-            imports.write("<Resource name='"+getName()+"' "
-                    + (getItemPath()==null?"":"id='"+getItemID()+"' ")
-                    + (getVersion()==null?"":"version='"+getVersion()+"' ")
-                    + "type='"+resType+"'>boot/"+resType+"/"+getName()
-                    + (getVersion()==null?"":"_"+getVersion())+".xml</Resource>\n");
-        }
-        else { 
-            imports.write("<QueryResource name='"+getName()+"' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
-                    + "/>\n");
-            
-        }
+        imports.write("<QueryResource name='"+getName()+"' "
+                + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
+                + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
+                + "/>\n");
     }
 
     @Override

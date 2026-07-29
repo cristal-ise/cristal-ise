@@ -120,6 +120,7 @@
     "module": "Module",
     "uuid": "UUID",
     "version": "Version",
+    "path": "Chemin",
     "actions": "Actions",
     "choose_columns": "Choisir les colonnes",
     "columns_selected": "{{count}} colonnes sélectionnées",
@@ -131,7 +132,15 @@
     "viewpoints": "Points de vue",
     "history": "Historique",
     "empty_collection": "Les données de la collection sont vides pour ce développement.",
-    "empty_viewpoints": "Les données des points de vue sont vides pour ce développement.",
-    "back": "Retour"
+    "empty_viewpoints": "Les données des points de vue sont vides pour ce développement."
+  },
+  "itemData": {
+    "headers": {
+      "nameVersion": "Schéma Nom / Version",
+      "viewpoint": "Count / Viewpoint",
+      "agent": "Agent",
+      "timestamp": "Timestamp",
+      "details": "Détails"
+    }
   }
 }

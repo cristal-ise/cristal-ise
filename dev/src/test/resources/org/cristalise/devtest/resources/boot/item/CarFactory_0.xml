@@ -1,7 +1,7 @@
 <Item initialPath="/devtest" name="CarFactory" ns="devtest" version="0" workflow="CrudFactory_Workflow" workflowVer="0">
   <Property mutable="false" name="Type">Factory</Property>
   <Property mutable="false" name="Root">/devtest/Cars</Property>
-  <Property mutable="false" name="UpdateSchema">Car_Details:0</Property>
+  <Property mutable="false" name="UpdateSchemaURN">Car_Details:0</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/Car_0.xml</Outcome>
   <Dependency classProps="" isDescription="false" name="workflow">
     <DependencyMember itemPath="/desc/ActivityDesc/devtest/Car_Workflow">
@@ -30,9 +30,10 @@
   <Dependency classProps="" isDescription="true" name="ClubMember">
     <DependencyMember itemPath="/desc/PropertyDesc/devtest/ClubMember">
       <MemberProperties>
-        <KeyValuePair Key="DependencyTo" String="Cars" isAbstract="false"/>
         <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
+        <KeyValuePair Key="DependencyTo" String="Cars" isAbstract="false"/>
         <KeyValuePair Key="DependencyCardinality" String="ManyToOne" isAbstract="false"/>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
       </MemberProperties>
     </DependencyMember>
     <CollectionProperties>

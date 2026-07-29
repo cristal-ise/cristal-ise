@@ -12,7 +12,9 @@
   </Dependency>
   <Dependency classProps="" isDescription="true" name="workflow'">
     <DependencyMember itemPath="/desc/PropertyDesc/dev/CompositeActivityDesc">
-      <MemberProperties/>
+      <MemberProperties>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
+      </MemberProperties>
     </DependencyMember>
     <CollectionProperties/>
   </Dependency>

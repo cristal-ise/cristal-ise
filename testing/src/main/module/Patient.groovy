@@ -1,8 +1,9 @@
 import static org.cristalise.kernel.collection.BuiltInCollections.AGGREGATE_SCRIPT
 import static org.cristalise.kernel.collection.BuiltInCollections.MASTER_SCHEMA
-import static org.cristalise.kernel.collection.Collection.Cardinality.*
-import static org.cristalise.kernel.collection.Collection.Type.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.ManyToOne
+import static org.cristalise.kernel.collection.Collection.Type.Bidirectional
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
+import static org.cristalise.kernel.property.BuiltInItemProperties.UPDATE_SCHEMA_URN
 
 def detailsSchema = Schema("Patient_Details", 0) {
     struct(name: 'PatientDetails') {
@@ -52,7 +53,7 @@ def aggregateEA = Activity("Patient_Aggregate", 0) {
     Script(aggregateScript)
 }
 
-def patientWf = Workflow(name: "Patient_Workflow", version: 0, generate: true) {
+Workflow(name: "Patient_Workflow", version: 0, generate: true) {
     Layout {
         Act('SetDetails', setDetailsEA)
         Act('SetUrinSample', urinalysisEA)
@@ -65,7 +66,7 @@ def patientWf = Workflow(name: "Patient_Workflow", version: 0, generate: true) {
 Item(name: 'PatientFactory', version: 0, folder: '/integTest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
     InmutableProperty('Type': 'Factory')
     InmutableProperty('Root': '/integTest/Patients')
-    InmutableProperty('UpdateSchema': 'Patient_Details:0')
+    InmutableProperty((UPDATE_SCHEMA_URN): 'Patient_Details:0')
 
     Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/Patient_0.xml')
 
@@ -79,19 +80,15 @@ Item(name: 'PatientFactory', version: 0, folder: '/integTest', workflow: 'CrudFa
     }
 
     Dependency('workflow') {
-        Member(patientWf) {
-            Property('Version': 0)
-        }
+        Member($patient_Workflow_CompositeActivityDef)
     }
 
     Dependency(MASTER_SCHEMA) {
-        Member(itemPath: '/desc/Schema/integTest/Patient') {
-            Property('Version': 0)
-        }
+        Member($patient_Schema)
     }
 
     Dependency(AGGREGATE_SCRIPT) {
-        Member(itemPath: '/desc/Script/integTest/Patient_Aggregate') {
+        Member($patient_Aggregate_Script) {
             Property('Version': 0)
         }
     }

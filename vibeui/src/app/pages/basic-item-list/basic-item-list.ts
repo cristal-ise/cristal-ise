@@ -22,7 +22,9 @@ import { HttpErrorResponse } from '@angular/common/http';
 })
 export class BasicItemList implements OnDestroy {
   domainPath: Signal<string> = input.required<string>();
-  displayPath: Signal<string> = computed(() => this.domainPath()?.substring(this.domainPath()?.lastIndexOf('/') + 1));
+  displayPath: Signal<string> = computed(() =>
+    this.domainPath()?.substring(this.domainPath()?.lastIndexOf('/') + 1),
+  );
 
   private itemListService = inject(ItemListService);
   private searchTextService = inject(SearchTextService);
@@ -35,12 +37,13 @@ export class BasicItemList implements OnDestroy {
     { field: 'Name', header: 'itemList.name' },
     { field: 'Type', header: 'itemList.type' },
     { field: 'Module', header: 'itemList.module' },
+    { field: 'Path', header: 'itemList.path' },
     { field: 'UUID', header: 'itemList.uuid' },
     { field: 'Version', header: 'itemList.version' },
   ];
 
   selectedItem = signal<BasicItemListResultItem | undefined>(undefined);
-  selectedColumns = signal([this.columns[0], this.columns[1], this.columns[2]]);
+  selectedColumns = signal([this.columns[0], this.columns[1], this.columns[2], this.columns[3]]);
 
   constructor() {
     effect(() => {
@@ -64,8 +67,10 @@ export class BasicItemList implements OnDestroy {
       toObservable(this.limit),
       toObservable(this.searchTextService.searchText),
     ]).pipe(
-      switchMap(([path, first, rows, search]) => this.itemListService.getBasicItemList(path, search, first, rows)),
-      map((result) => result?.BasicItemList?.Item || [] as BasicItemListResultItem[]),
+      switchMap(([path, first, rows, search]) =>
+        this.itemListService.getBasicItemList(path, search, first, rows),
+      ),
+      map((result) => result?.BasicItemList?.Item || ([] as BasicItemListResultItem[])),
       catchError((error: HttpErrorResponse) => {
         // required because signal cannot be undefined
         return of([] as BasicItemListResultItem[]);

@@ -3,7 +3,7 @@
   <Property mutable="false" name="Root">/devtest/TestAgents</Property>
   <Property mutable="false" name="CreateAgent">true</Property>
   <Property mutable="true" name="DefaultRoles">Admin</Property>
-  <Property mutable="false" name="UpdateSchema">TestAgent_Details:0</Property>
+  <Property mutable="false" name="UpdateSchemaURN">TestAgent_Details:0</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/TestAgent_0.xml</Outcome>
   <Dependency classProps="" isDescription="false" name="workflow">
     <DependencyMember itemPath="/desc/ActivityDesc/devtest/TestAgent_Workflow">

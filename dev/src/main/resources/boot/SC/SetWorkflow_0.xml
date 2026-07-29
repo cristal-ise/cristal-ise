@@ -23,6 +23,8 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+package org.cristalise.dev.script
+
 import static org.cristalise.kernel.collection.BuiltInCollections.WORKFLOW
 import org.cristalise.kernel.collection.BuiltInCollections
 import org.cristalise.kernel.collection.Dependency

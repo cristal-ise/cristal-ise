@@ -120,6 +120,7 @@
     "module": "Modul",
     "uuid": "UUID",
     "version": "Version",
+    "path": "Pfad",
     "actions": "Aktionen",
     "choose_columns": "Spalten auswählen",
     "columns_selected": "{{count}} Spalten ausgewählt",
@@ -131,7 +132,15 @@
     "viewpoints": "Ansichtspunkte",
     "history": "Verlauf",
     "empty_collection": "Sammlungsdaten sind für diese Entwicklung leer.",
-    "empty_viewpoints": "Ansichtspunktdaten sind für diese Entwicklung leer.",
-    "back": "Zurück"
+    "empty_viewpoints": "Ansichtspunktdaten sind für diese Entwicklung leer."
+  },
+  "itemData": {
+    "headers": {
+      "nameVersion": "Schema Name / Version",
+      "viewpoint": "Anzahl / Standpunkt",
+      "agent": "Agent",
+      "timestamp": "Zeitstempel",
+      "details": "Details"
+    }
   }
 }
