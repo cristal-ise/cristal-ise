@@ -6,12 +6,14 @@ The CRISTAL-iSE implements a Description-Driven Framework where application logi
 
 ### Core Entities
 
+is the heart of cristalise-kernel as it abstracts business objects and their logic into _process-driven_, _version-controlled_ and _document-oriented_ data that are managed on-the-fly for specific user domains. Item is fully audited as it stores all Events generated during the execution of its LifeCycle. Items are also communication end-points (VERT.X service) and have unique IDs (UUID) to support lookup in a distributed environment.
+
 **Item**:
-The fundamental business object in CRISTAL-iSE, analogous to an Entity or Resource in REST applications. Every Item can instantiate other Items through kernel PredefinedSteps.
+The fundamental business object in CRISTAL-iSE, analogous to an Entity or Resource in REST applications. It abstracts business objects and their logic into _process-driven_, _version-controlled_ and _document-oriented_ data. Item is fully audited as it stores all Events generated during the execution of its LifeCycle. Items are also communication end-points (VERT.X service) and have unique IDs (UUID) to support lookup in a distributed environment. Every Item can instantiate other Items through kernel PredefinedSteps `CreateItemFromDescription`.
 _Avoid_: Entity, Resource, Object
 
 **Agent**:
-An Item with Roles that is entitled to execute Activities. Agents must be authenticated and authorized in the system.
+An Item with Roles that is entitled to execute Activities. Agents must be authenticated and authorised in the system.
 _Avoid_: User, Actor
 
 ### Metadata & Configuration
@@ -38,9 +40,6 @@ Most important Item Properties used by the system:
 - **Version**: The version of the Item. Used for controlling migration. It is mutable. 
 - **State**: The state of the Item, whether it is ACTIVE or INACTIVE. It is mutable.
   CRISTAL-iSE design promotes the idea that Items are never deleted, only made INACTIVE. State can be useful when the State of an Item is associated with the execution of its Lifecycle.
-
-**Type**:
-A property on an Item that classifies it (e.g., ImportItem, Factory, ImportAgent, Module, Description, DomainContext)
 
 ### Description Types
 System-provided Description Items which are also represented as java classes in the kernel.
@@ -110,36 +109,58 @@ _Avoid_: DependencyTemplate
 **Member**:
 An element within a Collection that references a specific Item. Members can have additional properties that define their role in the collection.
 
-### Lifecycle Management
+### Lifecycle and its Execution
+LifeCycle implements the process-driven aspect of Item. It holds the domain-specific logic required by the business object. Currently, it is implemented as a flexible Workflow engine.
 
 **Activity**:
-A Service/Task/Endpoint within an Item's Lifecycle that represents a PUT/POST operation with write transaction. All state changes of an Item are the direct consequence of executing Activities.
+Captures the parameters of each atomic execution, defining what data is to be supplied (Schema), the code to be executed (Script). The execution is performed by Agents. It is a Service/Task/Endpoint within an Item's Lifecycle that represents PUT/POST operation with write-transaction. Kernel enforces that all state changes of an Item are the direct consequence of executing Activities.
 _Avoid_: Operation, Action, Method
+_Synonym_: ElementaryActivity
+
+**Script**:
+A Description encapsulating a piece of code that can be executed. Scripts use JSR-223 API (Groovy, JavaScript) and can execute as GET endpoints or be associated with Activities.
+_Avoid_: Code, Function, Procedure
+
+**CompositeActivity**:
+Contains complete layout for all Activities (Elementary or Composite), connected in a directed acyclic graph (DAG) that enforces the execution order of the constituent Activities.
 
 **Workflow**:
-The dependency graph of Activities that represents the complete Lifecycle of an Item. Workflows calculate the availability of Activities.
+Top-level CompositeActivity, the container for all Activities representing the complete Lifecycle of an Item. It resolves all activity paths from execution requests to individual Activities and passes requests to them. Workflows calculate the availability of Activities.
 _Avoid_: Process, Flow, BusinessProcess
 
 **StateMachine**:
-A Description defining the possible transitions during the execution of an Activity. Each Activity has its own StateMachine for internal state management.
+A Description defining the States and Transitions that govern the execution of an Activity. Each Activity has its own StateMachine that tracks its current State and enforces which Transitions an Agent may perform.
 _Avoid_: StateDiagram, TransitionModel
 
+**State**:
+A named condition an Activity can be in while it is executed, such as Waiting, Started, Suspended or Finished. A State that is marked as finished deactivates the Activity so the Workflow proceeds to the next Activity.
+_Avoid_: Status, Phase, Step
+
+**Transition**:
+A named move from an origin State to a target State that an Agent performs to drive an Activity's execution (e.g. Start, Complete, Suspend, Resume). Performing a Transition records an Event and may capture an Outcome and run the Activity's Script or Query; its availability can be constrained by Activity properties and Agent permissions.
+_Avoid_: Action, Command, Edge
+
+**Event**:
+A record of a change of state of an Activity execution that is stored within an Item's AuditTrail/History. Events are immutable and can be used to reconstruct the state of an Item at any point in time.
+_Avoid_: Operation, Action, Method
+
 **PredefinedStep**:
-A special Activity implemented within the kernel that executes core functionality during Activity transaction processing.
+A special Activity implemented within the kernel that executes core functionality during Activity transactional processing.
 _Avoid_: BuiltInActivity, KernelActivity
 
 #### PredefinedStep Implementations
+Below is an incomplete list of PredefinedStep defining only the most relevant required to describe the domain model.
 
 **AddNewCollectionDescription**:
 Creates a new collection description (AggregationDescription or DependencyDescription) within an Item, which can be instantiated  during Item creation.
 _Avoid_: CreateCollectionTemplate
 
 **CreateItemFromDescription**:
-Instantiates a new Item from a Description Item by copying its workflow, properties and CollectionDescriptions during Activity execution.
+Instantiates a new Item from a Description Item by instantiating its workflow, properties and CollectionDescriptions during Activity execution.
 _Avoid_: InstantiateFromTemplate, CloneItem
 
 **CreateAgentFromDescription**:
-Instantiates a new Agent from a Description Item, including its Roles and permissions, during Activity execution.
+Extends CreateItemFromDescription to instantiate a new Agent from a Description Item, including its Roles and permissions during Activity execution.
 _Avoid_: CreateUserFromTemplate
 
 **CreateNewCollectionVersion**:
@@ -154,41 +175,45 @@ _Avoid_: AddToCollection, InsertMember
 Deletes all objects and domain paths for an Item during Activity execution. Irreversible operation.
 _Avoid_: DeleteItem, RemoveItem
 
-### Data & Execution
-
-**Outcome**:
-Data obtained during the execution of an Activity. Outcomes must conform to a Schema and can be submitted by users or generated by Scripts.
-_Avoid_: Result, Output, Response
+### Data & Storage
+Document-oriented and version-controlled persistency aspect of Item.
 
 **Schema**:
-A Description storing the definitions of data that is either stored or computed in the system. Schemas define the structure that Outcomes must conform to.
+A Description storing the definitions of data that is either stored or computed in the system. Schemas define the structure that Outcomes must conform to using the XSM Schema (XSD) standard.
 _Avoid_: DataModel, DataStructure
 
+**Outcome**:
+An XML document obtained during the execution of an Activity. Outcomes are instances of a Schema, i.e. conform to a Schema and can be submitted by users or generated by Scripts.
+_Avoid_: Result, Output, Response
+
 **Viewpoint**:
-A named version of an Outcome that serves as a shortcut to retrieve specific versions. The default Viewpoint 'last' always points to the most recent Outcome.
+A named version of an Outcome that serves as a shortcut to retrieve specific versions. It has a path like structure: `/${schameName}/${viewName}/${eventId}`. In other words there are at least as many Viewpoints for an Item as many Outcomes were submitted during its Lifecycle. The default Viewpoint 'last' always points to the most recent Outcome.
 _Avoid_: VersionPointer, Alias
 
-**Script**:
-A Description encapsulating a piece of code that can be executed. Scripts use JSR-223 API (Groovy, JavaScript) and can execute as GET endpoints or be associated with Activities.
-_Avoid_: Code, Function, Procedure
+**History**
+An AuditTrail of all Events and Outcomes that were submitted during the Lifecycle of an Item.
 
 **Query**:
-A Description encapsulating data selection logic (currently only SQL). Queries can execute as GET endpoints or be associated with Activities.
+A Description encapsulating data selection logic (currently only SQL). Queries can be executed as GET endpoints or be associated with Activities.
 _Avoid_: SQLQuery, DataQuery
 
-### Navigation & Storage
+**ClusterType**:
+A named partition under an Item that groups related data objects (such as Properties, Outcomes, or Lifecycle workflows).
+_Avoid_: StoragePartition, DataGroup, StorageType, Category
+
+**ClusterStorage**:
+A persistency manager that handles the storage and retrieval of kernel objects. It allows different ClusterTypes of an Item to be stored through get and put operations.
+_Avoid_: StorageProvider, PersistenceManager, Database
+
+**ClusterStorageManager**:
+The central persistence manager that orchestrates and routes read/write operations across configured ClusterStorage instances based on supported ClusterTypes, while managing transactional caching and locking.
+_Avoid_: StorageManager, PersistenceCoordinator, StorageRegistry
+
+### Navigation
 
 **DomainPath**:
-The domain name of an Item, following the pattern `/${module}/${type}/${name}`. An Item can have multiple DomainPaths with arbitrary nesting levels.
+The domain name of an Item, following the pattern `/${module}/${type}/${name}` although the user is able to define any structure. An Item can have multiple DomainPaths with arbitrary nesting levels. The primary purpose of DomainPaths is to provide a unique identifier for an Item within a specific context, allowing for easy retrieval and management of related data.
 _Avoid_: Path, Domain, URI
-
-**ClusterType**:
-The storage category for different object types in the kernel's persistency system.
-_Avoid_: StorageType, Category
-
-**Module**:
-A collection of Items that were created to implement a set of functionalities. Modules have their own namespace (DomainPath segment) and version, and are independent deployment units.
-_Avoid_: Package, Component, Library
 
 ### Security
 
@@ -207,3 +232,26 @@ A Shiro WildcardPermission string following the format `domain:action:target` th
 - `action`: it is the Name of the Activity or Query or Script. Can be overridden by the Activty property `BuiltInVertexProperties.SECURITY_ACTION`
 - `target`: it is the UUID or Name of the Item that the Activity/Query/Script is executed on
   _Avoid_: AccessRight, Privilege
+
+### Importing Items
+
+**Module**:
+A collection of Items that were created to implement a set of functionalities. Modules have their own namespace (DomainPath segment) and version, and are independent deployment units.
+_Avoid_: Package, Component, Library
+
+**Bootstrap**:
+The process that reconciles the system's startup with its authoritative metadata by instantiating or updating Items loaded by Modules to implement functionalities.
+_Avoid_: Initialization, Startup, Setup
+
+## Architecture Style
+
+**Description-Driven**:
+Items gain all of their application-specific behaviour through configuration, rather than compiled code. This configuration data, Descriptions, comprises of Workflow definitions, XML Schemas and Script, which interact to provide the full Lifecycle of the Item they are describing. Description data is also stored in other Items, which are also described using the same mechanism.
+
+**Provenance**
+
+CRISTAL-ise stores previous versions of Descriptions, so that previous states of the system are preserved, and full **provenance** of both the application and its data are completely preserved.
+
+## See Also
+
+- [domain-modeling skill](../.agents/skills/domain-modeling/SKILL.md) – Blueprint to write CONTEXT.md files
