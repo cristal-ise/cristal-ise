@@ -114,6 +114,7 @@ describe('BasicItemList', () => {
     expect(selectedFields).toContain('Type');
     expect(selectedFields).toContain('Module');
     expect(selectedFields).toContain('Name');
+    expect(selectedFields).toContain('Path');
     expect(selectedFields).not.toContain('UUID');
     expect(selectedFields).not.toContain('Version');
     expect(selectedFields).not.toContain('TotalCount');

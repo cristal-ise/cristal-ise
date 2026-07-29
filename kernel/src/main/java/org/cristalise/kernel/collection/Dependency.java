@@ -20,33 +20,7 @@
  */
 package org.cristalise.kernel.collection;
 
-import static org.cristalise.kernel.SystemProperties.*;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ACTIVITY_DEF_URN;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_ALLOW_DUPLICATE_ITEMS;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_CARDINALITY;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_TO;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_TYPE;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.QUERY_NAME;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.QUERY_VERSION;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_VERSION;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_NAME;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_VERSION;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
-import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.QUERY_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.STATE_MACHINE_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
-import static org.cristalise.kernel.property.BuiltInItemProperties.WORKFLOW_URN;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -66,7 +40,14 @@ import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.cristalise.kernel.SystemProperties.*;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
+import static org.cristalise.kernel.property.BuiltInItemProperties.*;
+import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 
 /**
  * A Collection implementation that contains a variable number of members of the
@@ -146,11 +127,6 @@ public class Dependency extends Collection<DependencyMember> {
 
     /**
      * 
-     * @param childPath
-     * @param memberNewProps
-     * @throws ObjectNotFoundException
-     * @throws InvalidDataException
-     * @throws InvalidCollectionModification 
      */
     public void updateMember(ItemPath childPath, CastorHashMap memberNewProps)
             throws ObjectNotFoundException, InvalidDataException, InvalidCollectionModification
@@ -160,12 +136,6 @@ public class Dependency extends Collection<DependencyMember> {
 
     /**
      * 
-     * @param childPath
-     * @param memberID
-     * @param memberNewProps
-     * @throws ObjectNotFoundException
-     * @throws InvalidDataException
-     * @throws InvalidCollectionModification 
      */
     public void updateMember(ItemPath childPath, int memberID, CastorHashMap memberNewProps)
             throws ObjectNotFoundException, InvalidDataException, InvalidCollectionModification
@@ -174,7 +144,7 @@ public class Dependency extends Collection<DependencyMember> {
 
         if (members.size() != 1) throw new InvalidDataException("Child item '"+childPath+"' apperars more them once in collection " + mName);
 
-        DependencyMember member = (DependencyMember) members.get(0);
+        DependencyMember member = (DependencyMember) members.getFirst();
         member.updateProperties(memberNewProps);
     }
 
@@ -198,19 +168,12 @@ public class Dependency extends Collection<DependencyMember> {
 
     /**
      * 
-     * @param depMember
-     * @throws InvalidCollectionModification
-     * @throws ObjectAlreadyExistsException
      */
     public void addMember(DependencyMember depMember) throws InvalidCollectionModification, ObjectAlreadyExistsException {
         mMembers.list.add(depMember);
     }
     /**
      * 
-     * @param itemPath
-     * @return
-     * @throws InvalidCollectionModification
-     * @throws ObjectAlreadyExistsException
      */
     public DependencyMember createMember(ItemPath itemPath, TransactionKey transactionKey) throws InvalidCollectionModification, ObjectAlreadyExistsException {
         if (itemPath == null) 
@@ -261,11 +224,6 @@ public class Dependency extends Collection<DependencyMember> {
 
     /**
      * 
-     * @param itemPath
-     * @param props
-     * @return
-     * @throws InvalidCollectionModification
-     * @throws ObjectAlreadyExistsException
      */
     public DependencyMember createMember(ItemPath itemPath, CastorHashMap props, TransactionKey transactionKey) 
             throws InvalidCollectionModification, ObjectAlreadyExistsException
@@ -335,7 +293,7 @@ public class Dependency extends Collection<DependencyMember> {
             //Do not process this member further if Script has done the job already or this is not a BuiltInCollection
             if (member.convertToItemPropertyByScript(props, transactionKey) || builtInColl == null) continue;
 
-            log.debug("addToItemProperties() - BuiltIn Dependency:"+getName()+" memberUUID:"+memberUUID);
+            log.debug("addToItemProperties() - BuiltIn Dependency:{} memberUUID:{}", getName(), memberUUID);
             //LocalObjectLoader checks if data is valid and loads object to cache
             switch (builtInColl) {
                 //***************************************************************************************************

@@ -20,6 +20,8 @@
  */
 package org.cristalise.dsl.entity
 
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.StringUtils
 import org.cristalise.dsl.collection.DependencyBuilder
 import org.cristalise.dsl.collection.DependencyDelegate
@@ -37,11 +39,7 @@ import org.cristalise.kernel.entity.imports.ImportOutcome
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.Workflow
 import org.cristalise.kernel.lookup.ItemPath
-import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.property.PropertyDescriptionList
-
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 
 /**
  *
@@ -63,8 +61,6 @@ class ItemDelegate extends PropertyDelegate {
 
         initNewItemFolder(args)
         initNewItemWorkflow(args)
-
-        if (args.workflowVer != null) newItem.workflowVer = (Integer)args.workflowVer
     }
 
     private void initNewItemFolder(Map<String, Object> args) {
@@ -81,14 +77,22 @@ class ItemDelegate extends PropertyDelegate {
             log.debug 'initNewItemWorkflow() - item:{} will be created without workflow', args.name
         }
         else if (args.workflow instanceof String) {
+            assert args.workflow && args.workflowVer != null
+
             newItem.workflow = (String)args.workflow
+            newItem.workflowVer = (Integer)args.workflowVer
         }
         else if (args.workflow instanceof CompositeActivityDef) {
             newItem.compActDef = (CompositeActivityDef)args.workflow
             newItem.workflow = newItem.compActDef.name
+
             if (newItem.compActDef.version != null) {
                 newItem.workflowVer = newItem.compActDef.version
                 if (args.workflowVer != null) assert newItem.workflowVer == (Integer)args.workflowVer
+            }
+            else {
+                assert args.workflowVer != null
+                newItem.workflowVer = (Integer)args.workflowVer
             }
         }
         else if (args.workflow instanceof Workflow) {

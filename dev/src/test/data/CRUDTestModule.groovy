@@ -1,10 +1,12 @@
 Module(namespace: 'devtest', rootPackage: 'org.cristalise.devtest', webuiConfigs: true) {
     Item(name: 'Car') {
         field(name: 'RegistrationPlate')
+        field(name: 'Make', values: ['BMW', 'Audi', 'Mercedes'])
     }
 
     Item(name: 'Motorcycle') {
         field(name: 'RegistrationPlate')
+        field(name: 'Make', values:['BMW', 'Suzuki'])
     }
 
     Item(name: 'ClubMember') {

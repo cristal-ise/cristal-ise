@@ -119,6 +119,7 @@
     "module": "Module",
     "uuid": "UUID",
     "version": "Version",
+    "path": "Path",
     "actions": "Actions",
     "choose_columns": "Choose Columns",
     "columns_selected": "{{count}} columns selected",

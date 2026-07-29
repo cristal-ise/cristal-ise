@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.collection;
 
+import lombok.extern.slf4j.Slf4j;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -28,8 +29,6 @@ import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.CastorHashMap;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DependencyDescription extends Dependency implements CollectionDescription<DependencyMember> {
@@ -50,28 +49,25 @@ public class DependencyDescription extends Dependency implements CollectionDescr
     @Override
     public Collection<DependencyMember> newInstance(TransactionKey transactionKey) throws ObjectNotFoundException {
         // HACK: Knock the special 'prime' off the end for the case of descriptions of descriptions
-        String depName = getName().replaceFirst("\'$", ""); 
+        String depName = getName().replaceFirst("'$", ""); 
 
         Dependency newDep = new Dependency(depName);
 
         // constrain the members based on the property description
         if (mMembers.list.size() == 1) {
-            DependencyMember mem = mMembers.list.get(0);
+            DependencyMember mem = mMembers.list.getFirst();
             String descVer = getDescVer(mem);
 
             PropertyDescriptionList pdList = PropertyUtility.getPropertyDescriptionOutcome(mem.getItemPath(), descVer, transactionKey);
 
-            if (pdList != null) {
-                newDep.setProperties(PropertyUtility.convertTransitiveProperties(pdList));
-                newDep.setClassProps(pdList.getClassProps());
-            }
-            else
-                log.warn("newInstance("+getName()+") - No PropertyDesc was found. Dependency cannot check member type.");
+            newDep.setProperties(PropertyUtility.convertTransitiveProperties(pdList));
+            newDep.setClassProps(pdList.getClassProps());
 
             if (mProperties != null) newDep.getProperties().merge(mProperties);
         }
-        else
-            log.warn("newInstance("+getName()+") - No PropertyDesc was found. Dependency cannot check member type.");
+        else {
+            log.warn("newInstance({}) - No PropertyDesc was found. Dependency cannot check member type.", getName());
+        }
 
         return newDep;
     }
@@ -91,7 +87,7 @@ public class DependencyDescription extends Dependency implements CollectionDescr
     }
 
     public void checkMembership() throws InvalidCollectionModification {
-        if (mMembers.list.size() > 0)
+        if (!mMembers.list.isEmpty())
             throw new InvalidCollectionModification("Dependency descriptions may not have more than one member.");
     }
 }
