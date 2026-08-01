@@ -1,0 +1,13 @@
+{
+  "isDisplayable": true,
+  "mappings": {
+    "PatientDetails": "FIELDSET",
+    "PatientDetails.DateOfBirth": "PRIMITIVE",
+    "PatientDetails.InsuranceNumber": "PRIMITIVE",
+    "PatientDetails.Gender": "PRIMITIVE",
+    "PatientDetails.PredefinedSteps": "PRIMITIVE",
+    "PatientDetails.Weight": "FIELDSET",
+    "PatientDetails.Weight.unit": "PRIMITIVE",
+    "PatientDetails.Weight.content": "PRIMITIVE"
+  }
+}

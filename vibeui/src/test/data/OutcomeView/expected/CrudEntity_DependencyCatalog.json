@@ -1,0 +1,19 @@
+{
+  "isDisplayable": true,
+  "mappings": {
+    "CrudEntity_Dependecy": "FIELDSET",
+    "CrudEntity_Dependecy.MemberPath": "PRIMITIVE",
+    "CrudEntity_Dependecy.PredefinedSteps": "FIELDSET",
+    "CrudEntity_Dependecy.PredefinedSteps.AddMembersToCollection": "FIELDSET",
+    "CrudEntity_Dependecy.PredefinedSteps.AddMembersToCollection.Dependency": "FIELDSET",
+    "CrudEntity_Dependecy.PredefinedSteps.AddMembersToCollection.Dependency.CollectionName": "PRIMITIVE",
+    "CrudEntity_Dependecy.PredefinedSteps.AddMembersToCollection.Dependency.ClassProps": "PRIMITIVE",
+    "CrudEntity_Dependecy.PredefinedSteps.AddMembersToCollection.Dependency.CollectionMemberList": "FIELDSET",
+    "CrudEntity_Dependecy.PredefinedSteps.AddMembersToCollection.Dependency.CollectionMemberList.DependencyMember": "FIELDSET",
+    "CrudEntity_Dependecy.PredefinedSteps.AddMembersToCollection.Dependency.CollectionMemberList.DependencyMember.ChildUUID": "PRIMITIVE",
+    "CrudEntity_Dependecy.PredefinedSteps.AddMembersToCollection.Dependency.CollectionMemberList.DependencyMember.ClassProps": "PRIMITIVE",
+    "CrudEntity_Dependecy.PredefinedSteps.AddMembersToCollection.Dependency.CollectionMemberList.DependencyMember.ID": "PRIMITIVE",
+    "CrudEntity_Dependecy.PredefinedSteps.AddMembersToCollection.Dependency.CollectionMemberList.DependencyMember.Properties": "PRIMITIVE",
+    "CrudEntity_Dependecy.PredefinedSteps.AddMembersToCollection.Dependency.Properties": "PRIMITIVE"
+  }
+}

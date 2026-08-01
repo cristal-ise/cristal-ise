@@ -1,0 +1,8 @@
+{
+  "isDisplayable": true,
+  "mappings": {
+    "SystemProperties": "FIELDSET",
+    "SystemProperties.ProcessName": "PRIMITIVE",
+    "SystemProperties.Property": "TABLE"
+  }
+}

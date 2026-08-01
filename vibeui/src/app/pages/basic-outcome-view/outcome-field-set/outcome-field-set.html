@@ -1,0 +1,49 @@
+@switch (getComponentType()) {
+  @case (OutcomeComponentType.FIELDSET) {
+    <div class="col-span-2 last:mb-0 mb-[0.55rem]">
+      <p-fieldset [legend]="label()" [toggleable]="true" [collapsed]="collapsed()" class="w-full">
+        <div class="grid grid-cols-[max-content_auto] gap-x-4 gap-y-[0.55rem]">
+          @for (item of objectEntries(value()); track item.key) {
+            <app-outcome-field-set
+              [label]="item.key"
+              [value]="item.value"
+              [catalog]="catalog()"
+              [path]="path() + '.' + item.key"
+            ></app-outcome-field-set>
+          }
+        </div>
+      </p-fieldset>
+    </div>
+  }
+  @case (OutcomeComponentType.TABLE) {
+    <app-outcome-table [label]="label()" [value]="value()" [collapsed]="collapsed()"></app-outcome-table>
+  }
+  @case (OutcomeComponentType.TABS) {
+    <app-outcome-tabs
+      [label]="label()"
+      [value]="value()"
+      [catalog]="catalog()"
+      [path]="path()"
+      [collapsed]="collapsed()"
+    ></app-outcome-tabs>
+  }
+  @case (OutcomeComponentType.PRIMITIVE) {
+    <div class="flex justify-between mt-[0.825rem] gap-x-4">
+      <span class="text-muted-color font-semibold">{{ label() }}</span>
+      <span class="text-muted-color">{{ value() }}</span>
+    </div>
+  }
+  @case (OutcomeComponentType.PRIMITIVE_ARRAY) {
+    <div class="flex justify-between mt-[0.825rem] gap-x-4">
+      <span class="text-muted-color font-semibold">{{ label() }}</span>
+      <span class="text-muted-color">{{ value() | json }}</span>
+    </div>
+  }
+  @default {
+    <div class="col-span-2 last:mb-0 mb-[0.55rem]">
+      <p-panel [header]="label()" [toggleable]="true" [collapsed]="collapsed()">
+        <pre class="text-xs">{{ value() | json }}</pre>
+      </p-panel>
+    </div>
+  }
+}
