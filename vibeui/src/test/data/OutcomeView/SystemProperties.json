@@ -1,0 +1,182 @@
+{
+  "SystemProperties": {
+    "ProcessName": "Bootstrap",
+    "Property": [
+      {
+        "SetInConfigFiles": true,
+        "Value": "Functional testing Cristal-ise Server",
+        "Name": "Name"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "*",
+        "Name": "UserCode.permissions"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "REDACTED",
+        "Name": "JOOQ.password"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": 300,
+        "Name": "REST.loginCookieLife"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": false,
+        "Name": "JOOQ.autoCommit"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "org.cristalise.storage.jooqdb.lookup.JooqLookupManager",
+        "Name": "Lookup"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": true,
+        "Name": "REST.requireLoginCookie"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "Shiro",
+        "Name": "Authenticator"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": true,
+        "Name": "Module.dev.debug"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "12:string",
+        "Name": "SimpleType.DefaultValues"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "http://localhost:8081/api",
+        "Name": "REST.URI"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": 50,
+        "Name": "REST.DefaultBatchSize"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "org.cristalise.dev.DevObjectOutcomeInitiator",
+        "Name": "OutcomeInit.Dev"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": 50,
+        "Name": "REST.Event.DefaultBatchSize"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "/app/config/shiro.ini",
+        "Name": "Shiro.iniFile"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "jdbc:postgresql://localhost:5432/integtest",
+        "Name": "JOOQ.URI"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "local",
+        "Name": "LocalCentre"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "integTest",
+        "Name": "Environment"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "postgres",
+        "Name": "JOOQ.user"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "org.cristalise.kernel.persistency.outcome.QueryOutcomeInitiator",
+        "Name": "OutcomeInit.Query"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": true,
+        "Name": "REST.addCorsHeaders"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "localhost",
+        "Name": "ItemServer.Console.allow"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "POSTGRES",
+        "Name": "JOOQ.dialect"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": 75,
+        "Name": "REST.Path.DefaultBatchSize"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "org.cristalise.dev.DevObjectOutcomeInitiator",
+        "Name": "OutcomeInit.dev"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "org.cristalise.kernel.persistency.outcomeinit.EmptyOutcomeInitiator",
+        "Name": "OutcomeInit.Empty"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "/app/config/local.clc",
+        "Name": "connect"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "org.cristalise.kernel.persistency.outcomeinit.XPathOutcomeInitiator",
+        "Name": "OutcomeInit.XPath"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "org.cristalise.storage.jooqdb.JooqClusterStorage",
+        "Name": "ClusterStorage"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "dev,integTest",
+        "Name": "Resource.moduleUseFileNameWithVersion"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": true,
+        "Name": "REST.allowWeakKey"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": true,
+        "Name": "WebSocketVerticle.enabled"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": 50,
+        "Name": "REST.Job.DefaultBatchSize"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": true,
+        "Name": "REST.Debug.errorsWithBody"
+      },
+      {
+        "SetInConfigFiles": true,
+        "Value": "/app/config/server.conf",
+        "Name": "config"
+      }
+    ]
+  }
+}

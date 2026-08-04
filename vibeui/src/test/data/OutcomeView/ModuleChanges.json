@@ -1,0 +1,566 @@
+{
+  "ModuleChanges": {
+    "ModuleVersion": 0,
+    "ModuleName": "kernel",
+    "ResourceChangeDetails": [
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "Schema",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "Default",
+        "ResourceVersion": 0,
+        "SchemaName": "StateMachine"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "PredefinedStep",
+        "ResourceVersion": 0,
+        "SchemaName": "StateMachine"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ServersContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescActivityDescContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescAgentDescContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescContextContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescItemDescContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescModuleContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescPropertyDescContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescSchemaContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescScriptContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescStateMachineContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescActivityDescKernelContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescAgentDescKernelContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescContextKernelContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescItemDescKernelContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescPropertyDescKernelContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescSchemaKernelContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescScriptKernelContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescStateMachineKernelContext",
+        "ResourceVersion": 0,
+        "SchemaName": "DomainContext"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "CompositeActivity",
+        "ResourceVersion": 0,
+        "SchemaName": "StateMachine"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "PredefinedStepOutcome",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "Script",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "StateMachine",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "CompositeActivityDef",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ElementaryActivityDef",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "Module",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "Agent",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "Role",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "Item",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "PropertyDescription",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "Errors",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ItemInitialization",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescObjectDetails",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "Query",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ModuleExportPath",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ModuleAgents",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ModuleProperties",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "AgentDetails",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "Collection",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "Viewpoint",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "SimpleElectonicSignature",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "SystemProperties",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "LoggerConfig",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ModuleChanges",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "Dependency",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "AgentDesc",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "RoleDesc",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ItemDesc",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "JobArrayList",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "SearchFilter",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DomainContext",
+        "ResourceVersion": 0,
+        "SchemaName": "Schema"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ServerNewEntity",
+        "ResourceVersion": 0,
+        "SchemaName": "Script"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "CreateNewNumberedVersionFromLast",
+        "ResourceVersion": 0,
+        "SchemaName": "Script"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "SetLastNumberedVersionToLast",
+        "ResourceVersion": 0,
+        "SchemaName": "Script"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "DescriptionCollectionSetter",
+        "ResourceVersion": 0,
+        "SchemaName": "Script"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "CompositeActivityDefCollSetter",
+        "ResourceVersion": 0,
+        "SchemaName": "Script"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "RemoveViewpoint",
+        "ResourceVersion": 0,
+        "SchemaName": "Script"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "UpdateImportAgent",
+        "ResourceVersion": 0,
+        "SchemaName": "Script"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "UpdateImportItem",
+        "ResourceVersion": 0,
+        "SchemaName": "Script"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "UpdateImportRole",
+        "ResourceVersion": 0,
+        "SchemaName": "Script"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "CreateNewItem",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "CreateNewAgent",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "CreateNewRole",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "AssignNewVersionFromLast",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "MoveLatestVersionToLast",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "EditDefinition",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "SetDescriptionObject",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ExportModule",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "EditModuleAgents",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "EditModuleConfiguration",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "SetAgentDetails",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "SetAgentRoles",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "UpdateImportAgent",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "UpdateImportItem",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "UpdateImportRole",
+        "ResourceVersion": 0,
+        "SchemaName": "ElementaryActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "NoWorkflow",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ServerItemWorkflow",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ManageCompositeActDef",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ManageElementaryActDef",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ManageScript",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ManageSchema",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ManageStateMachine",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ManageQuery",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ManageModule",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ManageAgent",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ManagePropertyDesc",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ManageItemDesc",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ManageAgentDesc",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ManageRoleDesc",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      },
+      {
+        "ChangeType": "IDENTICAL",
+        "ResourceName": "ManageDomainContext",
+        "ResourceVersion": 0,
+        "SchemaName": "CompositeActivityDef"
+      }
+    ]
+  }
+}

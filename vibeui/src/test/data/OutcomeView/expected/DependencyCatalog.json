@@ -1,0 +1,17 @@
+{
+  "isDisplayable": true,
+  "mappings": {
+    "Dependency": "FIELDSET",
+    "Dependency.CollectionName": "PRIMITIVE",
+    "Dependency.ClassProps": "PRIMITIVE",
+    "Dependency.CollectionMemberList": "FIELDSET",
+    "Dependency.CollectionMemberList.DependencyMember": "FIELDSET",
+    "Dependency.CollectionMemberList.DependencyMember.ChildUUID": "PRIMITIVE",
+    "Dependency.CollectionMemberList.DependencyMember.ClassProps": "PRIMITIVE",
+    "Dependency.CollectionMemberList.DependencyMember.ID": "PRIMITIVE",
+    "Dependency.CollectionMemberList.DependencyMember.Properties": "FIELDSET",
+    "Dependency.CollectionMemberList.DependencyMember.Properties.KeyValuePair": "TABLE",
+    "Dependency.Properties": "FIELDSET",
+    "Dependency.Properties.KeyValuePair": "TABLE"
+  }
+}

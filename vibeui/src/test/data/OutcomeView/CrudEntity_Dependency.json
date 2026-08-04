@@ -1,0 +1,22 @@
+{
+  "CrudEntity_Dependecy": {
+    "MemberPath": "/entity/fee078b3-8cd9-467d-b00e-c20a5cad6632",
+    "PredefinedSteps": {
+      "AddMembersToCollection": {
+        "Dependency": {
+          "CollectionName": "Patients",
+          "ClassProps": "",
+          "CollectionMemberList": {
+            "DependencyMember": {
+              "ChildUUID": "fee078b3-8cd9-467d-b00e-c20a5cad6632",
+              "ClassProps": "",
+              "ID": 0,
+              "Properties": ""
+            }
+          },
+          "Properties": ""
+        }
+      }
+    }
+  }
+}

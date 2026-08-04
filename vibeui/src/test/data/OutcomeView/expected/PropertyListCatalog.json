@@ -1,0 +1,7 @@
+{
+  "isDisplayable": true,
+  "mappings": {
+    "PropertyList": "FIELDSET",
+    "PropertyList.Property": "TABLE"
+  }
+}

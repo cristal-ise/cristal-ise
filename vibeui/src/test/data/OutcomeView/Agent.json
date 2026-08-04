@@ -1,0 +1,29 @@
+{
+  "Agent": {
+    "Role": [
+      {
+        "name": "Admin"
+      },
+      {
+        "name": "User"
+      }
+    ],
+    "password": "REDACTED",
+    "initialPath": "/integTest/agents",
+    "name": "mainUser",
+    "id": "977aa8df-6961-4fb4-9af3-bcf18cfb7e48",
+    "version": 0,
+    "Property": [
+      {
+        "mutable": true,
+        "name": "Name",
+        "content": "mainUser"
+      },
+      {
+        "mutable": false,
+        "name": "Type",
+        "content": "Agent"
+      }
+    ]
+  }
+}

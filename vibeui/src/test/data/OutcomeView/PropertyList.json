@@ -1,0 +1,31 @@
+{
+  "PropertyList": {
+    "Property": [
+      {
+        "mutable": true,
+        "name": "Name",
+        "content": "ScriptAuthz_Patient"
+      },
+      {
+        "mutable": false,
+        "name": "Type",
+        "content": "Patient"
+      },
+      {
+        "mutable": true,
+        "name": "State",
+        "content": "ACTIVE"
+      },
+      {
+        "mutable": true,
+        "name": "AggregateScriptURN",
+        "content": "b2161c54-15d1-41ba-8f61-9a8f26114720:0"
+      },
+      {
+        "mutable": true,
+        "name": "MasterSchemaURN",
+        "content": "8ff19f2e-0acd-4418-bb41-47781c50eee3:0"
+      }
+    ]
+  }
+}

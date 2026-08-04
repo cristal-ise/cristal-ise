@@ -1,4 +1,39 @@
-<div class="p-4">
-  <h3>Outcome Data - uuid:{{ uuid() }} eventId:{{ eventId() }}</h3>
-  <pre>{{ data() | json }}</pre>
+<div class="flex flex-col items-center justify-center min-h-[70vh] p-10">
+  <div class="mx-auto w-fit transform scale-[1.15]">
+    <div class="text-center mb-8">
+      <h2 class="text-2xl font-black text-gradient tracking-tight mb-2">Outcome Data</h2>
+      <span class="text-muted-color font-medium">uuid: {{ uuid() }} &bull; eventId: {{ eventId() }}</span>
+    </div>
+
+    <div
+      class="glass-card !rounded-[32px] p-8 border border-[var(--vibe-glass-border)] shadow-2xl bg-[var(--vibe-card-bg)]/50 backdrop-blur-sm">
+      @if (isDisplayable()) {
+        <app-outcome-field-set
+          [label]="rootName()!"
+          [value]="rootJson()"
+          [collapsed]="false"
+          [catalog]="componentCatalog()"
+          [path]="rootName()!"
+        ></app-outcome-field-set>
+      } @else {
+        <p-panel header="JSON:" [toggleable]="true" [collapsed]="true">
+          <pre>{{ outcome() | json }}</pre>
+        </p-panel>
+      }
+
+      <p-panel header="Debug" [toggleable]="true" [collapsed]="true">
+        <p-panel header="JSON:" [toggleable]="true" [collapsed]="true">
+          <pre>{{ outcome() | json }}</pre>
+        </p-panel>
+        <p-divider />
+        <p-panel header="Catalog:" [toggleable]="true" [collapsed]="true">
+          <pre>{{ componentCatalog() | json }}</pre>
+        </p-panel>
+        <p-divider />
+        <p-panel header="Schema:" [toggleable]="true" [collapsed]="true">
+          <pre>{{ schema() | json }}</pre>
+        </p-panel>
+      </p-panel>
+    </div>
+  </div>
 </div>

@@ -1,0 +1,7 @@
+{
+  "UrinSample": {
+    "Transparency": "clear",
+    "Color": "string",
+    "PredefinedSteps": "anyType"
+  }
+}
