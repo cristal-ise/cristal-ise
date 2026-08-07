@@ -36,33 +36,21 @@ Workflow('ParallelWorkflow', 0, generate: true) {
 }
 ```
 
-## Core Concepts
+## Core Concepts and References
 
-| Concept | File | Description |
-|---------|------|-------------|
-| **Workflow** | [references/workflow.md](references/workflow.md) | Root workflow definition |
-| **Layout** | [references/layout.md](references/layout.md) | Container for pattern primitives |
-| **Activity** | [references/activity.md](references/activity.md) | Units of work (EA/CA) |
-| **Binding** | [references/binding.md](references/binding.md) | Auto-bound variables ($prefix) |
-| **Block** | [references/block.md](references/block.md) | Sequential grouping container |
-| **Splits** | [references/splits.md](references/splits.md) | Branching patterns (AndSplit, OrSplit, XOrSplit, Loop) |
-| **Routing** | [references/routing.md](references/routing.md) | Split routing scripts |
-| **Properties** | [references/properties.md](references/properties.md) | Configuration key-value pairs |
-| **Examples** | [EXAMPLES.md](EXAMPLES.md) | Complete runnable examples |
-| **Glossary** | [GLOSSARY.md](GLOSSARY.md) | Defined terms |
+| Concept        | File                                                 | Description                                            |
+|----------------|------------------------------------------------------|--------------------------------------------------------|
+| **Workflow**   | [references/workflow.md](references/workflow.md)     | Root workflow definition                               |
+| **Layout**     | [references/layout.md](references/layout.md)         | Container for pattern primitives                       |
+| **Activity**   | [references/activity.md](references/activity.md)     | Units of work (EA/CA)                                  |
+| **Binding**    | [references/binding.md](references/binding.md)       | Auto-bound variables ($prefix)                         |
+| **Block**      | [references/block.md](references/block.md)           | Sequential grouping container                          |
+| **Splits**     | [references/splits.md](references/splits.md)         | Branching patterns (AndSplit, OrSplit, XOrSplit, Loop) |
+| **Routing**    | [references/routing.md](references/routing.md)       | Split routing scripts                                  |
+| **Properties** | [references/properties.md](references/properties.md) | Configuration key-value pairs                          |
+| **Examples**   | [EXAMPLES.md](EXAMPLES.md)                           | Complete runnable examples                             |
+| **Glossary**   | [GLOSSARY.md](GLOSSARY.md)                           | Defined terms                                          |
 
-## Reference Files
-
-### Concept References
-
-- **[references/workflow.md](references/workflow.md)** — Workflow constructor, parameters, verification, Item integration
-- **[references/layout.md](references/layout.md)** — Layout structure, sequential/parallel/conditional patterns
-- **[references/activity.md](references/activity.md)** — Activity types, references (Act/ElemAct/CompAct/EA/CA), inline definitions (ElemActDef/CompActDef)
-- **[references/binding.md](references/binding.md)** — Variable binding convention ($prefix for auto-bound variables)
-- **[references/block.md](references/block.md)** — Block usage, aliases, nesting, requirements in splits
-- **[references/splits.md](references/splits.md)** — Complete split reference: AndSplit, OrSplit, XOrSplit, Loop, LoopInfinitive
-- **[references/routing.md](references/routing.md)** — Routing script configuration (Groovy/JavaScript/external)
-- **[references/properties.md](references/properties.md)** — Property types, built-in keys, custom properties, abstract vs concrete
 
 ### Supporting Files
 
@@ -71,13 +59,13 @@ Workflow('ParallelWorkflow', 0, generate: true) {
 
 ## Workflow Pattern Summary
 
-| Pattern | Execution | Branches | Routing |
-|---------|-----------|----------|--------|
-| AndSplit | Parallel | All | N/A | 
-| OrSplit | Conditional | 0 or more | Required |
-| XOrSplit | Exclusive | Exactly 1 | Required |
-| Loop | Repetitive | 1 (repeated) | Optional |
-| LoopInfinitive | Continuous | 1 (continuous) | N/A |
+| Pattern        | Execution   | Branches       | Routing  |
+|----------------|-------------|----------------|----------|
+| AndSplit       | Parallel    | All            | N/A      | 
+| OrSplit        | Conditional | 0 or more      | Required |
+| XOrSplit       | Exclusive   | Exactly 1      | Required |
+| Loop           | Repetitive  | 1 (repeated)   | Optional |
+| LoopInfinitive | Continuous  | 1 (continuous) | N/A      |
 
 ## Key Rules
 

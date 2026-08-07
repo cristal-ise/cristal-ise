@@ -6,10 +6,8 @@ The CRISTAL-iSE implements a Description-Driven Framework where application logi
 
 ### Core Entities
 
-is the heart of cristalise-kernel as it abstracts business objects and their logic into _process-driven_, _version-controlled_ and _document-oriented_ data that are managed on-the-fly for specific user domains. Item is fully audited as it stores all Events generated during the execution of its LifeCycle. Items are also communication end-points (VERT.X service) and have unique IDs (UUID) to support lookup in a distributed environment.
-
 **Item**:
-The fundamental business object in CRISTAL-iSE, analogous to an Entity or Resource in REST applications. It abstracts business objects and their logic into _process-driven_, _version-controlled_ and _document-oriented_ data. Item is fully audited as it stores all Events generated during the execution of its LifeCycle. Items are also communication end-points (VERT.X service) and have unique IDs (UUID) to support lookup in a distributed environment. Every Item can instantiate other Items through kernel PredefinedSteps `CreateItemFromDescription`.
+The heart of CRISTAL-iSE, analogous to an Entity or Resource in REST applications. It abstracts business objects and their logic into _process-driven_, _version-controlled_ and _document-oriented_ data. Item is fully audited as it stores all Events generated during the execution of its LifeCycle. Items are also communication end-points (VERT.X service) and have unique IDs (UUID) to support lookup in a distributed environment.
 _Avoid_: Entity, Resource, Object
 
 **Agent**:
