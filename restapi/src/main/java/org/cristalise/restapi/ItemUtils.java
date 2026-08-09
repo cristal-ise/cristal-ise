@@ -445,10 +445,12 @@ public abstract class ItemUtils extends RestHandler {
     }
 
     protected String getItemName(ItemPath ip) {
-        PagedResult result = Gateway.getLookup().searchAliases(ip, 0, 50);
-
-        if (!result.rows.isEmpty()) return ((DomainPath)result.rows.getFirst()).getName();
-        else                        return "";
+        try {
+            return Gateway.getProxy(ip).getName();
+        } catch (ObjectNotFoundException e) {
+            log.debug("getItemName() - Item not found for uuid:{}", ip, e);
+            return "";
+        }
     }
 
     protected LinkedHashMap<String, Object> makeCollectionData(Collection<?> coll, UriInfo uri) {

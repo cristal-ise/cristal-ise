@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.cristalise.kernel.lookup.DomainPath;
@@ -98,7 +101,7 @@ public class LookupPropertySearchTest extends LookupTestBase {
         List<DomainPath> expecteds = new ArrayList<>();
 
         for (int i = 0; i < 35; i++) {
-            ItemPath ip = new ItemPath(UUID.randomUUID());
+            ItemPath ip = new ItemPath(createUUID());
             DomainPath dp = new DomainPath("paged/item" + StringUtils.leftPad(""+i, 2, "0"), ip);
 
             lookup.add(ip);

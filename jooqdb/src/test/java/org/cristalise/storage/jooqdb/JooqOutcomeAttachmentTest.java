@@ -26,6 +26,9 @@ import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
 import java.util.Arrays;
 import java.util.UUID;
 
+
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
+
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
@@ -110,7 +113,7 @@ public class JooqOutcomeAttachmentTest extends StorageTestBase {
         schema = new Schema("Schema2", 0, item, "Attachment");
         binaryData = item.getName().getBytes();
         
-        UUID uuid2 = UUID.randomUUID();
+        UUID uuid2 = createUUID();
         
         outcome = new OutcomeAttachment(item, schema.getName(), schema.getVersion(), 0, null, binaryData);
         assert  jooqHandler.put(context, uuid2, outcome) == 1;

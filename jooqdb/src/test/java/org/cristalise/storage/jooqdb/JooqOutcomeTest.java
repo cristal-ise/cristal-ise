@@ -24,6 +24,8 @@ import static org.cristalise.JooqTestConfigurationBase.DBModes.MYSQL;
 import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
 
 import java.util.UUID;
+
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
@@ -85,7 +87,7 @@ public class JooqOutcomeTest extends StorageTestBase {
         assert jooq.put(context, uuid, new Outcome(1, "<xml/>", new Schema("Schema2", 0, "<xs:schema/>"))) == 1;
         assert jooq.put(context, uuid, new Outcome(2, "<xml/>", new Schema("Schema2", 0, "<xs:schema/>"))) == 1;
 
-        UUID uuid2 = UUID.randomUUID();
+        UUID uuid2 = createUUID();
 
         assert jooq.put(context, uuid2, new Outcome(1, "<xml/>", new Schema("Schema2", 0, "<xs:schema/>"))) == 1;
         assert jooq.put(context, uuid2, new Outcome(2, "<xml/>", new Schema("Schema2", 0, "<xs:schema/>"))) == 1;

@@ -20,13 +20,14 @@
  */
 package org.cristalise.kernel.test.persistency;
 
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
 import static org.cristalise.kernel.persistency.ClusterType.PATH;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -48,7 +49,7 @@ public class LookupPathClusterStorageTest {
 
     @Test
     public void storeItemPath() throws Exception {
-        ItemPath item = new ItemPath(UUID.randomUUID());
+        ItemPath item = new ItemPath(createUUID());
 
         inMemoryCluster.put(storingItem, item, null);
 
@@ -60,7 +61,7 @@ public class LookupPathClusterStorageTest {
 
     @Test
     public void storeAgentPath() throws Exception {
-        AgentPath agent = new AgentPath(UUID.randomUUID(), "toto");
+        AgentPath agent = new AgentPath(createUUID(), "toto");
 
         inMemoryCluster.put(storingItem, agent, null);
 
@@ -76,8 +77,8 @@ public class LookupPathClusterStorageTest {
         DomainPath domain = new DomainPath("/my/path.2", new ItemPath());
 
         inMemoryCluster.put(storingItem, domain, null);
-        
-        String name = StringUtils.remove( StringUtils.join(domain.getPath(), ""), "." );
+
+        String name = Strings.CS.remove(StringUtils.join(domain.getPath(), ""), ".");
 
         DomainPath domainPrime = (DomainPath) inMemoryCluster.get(storingItem, PATH + "/Domain/" + name, null);
 

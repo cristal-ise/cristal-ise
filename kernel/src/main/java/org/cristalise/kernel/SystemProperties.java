@@ -41,9 +41,9 @@ import io.vertx.serviceproxy.ServiceException;
 import lombok.Getter;
 
 /**
- * Defines all SystemProperties that are supported in the kernel to configure the behavior of the
+ * Defines all SystemProperties that are supported in the kernel to configure the behaviour of the
  * application. Due to the limitation of javadoc, the actual usable string cannot be shown easily,
- * therefore replace underscores with dots to get the actual System Property:
+ * therefore, replace underscores with dots to get the actual System Property:
  * 
  * <pre>
  *   Module_ImportAgent_enableRoleCreation => Module.ImportAgent.enableRoleCreation
@@ -111,6 +111,7 @@ import lombok.Getter;
  * @see #$UserCodeRole_StateMachine_name
  * @see #$UserCodeRole_StateMachine_namespace
  * @see #$UserCodeRole_StateMachine_version
+ * @see #UUIDv7_disable
  * @see #XMLStorage_root
  */
 public enum SystemProperties implements SystemPropertyOperations {
@@ -449,6 +450,10 @@ public enum SystemProperties implements SystemPropertyOperations {
      */
     $UserCodeRole_StateMachine_bootfile("%s.StateMachine.bootfile"),
     /**
+     * If set to true, UuidCreator UUIDv7 from UuidCreator will not be used. The default value is false.
+     */
+    UUIDv7_disable("UUIDv7.disable", false),
+    /**
      * If using {@link XMLClusterStorage}, this defined the root directory of XML file storage No default value.
      */
     XMLStorage_root("XMLStorage.root");
@@ -458,11 +463,11 @@ public enum SystemProperties implements SystemPropertyOperations {
     @Getter
     private final String systemPropertyName;
 
-    private SystemProperties(String name) {
+    SystemProperties(String name) {
         this(name, null);
     }
 
-    private SystemProperties(String name, Object value) {
+    SystemProperties(String name, Object value) {
         systemPropertyName = name;
         defaultValue = value;
     }
