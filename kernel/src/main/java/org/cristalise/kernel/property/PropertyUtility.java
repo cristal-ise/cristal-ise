@@ -20,28 +20,27 @@
  */
 package org.cristalise.kernel.property;
 
-import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
-import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE;
-import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
-import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.ObjectCannotBeUpdated;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.lookup.ItemPath;
+import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.persistency.outcome.Outcome;
+import org.cristalise.kernel.persistency.outcome.Viewpoint;
+import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.utils.CastorHashMap;
+import org.cristalise.kernel.utils.LocalObjectLoader;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.common.ObjectCannotBeUpdated;
-import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.utils.CastorHashMap;
-import org.cristalise.kernel.utils.LocalObjectLoader;
-
-import lombok.extern.slf4j.Slf4j;
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
+import static org.cristalise.kernel.process.resource.BuiltInResources.PROPERTY_DESC_RESOURCE;
 
 /**
  * Utility class to handle operations of ItemProperties and their description
@@ -77,10 +76,6 @@ public class PropertyUtility {
 
     /**
      * 
-     * @param itemPath
-     * @param propName
-     * @param transactionKey
-     * @return
      */
     public static boolean propertyExists(ItemPath itemPath, String propName, TransactionKey transactionKey) {
         try {
@@ -96,11 +91,6 @@ public class PropertyUtility {
 
     /**
      * 
-     * @param itemPath
-     * @param prop
-     * @param transactionKey
-     * @return
-     * @throws ObjectNotFoundException
      */
     public static Property getProperty(ItemPath itemPath, BuiltInItemProperties prop, TransactionKey transactionKey)
             throws ObjectNotFoundException
@@ -110,11 +100,6 @@ public class PropertyUtility {
 
     /**
      * 
-     * @param itemPath
-     * @param propName
-     * @param transactionKey
-     * @return
-     * @throws ObjectNotFoundException
      */
     public static Property getProperty(ItemPath itemPath, String propName, TransactionKey transactionKey)
             throws ObjectNotFoundException
@@ -130,8 +115,6 @@ public class PropertyUtility {
 
     /**
      * 
-     * @param pdlist
-     * @return
      */
     static public String getNames(ArrayList<PropertyDescription> pdlist) {
         StringBuffer names = new StringBuffer();
@@ -145,11 +128,9 @@ public class PropertyUtility {
 
     /**
      * 
-     * @param pdlist
-     * @return
      */
     static public String getClassIdNames(ArrayList<PropertyDescription> pdlist) {
-        StringBuffer names = new StringBuffer();
+        StringBuilder names = new StringBuilder();
 
         for (Iterator<PropertyDescription> iter = pdlist.iterator(); iter.hasNext();) {
             PropertyDescription pd = iter.next();
@@ -175,17 +156,17 @@ public class PropertyUtility {
     {
         try {
             //the type of the Item is a PropertyDesc
-            if (getProperty(itemPath, TYPE, transactionKey).getValue().equals(PROPERTY_DESC_RESOURCE.getSchemaName())) {
-                String name = getProperty(itemPath, NAME, transactionKey).getValue();
+            ItemProxy item = Gateway.getProxy(itemPath);
 
+            if (PROPERTY_DESC_RESOURCE.getSchemaName().equals( item.getType() )) {
                 int version = getVersionID(itemPath, descVer, PROPERTY_DESC_RESOURCE.getSchemaName(), transactionKey);
-
-                return LocalObjectLoader.getPropertyDescriptionList(name, version, transactionKey);
+                return LocalObjectLoader.getPropertyDescriptionList(item.getName(), version, transactionKey);
             }
             else  {
                 //the type of the Item is very likely a Factory
-                Outcome outc = (Outcome) Gateway.getStorage().get(itemPath, VIEWPOINT+"/PropertyDescription/"+descVer+"/data", transactionKey);
-                return (PropertyDescriptionList) Gateway.getMarshaller().unmarshall(outc.getData());
+                Viewpoint vp = item.getViewpoint(PROPERTY_DESC_RESOURCE.getSchemaName(), descVer, transactionKey);
+                Outcome o = item.getOutcome(vp, transactionKey);
+                return (PropertyDescriptionList) Gateway.getMarshaller().unmarshall(o.getData());
             }
         }
         catch (Exception e) {
@@ -196,13 +177,6 @@ public class PropertyUtility {
 
     /**
      * 
-     * @param itemPath
-     * @param descVer
-     * @param schema
-     * @param transactionKey
-     * @return
-     * @throws PersistencyException
-     * @throws ObjectNotFoundException
      */
     private static int getVersionID(ItemPath itemPath, String descVer, String schema, TransactionKey transactionKey)
         throws PersistencyException, ObjectNotFoundException
@@ -214,9 +188,9 @@ public class PropertyUtility {
             String[] views = Gateway.getStorage().getClusterContents(itemPath, VIEWPOINT+"/"+schema, transactionKey);
             version = -1;
 
-            for (int i = 0; i < views.length; i ++) {
-                if (StringUtils.isNumeric(views[i])) {
-                    int aVersion = Integer.parseInt(views[i]);
+            for (String view : views) {
+                if (StringUtils.isNumeric(view)) {
+                    int aVersion = Integer.parseInt(view);
                     if (version < aVersion) version = aVersion;
                 }
             }
@@ -295,10 +269,6 @@ public class PropertyUtility {
 
     /**
      * 
-     * @param item
-     * @param prop
-     * @param transactionKey
-     * @return
      */
     public static boolean checkProperty(ItemPath item, BuiltInItemProperties prop, TransactionKey transactionKey) {
         return checkProperty(item, prop.getName(), transactionKey);
@@ -306,10 +276,6 @@ public class PropertyUtility {
 
     /**
      * 
-     * @param item
-     * @param name
-     * @param transactionKey
-     * @return
      */
     public static boolean checkProperty(ItemPath item, String name, TransactionKey transactionKey) {
         try {
@@ -317,18 +283,13 @@ public class PropertyUtility {
                 if (key.equals(name)) return true;
             }
         }
-        catch (PersistencyException e) {}
+        catch (PersistencyException ignored) {}
 
         return false;
     }
 
     /**
      * 
-     * @param item
-     * @param prop
-     * @param defaultValue
-     * @param transactionKey
-     * @return
      */
     public static String getPropertyValue(ItemPath item, BuiltInItemProperties prop, String defaultValue, TransactionKey transactionKey) {
         return getPropertyValue(item, prop.getName(), defaultValue, transactionKey);
@@ -336,18 +297,13 @@ public class PropertyUtility {
 
     /**
      * 
-     * @param item
-     * @param name
-     * @param defaultValue
-     * @param transactionKey
-     * @return
      */
     public static String getPropertyValue(ItemPath item, String name, String defaultValue, TransactionKey transactionKey) {
         if (checkProperty(item, name, transactionKey)) {
             try {
                 return getProperty(item, name, transactionKey).getValue();
             }
-            catch (ObjectNotFoundException e) {
+            catch (ObjectNotFoundException ignored) {
                 //This line should never happen because of the use of checkProperty()
             }
         }

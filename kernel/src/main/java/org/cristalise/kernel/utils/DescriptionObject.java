@@ -20,7 +20,6 @@
  */
 package org.cristalise.kernel.utils;
 
-import static org.cristalise.kernel.SystemProperties.Resource_useOldImportFormat;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
 import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE;
 
@@ -85,21 +84,11 @@ public interface DescriptionObject {
 
         if (imports == null) return;
 
-        if (Resource_useOldImportFormat.getBoolean()) {
-            imports.write("<Resource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
-                    + "type='" + type.getTypeCode() + "'>boot/" + type.getTypeCode() + "/" + fileName
-                    + "</Resource>\n");
-        }
-        else {
-            imports.write("<" + type.getSchemaName() + "Resource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
-                    + "/>\n");
-        }
+        imports.write("<" + type.getSchemaName() + "Resource "
+                + "name='" + getName() + "' "
+                + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
+                + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
+                + "/>\n");
     }
 
     default public Dependency makeDescCollection(BuiltInCollections collection, TransactionKey transactionKey, DescriptionObject... descs) throws InvalidDataException {

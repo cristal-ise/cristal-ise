@@ -49,7 +49,6 @@ public class Main extends StandardClient {
      * Initialise standard CRISTAL-iSE client process.
      * Creates ResourceConfig that scans for JAX-RS resources and providers in 'org.cristalise.restapi' package
      * Creates Grizzly HTTP server exposing the Jersey application at the given URI.
-     * @throws Exception
      */
     public static void startServer(String[] args) throws Exception {
         setShutdownHandler(new ShutdownHandler() {

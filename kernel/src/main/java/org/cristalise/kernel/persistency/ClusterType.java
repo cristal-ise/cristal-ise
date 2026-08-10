@@ -27,7 +27,8 @@ public enum ClusterType {
      */
     ROOT(""),
     /**
-     * 
+     * The root of the path object cluster. All path paths start with this.
+     * Defined as "Path".
      */
     PATH("Path"),
     /**

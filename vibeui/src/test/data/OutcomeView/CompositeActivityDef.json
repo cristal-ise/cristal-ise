@@ -1,0 +1,291 @@
+{
+  "CompositeActivityDef": {
+    "IsComposite": true,
+    "IsLayoutable": false,
+    "Height": 0,
+    "ID": -1,
+    "Properties": {
+      "KeyValuePair": [
+        {
+          "String": "",
+          "Key": "Description"
+        },
+        {
+          "String": "",
+          "Key": "Agent Role"
+        },
+        {
+          "Boolean": true,
+          "Key": "Show time"
+        },
+        {
+          "String": "",
+          "Key": "Viewpoint"
+        },
+        {
+          "String": "",
+          "Key": "Agent Name"
+        },
+        {
+          "Boolean": false,
+          "Key": "Breakpoint"
+        }
+      ]
+    },
+    "Width": 0,
+    "childrenGraphModel": {
+      "GraphModelCastorData": {
+        "LoopDef": {
+          "IsComposite": false,
+          "OutlinePoint": [
+            {
+              "x": 221,
+              "y": 163
+            },
+            {
+              "x": 281,
+              "y": 163
+            },
+            {
+              "x": 281,
+              "y": 187
+            },
+            {
+              "x": 221,
+              "y": 187
+            }
+          ],
+          "IsLayoutable": true,
+          "Height": 24,
+          "CentrePoint": {
+            "x": 251,
+            "y": 175
+          },
+          "ID": 2,
+          "isNext": 0,
+          "OutEdgeId": [8, 9],
+          "Properties": {
+            "KeyValuePair": [
+              {
+                "String": 2,
+                "Key": "LastNum"
+              },
+              {
+                "String": "javascript:true;",
+                "Key": "RoutingScriptName"
+              },
+              {
+                "String": "",
+                "Key": "RoutingScriptVersion"
+              }
+            ]
+          },
+          "Width": 60,
+          "InEdgeId": 7,
+          "Name": ""
+        },
+        "NextDef": [
+          {
+            "OriginVertexId": 0,
+            "TerminusPoint": {
+              "x": 97,
+              "y": 181
+            },
+            "OriginPoint": {
+              "x": 250,
+              "y": 63
+            },
+            "ID": 6,
+            "Properties": "",
+            "TerminusVertexId": 5
+          },
+          {
+            "OriginVertexId": 2,
+            "TerminusPoint": {
+              "x": 254,
+              "y": 294
+            },
+            "OriginPoint": {
+              "x": 251,
+              "y": 175
+            },
+            "ID": 9,
+            "Properties": {
+              "KeyValuePair": {
+                "String": false,
+                "Key": "Alias"
+              }
+            },
+            "TerminusVertexId": 1
+          },
+          {
+            "OriginVertexId": 2,
+            "TerminusPoint": {
+              "x": 250,
+              "y": 63
+            },
+            "OriginPoint": {
+              "x": 251,
+              "y": 175
+            },
+            "ID": 8,
+            "Properties": {
+              "KeyValuePair": {
+                "String": true,
+                "Key": "Alias"
+              }
+            },
+            "TerminusVertexId": 0
+          },
+          {
+            "OriginVertexId": 5,
+            "TerminusPoint": {
+              "x": 251,
+              "y": 175
+            },
+            "OriginPoint": {
+              "x": 97,
+              "y": 181
+            },
+            "ID": 7,
+            "Properties": "",
+            "TerminusVertexId": 2
+          }
+        ],
+        "JoinDef": [
+          {
+            "IsComposite": false,
+            "OutlinePoint": [
+              {
+                "x": 224,
+                "y": 282
+              },
+              {
+                "x": 284,
+                "y": 282
+              },
+              {
+                "x": 284,
+                "y": 306
+              },
+              {
+                "x": 224,
+                "y": 306
+              }
+            ],
+            "IsLayoutable": true,
+            "Height": 24,
+            "CentrePoint": {
+              "x": 254,
+              "y": 294
+            },
+            "ID": 1,
+            "Properties": {
+              "KeyValuePair": {
+                "String": "Join",
+                "Key": "Type"
+              }
+            },
+            "Width": 60,
+            "InEdgeId": 9,
+            "Name": ""
+          },
+          {
+            "IsComposite": false,
+            "OutlinePoint": [
+              {
+                "x": 220,
+                "y": 51
+              },
+              {
+                "x": 280,
+                "y": 51
+              },
+              {
+                "x": 280,
+                "y": 75
+              },
+              {
+                "x": 220,
+                "y": 75
+              }
+            ],
+            "IsLayoutable": true,
+            "Height": 24,
+            "CentrePoint": {
+              "x": 250,
+              "y": 63
+            },
+            "ID": 0,
+            "OutEdgeId": 6,
+            "Properties": {
+              "KeyValuePair": {
+                "String": "Join",
+                "Key": "Type"
+              }
+            },
+            "Width": 60,
+            "InEdgeId": 8,
+            "Name": ""
+          }
+        ],
+        "ActivitySlotDef": {
+          "IsComposite": false,
+          "OutlinePoint": [
+            {
+              "x": 32,
+              "y": 151
+            },
+            {
+              "x": 162,
+              "y": 151
+            },
+            {
+              "x": 162,
+              "y": 211
+            },
+            {
+              "x": 32,
+              "y": 211
+            }
+          ],
+          "activityDef": "CreateAgent",
+          "IsLayoutable": true,
+          "Height": 60,
+          "CentrePoint": {
+            "x": 97,
+            "y": 181
+          },
+          "ID": 5,
+          "OutEdgeId": 7,
+          "Properties": {
+            "KeyValuePair": [
+              {
+                "String": "CreateAgent",
+                "Key": "Name"
+              },
+              {
+                "String": "Create a new Agent with workflow provided by the kernel",
+                "Key": "Description"
+              },
+              {
+                "String": "/Agents/",
+                "Key": "Root"
+              },
+              {
+                "Integer": 0,
+                "Key": "Version"
+              }
+            ]
+          },
+          "Width": 130,
+          "InEdgeId": 6,
+          "Name": "CreateItem"
+        },
+        "StartVertexId": 0,
+        "NextId": 10
+      }
+    },
+    "Name": "AgentFactoryWf"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "PatientDetails": {
+    "DateOfBirth": "2008-09-29",
+    "InsuranceNumber": "123456789ABC",
+    "Gender": "male",
+    "PredefinedSteps": "anyType",
+    "Weight": {
+      "unit": "kg",
+      "content": 0
+    }
+  }
+}

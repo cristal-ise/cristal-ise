@@ -50,6 +50,7 @@
   <logger name="org.cristalise.kernel.entity.imports" level="INFO"/>
   <logger name="org.cristalise.kernel.process.Bootstrap" level="INFO"/>
   <logger name="org.cristalise.kernel.process.StandardServer" level="INFO"/>
+  <logger name="org.cristalise.kernel.restapi.WebAppExceptionBuilder" level="DEBUG"/>
 
   <!-- Fine tune log level of some of the components -->
   <!-- avoid java.lang.Integer output parameter initialisation warning-->
@@ -57,11 +58,15 @@
 
   <root level="INFO">
     <appender-ref ref="STDOUT"/>
-    <if condition='isDefined("APP_NAME")'>
-      <then>
-        <appender-ref ref="LOGFILE"/>
-      </then>
-    </if>
   </root>
+
+  <!-- Nested <if> element within <appender>, <logger> or <root> elements is not allowed -->
+  <if condition='isDefined("APP_NAME")'>
+    <then>
+      <root level="INFO">
+        <appender-ref ref="LOGFILE"/>
+      </root>
+    </then>
+  </if>
 
 </configuration>

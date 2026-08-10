@@ -19,6 +19,8 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
+package org.cristalise.dev.script
+
 import static org.cristalise.dev.utils.CrudFactoryHelper.*
 
 import org.cristalise.kernel.entity.proxy.ItemProxy

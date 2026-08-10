@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.test.persistency;
 
+import static org.cristalise.kernel.utils.FileStringUtility.resource2String;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -69,15 +70,15 @@ public class OutcomeTest {
 
     private Outcome getOutcome(String xml, String xsd) throws Exception {
         return new Outcome(
-                FileStringUtility.url2String(OutcomeTest.class.getResource("/"+xml+".xml")),
-                new Schema(xsd, 0, null, FileStringUtility.url2String(OutcomeTest.class.getResource("/"+xsd+".xsd")))
+                resource2String(OutcomeTest.class, "/"+xml+".xml"),
+                new Schema(xsd, 0, null, resource2String(OutcomeTest.class, "/"+xsd+".xsd"))
                 );
     }
 
     private Outcome getOutcome(String fileName) throws Exception {
         return new Outcome(
                 "/Outcome/Script/0/0",
-                FileStringUtility.url2String(OutcomeTest.class.getResource("/"+fileName)));
+                resource2String(OutcomeTest.class, "/"+fileName));
     }
 
     @Before
@@ -368,7 +369,7 @@ public class OutcomeTest {
     @Test
     public void testDependenyMember() throws Exception {
         new Outcome(
-            FileStringUtility.url2String(OutcomeTest.class.getResource("/dependencyMember1.xml")),
+            resource2String(OutcomeTest.class, "/dependencyMember1.xml"),
             new Schema("Collection", 0, null, FileStringUtility.url2String(Gateway.getResource().getKernelResourceURL("boot/OD/Collection.xsd")))
         ).validateAndCheck();
     }

@@ -1,0 +1,29 @@
+:host ::ng-deep .p-tree {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+:host ::ng-deep .p-treenode-content {
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+:host ::ng-deep .p-treenode-label {
+    width: 100%;
+    padding: 0;
+}
+
+:host ::ng-deep .p-tree-toggler {
+    color: var(--vibe-text-muted, #94a3b8);
+    width: 2rem;
+    height: 2rem;
+    margin-right: 0.25rem;
+}
+
+:host ::ng-deep .p-tree-toggler:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 50%;
+}

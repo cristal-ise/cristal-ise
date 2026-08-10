@@ -28,10 +28,11 @@
   <parent>
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise</artifactId>
-    <version>${revision}</version>
+    <version>6.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>cristalise-dsl</artifactId>
+
   <name>CRISTAL-iSE Domain Specific Language</name>
   <description>CRISTAL-iSE Domain Specific Language module for bootstrapping and funtional testing</description>
   <url>https://github.com/cristal-ise/dsl</url>
@@ -81,7 +82,7 @@
 
   <properties>
     <unitils-core.version>3.4.6</unitils-core.version>
-    <poi.version>5.2.5</poi.version>
+    <poi.version>5.5.1</poi.version>
     <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
@@ -177,8 +178,7 @@
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-kernel</artifactId>
-      <version>${revision}</version>
-      <scope>compile</scope>
+      <version>${project.parent.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.groovy</groupId>
@@ -193,7 +193,7 @@
     <dependency>
       <groupId>com.opencsv</groupId>
       <artifactId>opencsv</artifactId>
-      <version>5.9</version>
+      <version>5.12.0</version>
     </dependency>
     <dependency>
       <groupId>org.mvel</groupId>
@@ -225,10 +225,15 @@
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-xpath-outcomeinit</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>org.cristalise</groupId>
+      <artifactId>cristalise-inmemory-lookup</artifactId>
+      <version>${project.parent.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility-groovy</artifactId>
@@ -249,12 +254,6 @@
     <!--             <artifactId>spock-reports</artifactId> -->
     <!--             <scope>test</scope> -->
     <!--         </dependency> -->
-    <dependency>
-      <groupId>org.cristalise</groupId>
-      <artifactId>cristalise-inmemory-lookup</artifactId>
-      <version>${revision}</version>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>

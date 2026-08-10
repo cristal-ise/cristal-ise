@@ -92,7 +92,7 @@ public class PathAccess extends PathUtils {
                 ItemPath item = domPath.getItemPath();
                 return Response.seeOther(ItemUtils.getItemURI(uri, item)).build();
             }
-            catch (ObjectNotFoundException ex) {} // not an item
+            catch (ObjectNotFoundException ignored) {} // not an item
 
             PagedResult childSearch;
 

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PathData",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "type": { "type": "string", "enum": ["domain", "item", "agent", "role", "n/a"] },
+    "url": { "type": "string", "format": "uri" },
+    "path": { "type": "string" },
+    "uuid": { "type": "string", "format": "uuid" },
+    "hasJoblist": { "type": "boolean" }
+  },
+  "required": ["name", "type", "path"]
+}

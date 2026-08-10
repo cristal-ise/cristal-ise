@@ -33,7 +33,6 @@ import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeInitiator;
 import org.cristalise.kernel.process.Bootstrap;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.utils.DescriptionObject;
 import org.cristalise.kernel.utils.SystemPropertyOperations;
 import org.cristalise.storage.XMLClusterStorage;
@@ -51,7 +50,6 @@ import lombok.Getter;
  * </pre>
  * 
  * @see #Activity_validateOutcome
- * @see #Authenticator
  * @see #BulkErase_force
  * @see #BulkErase_limit
  * @see #BulkImport_fileExtension
@@ -60,7 +58,7 @@ import lombok.Getter;
  * @see #ClusterStorage
  * @see #ClusterStorage_cacheSpec
  * @see #CreateItemFromDescription_Cache_enable
- * @see #DataHelper
+ * @see #DataHelper_$name
  * @see #Dependency_addStateMachineURN
  * @see #Dependency_addWorkflowURN
  * @see #Dependency_checkMemberUniqueness
@@ -87,8 +85,6 @@ import lombok.Getter;
  * @see #Outcome_Validation_useDOM
  * @see #OutcomeInit_$name
  * @see #OutcomeInit_jobUseViewpoint
- * @see #Resource_moduleUseFileNameWithVersion
- * @see #Resource_useOldImportFormat
  * @see #ResourceImportHandler_$typeCode
  * @see #RoutingScript_enforceStringReturnValue
  * @see #Script_EngineOverride_$lang
@@ -100,6 +96,10 @@ import lombok.Getter;
  * @see #SystemProperties_keywordsToRedact
  * @see #TcpBridge_host
  * @see #TcpBridge_port
+ * @see #WebSocketVerticle_enabled
+ * @see #WebSocketVerticle_host
+ * @see #WebSocketVerticle_port
+ * @see #WebSocketVerticle_path
  * @see #$UserCodeRole_agent
  * @see #$UserCodeRole_password
  * @see #$UserCodeRole_permissions
@@ -121,12 +121,6 @@ public enum SystemProperties implements SystemPropertyOperations {
      * Activity property as well.
      */
     Activity_validateOutcome("Activity.validateOutcome", false),
-    /**
-     * DEPRECATED - Shiro provides better mechanism. Specifies the Authenticator implementation to be used. 
-     * The default value is 'Shiro', which will use the Shiro integration with authentication realms, 
-     * or it could be a java class implementing the deprecated {@link Authenticator} interface.
-     */
-    Authenticator("Authenticator", "Shiro"),
     /**
      *  If true continue Erase even if an error. Default value is false - UNIMPLEMENTED
      */
@@ -302,15 +296,6 @@ public enum SystemProperties implements SystemPropertyOperations {
      */
     OutcomeInit_jobUseViewpoint("OutcomeInit.jobUseViewpoint", false),
     /**
-     * Comma separated list of modules namespaces, that use file names with version. Default value is empty string.
-     */
-    Resource_moduleUseFileNameWithVersion("Resource.moduleUseFileNameWithVersion", ""),
-    /**
-     * Enables to use the deprecated module resource format when exporting the
-     * {@link DescriptionObject}. Default value is 'false'.
-     */
-    Resource_useOldImportFormat("Resource.useOldImportFormat", false),
-    /**
      * Specifies a custom ResourceImportHandler implementation, allowing modules to define their 
      * own resource types, or override the import of the core ones. The type code can be any string, 
      * but by convention a short upper-case string is used. The core types are EA (Elementary Activity), 
@@ -359,6 +344,22 @@ public enum SystemProperties implements SystemPropertyOperations {
      * Port of the machine to connect through vert.x tcp-ip bridge, Default value is 7000
      */
     TcpBridge_port("TcpBridge.port", 7000),
+    /**
+     * Enables deployment of {@link org.cristalise.kernel.process.WebSocketVerticle}. Default value is 'false'.
+     */
+    WebSocketVerticle_enabled("WebSocketVerticle.enabled", false),
+    /**
+     * Host interface used by {@link org.cristalise.kernel.process.WebSocketVerticle}. Default value is 'localhost'.
+     */
+    WebSocketVerticle_host("WebSocketVerticle.host", "localhost"),
+    /**
+     * Port used by {@link org.cristalise.kernel.process.WebSocketVerticle}. Default value is 8080.
+     */
+    WebSocketVerticle_port("WebSocketVerticle.port", 8080),
+    /**
+     * Websocket path accepted by {@link org.cristalise.kernel.process.WebSocketVerticle}. Default value is '/ws/proxy-message'.
+     */
+    WebSocketVerticle_path("WebSocketVerticle.path", "/ws/proxy-message"),
     /**
      * Defines the default role to be used for UserCode. It also used as a prefix for every configuration property
      * eg: UserCode.StateMachine.startTransition. Default value is 'UserCode'.

@@ -1,7 +1,6 @@
 Name=Cristal DevTest In Memory Server
 
-Authenticator = org.cristalise.lookup.lite.InMemoryAuthManager
-Lookup        = org.cristalise.storage.InMemoryPropertyClusterStorage
+Lookup = org.cristalise.storage.InMemoryPropertyClusterStorage
 
 JOOQ.URI        = jdbc:h2:mem:
 JOOQ.user       = sa

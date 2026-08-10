@@ -1,0 +1,29 @@
+@if (value()) {
+  <div class="col-span-2 last:mb-0 mb-[0.55rem]">
+    <p-fieldset [legend]="label()" [toggleable]="true" [collapsed]="collapsed()" class="w-full">
+      <p-tabs [value]="0">
+        <p-tablist>
+          @for (item of value(); track $index) {
+            <p-tab [value]="$index">{{ getTabLabel(item, $index) }}</p-tab>
+          }
+        </p-tablist>
+        <p-tabpanels>
+          @for (item of value(); track $index) {
+            <p-tabpanel [value]="$index">
+              <div class="grid grid-cols-[max-content_auto] gap-x-4 gap-y-[0.55rem] p-4">
+                @for (entry of objectEntries(item); track entry.key) {
+                  <app-outcome-field-set
+                    [label]="entry.key"
+                    [value]="entry.value"
+                    [catalog]="catalog()"
+                    [path]="path() + '.' + entry.key"
+                  ></app-outcome-field-set>
+                }
+              </div>
+            </p-tabpanel>
+          }
+        </p-tabpanels>
+      </p-tabs>
+    </p-fieldset>
+  </div>
+}

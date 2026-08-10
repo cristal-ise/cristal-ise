@@ -264,11 +264,13 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         def car = creator.createItemWithUpdate(
             Name: "Car-$timeStamp",
             RegistrationPlate: 'IG 94-11',
+            Make: 'BMW',
             "/$folder/CarFactory")
 
         def motorcycle = creator.createItemWithUpdate(
             Name: "Motorcycle-$timeStamp",
             RegistrationPlate: 'JTG 345',
+            Make: 'Suzuki',
             "/$folder/MotorcycleFactory")
 
         def clubMember = creator.createItemWithUpdate(
@@ -346,11 +348,13 @@ class DevScaffoldedModuleTests extends DevItemDSL implements CristalTestSetup {
         def car = creator.createItemWithUpdate(
             Name: "Car2-$timeStamp",
             RegistrationPlate: 'IG 94-11',
+            Make: 'Audi',
             "/$folder/CarFactory")
 
         def motorcycle = creator.createItemWithUpdate(
             Name: "Motorcycle2-$timeStamp",
             RegistrationPlate: 'JTG 345',
+            Make: 'BMW',
             "/$folder/MotorcycleFactory")
 
         def clubmember = creator.createItemWithUpdate(

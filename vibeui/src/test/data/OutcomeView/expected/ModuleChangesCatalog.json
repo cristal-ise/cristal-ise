@@ -1,0 +1,9 @@
+{
+  "isDisplayable": true,
+  "mappings": {
+    "ModuleChanges": "FIELDSET",
+    "ModuleChanges.ModuleVersion": "PRIMITIVE",
+    "ModuleChanges.ModuleName": "PRIMITIVE",
+    "ModuleChanges.ResourceChangeDetails": "TABLE"
+  }
+}

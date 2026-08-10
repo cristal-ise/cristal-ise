@@ -27,7 +27,7 @@ If ping/wget/curl does not work, but apt-get or the browser can access internet
 1. `git config --global pull.rebase true`
 1. `git config --global user.name 'Jean Doe'`
 1. `git config --global user.email jean.doe@email.com`
-1. `ssh-keygen -t ed25519 -C "zs.myth@gmail.com"`
+1. `ssh-keygen -t ed25519 -C "jean.doe@email.com"`
 1. add the content of ~/.ssh/id_ed25519.pub to github profile
 1. `git clone git@github.com:cristal-ise/cristal-ise.git`
 

@@ -21,12 +21,8 @@
  */
 package org.cristalise.dev.utils
 
-import static org.cristalise.kernel.collection.BuiltInCollections.*
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
-import static org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription.FACTORY_GENERATED_NAME
-import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.hasValidNotBlankValue
-import static org.cristalise.kernel.property.BuiltInItemProperties.*;
-
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.cristalise.kernel.collection.DependencyMember
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.entity.Job
@@ -41,8 +37,11 @@ import org.cristalise.kernel.property.PropertyArrayList
 import org.cristalise.kernel.utils.LocalObjectLoader
 import org.w3c.dom.Node
 
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
+import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION
+import static org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription.FACTORY_GENERATED_NAME
+import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.hasValidNotBlankValue
+import static org.cristalise.kernel.property.BuiltInItemProperties.ID_PREFIX
 
 @CompileStatic @Slf4j
 class CrudFactoryHelper {
@@ -55,9 +54,9 @@ class CrudFactoryHelper {
      * @param newItemName
      * @return
      */
-    private static String getInitaliseOutcomeXML(ItemProxy factoryItem, Outcome outcome, String newItemName, TransactionKey transKey) {
+    private static String getInitialiseOutcomeXML(ItemProxy factoryItem, Outcome outcome, String newItemName, TransactionKey transKey) {
         if (! factoryItem.checkCollection(SCHEMA_INITIALISE)) {
-            log.debug('getInitaliseOutcomeXML() - CrudFactory:{} does not have collection:{}', factoryItem, SCHEMA_INITIALISE)
+            log.debug('getInitialiseOutcomeXML() - CrudFactory:{} does not have collection:{}', factoryItem, SCHEMA_INITIALISE)
             return null
         }
 
@@ -78,7 +77,7 @@ class CrudFactoryHelper {
         if (initialiseNode) {
             String initOutcomeXml = Outcome.serialize(initialiseNode, true)
 
-            log.debug('getInitaliseOutcomeXML() - factory:{} returning xml:{}', factoryItem, initOutcomeXml);
+            log.debug('getInitialiseOutcomeXML() - factory:{} returning xml:{}', factoryItem, initOutcomeXml);
 
             return initOutcomeXml
         }
@@ -287,12 +286,12 @@ class CrudFactoryHelper {
         String[] params = null
         String domainRoot = getDomainRoot(factoryItem, job, transKey)
         String initialProps = getInitialProperties(factoryItem, job.outcome)
-        String initaliseOutcomeXML = getInitaliseOutcomeXML(factoryItem, job.outcome, newItemName, transKey)
+        String initialiseOutcomeXML = getInitialiseOutcomeXML(factoryItem, job.outcome, newItemName, transKey)
 
         if (isCreateAgent(factoryItem)) {
-            if      (initaliseOutcomeXML) params = new String[7]
-            else if (initialProps)        params = new String[6]
-            else                          params = new String[4]
+            if      (initialiseOutcomeXML) params = new String[7]
+            else if (initialProps)         params = new String[6]
+            else                           params = new String[4]
 
             params[0] = newItemName
             params[1] = domainRoot
@@ -300,18 +299,18 @@ class CrudFactoryHelper {
             params[3] = factoryItem.getProperty('DefaultPassword', 'password')
         }
         else {
-            if      (initaliseOutcomeXML) params = new String[5]
-            else if (initialProps)        params = new String[4]
-            else                          params = new String[2]
+            if      (initialiseOutcomeXML) params = new String[5]
+            else if (initialProps)         params = new String[4]
+            else                           params = new String[2]
 
             params[0] = newItemName
             params[1] = domainRoot
         }
 
-        if (initaliseOutcomeXML) {
+        if (initialiseOutcomeXML) {
             params[params.length-3] = 'last'
             params[params.length-2] = initialProps ?: agent.marshall(new PropertyArrayList())
-            params[params.length-1] = initaliseOutcomeXML
+            params[params.length-1] = initialiseOutcomeXML
         }
         else if (initialProps) {
             params[params.length-2] = 'last'

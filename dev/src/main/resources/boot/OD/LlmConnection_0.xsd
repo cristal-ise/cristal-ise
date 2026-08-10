@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name=' LlmConnection'>
+    <xs:annotation>
+      <xs:documentation>LlmConnection aggregated data</xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='Description' type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='ModelFamily' minOccurs='1' maxOccurs='1'>
+          <xs:simpleType>
+            <xs:restriction base='xs:string'>
+              <xs:enumeration value='Gemini' />
+              <xs:enumeration value='GPT' />
+              <xs:enumeration value='Llama' />
+              <xs:enumeration value='Mistral' />
+              <xs:enumeration value='Claude' />
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element name='ModelName' type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='ApiKey' type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='Temperature' type='xs:decimal' minOccurs='1' maxOccurs='1' />
+        <xs:element name='MaxOutputTokens' type='xs:integer' minOccurs='1' maxOccurs='1' />
+        <xs:element name='Timeout' type='xs:integer' minOccurs='1' maxOccurs='1' />
+        <xs:element name='SystemInstruction' type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='AllowCodeExecution' type='xs:boolean' minOccurs='1' maxOccurs='1' />
+        <xs:element name='LogRequests' type='xs:boolean' minOccurs='1' maxOccurs='1' />
+        <xs:element name='LogResponses' type='xs:boolean' minOccurs='1' maxOccurs='1' />
+        <xs:element name='State' minOccurs='1' maxOccurs='1'>
+          <xs:simpleType>
+            <xs:restriction base='xs:string'>
+              <xs:enumeration value='ACTIVE' />
+              <xs:enumeration value='INACTIVE' />
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
+        <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <hidden>true</hidden>
+                <required>false</required>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

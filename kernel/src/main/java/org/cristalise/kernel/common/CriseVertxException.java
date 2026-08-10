@@ -25,7 +25,6 @@ import static org.cristalise.kernel.common.CriseVertxException.FailureCodes.Inte
 import java.io.Serial;
 import java.util.concurrent.ExecutionException;
 
-import io.vertx.core.Future;
 import lombok.Getter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.cristalise.kernel.lookup.InvalidItemPathException;

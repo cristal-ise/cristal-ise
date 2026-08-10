@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ItemSummary",
+  "type": "object",
+  "properties": {
+    "uuid": { "type": "string", "format": "uuid" },
+    "name": { "type": "string" },
+    "domainPaths": { "type": "array", "items": { "type": "string" } },
+    "hasMasterOutcome": { "type": "boolean" },
+    "isAgent": { "type": "boolean" },
+    "type": { "type": "string" },
+    "master": { "type": "string", "format": "uri" },
+    "properties": { "type": "array", "items": { "$ref": "PropertySummary.json" } },
+    "viewpoints": { "type": "array", "items": { "$ref": "ViewpointSummary.json" } },
+    "collections": { "type": "array", "items": { "$ref": "CollectionSummary.json" } },
+    "workflow": { "type": "string", "format": "uri" },
+    "history": { "type": "string", "format": "uri" },
+    "outcome": { "type": "string", "format": "uri" },
+    "attachment": { "type": "string", "format": "uri" },
+    "job": { "type": "string", "format": "uri" },
+    "roles": { "type": "string", "format": "uri" }
+  },
+  "required": ["uuid", "name", "domainPaths", "hasMasterOutcome", "isAgent", "workflow", "history", "outcome", "attachment", "job"]
+}

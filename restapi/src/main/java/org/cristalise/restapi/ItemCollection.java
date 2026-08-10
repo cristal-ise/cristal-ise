@@ -58,7 +58,7 @@ import org.json.JSONArray;
 @Path("/item/{uuid}/collection")
 public class ItemCollection extends ItemUtils {
 	
-	private ScriptUtils scriptUtils = new ScriptUtils();
+	private final ScriptUtils scriptUtils = new ScriptUtils();
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -146,8 +146,8 @@ public class ItemCollection extends ItemUtils {
             if (StringUtils.isNotBlank(lovProp)) {
                 String[] lovInfo = lovProp.split(":");
                 if ("ScriptRef".equals( lovInfo[0] )) {
-                    Script script = LocalObjectLoader.getScript(lovInfo[1], Integer.valueOf(lovInfo[2]));
-                    Map<? extends String, ? extends Object> result = (Map<? extends String, ? extends Object>) scriptUtils.executeScript(item, script, null);
+                    Script script = LocalObjectLoader.getScript(lovInfo[1], Integer.parseInt(lovInfo[2]));
+                    Map<? extends String, ?> result = (Map<? extends String, ?>) scriptUtils.executeScript(item, script, null);
                     result.remove(null);
                     Map<String, Object> valuesToCaptions = new TreeMap<String, Object>(result);
                     inputs.put("memberNames", valuesToCaptions); // Put the new member here e.g.ListOfValues
@@ -158,7 +158,7 @@ public class ItemCollection extends ItemUtils {
                 List<String> names = getItemNames(dep.getClassProperties());
 
                 if (REST_CollectionForm_checkInputs.getBoolean()) {
-                    if (names.size() == 0) {
+                    if (names.isEmpty()) {
                         throw new WebAppExceptionBuilder()
                                 .message("No Item was found")
                                 .status(Response.Status.NOT_FOUND)
@@ -177,7 +177,7 @@ public class ItemCollection extends ItemUtils {
             // this shall contain the SchemaName and version like this: Shift:0
             String[] schemaInfo = ((String) dep.getProperties().get("MemberUpdateSchema")).split(":");
 
-            Schema schema = LocalObjectLoader.getSchema(schemaInfo[0], Integer.valueOf(schemaInfo[1]));
+            Schema schema = LocalObjectLoader.getSchema(schemaInfo[0], Integer.parseInt(schemaInfo[1]));
             JSONArray formJson = new OutcomeBuilder(schema, false).generateNgDynamicFormsJson(inputs);
             return Response.ok(formJson.toString()).cookie(cookie).build();
         }

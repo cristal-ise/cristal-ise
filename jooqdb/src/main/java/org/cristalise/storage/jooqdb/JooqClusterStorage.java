@@ -20,6 +20,8 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.retrieveContext;
 import static org.cristalise.storage.jooqdb.JooqHandler.getPrimaryKeys;
 import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_disableDomainCreateTables;
@@ -35,16 +37,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.nullness.qual.NonNull;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Parameter;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.storage.jooqdb.clusterStore.JooqCollectionHadler;
@@ -66,16 +67,18 @@ import org.mvel2.templates.TemplateRuntime;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Implementation of the {@link TransactionalClusterStorage} based on <a>http://www.jooq.org/</a>}
+ * Implementation of the {@link ClusterStorage} based on <a>http://www.jooq.org/</a>}
  */
 @Slf4j
 public class JooqClusterStorage extends ClusterStorage {
+
+    private static final String SQL = "SQL";
 
     protected Map<ClusterType, JooqHandler> jooqHandlers   = new HashMap<ClusterType, JooqHandler>();
     protected List<JooqDomainHandler>       domainHandlers = new ArrayList<JooqDomainHandler>();
 
     @Override
-    public void open(Authenticator auth) throws PersistencyException {
+    public void open() throws PersistencyException {
         JooqDataSourceHandler.readSystemProperties();
         initialiseHandlers();
     }
@@ -233,9 +236,16 @@ public class JooqClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public boolean checkQuerySupport(String language) {
-        String lang = language.trim().toUpperCase();
-        return "SQL".equals(lang) || ("SQL:"+JooqDataSourceHandler.dialect).equals(lang);
+    public boolean checkQuerySupport(Query query) {
+        String lang = query.getLanguage().trim().toUpperCase();
+        String dialect = isNotBlank(query.getDialect()) ? query.getDialect().trim().toUpperCase() : null;
+        String currentDialect = JooqDataSourceHandler.dialect.name();
+
+        if (dialect == null) {
+            return SQL.equals(lang) || "%s:%s".formatted(SQL, currentDialect).equals(lang);
+        } else {
+            return SQL.equals(lang) && currentDialect.equals(dialect);
+        }
     }
 
     @Override
@@ -269,43 +279,43 @@ public class JooqClusterStorage extends ClusterStorage {
 
     @Override
     public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
-        if(!checkQuerySupport(query.getLanguage())) throw new PersistencyException("Unsupported query:"+query.getLanguage());
+        if(!checkQuerySupport(query)) throw new PersistencyException("Unsupported query:"+query.getLanguage());
 
         DSLContext context = retrieveContext(transactionKey);
 
-        Map<Object, Object> params = new HashMap<Object, Object>();
+        String realSql = prepareSql(query);
+
+        Result<Record> result = context.fetch(realSql);
+
+        return convertResultToXml(query, result);
+    }
+
+    private static String prepareSql(Query query) {
+        Map<Object, Object> params = new HashMap<>();
+        String sql = query.getQuery();
 
         if (query.hasParameters()) {
             for(Parameter p: query.getParameters()) {
                 if (p.getValue() != null) {
-                    log.debug("executeQuery() - param:'"+p.getName()+"' = '"+p.getValue()+"'");
+                    log.debug("prepareSql() - param:'{}' = '{}'", p.getName(), p.getValue());
                     params.put(p.getName(), p.getValue());
                 }
             }
-        }
-
-        String sql = query.getQuery();
-        sql = (String)TemplateRuntime.execute(TemplateCompiler.compileTemplate(sql), params);
-        Result<Record> result = context.fetch(sql);
-
-        if (result == null || result.size() == 0) {
-            return "<NULL/>";
-            //return "</"+query.getRootElement()+">";
-        }
-        else if (result.size() == 1) {
-            return convertRecord2Xml(result.get(0), query.getRecordElement());
+            return  (String)TemplateRuntime.execute(TemplateCompiler.compileTemplate(sql), params);
         }
         else {
-            StringBuffer b = new StringBuffer("<"+query.getRootElement()+">");
-
-            for (Record rec: result) {
-                b.append(convertRecord2Xml(rec, query.getRecordElement()));
-            }
-
-            b.append("</"+query.getRootElement()+">");
-
-            return b.toString();
+            return sql;
         }
+    }
+
+    private @NonNull String convertResultToXml(Query query, Result<Record> result) throws PersistencyException {
+        StringBuilder b = new StringBuilder("<"+ query.getRootElement()+">");
+
+        for (Record rec: result) b.append(convertRecord2Xml(rec, query.getRecordElement()));
+
+        b.append("</").append(query.getRootElement()).append(">");
+
+        return b.toString();
     }
 
     private String convertRecord2Xml(Record rec, String recordElement) throws PersistencyException {
@@ -317,51 +327,54 @@ public class JooqClusterStorage extends ClusterStorage {
             return convertField2Xml(field, rec.get(field));
         }
         else {
-            StringBuffer b = new StringBuffer("<"+recordElement+">");
+            StringBuilder buffer = new StringBuilder("<"+recordElement+">");
 
             for (Field<?> field: rec.fields()) {
-                b.append(convertField2Xml(field, rec.get(field)));
+                buffer.append( convertField2Xml(field, rec.get(field)) );
             }
 
-            b.append("</"+recordElement+">");
+            buffer.append("</").append(recordElement).append(">");
 
-            return b.toString();
+            return buffer.toString();
         }
     }
 
     private String convertField2Xml(Field<?> field, Object value) throws PersistencyException {
-        StringBuffer b = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
+        String fieldName = field.getName();
 
         if (value == null) {
-            
-            //b.append("</"+field.getName()+">");
+            //buffer.append("</"+fieldName+">");
         }
         else if (value instanceof SQLXML) {
             try {
-                b.append(((SQLXML)value).getString());
+                buffer.append(((SQLXML)value).getString());
             }
             catch (SQLException e) {
                 log.error("Could not process SQLXML type of jdbc", e);
                 throw new PersistencyException(e.getMessage());
             }
         }
-        else if("XML".equals(field.getName().toUpperCase())) { //cristal-ise tables use field name 'XML'
-            b.append(value.toString());
-        }
         else {
-            String stringValue = value.toString();
-
-            if (StringUtils.isEmpty(stringValue)) {
-                b.append("<"+field.getName()+"/>");
+            if("XML".equalsIgnoreCase(fieldName)) { //cristal-ise tables use field name 'XML'
+                buffer.append(value);
             }
             else {
-                b.append("<"+field.getName()+">")
-                .append(stringValue)
-                .append("</"+field.getName()+">");
+                String stringValue = value.toString();
+    
+                if (isEmpty(stringValue)) {
+                    buffer.append("<").append(fieldName).append("/>");
+                }
+                else {
+                    buffer
+                        .append("<").append(fieldName).append(">")
+                        .append(stringValue)
+                        .append("</").append(fieldName).append(">");
+                }
             }
         }
 
-        return b.toString();
+        return buffer.toString();
     }
 
     @Override

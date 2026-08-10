@@ -20,8 +20,10 @@
     http://www.fsf.org/licensing/licenses/lgpl.html
 
 -->
-<cristalquery name="TestQuerySql" version="0" rootElement="History" recordElement="Event">
+<cristalquery name="TestQuerySql" version="0">
     <parameter name="uuid" type="java.lang.String"/>
+    <rootElement value='History' />
+    <recordElement value='Event' />
     <query language="sql"><![CDATA[
 select * from "EVENT" 
 where "UUID" = '@{itemUUID}'

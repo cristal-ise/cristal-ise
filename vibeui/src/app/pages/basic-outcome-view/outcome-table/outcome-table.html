@@ -1,0 +1,22 @@
+@if (value()) {
+  <div class="col-span-2 last:mb-0 mb-[0.55rem]">
+    <p-fieldset [legend]="label()" [toggleable]="true" [collapsed]="collapsed()" class="w-full">
+      <p-table [value]="value()" [tableStyle]="{ 'min-width': '100%' }" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+          <tr>
+            @for (col of getColumns(value()); track col) {
+              <th>{{ col }}</th>
+            }
+          </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-rowData>
+          <tr>
+            @for (col of getColumns(value()); track col) {
+              <td>{{ rowData[col] }}</td>
+            }
+          </tr>
+        </ng-template>
+      </p-table>
+    </p-fieldset>
+  </div>
+}

@@ -5,6 +5,15 @@
       <xs:sequence>
         <xs:element name='Name' type='xs:string' minOccurs='1' maxOccurs='1' />
         <xs:element name='RegistrationPlate' type='xs:string' minOccurs='1' maxOccurs='1' />
+        <xs:element name='Make' minOccurs='1' maxOccurs='1'>
+          <xs:simpleType>
+            <xs:restriction base='xs:string'>
+              <xs:enumeration value='BMW' />
+              <xs:enumeration value='Audi' />
+              <xs:enumeration value='Mercedes' />
+            </xs:restriction>
+          </xs:simpleType>
+        </xs:element>
         <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
           <xs:annotation>
             <xs:appinfo>

@@ -43,3 +43,5 @@ SimpleType.DefaultValues = 12:string
 
 Resource.moduleUseFileNameWithVersion = dev,integTest
 UserCode.permissions=*
+
+WebSocketVerticle.enabled=true

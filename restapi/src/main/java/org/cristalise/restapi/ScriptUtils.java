@@ -30,13 +30,20 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
+import org.cristalise.kernel.lookup.AgentPath;
+import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
+import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
+import org.cristalise.kernel.security.SecurityManager;
+import org.cristalise.kernel.security.SecurityManager.BuiltInAction;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.json.JSONObject;
@@ -53,11 +60,6 @@ public class ScriptUtils extends ItemUtils {
     
     /**
      * 
-     * @param item
-     * @param script
-     * @return
-     * @throws ScriptingEngineException
-     * @throws InvalidDataException
      */
     protected Object executeScript(ItemProxy item, final Script script, CastorHashMap inputs)
             throws ScriptingEngineException, InvalidDataException {
@@ -83,7 +85,7 @@ public class ScriptUtils extends ItemUtils {
             String              actPath,
             String              inputJson,
             Map<String, Object> additionalInputs)
-                throws ObjectNotFoundException, UnsupportedOperationException, InvalidDataException
+                throws ObjectNotFoundException, UnsupportedOperationException, InvalidDataException, AccessRightsException
     {
         if (scriptVersion == null) {
             if (Module_Versioning_strict.getBoolean()) {
@@ -99,6 +101,17 @@ public class ScriptUtils extends ItemUtils {
             try {
                 Script script = LocalObjectLoader.getScript(scriptName, scriptVersion);
 
+                SecurityManager secMan = Gateway.getSecurityManager();
+                AgentProxy agentProxy = (AgentProxy)additionalInputs.get(Script.PARAMETER_AGENT);
+                if (null == agentProxy) {
+                    throw new AccessRightsException("Input parameter '" + Script.PARAMETER_AGENT + "' was not specified");
+                }
+                AgentPath agentPath = agentProxy.getPath();
+                if (!secMan.checkPermissions(agentPath, BuiltInAction.ACTION_EXECUTE, script.getItemPath(), null)) {
+                    if (log.isTraceEnabled()) for (RolePath role : agentPath.getRoles()) log.error(role.dump());
+                    throw new AccessRightsException("'" + agentPath.getAgentName() + "' is NOT permitted to " + BuiltInAction.ACTION_EXECUTE + " script: " + script.getName());
+                }
+
                 JSONObject json =  new JSONObject(inputJson == null ? "{}" : URLDecoder.decode(inputJson, "UTF-8"));
 
                 CastorHashMap inputs = new CastorHashMap();
@@ -112,7 +125,7 @@ public class ScriptUtils extends ItemUtils {
 
                 return returnScriptResult(item, null, script, inputs, produceJSON(headers.getAcceptableMediaTypes()));
             }
-            catch ( UnsupportedOperationException e ) {
+            catch (UnsupportedOperationException | AccessRightsException e) {
                 throw e;
             }
             catch (Exception e) {
@@ -146,15 +159,6 @@ public class ScriptUtils extends ItemUtils {
     
     /**
      * 
-     * @param scriptName
-     * @param item
-     * @param schema
-     * @param script
-     * @param jsonFlag whether the response is a JSON or XML
-     * @return
-     * @throws ObjectNotFoundException
-     * @throws ScriptingEngineException
-     * @throws InvalidDataException
      */
     protected Response.ResponseBuilder runScript(ItemProxy item, final Schema schema, final Script script, CastorHashMap inputs, boolean jsonFlag)
             throws ScriptingEngineException, InvalidDataException, ObjectNotFoundException

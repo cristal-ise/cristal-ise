@@ -38,9 +38,9 @@ if (binding.hasVariable('job')) {
     job.setOutcome(writer.toString())
 }
 else {
-    def milisec = new Random().nextInt(6) * 100
-    log.info('item:{} sleeping:{} ms', item, milisec)
-    Thread.sleep(new Random().nextInt(6)*100)
+    def ms = new Random().nextInt(6) * 100
+    log.info('item:{} sleeping:{} ms', item, ms)
+    Thread.sleep(ms)
     PatientXML = writer.toString()
     log.info('item:{} returning', item)
 }

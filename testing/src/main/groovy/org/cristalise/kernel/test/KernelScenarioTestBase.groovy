@@ -70,6 +70,8 @@ class KernelScenarioTestBase extends DevItemDSL {
      * @param connect
      */
     public void init(String config, String connect) {
+        log.info('init() - config:{} connect:{}', config, connect)
+
         Gateway.init(AbstractMain.readPropertyFiles(config, connect, null));
         agent = Gateway.connect("user", "test")
         creator = new DevItemCreator('integtest', ERASE, agent)

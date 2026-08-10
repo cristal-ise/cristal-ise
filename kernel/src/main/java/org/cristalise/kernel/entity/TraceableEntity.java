@@ -39,7 +39,6 @@ import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.ItemPredefinedStepContainer;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStepContainer;
 import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.C2KLocalObjectMap;
 import org.cristalise.kernel.persistency.ClusterStorageManager;
@@ -181,7 +180,7 @@ public class TraceableEntity implements Item {
         Activity act = (Activity) lifeCycle.search(stepPath);
 
         if (act != null) {
-            if (secMan.isShiroEnabled() && !secMan.checkPermissions(agent.getPath(), act, item.getPath(), transactionKey)) {
+            if (!secMan.checkPermissions(agent.getPath(), act, item.getPath(), transactionKey)) {
                 String errorMsg = "'" + agent.getName() + "' is NOT permitted to execute step:" + stepPath;
                 if (log.isTraceEnabled()) {
                     log.error(errorMsg);
@@ -316,29 +315,21 @@ public class TraceableEntity implements Item {
         log.info("queryLifeCycle({}) - agent:{}", item, agent);
 
         try {
-            Workflow wf = (Workflow) mStorage.get(item.getPath(), ClusterType.LIFECYCLE + "/workflow", null);
-            @SuppressWarnings("unchecked")
-            C2KLocalObjectMap<Job> jobs = (C2KLocalObjectMap<Job>)mStorage.get(item.getPath(), ClusterType.JOB.getName(), null);
-
+            C2KLocalObjectMap<Job> jobs = item.getJobs();
             SecurityManager secMan = Gateway.getSecurityManager();
             JobArrayList jobBag = new JobArrayList();
 
-            if (secMan.isShiroEnabled()) {
-                for (Job j : jobs.values()) {
-                    Activity act = (Activity) wf.search(j.getStepPath());
-                    if (secMan.checkPermissions(agent.getPath(), act, item.getPath(), null)) {
-                        try {
-                            j.getTransition().checkPerformingRole(act, agent.getPath());
-                            jobBag.list.add(j);
-                        }
-                        catch (AccessRightsException e) {
-                            // AccessRightsException is thrown if Job requires specific Role that agent does not have
-                        }
+            for (Job j : jobs.values()) {
+                Activity act = (Activity) item.getWorkflow().search(j.getStepPath());
+                if (secMan.checkPermissions(agent.getPath(), act, item.getPath(), null)) {
+                    try {
+                        j.getTransition().checkPerformingRole(act, agent.getPath());
+                        jobBag.list.add(j);
+                    }
+                    catch (AccessRightsException e) {
+                        // AccessRightsException is thrown if Job requires specific Role that agent does not have
                     }
                 }
-            }
-            else {
-                jobBag.list = (ArrayList<Job>) jobs.values();
             }
 
             log.info("queryLifeCycle({}) - Returning {} jobs.", item, jobBag.list.size());

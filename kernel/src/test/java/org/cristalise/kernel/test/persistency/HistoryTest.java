@@ -50,7 +50,7 @@ public class HistoryTest {
     public static void beforeClass() throws Exception {
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/server.conf").getPath());
         Gateway.init(props);
-        FieldUtils.writeDeclaredStaticField(Gateway.class, "mStorage", new ClusterStorageManager(null), true);
+        FieldUtils.writeDeclaredStaticField(Gateway.class, "mStorage", new ClusterStorageManager(), true);
         itemPath = new ItemPath(uuid);
         storageDir = SystemProperties.XMLStorage_root.getString() + "/" + uuid;
     }

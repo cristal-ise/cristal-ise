@@ -20,47 +20,19 @@
  */
 package org.cristalise.kernel.entity.proxy;
 
-import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.cristalise.kernel.SystemProperties.Module_Versioning_strict;
-import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
-import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
-import static org.cristalise.kernel.persistency.ClusterType.JOB;
-import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
-import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
-import static org.cristalise.kernel.property.BuiltInItemProperties.UPDATE_SCHEMA;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
+import com.google.errorprone.annotations.Immutable;
 import io.vertx.core.Context;
 import io.vertx.core.Future;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.BuiltInCollections;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.DependencyMember;
-import org.cristalise.kernel.common.AccessRightsException;
-import org.cristalise.kernel.common.CannotManageException;
-import org.cristalise.kernel.common.CriseVertxException;
-import org.cristalise.kernel.common.InvalidCollectionModification;
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.InvalidTransitionException;
-import org.cristalise.kernel.common.ObjectAlreadyExistsException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.entity.Item;
-import org.cristalise.kernel.entity.ItemVerticle;
-import org.cristalise.kernel.entity.ItemVertxEBProxy;
-import org.cristalise.kernel.entity.Job;
+import org.cristalise.kernel.common.*;
+import org.cristalise.kernel.entity.*;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.events.History;
 import org.cristalise.kernel.lifecycle.instance.Activity;
@@ -83,12 +55,19 @@ import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.security.SecurityManager;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
-import com.google.errorprone.annotations.Immutable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-import io.vertx.core.AsyncResult;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.cristalise.kernel.SystemProperties.Module_Versioning_strict;
+import static org.cristalise.kernel.collection.BuiltInCollections.SCHEMA_INITIALISE;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
+import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
+import static org.cristalise.kernel.property.BuiltInItemProperties.*;
 
 /**
  * It is a immutable wrapper for the connection and communication with Item and its data. It relies on the
@@ -219,7 +198,7 @@ public class ItemProxy {
     private <T> T await(Future<T> future) throws Exception {
         if (Context.isOnVertxThread()) {
             // We are on the Vert.x event loop thread using virtual threads, so we can block
-            return Future.await(future);
+            return future.await();
         }
         else {
             // We are on a platform thread, so we need to wait asynchronously
@@ -289,22 +268,16 @@ public class ItemProxy {
         String stepPath = job.getStepPath();
         Activity act = (Activity) getWorkflow().search(stepPath);
         SecurityManager secMan = Gateway.getSecurityManager();
-        
-        if (secMan.isShiroEnabled()) {
-            if (secMan.checkPermissions(agentPath, act, getPath(), null)) {
-                return true;
-//                try {
-//                    j.getTransition().checkPerformingRole(act, agentPath);
-//                    return true;
-//                }
-//                catch (AccessRightsException e) {
-//                    // AccessRightsException is thrown if Job requires specific Role that agent does not have
-//                    log.debug("checkJobForAgent()", e);
-//                }
-            }
-        }
-        else {
-            log.warn("checkJobForAgent() - ENABLE Shiro to work with permissions.");
+
+        if (secMan.checkPermissions(agentPath, act, getPath(), null)) {
+//            try {
+//                job.getTransition().checkPerformingRole(act, agentPath);
+//                return true;
+//            }
+//            catch (AccessRightsException e) {
+//                // AccessRightsException is thrown if Job requires specific Role that agent does not have
+//                log.warn("checkJobForAgent()", e);
+//            }
             return true;
         }
 
@@ -754,6 +727,55 @@ public class ItemProxy {
     }
 
     /**
+     * Retrieves the outcome based on the provided schema name.
+     *
+     * @param schemaName the name of the schema for which the outcome is requested
+     * @return the 'last' Outcome object for the given schema name
+     * @throws ObjectNotFoundException if no object matching the schema name is found
+     */
+    public Outcome getOutcome(String schemaName) throws ObjectNotFoundException {
+        return getOutcome(schemaName, "last");
+    }
+
+    /**
+     * Retrieves the outcome based on the provided schema name.
+     *
+     * @param schemaName the name of the schema for which the outcome is requested
+     * @param viewName the name of the viewpoint to be used
+     * @return the 'last' Outcome object for the given schema name
+     * @throws ObjectNotFoundException if no object matching the schema name is found
+     */
+    public Outcome getOutcome(String schemaName, String viewName) throws ObjectNotFoundException {
+        return getOutcome(schemaName, viewName, null);
+    }
+    
+    /**
+     * Retrieves the outcome based on the provided schema name and transaction key.
+     *
+     * @param schemaName the name of the schema for which the outcome is requested
+     * @param transKey the transaction key to be used
+     * @return the 'last' Outcome object for the given schema name
+     * @throws ObjectNotFoundException if no object matching the schema name is found
+     */
+    public Outcome getOutcome(String schemaName, TransactionKey transKey) throws ObjectNotFoundException {
+        return getOutcome(schemaName, "last", transKey);
+    }
+
+    /**
+     * Retrieves the outcome based on the provided schema name and transaction key.
+     *
+     * @param schemaName the name of the schema for which the outcome is requested
+     * @param viewName the name of the viewpoint to be used
+     * @param transKey the transaction key to be used
+     * @return the 'last' Outcome object for the given schema name
+     * @throws ObjectNotFoundException if no object matching the schema name is found
+     */
+    public Outcome getOutcome(String schemaName, String viewName, TransactionKey transKey) throws ObjectNotFoundException {
+        var vp = getViewpoint(schemaName, viewName, transKey);
+        return getOutcome(vp, transKey);
+    }
+
+    /**
      * Gets the Outcome selected by the Viewpoint
      *
      * @param view the Viewpoint to be used
@@ -1129,7 +1151,7 @@ public class ItemProxy {
     }
 
     /**
-     * Retrieve the C2KLocalObject for the ClusterType. Actually it returns an instance of C2KLocalObjectMap
+     * Retrieve the C2KLocalObject for the ClusterType. Actually, it returns an instance of C2KLocalObjectMap
      *
      * @param type the ClusterTyoe
      * @return the C2KLocalObjectMap representing all the Object in the ClusterType
@@ -1520,7 +1542,7 @@ public class ItemProxy {
             else                                     schemaVersion = (Integer)initSchemaVersion;
         }
         else {
-            String[] nameAndVersion = getProperty(UPDATE_SCHEMA).split(":");
+            String[] nameAndVersion = getProperty(UPDATE_SCHEMA_URN).split(":");
             schemaName = nameAndVersion[0];
             schemaVersion = Integer.parseInt(nameAndVersion[1]);
         }

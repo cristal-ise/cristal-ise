@@ -1,0 +1,61 @@
+{
+  "Dependency": {
+    "CollectionName": "Patients",
+    "ClassProps": "Type",
+    "CollectionMemberList": {
+      "DependencyMember": {
+        "ChildUUID": "fee078b3-8cd9-467d-b00e-c20a5cad6632",
+        "ClassProps": "Type",
+        "ID": 0,
+        "Properties": {
+          "KeyValuePair": [
+            {
+              "String": "Bidirectional",
+              "isAbstract": false,
+              "Key": "DependencyType"
+            },
+            {
+              "String": "Patient",
+              "isAbstract": false,
+              "Key": "Type"
+            },
+            {
+              "String": "Doctor",
+              "isAbstract": false,
+              "Key": "DependencyTo"
+            },
+            {
+              "String": "OneToMany",
+              "isAbstract": false,
+              "Key": "DependencyCardinality"
+            }
+          ]
+        }
+      }
+    },
+    "Properties": {
+      "KeyValuePair": [
+        {
+          "String": "Patient",
+          "isAbstract": false,
+          "Key": "Type"
+        },
+        {
+          "String": "Doctor",
+          "isAbstract": false,
+          "Key": "DependencyTo"
+        },
+        {
+          "String": "OneToMany",
+          "isAbstract": false,
+          "Key": "DependencyCardinality"
+        },
+        {
+          "String": "Bidirectional",
+          "isAbstract": false,
+          "Key": "DependencyType"
+        }
+      ]
+    }
+  }
+}

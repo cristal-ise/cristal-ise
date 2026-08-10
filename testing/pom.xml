@@ -28,27 +28,23 @@
   <parent>
     <groupId>org.cristalise</groupId>
     <artifactId>cristalise</artifactId>
-    <version>${revision}</version>
+    <version>6.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>cristalise-testing</artifactId>
-  <name>CRISTAL-iSE Testing Module</name>
+
+  <name>CRISTAL-iSE Integration Testing</name>
   <description>CRISTAL-iSE Testing Module</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <additionalparam>-Xdoclint:none</additionalparam>
-    <maven.deploy.skip>true</maven.deploy.skip>
+    <maven.deploy.skip>false</maven.deploy.skip>
   </properties>
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.4.1</version>
-      </plugin>
       <plugin>
         <groupId>org.codehaus.groovy</groupId>
         <artifactId>groovy-eclipse-compiler</artifactId>
@@ -75,6 +71,20 @@
           </dependency>
         </dependencies>
       </plugin>
+      <plugin>
+        <groupId>com.bluetrainsoftware.maven</groupId>
+        <artifactId>groovydoc-maven-plugin</artifactId>
+        <version>2.1</version>
+        <executions>
+          <execution>
+            <id>attach-docs</id>
+            <phase>package</phase>
+            <goals>
+              <goal>attach-docs</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 
       <plugin>
         <groupId>com.google.cloud.tools</groupId>
@@ -84,7 +94,7 @@
             <image>${docker-from-image}</image>
           </from>
           <to>
-            <image>cristalise/testing:${revision}</image>
+            <image>cristalise/testing:${project.parent.version}</image>
           </to>
           <container>
             <creationTime>${maven.build.timestamp}</creationTime>
@@ -117,8 +127,38 @@
           </container>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.0.0</version>
+        <dependencies>
+          <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>module</id>
+            <goals>
+              <goal>java</goal>
+            </goals>
+            <configuration>
+              <mainClass>org.codehaus.groovy.tools.GroovyStarter</mainClass>
+              <commandlineArgs>--main groovy.ui.GroovyMain --encoding UTF-8 src/main/module/Module.groovy</commandlineArgs>
+              <cleanupDaemonThreads>false</cleanupDaemonThreads>
+              <includePluginDependencies>true</includePluginDependencies>
+              <includeProjectDependencies>true</includeProjectDependencies>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      
     </plugins>
   </build>
+
   <dependencies>
     <dependency>
       <groupId>org.hamcrest</groupId>
@@ -140,49 +180,49 @@
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-jooqdb</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-gui</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-dev</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-dsl</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-xpath-outcomeinit</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-restapi</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-trigger</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.cristalise</groupId>
       <artifactId>cristalise-inmemory-lookup</artifactId>
-      <version>${revision}</version>
+      <version>${project.parent.version}</version>
       <scope>compile</scope>
       <exclusions>
         <exclusion>

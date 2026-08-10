@@ -29,6 +29,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.ThreadingModel;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -60,11 +61,10 @@ public class VertxWorkerVerticleTests {
                 };
 
                 // wait for work
-                vertx.eventBus().consumer("worker", handler).completionHandler(r -> {
-                    startFuture.complete();
-                });
+                vertx.eventBus().consumer("worker", handler);
+                startFuture.complete();
             }
-        }, new DeploymentOptions().setWorker(true));
+        }, new DeploymentOptions().setThreadingModel(ThreadingModel.WORKER));
 
         vertx.deployVerticle(new AbstractVerticle() {
             @Override
@@ -75,7 +75,7 @@ public class VertxWorkerVerticleTests {
                 };
 
                 // dispatch work
-                vertx.eventBus().request("worker", "Ca va!", replyHandler);
+                vertx.eventBus().<String>request("worker", "Ca va!").onComplete(replyHandler);
             }
         });
         Thread.sleep(5000);

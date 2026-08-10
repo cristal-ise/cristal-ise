@@ -11,5 +11,8 @@
   }, {
     "field" : "RegistrationPlate",
     "caption" : "Registration Plate"
+  }, {
+    "field" : "Make",
+    "caption" : "Make"
   } ]
 }

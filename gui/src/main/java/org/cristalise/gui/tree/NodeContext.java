@@ -46,12 +46,10 @@ public class NodeContext extends Node {
             vertx.eventBus().localConsumer("tree", message -> {
                 String[] tokens = ((String) message.body()).split(":");
 
-                vertx.executeBlocking(promise -> {
+                vertx.executeBlocking(() -> {
                     if (tokens[1].equals("ADD")) pathAdded(new DomainPath(tokens[0]));
                     else                         pathRemoved(new DomainPath(tokens[0]));
-                    promise.complete();
-                }, res -> {
-                    //
+                    return null;
                 });
             });
             

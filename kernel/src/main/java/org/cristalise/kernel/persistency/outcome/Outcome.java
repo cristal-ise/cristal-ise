@@ -20,22 +20,27 @@
  */
 package org.cristalise.kernel.persistency.outcome;
 
-import static org.cristalise.kernel.SystemProperties.Outcome_Validation_useDOM;
-import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.StringTokenizer;
-import java.util.TreeMap;
-import java.util.function.Consumer;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.persistency.ClusterType;
+import org.cristalise.kernel.persistency.TransactionKey;
+import org.cristalise.kernel.process.AbstractMain;
+import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.w3c.dom.*;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xmlunit.builder.DiffBuilder;
+import org.xmlunit.diff.DefaultNodeMatcher;
+import org.xmlunit.diff.Diff;
+import org.xmlunit.diff.Difference;
+import org.xmlunit.diff.ElementSelectors;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -51,33 +56,14 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import java.io.*;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
 
-import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
-import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.persistency.ClusterType;
-import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.AbstractMain;
-import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xmlunit.builder.DiffBuilder;
-import org.xmlunit.diff.DefaultNodeMatcher;
-import org.xmlunit.diff.Diff;
-import org.xmlunit.diff.Difference;
-import org.xmlunit.diff.ElementSelectors;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.cristalise.kernel.SystemProperties.Outcome_Validation_useDOM;
+import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
 
 /**
  * A C2KLocalObject encapsulating management of XML data. It has methods to manipulate and validate the XML,
@@ -168,7 +154,7 @@ public class Outcome implements C2KLocalObject {
             mDOM = parse(xml);
         }
         catch (IOException | SAXException ex) {
-            log.error("INVALID XML - schema:"+(null == mSchema ? null : mSchema.getName())+"\n"+xml, ex);
+            log.error("INVALID XML - schema:{}\n{}", null == mSchema ? null : mSchema.getName(), xml, ex);
             throw new InvalidDataException("XML not valid for schema:"+mSchema+" error:"+ex.getMessage());
         }
     }
@@ -188,7 +174,7 @@ public class Outcome implements C2KLocalObject {
             mDOM = parse(xml);
         }
         catch (IOException | SAXException ex) {
-            log.error("INVALID XML - schema:"+(null == mSchema ? null : mSchema.getName())+"\n"+xml, ex);
+            log.error("INVALID XML - schema:{}\n{}", null == mSchema ? null : mSchema.getName(), xml, ex);
             throw new InvalidDataException("XML not valid for schema:"+mSchema+" error:"+ex.getMessage());
         }
     }
@@ -259,45 +245,44 @@ public class Outcome implements C2KLocalObject {
                 mSchema = LocalObjectLoader.getSchema(mSchemaName, mSchemaVersion, transactionKey);
             }
             catch (ObjectNotFoundException | InvalidDataException e) {
-                log.debug("Cannot retrieve Schema object", e);
+                log.debug("getSchema() - Cannot retrieve Schema:{} version:{}", mSchemaName, mSchemaVersion, e);
             }
         }
         return mSchema;
     }
 
     /**
-     * Retrieves the SchemaName, Version, EevetnId triplet from the path. Check getClusterPath() implementation
+     * Retrieves the SchemaName, Version and EventId triplet from the path. Check getClusterPath() implementation
      *
      * @param path the ClusterPath to work with
      * @throws PersistencyException path was incorrect
      * @throws InvalidDataException Schema was not found or the Path has incorrect data
      */
     protected void setMetaDataFromPath(String path) throws PersistencyException, InvalidDataException {
-        StringTokenizer tok = new StringTokenizer(path,"/");
+        StringTokenizer tokens = new StringTokenizer(path,"/");
 
-        if (tok.countTokens() != 3 && !(tok.nextToken().equals(OUTCOME.getName())))
+        if (tokens.countTokens() != 3 && !(tokens.nextToken().equals(OUTCOME.getName())))
             throw new PersistencyException("Outcome path must have three components:" + path);
 
-        String schemaName = tok.nextToken();
-        String verString  = tok.nextToken();
-        String objId      = tok.nextToken();
+        String schemaName = tokens.nextToken();
+        String versionStr = tokens.nextToken();
+        String eventIdStr = tokens.nextToken();
 
         try {
-            Integer schemaVersion = Integer.valueOf(verString);
-            mSchema = LocalObjectLoader.getSchema(schemaName, schemaVersion);
-            mID = Integer.valueOf(objId);
+            mSchema = LocalObjectLoader.getSchema(schemaName, Integer.parseInt(versionStr));
+            mID = Integer.valueOf(eventIdStr);
         }
         catch (NumberFormatException ex) {
-            throw new InvalidDataException("Version or EventID was an invalid number version:"+verString + " eventID:" + objId);
+            throw new InvalidDataException("Problem loading schema:"+schemaName+" because Version:"+ versionStr +" or EventID:"+eventIdStr+" was an invalid number");
         }
         catch (ObjectNotFoundException e) {
             log.error("", e);
-            throw new InvalidDataException("Problem loading schema:"+schemaName+" version:"+verString);
+            throw new InvalidDataException("Problem loading schema:"+path);
         }
     }
 
     /**
-     * Evaluates the given XPath expression thread-safely and efficiently. It starts fromt he root Node.
+     * Evaluates the given XPath expression thread-safely and efficiently. It starts from the root Node.
      *
      * @param xpathExpr the XPath expression
      * @return the result of the evaluated expression
@@ -349,9 +334,9 @@ public class Outcome implements C2KLocalObject {
         String error = validate();
 
         if (StringUtils.isNotBlank(error)) {
-            log.error("Outcome not valid: " + error);
-            log.error("XML: \n"+getData());
-            log.error("XSD: \n"+getSchema().getXSD());
+            log.error("Outcome not valid: {}", error);
+            log.error("XML: \n{}", getData());
+            log.error("XSD: \n{}", getSchema().getXSD());
             throw new InvalidDataException(error);
         }
     }
@@ -362,7 +347,7 @@ public class Outcome implements C2KLocalObject {
             mID = Integer.valueOf(name);
         }
         catch (NumberFormatException e) {
-            log.error("Invalid id set on Outcome:"+name);
+            log.error("Invalid id set on Outcome:{}", name);
         }
     }
 
@@ -392,7 +377,7 @@ public class Outcome implements C2KLocalObject {
             NodeList nodeChildren = node.getChildNodes();
 
             if (nodeChildren.getLength() == 0) {
-                log.trace("getNodeValue() - No child/text node for node:"+node.getNodeName()+" => returning null");
+                log.trace("getNodeValue() - No child/text node for node:{} => returning null", node.getNodeName());
                 //throw new InvalidDataException("No child/text node for element '"+node.getNodeName()+"'");
                 return null;
             }
@@ -553,7 +538,7 @@ public class Outcome implements C2KLocalObject {
      */
     public void setAttribute(Element element, String name, String data, boolean remove) throws InvalidDataException {
         if (data == null && remove) {
-            log.debug("setAttribute() - removing name:"+name);
+            log.debug("setAttribute() - removing name:{}", name);
 
             if (element.hasAttribute(name)) element.removeAttribute(name);
             return;
@@ -642,7 +627,7 @@ public class Outcome implements C2KLocalObject {
 
         if (hasSingleField(elements)) {
             if (data == null && remove) {
-                log.debug("setField() - removing name:"+name);
+                log.debug("setField() - removing name:{}", name);
                 element.removeChild(elements.item(0));
                 return;
             }
@@ -730,8 +715,8 @@ public class Outcome implements C2KLocalObject {
         Node field = getNodeByXPath(xpath);
 
         if (field == null) {
-            log.error("Xpath '"+xpath+"' is invalid", getData());
-            throw new InvalidDataException("Xpath '"+xpath+"' is invalid");
+            log.error("setFieldByXPath() - Xpath '{}' is invalid for outcome:\n{}", xpath, getData());
+            throw new InvalidDataException("Xpath '"+xpath+"' is invalid for outcome");
         }
         else
             setNodeValue(field, data);
@@ -789,7 +774,7 @@ public class Outcome implements C2KLocalObject {
         if (mSchema != null) {
             return mSchema.getName();
         }
-        else if (StringUtils.isNoneBlank(mSchemaName)) {
+        else if (isNotBlank(mSchemaName)) {
             return mSchemaName;
         }
 
@@ -925,7 +910,7 @@ public class Outcome implements C2KLocalObject {
             NodeList elements = element.getElementsByTagName(name);
             if (hasSingleField(elements)) {
                 if (elements.getLength() > 1) {
-                    log.warn("getField() - '{}' was found multiple times, returning first occurance", name);
+                    log.warn("getField() - '{}' was found multiple times, returning first occurrence", name);
                 }
 
                 return getNodeValue(elements.item(0));
@@ -987,7 +972,7 @@ public class Outcome implements C2KLocalObject {
         Node nodeToTemove = getNodeByXPath(xpathExpr);
 
         if (nodeToTemove == null) {
-            log.error("Xpath '"+xpathExpr+"' is invalid\n" + getData());
+            log.error("Xpath '{}' is invalid\n{}", xpathExpr, getData());
             throw new InvalidDataException("Xpath '"+xpathExpr+"' is invalid");
         }
 
@@ -1267,7 +1252,7 @@ public class Outcome implements C2KLocalObject {
      * @param otherDocument the other XML document
      * @return true if the two XML Documents are identical, otherwise returns false
      */
-    public static boolean isIdentical(Document origDocument, Document otherDocument) {
+    public static boolean isIdentical(Object origDocument, Object otherDocument) {
         Diff xmlDiff = DiffBuilder.compare(origDocument).withTest(otherDocument)
                 .withNodeMatcher(new DefaultNodeMatcher(ElementSelectors.byNameAndAllAttributes))
                 .ignoreComments()
@@ -1281,15 +1266,14 @@ public class Outcome implements C2KLocalObject {
             for (int i = 1; allDiffs.hasNext(); i++) log.info("Diff #{}:{}", i, allDiffs.next());
 
             try {
-                log.debug("expected:{}", serialize(origDocument, false));
-                log.debug("actual:{}", serialize(otherDocument, false));
+                log.debug("expected:{}", origDocument  instanceof Document ? serialize((Document) origDocument,  false) : origDocument);
+                log.debug("actual:{}",   otherDocument instanceof Document ? serialize((Document) otherDocument, false) : otherDocument);
             }
-            catch (InvalidDataException e) {}
-
-            return false;
+            catch (InvalidDataException e) {
+                // nothing to do, exception is printed in the log of serialize()
+            }
         }
-        else
-            return true;
+        return !xmlDiff.hasDifferences();
     }
 
     public boolean hasField(String name) {

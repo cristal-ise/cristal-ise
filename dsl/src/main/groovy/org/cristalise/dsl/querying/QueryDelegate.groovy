@@ -35,7 +35,7 @@ class QueryDelegate {
     MarkupBuilder xml
     StringWriter writer
 
-    public QueryDelegate(String m, String n, int v) {
+    QueryDelegate(String m, String n, int v) {
         module = m
         name = n
         version = v
@@ -45,7 +45,7 @@ class QueryDelegate {
         writer << '<?xml version="1.0" encoding="UTF-8"?>\n'
     }
 
-    def parameter(Map attrs) {
+    def parameter(Map<String, String> attrs) {
         assert attrs.name && attrs.type
 
         parameter(attrs.name, attrs.type)
@@ -55,20 +55,30 @@ class QueryDelegate {
         xml.parameter('name': n, 'type': t)
     }
 
-    def query(Map attrs, Closure cl) {
+    def query(Map<String, String> attrs, Closure cl) {
         assert attrs.language
 
-        query(attrs.language, cl)
+        query(attrs.language, attrs.dialect, cl)
     }
 
-    def query(String lang, Closure cl) {
-        xml.query(language: lang) {
+    def query(String lang, String dialect, Closure cl) {
+        def attrs = [language: lang]
+        if (dialect) attrs.dialect = dialect
+        xml.query(attrs) {
             def string = cl()
             mkp.yieldUnescaped("<![CDATA[ $string ]]>")
         }
     }
+    
+    def rootElement(String root) {
+        xml.rootElement(value: root)
+    }
 
-    public void processClosure(Closure cl) {
+    def recordElement(String record) {
+        xml.recordElement(value: record)
+    }
+
+    void processClosure(Closure cl) {
         assert cl, "Query only works with a valid Closure"
 
         xml.cristalquery(name: name, version: version) {

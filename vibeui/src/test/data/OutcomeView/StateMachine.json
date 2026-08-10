@@ -1,0 +1,95 @@
+{
+  "StateMachine": {
+    "initialState": 0,
+    "State": [
+      {
+        "name": "Waiting",
+        "id": 0
+      },
+      {
+        "name": "Started",
+        "id": 1
+      },
+      {
+        "proceeds": true,
+        "name": "Finished",
+        "id": 2
+      },
+      {
+        "name": "Suspended",
+        "id": 3
+      }
+    ],
+    "Transition": [
+      {
+        "Script": {
+          "name": "${ScriptName}",
+          "version": "${ScriptVersion}"
+        },
+        "Query": {
+          "name": "${QueryName}",
+          "version": "${QueryVersion}"
+        },
+        "Outcome": {
+          "name": "${SchemaType}",
+          "version": "${SchemaVersion}"
+        },
+        "origin": 0,
+        "name": "Done",
+        "id": 0,
+        "target": 2
+      },
+      {
+        "origin": 0,
+        "name": "Start",
+        "reservation": "set",
+        "id": 1,
+        "target": 1
+      },
+      {
+        "Script": {
+          "name": "${ScriptName}",
+          "version": "${ScriptVersion}"
+        },
+        "Query": {
+          "name": "${QueryName}",
+          "version": "${QueryVersion}"
+        },
+        "Outcome": {
+          "name": "${SchemaType}",
+          "version": "${SchemaVersion}"
+        },
+        "origin": 1,
+        "name": "Complete",
+        "reservation": "clear",
+        "id": 2,
+        "target": 2
+      },
+      {
+        "Outcome": {
+          "name": "Errors",
+          "version": 0
+        },
+        "origin": 1,
+        "name": "Suspend",
+        "errorHandler": true,
+        "id": 3,
+        "target": 3
+      },
+      {
+        "roleOverride": "Admin",
+        "origin": 3,
+        "name": "Resume",
+        "reservation": "preserve",
+        "id": 4,
+        "target": 1
+      },
+      {
+        "origin": 2,
+        "name": "Proceed",
+        "id": 5,
+        "target": 2
+      }
+    ]
+  }
+}

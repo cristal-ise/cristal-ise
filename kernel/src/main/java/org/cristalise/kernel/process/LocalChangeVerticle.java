@@ -27,9 +27,10 @@ import java.util.ArrayList;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.proxy.ProxyMessage;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
+import io.vertx.core.Future;
+import io.vertx.core.VerticleBase;
 import io.vertx.core.eventbus.DeliveryOptions;
+import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.JsonArray;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,12 +40,14 @@ import lombok.extern.slf4j.Slf4j;
  * should be cleared first so the notified consumer will read the new value.
  */
 @Slf4j
-public class LocalChangeVerticle extends AbstractVerticle {
+public class LocalChangeVerticle extends VerticleBase {
+
+    private MessageConsumer<JsonArray> proxyMessageConsumer;
 
     @Override
-    public void start(Promise<Void> startPromise) throws Exception {
-        vertx.eventBus().consumer(ProxyMessage.ebAddress, message -> {
-            JsonArray messageArray = (JsonArray) message.body();
+    public Future<?> start() throws Exception {
+        proxyMessageConsumer = vertx.eventBus().consumer(ProxyMessage.ebAddress, message -> {
+            JsonArray messageArray = message.body();
             log.trace("handler() - message.body:{}", messageArray);
 
             boolean publish = LocalChangeVerticle_publishLocalMessage.getBoolean();
@@ -59,9 +62,8 @@ public class LocalChangeVerticle extends AbstractVerticle {
             }
         });
 
-        startPromise.complete();
-
         log.info("start() - '{}' consumer configured", ProxyMessage.ebAddress);
+        return proxyMessageConsumer.completion();
     }
 
     private void publishOrSendLocalMessages(JsonArray messageArray, boolean publish) throws InvalidDataException {
@@ -109,7 +111,9 @@ public class LocalChangeVerticle extends AbstractVerticle {
     }
 
     @Override
-    public void stop() throws Exception {
+    public Future<?> stop() throws Exception {
         log.info("stop() - '{}' consumer", ProxyMessage.ebAddress);
+        if (proxyMessageConsumer != null) return proxyMessageConsumer.unregister();
+        else                              return Future.succeededFuture();
     }
 }

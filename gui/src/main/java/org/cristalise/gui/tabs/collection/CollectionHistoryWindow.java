@@ -85,16 +85,14 @@ public class CollectionHistoryWindow extends JFrame {
 
                 if (tokens[1].equals("DELETE")) return;
 
-                vertx.executeBlocking(promise -> {
+                vertx.executeBlocking(() -> {
                     try {
                         add(item.getEvent(eventId));
                     }
                     catch (ObjectNotFoundException e) {
                         log.error("", e);
                     }
-                    promise.complete();
-                }, res -> {
-                    //
+                    return null;
                 });
             });
         }

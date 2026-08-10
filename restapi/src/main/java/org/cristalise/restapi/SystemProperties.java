@@ -42,8 +42,8 @@ enum SystemProperties  implements SystemPropertyOperations{
     REST_Roles_withoutTimeout("REST.Roles.withoutTimeout"),
     REST_URI("REST.URI", "http://localhost:8081/");
 
-    private Object defaultValue;
-    private String systemPropertyName;
+    private final Object defaultValue;
+    private final String systemPropertyName;
 
     private SystemProperties(String name) {
         this(name, null);

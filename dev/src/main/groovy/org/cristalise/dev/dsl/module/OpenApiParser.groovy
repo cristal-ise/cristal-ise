@@ -58,7 +58,7 @@ class OpenApiParser {
     }
     
     private Field addFieldToItem(CRUDItem item, String fieldType, Entry<String, Object> fieldYaml) {
-        def fieldName = StringUtils.capitalize(fieldYaml.key)
+        String fieldName = StringUtils.capitalize(fieldYaml.key)
 
         def field = new Field(name: fieldName, type: fieldType)
         log.info('  {} {}', field.name, field.type)
@@ -69,41 +69,39 @@ class OpenApiParser {
     
     @CompileDynamic
     private CRUDDependency preprocessDependency(CRUDItem item, Object dependencyYaml) {
-        def dependencydName = StringUtils.capitalize(dependencyYaml.key)
-        def cardinatilty = dependencyYaml.value.type == 'array' ? OneToMany : OneToOne
-        def $ref = cardinatilty == OneToOne ? dependencyYaml.value.$ref as String : dependencyYaml.value.items.$ref as String
+        def dependencyName = StringUtils.capitalize(dependencyYaml.key)
+        def cardinality = dependencyYaml.value.type == 'array' ? OneToMany : OneToOne
+        def $ref = cardinality == OneToOne ? dependencyYaml.value.$ref as String : dependencyYaml.value.items.$ref as String
         def dependencyToName = $ref.substring($ref.lastIndexOf('/')+1)
 
         def dependency = new CRUDDependency(
-            name: dependencydName,
+            name: dependencyName,
             from: item.name,
             to: dependencyToName,
             type: Unidirectional, // can be Bidirectional if the other end also has a declaration
-            cardinality: cardinatilty, // can change depending on the declaration of the other end
-            originator: true
+            cardinality: cardinality,
+            originator: cardinality == OneToMany
         )
 
-        log.info('  {} {}', dependencydName, dependency.plantUml)
+        log.info('  {} {}', dependencyName, dependency.plantUml)
 
-        item.dependencies[dependencydName] = dependency
+        item.dependencies[dependencyName] = dependency
 
         return dependency
     }
 
     private void consolidateDependencies() {
-        module.items.each { itemName, item ->
+        module.items.each { String itemName, CRUDItem item ->
             item.dependencies.each { dependencyName, dependency ->
                 def otherItem = module.items[dependency.to]
 
-                def otherDependency = otherItem.dependencies.find { it.value.to == item.name }?.value
+                CRUDDependency otherDependency = otherItem.dependencies.find { otherItemName, otherDep -> otherDep.to == itemName }?.value
+
                 if (otherDependency) {
-                    log.info('consolidateDependencies() - current:({}) other:({})', dependency.plantUml, otherDependency.plantUml)
+                    log.info('consolidateDependencies() - ORIG current:({}) ORIG other:({})', dependency.plantUml, otherDependency.plantUml)
                     dependency.type = Bidirectional
                     otherDependency.type = Bidirectional
-                    
-                    if (dependency.cardinality != OneToOne) {
-                        log.info('consolidateDependencies() 2 - current:({}) other:({})', dependency.plantUml, otherDependency.plantUml)
-                    }
+                    log.info('consolidateDependencies() - NEW  current:({}) NEW other:({})', dependency.plantUml, otherDependency.plantUml)
                 }
             }
         }
@@ -114,16 +112,18 @@ class OpenApiParser {
         def oas = oasText.startsWith('{') ? new JsonSlurper().parseText(oasText) : new YamlSlurper().parseText(oasText)
 
         oas.components.schemas.each { itemYaml ->
-            def item = addItemToModule(itemYaml)
+            CRUDItem item = addItemToModule(itemYaml as Entry<String, Object>)
 
             itemYaml.value.properties.each { propYaml ->
-                def propType = propYaml.value.type
+                String propType = propYaml.value.type
 
-                if (propType && propType != 'array') {
-                    addFieldToItem(item, propType, propYaml)
+                assert propType : "Property 'type' cannot be null for field ${propYaml.key} in item ${item.name}"
+
+                if (['array','object'].contains(propType)) {
+                    preprocessDependency(item, propYaml)
                 }
                 else {
-                    preprocessDependency(item, propYaml)
+                    addFieldToItem(item, propType, propYaml as Entry<String, Object>)
                 }
             }
         }

@@ -20,16 +20,9 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
-import static org.cristalise.kernel.process.Gateway.getMarshaller;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.common.CannotManageException;
-import org.cristalise.kernel.common.InvalidDataException;
-import org.cristalise.kernel.common.ObjectAlreadyExistsException;
-import org.cristalise.kernel.common.ObjectCannotBeUpdated;
-import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.common.PersistencyException;
+import org.cristalise.kernel.common.*;
 import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lookup.AgentPath;
@@ -40,9 +33,9 @@ import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.PropertyArrayList;
 
-import lombok.extern.slf4j.Slf4j;
+import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
 
- @Slf4j
+@Slf4j
 public class CreateAgentFromDescription extends CreateItemFromDescription {
 
     public CreateAgentFromDescription() {
@@ -59,13 +52,6 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
      * <li>Description version to use(optional)</li>
      * <li>Initial properties to set in the new Agent (optional)</li>
      * </ol>
-     * @throws ObjectNotFoundException
-     * @throws InvalidDataException The input parameters were incorrect
-     * @throws ObjectAlreadyExistsException The Agent already exists
-     * @throws CannotManageException The Agent could not be created
-     * @throws ObjectCannotBeUpdated The addition of the new entries into the LookupManager failed
-     * @throws PersistencyException
-     * @see org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription#runActivityLogic(AgentPath, ItemPath, int, String, Object)
      */
     @Override
     protected String runActivityLogic(AgentPath agentPath, ItemPath descItemPath, int transitionID, String requestData, TransactionKey transactionKey)
@@ -76,21 +62,23 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
                    ObjectCannotBeUpdated, 
                    PersistencyException
     {
-        String[] input = getDataList(requestData);
+        String[] inputs = getDataList(requestData);
 
-        String            newName   = input[0];
-        String            contextS  = input[1];
-        String[]          roles     = StringUtils.isNotBlank(input[2]) ? input[2].split(",") : new String[0];
-        String            pwd       = input.length > 3 && StringUtils.isNotBlank(input[3]) ? input[3] : "";
-        String            descVer   = input.length > 4 && StringUtils.isNotBlank(input[4]) ? input[4] : "last";
-        PropertyArrayList initProps = input.length > 5 && StringUtils.isNotBlank(input[5]) ? (PropertyArrayList) getMarshaller().unmarshall(input[5]) : new PropertyArrayList();
-        String            outcome   = input.length > 6 && StringUtils.isNotBlank(input[6]) ? input[6] : "";
+        if (inputs == null || inputs.length < 2) throw new InvalidDataException("Invalid input data:"+requestData);
+
+        String            newName   = inputs[0];
+        String            contextS  = inputs[1];
+        String[]          roles     = StringUtils.isNotBlank(inputs[2]) ? inputs[2].split(",") : new String[0];
+        String            pwd       = inputs.length > 3 && StringUtils.isNotBlank(inputs[3]) ? inputs[3] : "";
+        String            descVer   = inputs.length > 4 && StringUtils.isNotBlank(inputs[4]) ? inputs[4] : "last";
+        PropertyArrayList initProps = inputs.length > 5 && StringUtils.isNotBlank(inputs[5]) ? unmarshallInitProperties(inputs[5]) : new PropertyArrayList();
+        String            outcome   = inputs.length > 6 && StringUtils.isNotBlank(inputs[6]) ? inputs[6] : "";
 
         ItemProxy descItem = Gateway.getProxy(descItemPath, transactionKey);
         AgentProxy agent = Gateway.getAgentProxy(agentPath, transactionKey);
 
         // generate new agent path with new UUID
-        log.debug("Called by {} on {} with parameters {}", agent, descItem, (Object)input);
+        log.debug("Called by {} on {} with parameters {}", agent, descItem, (Object)inputs);
 
         AgentPath newAgentPath = new AgentPath(new ItemPath(), newName);
 
@@ -103,20 +91,13 @@ public class CreateAgentFromDescription extends CreateItemFromDescription {
 
         initialiseItem(newAgentPath, agent, descItem, initProps, outcome, newName, descVer, context, newAgentPath, transactionKey);
 
-        if (input.length > 3) input[3] = REDACTED; // censor password from outcome
+        if (inputs.length > 3) inputs[3] = REDACTED; // censor password from outcome
 
-        return bundleData(input);
+        return bundleData(inputs);
     }
 
     /**
-     * Create Corba server, AgentPath and add Roles to agent
-     * 
-     * @param newAgentPath
-     * @param roles
-     * @return
-     * @throws CannotManageException
-     * @throws ObjectCannotBeUpdated
-     * @throws ObjectAlreadyExistsException
+     * Create AgentPath and add Roles to agent
      */
     protected void createAgentAddRoles(AgentPath newAgentPath, String[] roles, String pwd, TransactionKey transactionKey) 
             throws CannotManageException, ObjectCannotBeUpdated, ObjectAlreadyExistsException
