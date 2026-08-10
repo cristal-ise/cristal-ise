@@ -51,7 +51,7 @@ public class UpdateWorkflowTest implements TestUtility {
     public void before() throws Exception {
         Properties props = FileStringUtility.loadConfigFile(MainTest.class.getResource("/inMemoryServer.conf").getPath());
         Gateway.init(props);
-        FieldUtils.writeDeclaredStaticField(Gateway.class, "mStorage", new ClusterStorageManager(null), true);
+        FieldUtils.writeDeclaredStaticField(Gateway.class, "mStorage", new ClusterStorageManager(), true);
         itemPath = new ItemPath("2b330968-dabb-11ed-afa1-0242ac120002");
 
         BulkImport importer = new BulkImport("src/test/data/xmlstorage/filebased");

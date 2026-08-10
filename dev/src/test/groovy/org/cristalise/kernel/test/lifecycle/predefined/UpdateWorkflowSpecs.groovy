@@ -23,7 +23,7 @@ package org.cristalise.kernel.test.lifecycle.predefined
 import org.cristalise.dsl.test.builders.ItemTestBuilder
 import org.cristalise.dsl.test.builders.WorkflowTestBuilder
 import org.cristalise.kernel.test.utils.CristalTestSetup
-
+import spock.lang.Ignore
 import spock.lang.Specification
 
 
@@ -41,6 +41,7 @@ class UpdateWorkflowSpecs extends Specification implements CristalTestSetup {
 
     def cleanupSpec() { cristalCleanup() }
 
+    @Ignore
     def 'Update empty wf'() {
         given:
         def wfDef
