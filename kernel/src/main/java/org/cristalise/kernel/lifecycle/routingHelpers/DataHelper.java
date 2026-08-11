@@ -30,9 +30,8 @@ public interface DataHelper {
 
     /**
      * Data helpers are a mechanism that allows easy referencing of different types of data 
-     * within an Item, in order to use that data for process control or generating new data. 
+     * within an Item, and to use that data for process control or generating new data. 
      * They are referenced using a URI-like syntax, usually in workflow vertex properties.
-     * Check wiki for more information.
      * 
      * @param itemPath the current item to be used
      * @param actContext the current Activity path in which the DataHelper is used

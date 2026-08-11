@@ -20,6 +20,8 @@
  */
 package org.cristalise.storage;
 
+import static org.cristalise.kernel.SystemProperties.XMLStorage_root;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.TreeSet;
 import java.util.stream.Stream;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
@@ -38,12 +41,14 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.utils.FileStringUtility;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Implementation of ClusterStorage providing the XML file based persistence.
+ */
 @Slf4j
 public class XMLClusterStorage extends ClusterStorage {
     String  rootDir        = null;
@@ -80,9 +85,9 @@ public class XMLClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void open(Authenticator auth) throws PersistencyException {
+    public void open() throws PersistencyException {
         if (StringUtils.isBlank(rootDir)) {
-            String rootProp = Gateway.getProperties().getString("XMLStorage.root");
+            String rootProp = XMLStorage_root.getString();
 
             if (rootProp == null)
                 throw new PersistencyException("Root path not given in config file.");
@@ -138,7 +143,7 @@ public class XMLClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public boolean checkQuerySupport(String language) {
+    public boolean checkQuerySupport(Query query) {
         log.warn("XMLClusterStorage DOES NOT Support any query");
         return false;
     }
@@ -164,7 +169,7 @@ public class XMLClusterStorage extends ClusterStorage {
         }
         catch (Exception e) {
             log.error("get() - The path " + path + " from " + itemPath + " does not exist", e);
-            throw new PersistencyException(e.getMessage());
+            throw new PersistencyException(e);
         }
     }
 
@@ -186,7 +191,7 @@ public class XMLClusterStorage extends ClusterStorage {
         }
         catch (Exception e) {
             log.error("", e);
-            throw new PersistencyException("Could not write " + getPath(obj) + " to " + itemPath);
+            throw new PersistencyException("Could not write " + getPath(obj) + " to " + itemPath, e);
         }
     }
 

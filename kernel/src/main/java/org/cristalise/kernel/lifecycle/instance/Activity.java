@@ -20,19 +20,23 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
+import static org.cristalise.kernel.SystemProperties.Activity_validateOutcome;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.AGENT_ROLE;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.BREAKPOINT;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DESCRIPTION;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PREDEFINED_STEP;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VALIDATE_OUTCOME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VIEW_POINT;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Vector;
+
 import javax.xml.xpath.XPathExpressionException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.CannotManageException;
@@ -55,21 +59,24 @@ import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.utils.DateUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Activity extends WfVertex {
+    public static final String PREDEF_STEPS_ELEMENT = "PredefinedSteps";
+
     protected static final String XPATH_TOKEN = "xpath:";
 
     /**
@@ -187,7 +194,7 @@ public class Activity extends WfVertex {
                    CannotManageException,
                    InvalidCollectionModification
     {
-        boolean validateOutcomeDefault = Gateway.getProperties().getBoolean("Activity.validateOutcome", false);
+        boolean validateOutcomeDefault = Activity_validateOutcome.getBoolean();
         boolean validateOutcome = (boolean) getBuiltInProperty(VALIDATE_OUTCOME, validateOutcomeDefault);
 
         return request(agent, itemPath, transitionID, requestData, attachmentType, attachment, validateOutcome, transactionKey);
@@ -282,7 +289,7 @@ public class Activity extends WfVertex {
         boolean breakPoint = (Boolean) getBuiltInProperty(BREAKPOINT, Boolean.FALSE);
 
         if (newState.isFinished() && !oldState.isFinished() && !breakPoint) {
-            runNext(agent, itemPath, transactionKey);
+            runNext(transactionKey);
         }
         else {
             DateUtility.setToNow(mStateDate);
@@ -298,34 +305,41 @@ public class Activity extends WfVertex {
      * @param itemPath the current Item
      * @param newOutcome the Outcome submitted to the Activity
      * @param transactionKey the key of the current transaction 
+     * @throws  
      */
     private void executePredefinedSteps(AgentPath agent, ItemPath itemPath, Outcome newOutcome, TransactionKey transactionKey) 
             throws AccessRightsException, InvalidTransitionException, InvalidDataException, ObjectNotFoundException, 
             PersistencyException, ObjectAlreadyExistsException, ObjectCannotBeUpdated, CannotManageException, InvalidCollectionModification
     {
-        String predefStepProperty = getBuiltInProperty(PREDEFINED_STEP, "").toString();
+        try {
+            Node predefinedStepsNode = newOutcome.getNodeByXPath("/"+newOutcome.getRootName()+"/"+ PREDEF_STEPS_ELEMENT);
 
-        if (StringUtils.isNotBlank(predefStepProperty)) {
-            log.debug("executePredefinedStep() - predefStepProperty:{}", predefStepProperty);
+            // PredefinedSteps element is optional so in this case there is nothing to do
+            if (predefinedStepsNode == null) return;
 
-            for (String predefStepName : StringUtils.split(predefStepProperty, ',')) {
-                PredefinedStep predefStep = PredefinedStep.getStepInstance(predefStepName.trim());
+            NodeList predefinedStepsChildNodes = predefinedStepsNode.getChildNodes();
 
-                if (predefStep == null) {
-                    log.warn("executePredefinedStep() - SKIPPING Invalid PredefinedStep name:'{}'", predefStepName);
-                }
-                else if (predefStep.outcomeHasValidData(newOutcome)) {
-                    predefStep.mergeProperties(getProperties());
-                    predefStep.computeUpdates(itemPath, this, newOutcome, transactionKey);
+            for (int i = 0; i < predefinedStepsChildNodes.getLength(); i++) {
+                if (predefinedStepsChildNodes.item(i).getNodeType() == Node.ELEMENT_NODE) {
+                    Node predefStepNode = predefinedStepsChildNodes.item(i);
+                    String predefStepName = predefStepNode.getNodeName();
+
+                    PredefinedStep predefStep = PredefinedStep.getStepInstance(predefStepName.trim());
+                    Objects.requireNonNull(predefStep, "Outome does not contain valid PredefinedStep:"+predefStepName+" outcome:"+newOutcome);
+
+                    Node predefSteptOutcomeNode = predefStep.getPredefStepOutcomeNode(predefStepNode);
+                    Objects.requireNonNull(predefSteptOutcomeNode, "Outome does not contain data to execute PredefinedStep:"+predefStepName+" outcome:"+newOutcome);
+
+                    predefStep.computeUpdates(itemPath, this, predefSteptOutcomeNode, transactionKey);
 
                     for (Entry<ItemPath, String> entry : predefStep.getAutoUpdates().entrySet()) {
                         predefStep.request(agent, entry.getKey(), entry.getValue(), transactionKey);
                     }
                 }
-                else {
-                    log.debug("executePredefinedStep() - SKIPPING optional PredefinedStep:'{}'", predefStepName);
-                }
             }
+        }
+        catch (XPathExpressionException e) {
+            log.error("executePredefinedSteps()", e);
         }
     }
 
@@ -361,6 +375,8 @@ public class Activity extends WfVertex {
                 String propName = entry.getKey().substring(13);
 
                 if(StringUtils.isNotBlank(propName)) {
+                    if (propName.equals(NAME.getName())) throw new InvalidDataException("Use ChangeName predef step");
+
                     String propValue = entry.getValue().toString();
 
                     //FIXME: use DataHelper if possible, because it will make code more general
@@ -460,21 +476,21 @@ public class Activity extends WfVertex {
      * sets the next activity available if possible
      */
     @Override
-    public void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+    public void runNext(TransactionKey transactionKey) throws InvalidDataException {
         log.trace("runNext() - {}", this);
         setActive(false);
 
         Vertex[] outVertices = getOutGraphables();
 
         //run next vertex if any, so state/status of activities is updated
-        if (outVertices.length > 0) ((WfVertex)outVertices[0]).run(agent, itemPath, transactionKey);
+        if (outVertices.length > 0) ((WfVertex)outVertices[0]).run(transactionKey);
 
         //parent is never null, because we do not call runNext() for the top level workflow (see bellow)
         CompositeActivity parent = getParentCA();
 
         //check if the CA can be finished or not
         if (parent.isFinishable(findLastVertex())) {
-            parent.runNext(agent, itemPath, transactionKey);
+            parent.runNext(transactionKey);
         }
     }
 
@@ -517,11 +533,11 @@ public class Activity extends WfVertex {
      * called by precedent Activity runNext() for setting the activity able to be executed
      */
     @Override
-    public void run(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+    public void run(TransactionKey transactionKey) throws InvalidDataException {
         log.trace("run() - {}", this);
 
         if (isFinished()) {
-            runNext(agent, itemPath, transactionKey);
+            runNext(transactionKey);
         }
         else {
             if (!getActive()) setActive(true);
@@ -535,9 +551,9 @@ public class Activity extends WfVertex {
      * composite activity (when it is the first one of the (sub)process
      */
     @Override
-    public void runFirst(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+    public void runFirst(TransactionKey transactionKey) throws InvalidDataException {
         log.trace("runFirst() - {}", this);
-        run(agent, itemPath, transactionKey);
+        run(transactionKey);
     }
 
     /**
@@ -635,9 +651,7 @@ public class Activity extends WfVertex {
         if (mType == null) return null;
         if (mTypeName == null) {
             try {
-                ItemPath actType = new ItemPath(mType);
-                Property nameProp = (Property) Gateway.getStorage().get(actType, ClusterType.PROPERTY + "/" + NAME, null);
-                mTypeName = nameProp.getValue();
+                mTypeName = new ItemPath(mType).getItemName();
             }
             catch (Exception e) {
                 mTypeName = mType;

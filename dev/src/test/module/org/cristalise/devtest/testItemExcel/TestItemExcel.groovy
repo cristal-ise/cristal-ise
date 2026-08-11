@@ -1,0 +1,112 @@
+/**
+ * This file is part of the CRISTAL-iSE Development Module.
+ * Copyright (c) 2001-2017 The CRISTAL Consortium. All rights reserved.
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published
+ * by the Free Software Foundation; either version 3 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; with out even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+ *
+ * http://www.fsf.org/licensing/licenses/lgpl.html
+ */
+package org.cristalise.devtest.testItemExcel
+
+import static org.apache.commons.lang3.StringUtils.*
+import static org.cristalise.kernel.collection.Collection.Cardinality.*
+import static org.cristalise.kernel.collection.Collection.Type.*
+import static org.cristalise.kernel.collection.BuiltInCollections.*
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*
+import static org.cristalise.kernel.property.BuiltInItemProperties.*;
+
+/**
+ * TestItemExcel Item
+ */
+
+def xlsxFile = new File(moduleDir+'/TestItemExcel.xlsx')
+
+Schema('TestItemExcel', 0, xlsxFile)
+Schema('TestItemExcel_Details', 0, xlsxFile)
+
+
+
+Activity('TestItemExcel_Update', 0) {
+  Property((OUTCOME_INIT): 'Empty')
+
+  Schema($testItemExcel_Details_Schema)
+  Script('CrudEntity_ChangeName', 0)
+}
+Script('TestItemExcel_Aggregate', 0) {
+  input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+  output('TestItemExcelXML', 'java.lang.String')
+  script('groovy', moduleDir+'/testItemExcel/script/TestItemExcel_Aggregate.groovy')
+}
+
+Script('TestItemExcel_QueryList', 0) {
+  input('item', 'org.cristalise.kernel.entity.proxy.ItemProxy')
+  output('TestItemExcelMap', 'java.util.Map')
+  script('groovy', moduleDir+'/testItemExcel/script/TestItemExcel_QueryList.groovy')
+}
+
+Activity('TestItemExcel_Aggregate', 0) {
+  Property((OUTCOME_INIT): 'Empty')
+  Property((AGENT_ROLE): 'UserCode')
+
+  Schema($testItemExcel_Schema)
+  Script($testItemExcel_Aggregate_Script)
+}
+
+
+
+Workflow('TestItemExcel_Workflow', 0) {
+  Layout {
+    AndSplit {
+      LoopInfinitive { Act('Update', $testItemExcel_Update_ActivityDef)  }
+      Block { CompActDef('CrudState_Manage', 0) }
+
+    }
+  }
+}
+
+
+
+Item(name: 'TestItemExcelFactory', version: 0, folder: '/devtest', workflow: 'CrudFactory_Workflow', workflowVer: 0) {
+  InmutableProperty((TYPE): 'Factory')
+  InmutableProperty((ROOT): '/devtest/TestItemExcels')
+
+
+
+
+
+  InmutableProperty((UPDATE_SCHEMA_URN): 'TestItemExcel_Details:0')
+
+
+  Outcome(schema: 'PropertyDescription', version: '0', viewname: 'last', path: 'boot/property/TestItemExcel_0.xml')
+
+  Dependency(WORKFLOW) {
+    Member(itemPath: $testItemExcel_Workflow_CompositeActivityDef) {
+      Property('Version': 0)
+    }
+  }
+
+  Dependency(MASTER_SCHEMA) {
+    Member(itemPath: $testItemExcel_Schema) {
+      Property('Version': 0)
+    }
+  }
+
+  Dependency(AGGREGATE_SCRIPT) {
+    Member(itemPath: $testItemExcel_Aggregate_Script) {
+      Property('Version': 0)
+    }
+  }
+
+}

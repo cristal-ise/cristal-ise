@@ -20,14 +20,16 @@
  */
 package org.cristalise.dev.scaffold
 
+import org.cristalise.dev.dsl.item.CRUDAgent
+
 import java.nio.file.Path
+
+import static org.cristalise.dsl.SystemProperties.DSL_Module_BindingConvention_variablePrefix
 
 import org.apache.commons.lang3.StringUtils
 import org.cristalise.dev.dsl.item.CRUDItem
 import org.cristalise.dev.dsl.module.CRUDModuleDelegate
-import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.process.resource.BuiltInResources
-import org.cristalise.kernel.utils.FileStringUtility
 import org.mvel2.integration.impl.MapVariableResolverFactory
 import org.mvel2.templates.CompiledTemplate
 import org.mvel2.templates.SimpleTemplateRegistry
@@ -43,6 +45,8 @@ import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 import io.vertx.core.json.JsonArray
 import io.vertx.core.json.JsonObject
+
+import static org.cristalise.kernel.utils.FileStringUtility.resource2String
 
 /**
  * Class generating the following DSL files. 
@@ -73,6 +77,7 @@ class CRUDGenerator {
         'item_aggregate_groovy.tmpl',
         'item_dependencies_groovy.tmpl',
         'item_groovy.tmpl',
+        'item_field_groovy.tmpl',
         'item_queryList_groovy.tmpl',
         'module_groovy.tmpl',
         'commonDefs_groovy.tmpl',
@@ -109,7 +114,7 @@ class CRUDGenerator {
         templates.each { templName ->
             log.debug('compiling MVEL template:{}', templName)
 
-            String templStr = FileStringUtility.url2String(this.getClass().getResource(templateRoot + templName))
+            String templStr = resource2String(this.getClass(), templateRoot + templName)
             CompiledTemplate expr = TemplateCompiler.compileTemplate(templStr);
 
             if (expr) templateRegistry.addNamedTemplate(templName, expr)
@@ -121,13 +126,19 @@ class CRUDGenerator {
         assert inputs
 
         //String prefix = BindingConvention.variablePrefix -- DOES NOT WORK!??!?
-        String prefix = Gateway.getProperties().getString('DSL.Module.BindingConvention.variablePrefix', '$')
+        String prefix = DSL_Module_BindingConvention_variablePrefix.getString()
 
         inputs.rootDir = rootDir
         inputs.prefix = prefix
-        if (inputs.item) inputs.itemVar = prefix + StringUtils.uncapitalize(inputs.item as String)
+        if (inputs.item) {
+            inputs.itemVar = prefix + StringUtils.uncapitalize(inputs.item as String)
+            inputs.itemPackage = StringUtils.uncapitalize(inputs.item as String)
+        }
         inputs.resourceRootDir = resourceRootDir
         if (moduleXmlDir) inputs.moduleXmlDir = moduleXmlDir
+
+        def packageDir = inputs.rootPackage.toString().replace('.', '/')
+        inputs.resourceURL = "${packageDir}/resources/"
 
         if (!inputs.containsKey('generateProperty')) inputs.generateProperty = false
     }
@@ -145,7 +156,7 @@ class CRUDGenerator {
         def item = (CRUDItem) inputs['item']
 
         if (inputs['generatedName']) {
-            if (!inputs['idPrefix'])    inputs['idPrefix'] = 'ID'
+            if (!inputs['idPrefix'])    inputs['idPrefix']    = 'ID'
             if (!inputs['leftPadSize']) inputs['leftPadSize'] = '6'
         }
 
@@ -155,13 +166,16 @@ class CRUDGenerator {
             }
         }
 
-        def itemDir = new File("${rootDir}/module/${item.name}")
-        def scriptDir = new File("${rootDir}/module/${item.name}/script")
+        def packageDir = inputs.rootPackage.toString().replace('.', '/')
+
+        def itemDir = new File("${rootDir}/module/${packageDir}/${item.name.uncapitalize()}")
+        def scriptDir = new File("${itemDir}/script")
+
         scriptDir.mkdirs()
 
         new File(itemDir,   "${item.name}.groovy")          .write(mvelGenerate('item_groovy.tmpl',           inputs));
-        new File(scriptDir, "Aggregate.groovy").write(mvelGenerate('item_aggregate_groovy.tmpl', inputs));
-        new File(scriptDir, "QueryList.groovy").write(mvelGenerate('item_queryList_groovy.tmpl', inputs));
+        new File(scriptDir, "${item.name}_Aggregate.groovy").write(mvelGenerate('item_aggregate_groovy.tmpl', inputs));
+        new File(scriptDir, "${item.name}_QueryList.groovy").write(mvelGenerate('item_queryList_groovy.tmpl', inputs));
     }
 
     /**
@@ -193,7 +207,7 @@ class CRUDGenerator {
 
         new File(configItemDir, 'toolbarMain.json')      .write(toolbarMain.encodePrettily())
         new File(configItemDir, 'masterOutcomeView.json').write(masterOutcomeView.encodePrettily())
-        new File(configItemDir, 'itemList.json')         .write(masterOutcomeView.encodePrettily())
+        new File(configItemDir, 'itemList.json')         .write(itemList.encodePrettily())
         new File(configItemDir, 'itemCollection.json')   .write(itemCollection.encodePrettily())
 
         item.dependencies.values().each { currentDependency ->
@@ -211,15 +225,10 @@ class CRUDGenerator {
         if (fileName.endsWith('.groovy')) {
             def dirName = file.parent.fileName.toString()
 
-            if ( ['script', 'scripts'].contains(dirName) ) {
-                return false
-            }
-            else if (['Module.groovy', 'CommonDefs.groovy'].contains(fileName)) {
-                return false
-            }
-            else {
-                return true
-            }
+            boolean isScriptDir          = ['script', 'scripts'].contains(dirName)
+            boolean isModuleOrCommonDefs = ['Module.groovy', 'CommonDefs.groovy'].contains(fileName)
+
+            return !(isScriptDir || isModuleOrCommonDefs)
         }
         return false
     }
@@ -232,12 +241,15 @@ class CRUDGenerator {
     public generateModuleDSL(Map<String, Object> inputs) {
         setInputs(inputs)
 
-        def moduleDir = new File("${rootDir}/module")
+        def packageDir = inputs.rootPackage.toString().replace('.', '/')
+        def moduleDir = new File("${rootDir}/module/${packageDir}")
+
+        moduleDir.mkdirs()
 
         if (!inputs['moduleFiles']) {
             inputs['moduleFiles'] = []
 
-            moduleDir.eachFileRecurse(FileType.FILES) { file ->
+            moduleDir.eachFileRecurse(FileType.FILES) { File file ->
                 if (checkIncludeRequiredInModule(file.toPath())) {
                     ((List)inputs['moduleFiles']).add(file.name)
                 }
@@ -248,7 +260,7 @@ class CRUDGenerator {
         log.info('generateModuleDSL() - files:{}', inputs['moduleFiles'])
 
         new File(moduleDir, 'CommonDefs.groovy').write(mvelGenerate('commonDefs_groovy.tmpl', inputs));
-        new File(moduleDir, 'Module.groovy').write(mvelGenerate('module_groovy.tmpl', inputs));
+        new File(moduleDir, 'Module.groovy')    .write(mvelGenerate('module_groovy.tmpl',     inputs));
 
         if (inputs.puml ) new File(moduleDir, "Module.puml").write(inputs.puml as String)
     }
@@ -287,7 +299,7 @@ class CRUDGenerator {
 
         def generator = new CRUDGenerator(rootDir: rootDir)
 
-        items.split(',').each { itemType ->
+        items.split(',').each { String itemType ->
             def item = new CRUDItem(itemType.trim())
             log.info('genererateTypes() - generating item:{}', item.name)
 
@@ -316,13 +328,15 @@ class CRUDGenerator {
             log.info('generateCRUDModule() - generating item:{}', item.name)
 
             def inputs = [
-                item:           item,
-                version:        0,
-                moduleNs:       crudModule.namespace,
-                useConstructor: false,
-                isAgent:        false,
-                generatedName:  false,
-                inputFile:      null
+                item:             item,
+                version:          0,
+                moduleNs:         crudModule.namespace,
+                rootPackage:      crudModule.rootPackage,
+                generateProperty: crudModule.generateProperty,
+                useConstructor:   false,
+                isAgent:          item instanceof CRUDAgent,
+                generatedName:    false,
+                inputFile:        null
             ]
 
             generateItemDSL(inputs)
@@ -334,12 +348,12 @@ class CRUDGenerator {
             def inputs = [
                 moduleName:   crudModule.name,
                 version:      0,
-                resourceURL:  crudModule.resourceURL,
+                rootPackage:  crudModule.rootPackage,
                 moduleNs:     crudModule.namespace,
                 inputFile:    null,
                 moduleXmlDir: null,
                 puml:         crudModule.plantUml,
-            ]
+            ] as Map<String, Object>
 
             generateModuleDSL(inputs)
         }
@@ -394,7 +408,6 @@ class CRUDGenerator {
         else {
             println "Please provide itemTypes or moduleFile"
             cli.usage()
-            return
         }
     }
 }

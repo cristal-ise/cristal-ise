@@ -3,8 +3,7 @@
   <param name="agent" type="org.cristalise.kernel.entity.proxy.AgentProxy"/>
   <param name="TestItemExcel_Details" type="org.json.JSONObject"/>
   <output name="TestItemExcel_DetailsXml" type="java.lang.String"/>
-  <script language="groovy" name="TestItemExcel_DetailsAgeUpdateExpression">
-    <![CDATA[import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.*
+  <script language="groovy" name="TestItemExcel_DetailsAgeUpdateExpression"><![CDATA[import static org.cristalise.kernel.persistency.outcomebuilder.utils.OutcomeUtils.*
 
 import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder
@@ -62,6 +61,5 @@ xml.TestItemExcel_Details {
 TestItemExcel_DetailsXml = writer.toString()
 
 log.debug('returning TestItemExcel_DetailsXml:{}', TestItemExcel_DetailsXml)
-]]>
-  </script>
+]]></script>
 </cristalscript>

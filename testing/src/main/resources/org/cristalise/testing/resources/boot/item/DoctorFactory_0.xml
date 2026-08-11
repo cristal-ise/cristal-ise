@@ -16,6 +16,7 @@
         <KeyValuePair Key="DependencyType" String="Bidirectional" isAbstract="false"/>
         <KeyValuePair Key="DependencyTo" String="Doctor" isAbstract="false"/>
         <KeyValuePair Key="DependencyCardinality" String="OneToMany" isAbstract="false"/>
+        <KeyValuePair Integer="0" Key="Version" isAbstract="false"/>
       </MemberProperties>
     </DependencyMember>
     <CollectionProperties>

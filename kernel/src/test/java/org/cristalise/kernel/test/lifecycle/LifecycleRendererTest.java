@@ -71,7 +71,7 @@ public class LifecycleRendererTest {
 
     @Test
     public void generateInstance_SVG() throws Exception {
-        String wfXML = FileStringUtility.url2String(LifecycleRendererTest.class.getResource("/LifeCycle.workflow"));
+        String wfXML = FileStringUtility.resource2String(LifecycleRendererTest.class, "/LifeCycle.workflow");
 
         Workflow wf = (Workflow) Gateway.getMarshaller().unmarshall(wfXML);
 

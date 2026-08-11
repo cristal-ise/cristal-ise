@@ -28,7 +28,7 @@
     <output name="errors" type="org.cristalise.kernel.scripting.ErrorInfo"/>
     <script language="javascript" name="UpdateRole"><![CDATA[
 var module = item.getProperty("Module");
-var importRoleXML = item.getViewpoint('Role', 'last').getOutcome().getData();
+var importRoleXML = item.getViewpoint('RoleDesc', 'last').getOutcome().getData();
 var importRole = agent.unmarshall(importRoleXML);
 importRole.setNamespace(module);
 agent.execute(item, "ImportImportRole", agent.marshall(importRole));

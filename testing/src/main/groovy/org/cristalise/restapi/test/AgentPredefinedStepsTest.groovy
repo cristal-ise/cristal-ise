@@ -1,8 +1,7 @@
 package org.cristalise.restapi.test
 
-import org.cristalise.kernel.lifecycle.instance.predefined.ChangeName
 import org.cristalise.kernel.lifecycle.instance.predefined.agent.Sign
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import groovy.transform.CompileStatic
 import io.restassured.http.ContentType

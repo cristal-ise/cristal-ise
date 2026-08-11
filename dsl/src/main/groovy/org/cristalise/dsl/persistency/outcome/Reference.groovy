@@ -20,13 +20,22 @@
  */
 package org.cristalise.dsl.persistency.outcome;
 
+/**
+ * Instructs code generation and persistency layer to update the Collection of the Item associated.
+ * (optional)
+ */
 public class Reference {
     /**
-     * It holds information about the referenced Item type, which is either
+     * Mandatory field that holds information about the referenced Item type, which is either
      * <ul>
      *   <li>String containing the Item type 
      *   <li>Reference of the PropertyDescriptionList object representing the referenced Item type
      * </ul>
      */
     def itemType
+    /**
+     *  Optional field to identify Collection of the Item when its name cannot be deduced
+     *  from the name of the field or from the itemType
+     */
+    String collectionName
 }

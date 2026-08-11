@@ -1,0 +1,25 @@
+{
+  "isDisplayable": true,
+  "mappings": {
+    "StateMachine": "FIELDSET",
+    "StateMachine.initialState": "PRIMITIVE",
+    "StateMachine.State": "TABLE",
+    "StateMachine.Transition": "TABS",
+    "StateMachine.Transition.Script": "FIELDSET",
+    "StateMachine.Transition.Script.name": "PRIMITIVE",
+    "StateMachine.Transition.Script.version": "PRIMITIVE",
+    "StateMachine.Transition.Query": "FIELDSET",
+    "StateMachine.Transition.Query.name": "PRIMITIVE",
+    "StateMachine.Transition.Query.version": "PRIMITIVE",
+    "StateMachine.Transition.Outcome": "FIELDSET",
+    "StateMachine.Transition.Outcome.name": "PRIMITIVE",
+    "StateMachine.Transition.Outcome.version": "PRIMITIVE",
+    "StateMachine.Transition.origin": "PRIMITIVE",
+    "StateMachine.Transition.name": "PRIMITIVE",
+    "StateMachine.Transition.id": "PRIMITIVE",
+    "StateMachine.Transition.target": "PRIMITIVE",
+    "StateMachine.Transition.reservation": "PRIMITIVE",
+    "StateMachine.Transition.errorHandler": "PRIMITIVE",
+    "StateMachine.Transition.roleOverride": "PRIMITIVE"
+  }
+}

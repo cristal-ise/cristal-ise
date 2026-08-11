@@ -28,10 +28,12 @@ import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.concurrent.Immutable;
+
 /**
  * Very simple extension to Path. Only copies constructors and defines root
  */
-@Slf4j
+@Slf4j @Immutable
 public class DomainPath extends Path {
 
     private ItemPath target = null;
@@ -89,7 +91,7 @@ public class DomainPath extends Path {
                 if (target == null) throw new ObjectNotFoundException("Path " + toString() + " does not resolve to an Item");
             }
             catch (InvalidItemPathException e) {
-                throw new ObjectNotFoundException(e.getMessage());
+                throw new ObjectNotFoundException(e);
             } 
         }
         return target;

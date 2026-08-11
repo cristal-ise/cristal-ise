@@ -21,9 +21,6 @@
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.MEMBER_REMOVE_SCRIPT;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
-
-import java.io.IOException;
 
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.collection.DependencyMember;
@@ -37,9 +34,6 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,8 +43,7 @@ public class RemoveMembersFromCollection extends ManageMembersOfCollectionBase {
     public static final String description = "Removes many members from the named Collection of the Item";
 
     public RemoveMembersFromCollection() {
-        super();
-        this.setBuiltInProperty(SCHEMA_NAME, "Dependency");
+        super("Dependency", description);
     }
 
     @Override
@@ -59,30 +52,35 @@ public class RemoveMembersFromCollection extends ManageMembersOfCollectionBase {
     {
         ItemProxy item = Gateway.getProxy(itemPath);
 
-        try {
-            Dependency inputDependendy = (Dependency) Gateway.getMarshaller().unmarshall(requestData);
-            String collectionName = inputDependendy.getName();
+        Dependency inputDependendy = (Dependency) Gateway.getMarshaller().unmarshall(requestData);
+        String collectionName = inputDependendy.getName();
 
-            Dependency currentDependency = (Dependency) item.getCollection(collectionName, null, transactionKey);
+        Dependency currentDependency = (Dependency) item.getCollection(collectionName, null, transactionKey);
 
-            log.debug("runActivityLogic() - {} of item {}", currentDependency, itemPath);
+        log.debug("runActivityLogic() - {} of item {}", currentDependency, itemPath);
 
-            checkCardinatilyConstraint(currentDependency, inputDependendy, itemPath,transactionKey);
+        checkCardinatilyConstraint(currentDependency, inputDependendy, itemPath, transactionKey);
 
-            for (DependencyMember inputMember : inputDependendy.getMembers().list) {
-                evaluateScript(itemPath, currentDependency, inputMember, transactionKey);
+        for (DependencyMember inputMember : inputDependendy.getMembers().list) {
+            evaluateScript(itemPath, currentDependency, inputMember, transactionKey);
 
-                currentDependency.removeMember(inputMember.getID());
+            DependencyMember removedMember = null;
+
+            if (inputMember.getID() != -1) {
+                removedMember = currentDependency.removeMember(inputMember.getID());
+            }
+            else {
+                removedMember = currentDependency.removeMember(inputMember.getItemPath());
             }
 
-            Gateway.getStorage().put(itemPath, currentDependency, transactionKey);
+            if (inputMember.getItemPath() != null & !removedMember.getItemPath().equals(inputMember.getItemPath())) {
+                throw new InvalidDataException("MemberID is inconsistent with ItemPath");
+            }
+        }
 
-            return Gateway.getMarshaller().marshall(currentDependency);
-        }
-        catch (IOException | ValidationException | MarshalException | MappingException ex) {
-            log.error("Error adding members to collection", ex);
-            throw new InvalidDataException("Error adding members to collection: " + ex);
-        }
+        Gateway.getStorage().put(itemPath, currentDependency, transactionKey);
+
+        return Gateway.getMarshaller().marshall(currentDependency);
     }
 
     protected void evaluateScript(ItemPath item, Dependency dependency, DependencyMember newMember, TransactionKey transactionKey)

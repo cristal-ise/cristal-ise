@@ -70,7 +70,7 @@
 				</Properties>
 				<activityDef>MoveLatestVersionToLast</activityDef>
 			</ActivitySlotDef>
-			<ActivitySlotDef ID="22" Name="EditDefinition"
+			<ActivitySlotDef ID="22" Name="Update"
 				Height="60" Width="130" IsLayoutable="true" IsComposite="false">
 				<CentrePoint x="76" y="251" />
 				<OutlinePoint x="11" y="221" />
@@ -80,7 +80,7 @@
 				<InEdgeId>24</InEdgeId>
 				<OutEdgeId>25</OutEdgeId>
 				<Properties>
-					<KeyValuePair Key="Name" String="EditDefinition" />
+					<KeyValuePair Key="Name" String="Update" />
 					<KeyValuePair Key="Version" Integer="0" />
 					<KeyValuePair Key="SchemaType" String="CompositeActivityDef" />
 					<KeyValuePair Key="ScriptName" String="CompositeActivityDefCollSetter" />

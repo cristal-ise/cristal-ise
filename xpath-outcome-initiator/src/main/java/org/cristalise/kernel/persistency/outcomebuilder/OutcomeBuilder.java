@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder;
 
+import static org.cristalise.kernel.persistency.outcomebuilder.GeneratedFormType.*;
+
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -27,6 +29,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.persistency.outcome.Outcome;
@@ -146,22 +149,24 @@ public class OutcomeBuilder {
     }
 
     /**
+     * Creates a new field and adds it to the Outcome to the element specified by the path. 
+     * It uses the XSD information to check if the given name can be added or not
      * 
-     * @param path
-     * @param data
-     * @throws OutcomeBuilderException
-     * @Deprecated incorrect method name, use the camel case version
+     * @param path identifying the location of the field
+     * @throws OutcomeBuilderException there was an error
      */
-    @Deprecated
-    public void addfield(String path, String data) throws OutcomeBuilderException {
-        addField(path, data);
+    public void addField(String path) throws OutcomeBuilderException {
+        addField(path, null);
     }
 
     /**
+     * Creates a new field, adds it to the Outcome to the element specified by the path and
+     * Initialises it with the given value if it was not null. 
+     * It uses the XSD information to check if the given name can be added or not
      * 
-     * @param path
-     * @param value
-     * @throws OutcomeBuilderException
+     * @param path identifying the location of the field
+     * @param value to be set of the field. null value will skip the initialisation.
+     * @throws OutcomeBuilderException there was an error
      */
     public void addField(String path, String data) throws OutcomeBuilderException {
         log.debug("addfield() - path:'"+path+"'");
@@ -184,22 +189,25 @@ public class OutcomeBuilder {
         else {
             fieldName = names[names.length-1];
 
-            //Remove the first and the last entry
-            OutcomeStructure modelElement = modelRoot.find(Arrays.copyOfRange(names, 1, names.length-1));
+            //Remove the first and the last 
+            String[] parentNames = Arrays.copyOfRange(names, 1, names.length-1);
+            OutcomeStructure parentModel = modelRoot.find(parentNames);
 
-            if (modelElement == null) throw new StructuralException("Invalid path:'"+path+"'");
+            if (parentModel == null) throw new StructuralException("Invalid path:'"+path+"'");
 
-            modelElement.createChildElement(outcome.getDOM(), fieldName);
-            parentElement = modelElement.getElement();
+            parentModel.createChildElement(outcome.getDOM(), fieldName);
+            parentElement = parentModel.getElement();
         }
-
-        try {
-            if (parentElement == null) outcome.setField(fieldName, data);
-            else                       outcome.setField(parentElement, fieldName, data);
-        }
-        catch (InvalidDataException e) {
-            log.error("", e);
-            throw new StructuralException(e);
+        
+        if (data != null) {
+            try {
+                if (parentElement == null) outcome.setField(fieldName, data);
+                else                       outcome.setField(parentElement, fieldName, data);
+            }
+            catch (InvalidDataException e) {
+                log.error("addField() - ", e);
+                throw new StructuralException(e);
+            }
         }
     }
 
@@ -280,25 +288,27 @@ public class OutcomeBuilder {
         outcome.setField(name, data);
     }
 
-    public String generateNgDynamicForms(Map<String, Object> inputs) {
-        String json = generateNgDynamicFormsJson(inputs).toString(2);
-
-        log.debug("generateNgDynamicForms() - json:%s", json);
-
-        return json;
+    public JSONArray generateNgDynamicFormsJson() throws InvalidDataException {
+        return generateNgDynamicFormsJson(null, NgDynamicFormTemplate);
     }
 
-    public String generateNgDynamicForms() {
-        return generateNgDynamicForms(null);
+    public JSONArray generateNgDynamicFormsJson(GeneratedFormType formType) throws InvalidDataException {
+        return generateNgDynamicFormsJson(null, formType);
     }
 
-    public JSONArray generateNgDynamicFormsJson() {
-        return generateNgDynamicFormsJson(null);
+    public JSONArray generateNgDynamicFormsJson(Map<String, Object> inputs) throws InvalidDataException {
+        return generateNgDynamicFormsJson(inputs, NgDynamicFormTemplate);
     }
 
-    public JSONArray generateNgDynamicFormsJson(Map<String, Object> inputs) {
+    public JSONArray generateNgDynamicFormsJson(Map<String, Object> inputs, GeneratedFormType formType) 
+            throws InvalidDataException
+    {
+        boolean withLayout = formType == NgDynamicFormTemplate || formType == NgDynamicFormLayout;
+        boolean withModel  = formType == NgDynamicFormTemplate || formType == NgDynamicFormModel;
+
         JSONArray array = new JSONArray();
-        array.put(modelRoot.generateNgDynamicForms(inputs));
+        array.put(modelRoot.generateNgDynamicForms(inputs, withModel, withLayout));
+
         return array;
     }
 

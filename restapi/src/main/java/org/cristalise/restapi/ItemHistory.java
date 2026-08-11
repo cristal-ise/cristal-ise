@@ -20,7 +20,10 @@
  */
 package org.cristalise.restapi;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
+import static org.cristalise.restapi.SystemProperties.REST_DefaultBatchSize;
+import static org.cristalise.restapi.SystemProperties.REST_Event_DefaultBatchSize;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -40,11 +43,11 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.process.Gateway;
 
 @Path("/item/{uuid}/history")
 public class ItemHistory extends ItemUtils {
@@ -66,7 +69,7 @@ public class ItemHistory extends ItemUtils {
         descending = descending != null;
 
         if (batchSize == null) {
-            batchSize = Gateway.getProperties().getInt("REST.Event.DefaultBatchSize", Gateway.getProperties().getInt("REST.DefaultBatchSize", 20));
+            batchSize = REST_Event_DefaultBatchSize.getInteger(REST_DefaultBatchSize.getInteger());
         }
 
         // fetch this batch of events from the RemoteMap
@@ -111,21 +114,16 @@ public class ItemHistory extends ItemUtils {
 
     /**
      * 
-     * @param uuid
-     * @param eventId
-     * @param uri
-     * @param json
-     * @return
      */
     private Response.ResponseBuilder getEventOutcome(ItemProxy item, String eventId, UriInfo uri, boolean json, NewCookie cookie) {
         try {
-            Event ev = item.getEvent(Integer.valueOf(eventId));
+            Event ev = item.getEvent(Integer.parseInt(eventId));
 
-            if (ev.getSchemaName() == null || ev.getSchemaName().equals("")) {
+            if (isBlank(ev.getSchemaName())) {
                 throw new ObjectNotFoundException( "This event has no data" );
             }
-    
-            Outcome oc = (Outcome) item.getObject(OUTCOME+"/"+ev.getSchemaName()+"/"+ev.getSchemaVersion()+"/"+ev.getID());
+
+            Outcome oc = item.getOutcome(ev);
             return getOutcomeResponse(oc, ev, json, cookie);
         }
         catch (ObjectNotFoundException e) {

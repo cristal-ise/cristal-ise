@@ -30,9 +30,6 @@ import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.process.Gateway;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class AgentDescCache extends DescriptionObjectCache<ImportAgent> {
 
     @Override
@@ -52,17 +49,11 @@ public class AgentDescCache extends DescriptionObjectCache<ImportAgent> {
 
     @Override
     protected ImportAgent buildObject(String name, int version, ItemPath path, String data) throws InvalidDataException {
-        try {
-            ImportAgent thisImportAgent = (ImportAgent) Gateway.getMarshaller().unmarshall(data);
-            thisImportAgent.setName(name);
-            thisImportAgent.setVersion(version);
-            thisImportAgent.setItemPath(path);
-            return thisImportAgent;
-        }
-        catch (Exception ex) {
-            log.error("Could not unmarshall ImportAgent '" + name + "' v" + version, ex);
-            throw new InvalidDataException("Could not unmarshall ImportAgent '" + name + "' v" + version + ": " + ex.getMessage());
-        }
+        ImportAgent thisImportAgent = (ImportAgent) Gateway.getMarshaller().unmarshall(data);
+        thisImportAgent.setName(name);
+        thisImportAgent.setVersion(version);
+        thisImportAgent.setItemPath(path);
+        return thisImportAgent;
     }
 
 }

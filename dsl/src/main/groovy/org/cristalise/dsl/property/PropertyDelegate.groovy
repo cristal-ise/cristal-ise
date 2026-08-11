@@ -20,6 +20,7 @@
  */
 package org.cristalise.dsl.property
 
+import org.cristalise.kernel.entity.DomainContext
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties
 import org.cristalise.kernel.utils.CastorHashMap
 
@@ -45,7 +46,13 @@ class PropertyDelegate {
 
     private void addProperty(String name, Object value, boolean isAbstract) {
         log.debug '{}Property() - {}:{}', (isAbstract ? 'Abstract' : ''), name, value
-        props.put(name, (value instanceof String) ? value as String : value, isAbstract)
+
+        if (value != null) {
+            if      (value.getClass().isEnum())      value = value.toString()
+            else if (value instanceof DomainContext) value = ((DomainContext)value).getDomainPath()
+        }
+
+        props.put(name, value, isAbstract)
     }
 
     private void addProperties(Map<String, Object> attrs, boolean isAbstract) {

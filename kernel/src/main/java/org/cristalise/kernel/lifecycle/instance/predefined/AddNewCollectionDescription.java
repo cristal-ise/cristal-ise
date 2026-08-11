@@ -46,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AddNewCollectionDescription extends PredefinedStep {
 
     public AddNewCollectionDescription() {
-        super();
+        super("Creates a new collection description in this Item");
     }
 
     /**

@@ -38,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RemoveDomainPath extends PredefinedStep {
 
     public RemoveDomainPath() {
-        super();
+        super("Removes an existing path to this item from the LDAP domain tree");
     }
 
     @Override

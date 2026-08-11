@@ -1,0 +1,135 @@
+[{
+  "name": "Storage",
+  "id": "Storage",
+  "type": "GROUP",
+  "group": [
+    {
+      "validators": {"required": null},
+      "inputType": "text",
+      "id": "ID",
+      "label": "ID *",
+      "placeholder": "ID",
+      "type": "INPUT",
+      "required": true
+    },
+    {
+      "validators": {"required": null},
+      "inputType": "text",
+      "id": "Name",
+      "label": "Name *",
+      "placeholder": "Name",
+      "type": "INPUT",
+      "required": true
+    },
+    {
+      "filterable": true,
+      "validators": {"required": null},
+      "additional": {"filterBy": "label"},
+      "options": [
+        {"label": "Select value"},
+        {
+          "label": "READY",
+          "value": "READY"
+        },
+        {
+          "label": "LOCKOUT",
+          "value": "LOCKOUT"
+        },
+        {
+          "label": "ERROR",
+          "value": "ERROR"
+        }
+      ],
+      "id": "State",
+      "label": "State *",
+      "placeholder": "State",
+      "type": "SELECT",
+      "value": "READY",
+      "required": true
+    },
+    {
+      "filterable": true,
+      "validators": {"required": null},
+      "additional": {"filterBy": "label"},
+      "options": [
+        {"label": "Select value"},
+        {
+          "label": "BIN",
+          "value": "BIN"
+        },
+        {
+          "label": "WAREHOUSE",
+          "value": "WAREHOUSE"
+        }
+      ],
+      "id": "Type",
+      "label": "Type *",
+      "placeholder": "Type",
+      "type": "SELECT",
+      "value": "BIN",
+      "required": true
+    },
+    {
+      "validators": {
+        "min": 0,
+        "required": null
+      },
+      "id": "Capacity",
+      "label": "Capacity *",
+      "placeholder": "Capacity",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": true
+    },
+    {
+      "inputType": "text",
+      "id": "Season",
+      "label": "Season",
+      "placeholder": "Season",
+      "type": "INPUT",
+      "required": false
+    },
+    {
+      "inputType": "text",
+      "id": "Commodity",
+      "label": "Commodity",
+      "placeholder": "Commodity",
+      "type": "INPUT",
+      "required": false
+    },
+    {
+      "inputType": "text",
+      "id": "Grade",
+      "label": "Grade",
+      "placeholder": "Grade",
+      "type": "INPUT",
+      "required": false
+    },
+    {
+      "inputType": "text",
+      "id": "Note",
+      "label": "Note",
+      "placeholder": "Note",
+      "type": "INPUT",
+      "required": false
+    },
+    {
+      "validators": {"min": 0},
+      "id": "Amount",
+      "label": "Amount",
+      "placeholder": "Amount",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": false
+    },
+    {
+      "validators": {"min": 0},
+      "id": "MeasuredWeight",
+      "label": "Measured Weight",
+      "placeholder": "Measured Weight",
+      "type": "INPUT",
+      "value": "0.0",
+      "required": false
+    }
+  ]
+}]

@@ -1,0 +1,16 @@
+{
+    "Environment_Details": {
+        "Name": "toto",
+        "Organisation": "toto inc",
+        "Release": "41d068d3-c4e3-4712-9c3c-8eb83e269fba",
+        "Template": "13b89e29-96ea-424a-87d6-115ffaed7a52",
+        "IsFreemium": false,
+        "AdminUser": {
+            "FirstName": null,
+            "LastName": null,
+            "Email": null
+        },
+        "Imported": false,
+        "ImportedPwd": null
+    }
+}

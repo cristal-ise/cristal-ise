@@ -22,11 +22,12 @@ package org.cristalise.kernel.scripting;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Place holder for the Parameter details to be passed to the script.
  */
-@Getter @Setter
+@Getter @Setter @Slf4j
 public class Parameter {
 
     private String name;
@@ -62,5 +63,10 @@ public class Parameter {
      */
     public void setTypeFromName(String className) throws ClassNotFoundException {
         type = Class.forName(className);
+    }
+
+    @Override
+    public String toString() {
+        return name + (log.isDebugEnabled() ? "("+type.getName()+")" : "");
     }
 }

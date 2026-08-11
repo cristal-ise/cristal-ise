@@ -64,12 +64,12 @@
         <OutEdgeId>31</OutEdgeId>
         <Properties>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false" />
-          <KeyValuePair Key="ViewName" String="Agent" isAbstract="false" />
+          <KeyValuePair Key="ViewName" String="AgentDesc" isAbstract="false" />
           <KeyValuePair Key="Name" String="MoveLatestAgentDescVersionToLast" isAbstract="false" />
         </Properties>
         <activityDef>MoveLatestVersionToLast</activityDef>
       </ActivitySlotDef>
-      <ActivitySlotDef Height="60" ID="22" IsComposite="false" IsLayoutable="true" Name="EditDefinition" Width="130">
+      <ActivitySlotDef Height="60" ID="22" IsComposite="false" IsLayoutable="true" Name="Update" Width="130">
         <CentrePoint x="79" y="209" />
         <OutlinePoint x="14" y="179" />
         <OutlinePoint x="144" y="179" />
@@ -79,8 +79,8 @@
         <OutEdgeId>25</OutEdgeId>
         <Properties>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false" />
-          <KeyValuePair Key="SchemaType" String="Agent" isAbstract="false" />
-          <KeyValuePair Key="Name" String="EditDefinition" isAbstract="false" />
+          <KeyValuePair Key="SchemaType" String="AgentDesc" isAbstract="false" />
+          <KeyValuePair Key="Name" String="Update" isAbstract="false" />
         </Properties>
         <activityDef>EditDefinition</activityDef>
       </ActivitySlotDef>
@@ -188,7 +188,7 @@
         <OutEdgeId>19</OutEdgeId>
         <Properties>
           <KeyValuePair Integer="0" Key="Version" isAbstract="false" />
-          <KeyValuePair Key="ViewName" String="Agent" isAbstract="false" />
+          <KeyValuePair Key="ViewName" String="AgentDesc" isAbstract="false" />
           <KeyValuePair Key="Name" String="AssignNewAgentDescVersionFromLast" isAbstract="false" />
         </Properties>
         <activityDef>AssignNewVersionFromLast</activityDef>

@@ -21,6 +21,7 @@
 package org.cristalise.kernel.test.persistency.outcomebuilder;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.Schema;
 import org.cristalise.kernel.persistency.outcomebuilder.OutcomeBuilder;
 import org.cristalise.kernel.test.persistency.XMLUtils;
@@ -40,7 +41,6 @@ public class ViewTemplateTest extends XMLUtils {
         OutcomeBuilder ob = new OutcomeBuilder(new Schema("SiteCharacteristicsData", 0, getXSD(dir, "SiteCharacteristicsData")), false);
 
         String template = ob.exportViewTemplate();
-
-        assert StringUtils.isNotBlank(template);
+        assert StringUtils.isNotBlank(new Outcome(template).getData(true));
     }
 }

@@ -123,16 +123,14 @@ public class HistoryPane extends ItemTabPane implements ActionListener {
 
             if (tokens[1].equals("DELETE")) return;
 
-            vertx.executeBlocking(promise -> {
+            vertx.executeBlocking(() -> {
                 try {
                     add(sourceItem.getItem().getEvent(eventId));
                 }
                 catch (ObjectNotFoundException e) {
                     log.error("", e);
                 }
-                promise.complete();
-            }, res -> {
-                //
+                return null;
             });
         });
     }

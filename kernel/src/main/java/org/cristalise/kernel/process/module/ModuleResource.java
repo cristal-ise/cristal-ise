@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.process.module;
 
+
 import java.util.Arrays;
 
 import org.apache.commons.lang3.StringUtils;
@@ -77,17 +78,8 @@ public class ModuleResource extends ModuleImport {
 
     public String getResourceFileName() {
         if (StringUtils.isBlank(resourceLocation) && ns != null) {
-            String[] vals = Gateway.getProperties().getString("Resource.moduleUseFileNameWithVersion", "").split(",");
-            log.debug("getResourceFileName(ns:{}) - moduleUseFileNameWithVersion:{}", ns, Arrays.toString(vals));
-
-            if (Arrays.asList(vals).contains(ns)) {
-                resourceLocation = getResourceDir() + "/" + name + "_" + version + "." + getResourceExt();
-                log.debug("getResourceFileName(WithVersion) - {}", resourceLocation );
-            }
-            else {
-                resourceLocation = getResourceDir() + "/" + name + "." + getResourceExt();
-                log.debug("getResourceFileName(NoVersion) - {}", resourceLocation );
-            }
+            resourceLocation = getResourceDir() + "/" + name + "_" + version + "." + getResourceExt();
+            log.debug("getResourceFileName() - {}", resourceLocation );
         }
 
         return resourceLocation;

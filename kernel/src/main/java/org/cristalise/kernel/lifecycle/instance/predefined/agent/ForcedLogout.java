@@ -41,7 +41,7 @@ public class ForcedLogout extends PredefinedStep {
     public static final String description = "Records the ForcedLogout event in the history associated with window/tab close actions in the UI";
 
     public ForcedLogout() {
-        super();
+        super(description);
     }
 
     @Override

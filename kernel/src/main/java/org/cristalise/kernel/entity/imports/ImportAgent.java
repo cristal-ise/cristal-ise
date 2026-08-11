@@ -20,12 +20,10 @@
  */
 package org.cristalise.kernel.entity.imports;
 
+import static org.cristalise.kernel.SystemProperties.Module_ImportAgent_enableRoleCreation;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,8 +34,10 @@ import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
 import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.entity.proxy.AgentProxy;
+import org.cristalise.kernel.entity.proxy.ProxyManager;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
-import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
+import org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.InvalidItemPathException;
@@ -46,14 +46,13 @@ import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.lookup.Path;
 import org.cristalise.kernel.lookup.RolePath;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.module.ModuleImport;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
+import org.cristalise.kernel.security.BuiltInAuthc;
 import org.cristalise.kernel.utils.DescriptionObject;
-import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
 import lombok.Getter;
@@ -65,10 +64,10 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
 
     protected Integer version; //optional
 
-    private String                initialPath; //optional
-    private String                password;
-    private ArrayList<Property>   properties = new ArrayList<Property>();
-    private ArrayList<ImportRole> roles      = new ArrayList<ImportRole>();
+    private String           initialPath; //optional
+    private String           password;
+    private List<Property>   properties = new ArrayList<Property>();
+    private List<ImportRole> roles      = new ArrayList<ImportRole>();
 
     public ImportAgent() {}
 
@@ -169,8 +168,7 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
                 // no update to the role is done, because role might not be fully specified (i.e. it only contains the name as a reference)
             }
             else {
-                if (Gateway.getProperties().getBoolean("Module.ImportAgent.enableRoleCreation", false)) {
-                    // Creates Role even if it is not fully specified in the ImportAgent (i.e. no permissions were specified)
+                if (Module_ImportAgent_enableRoleCreation.getBoolean()) {
                     RolePath thisRole = (RolePath)role.create(agentPath, reset, transactionKey);
                     lookupManager.addRole(getAgentPath(), thisRole, transactionKey);
                 }
@@ -209,6 +207,14 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         return getAgentPath(null);
     }
 
+    public AgentProxy getProxy() {
+        try {
+            return ProxyManager.getAgentProxy(getAgentPath());
+        } catch (ObjectNotFoundException e) {
+            return null;
+        }
+    }
+
     public AgentPath getAgentPath(TransactionKey transactionKey) {
         return (AgentPath)getItemPath(transactionKey);
     }
@@ -234,12 +240,20 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
         for (RolePath rp: newRoles) roles.add(ImportRole.getImportRole(rp));
     }
 
+    public void addRole(BuiltInAuthc role) {
+        addRole(role.getName());
+    }
+
+    public void addRole(String roleName) {
+        addRole(new ImportRole(roleName));
+    }
+
     public void addRole(ImportRole ir) {
         roles.add(ir);
     }
 
     public void addRole(RolePath rp) {
-        roles.add(ImportRole.getImportRole(rp));
+        addRole(ImportRole.getImportRole(rp));
     }
 
     @Override
@@ -253,38 +267,8 @@ public class ImportAgent extends ModuleImport implements DescriptionObject {
     }
 
     @Override
-    public void export(Writer imports, File dir, boolean shallow) throws InvalidDataException, ObjectNotFoundException, IOException {
-        String xml;
-        String typeCode = BuiltInResources.AGENT_DESC_RESOURCE.getTypeCode();
-        String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
-
-        try {
-            xml = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
-        }
-        catch (Exception e) {
-            log.error("Couldn't marshall name:" + getName(), e);
-            throw new InvalidDataException("Couldn't marshall name:" + getName());
-        }
-
-        FileStringUtility.string2File(new File(new File(dir, typeCode), fileName), xml);
-
-        if (imports == null) return;
-
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
-            imports.write("<Resource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
-                    + "type='" + typeCode + "'>boot/" + typeCode + "/" + fileName
-                    + "</Resource>\n");
-        }
-        else {
-            imports.write("<AgentResource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
-                    + "/>\n");
-        }
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.AGENT_DESC_RESOURCE;
     }
 
     @Override

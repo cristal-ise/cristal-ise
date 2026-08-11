@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.persistency.outcomeinit;
 
+import static org.cristalise.kernel.persistency.outcomeinit.SystemProperties.XPathOutcomeInitiator_PropertyNamePrefix;
+
 import java.util.Map;
 
 import javax.xml.xpath.XPathExpressionException;
@@ -28,8 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.persistency.outcome.OutcomeInitiator;
-import org.cristalise.kernel.process.Gateway;
 import org.mvel2.templates.TemplateRuntime;
 
 import lombok.extern.slf4j.Slf4j;
@@ -42,16 +42,10 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class XPathOutcomeInitiator extends EmptyOutcomeInitiator {
 
-    /**
-     * Defines the then name of the CRISTAL Property (value={@value}) to override the default prefix ('/')
-     * used to identify Activity Properties that can be used by this {@link OutcomeInitiator} implementation
-     */
-    public static final String PROP_NAME_PREFIX_CONFIGKEY = "XPathOutcomeInitiator.PropertyNamePrefix";
-
     private final String propNamePrefix;
 
     public XPathOutcomeInitiator() {
-        propNamePrefix = Gateway.getProperties().getString(PROP_NAME_PREFIX_CONFIGKEY, "/");
+        propNamePrefix = XPathOutcomeInitiator_PropertyNamePrefix.getString();
     }
 
     public XPathOutcomeInitiator(String prefix) {

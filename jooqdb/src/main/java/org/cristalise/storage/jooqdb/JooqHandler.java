@@ -20,6 +20,10 @@
  */
 package org.cristalise.storage.jooqdb;
 
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_NameType_length;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_PasswordType_length;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_StringType_length;
+import static org.cristalise.storage.jooqdb.SystemProperties.JOOQ_TextType_length;
 import static org.jooq.SQLDialect.MYSQL;
 import static org.jooq.SQLDialect.POSTGRES;
 import static org.jooq.impl.DSL.select;
@@ -32,7 +36,6 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.storage.jooqdb.bindings.PostgreSqlXmlBinding;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -46,85 +49,13 @@ import org.jooq.impl.SQLDataType;
 import org.w3c.dom.Document;
 
 public abstract class JooqHandler {
-    /**
-     * Defines the key (value:{@value}) to retrieve the string value of the comma separated list of 
-     * fully qualified class names implementing the {@link JooqDomainHandler} interface.
-     */
-    public static final String JOOQ_DOMAIN_HANDLERS = "JOOQ.domainHandlers";
-    /**
-     * Defines the key (value:{@value}) to retrieve the boolean value to disable the invocation of
-     * {@link JooqDomainHandler#createTables(DSLContext)}. Default is 'false'
-     */
-    public static final String JOOQ_DISABLE_DOMAIN_CREATE = "JOOQ.disableDomainCreateTables";
-    /**
-     * Defines the key (value:{@value}) to retrieve the integer value for VARCHAR size of NAME_TYPE type declaration
-     * {@link JooqDomainHandler#createTables(DSLContext)}. Default is '64'
-     * 
-     * <p>It is used for these columns:
-     * <pre>
-     *   - COLLECTION.NAME
-     *   - EVENT.AGENT_ROLE
-     *   - EVENT.SCHEMA_NAME
-     *   - EVENT.STATEMACHINE_NAME
-     *   - EVENT.STEP_NAME
-     *   - EVENT.STEP_TYPE
-     *   - EVENT.VIEW_NAME
-     *   - ITEM_PROPERTY.NAME
-     *   - JOB.STEP_NAME
-     *   - JOB.STEP_TYPE
-     *   - JOB.ORIGIN_STATE_NAME
-     *   - JOB.TARGET_STATE_NAME
-     *   - JOB.AGENT_ROLE
-     *   - LIFECYCLE.NAME
-     *   - OUTCOME.SCHEMA_NAME
-     *   - OUTCOME_ATTACHMENT.SCHEMA_NAME
-     *   - VIEWPOINT.SCHEMA_NAME
-     * </pre>
-     */
-    public static final String JOOQ_NAME_TYPE_LENGHT = "JOOQ.NameType.length";
-    /**
-     * Defines the key (value:{@value}) to retrieve the integer value for VARCHAR size of PASSWORD_TYPE type declaration
-     * {@link JooqDomainHandler#createTables(DSLContext)}. Default is '800'
-     * 
-     * <p>It is used for these columns:
-     * <pre>
-     *   - ITEM.PASSWORD
-     * </pre>
-     */
-    public static final String JOOQ_PASSWORD_TYPE_LENGHT = "JOOQ.PasswordType.length";
-    /**
-     * Defines the key (value:{@value}) to retrieve the integer value for VARCHAR size of STRING_TYPE type declaration
-     * {@link JooqDomainHandler#createTables(DSLContext)}. Default is '800'
-     * 
-     * <p>It is used for these columns:
-     * <pre>
-     *   - EVENT.STEP_PATH
-     *   - JOB.STEP_PATH
-     *   - DOMAIN_PATH.PATH
-     *   - ROLE_PATH.PATH
-     *   - ROLE_PERMISSION.ROLE_PATH
-     * </pre>
-     */
-    public static final String JOOQ_STRING_TYPE_LENGHT = "JOOQ.StringType.length";
-    /**
-     * Defines the key (value:{@value}) to retrieve the integer value for VARCHAR size of TEXT_TYPE type declaration
-     * {@link JooqDomainHandler#createTables(DSLContext)}. Default is '800'
-     * 
-     * <p>It is used for these columns: 
-     * <pre>
-     *   - ITEM_PROPERTY.VALUE
-     *   - ROLE_PERMISSION.PERMISSION
-     * </pre>
-     */
-    public static final String JOOQ_TEXT_TYPE_LENGHT = "JOOQ.TextType.length";
 
     public static final DataType<UUID>           UUID_TYPE       = SQLDataType.UUID;
-
-    public static final DataType<String>         NAME_TYPE       = SQLDataType.VARCHAR.length(Gateway.getProperties().getInt(JOOQ_NAME_TYPE_LENGHT, 64));
+    public static final DataType<String>         NAME_TYPE       = SQLDataType.VARCHAR.length(JOOQ_NameType_length.getInteger());
     public static final DataType<Integer>        VERSION_TYPE    = SQLDataType.INTEGER;
-    public static final DataType<String>         PASSWORD_TYPE   = SQLDataType.VARCHAR.length(Gateway.getProperties().getInt(JOOQ_PASSWORD_TYPE_LENGHT, 800));
-    public static final DataType<String>         STRING_TYPE     = SQLDataType.VARCHAR.length(Gateway.getProperties().getInt(JOOQ_STRING_TYPE_LENGHT, 800));
-    public static final DataType<String>         TEXT_TYPE       = SQLDataType.VARCHAR.length(Gateway.getProperties().getInt(JOOQ_TEXT_TYPE_LENGHT, 800));
+    public static final DataType<String>         PASSWORD_TYPE   = SQLDataType.VARCHAR.length(JOOQ_PasswordType_length.getInteger());
+    public static final DataType<String>         STRING_TYPE     = SQLDataType.VARCHAR.length(JOOQ_StringType_length.getInteger());
+    public static final DataType<String>         TEXT_TYPE       = SQLDataType.VARCHAR.length(JOOQ_TextType_length.getInteger());
     public static final DataType<String>         IOR_TYPE        = SQLDataType.VARCHAR.length(800);
     public static final DataType<Integer>        ID_TYPE         = SQLDataType.INTEGER;
     public static final DataType<Timestamp>      TIMESTAMP_TYPE  = SQLDataType.TIMESTAMP;

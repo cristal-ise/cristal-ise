@@ -53,7 +53,7 @@ public class UpdateDependencyMember extends PredefinedStepCollectionBase {
      * Constructor for Castor
      */
     public UpdateDependencyMember() {
-        super();
+        super(description);
     }
 
     /**

@@ -1,0 +1,9 @@
+{
+  "isDisplayable": true,
+  "mappings": {
+    "UrinSample": "FIELDSET",
+    "UrinSample.Transparency": "PRIMITIVE",
+    "UrinSample.Color": "PRIMITIVE",
+    "UrinSample.PredefinedSteps": "PRIMITIVE"
+  }
+}

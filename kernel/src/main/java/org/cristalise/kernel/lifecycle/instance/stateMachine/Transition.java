@@ -230,11 +230,11 @@ public class Transition {
             Object propValue = act.evaluateProperty(null, enabledProp, null);
 
             if(propValue == null) return false;
-            else                  return new Boolean(propValue.toString());
+            else                  return Boolean.parseBoolean(propValue.toString());
         }
         catch ( InvalidDataException | PersistencyException e) {
             log.error("", e);
-            throw new ObjectNotFoundException(e.getMessage());
+            throw new ObjectNotFoundException(e);
         }
     }
 

@@ -3,15 +3,12 @@ package org.cristalise.restapi.test
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
-import org.cristalise.dev.dsl.DevXMLUtility
-import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.process.Gateway
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import io.restassured.http.ContentType
 
 
 /**
@@ -47,7 +44,7 @@ class ConcurrentTest extends RestapiTestBase {
             executeDoneJob(p, 'SetDetails')
             executeDoneJob(p, 'SetUrinSample')
 
-            uuids << p.getPath().getUUID().toString()
+            uuids << p.uuid
         }
 
         return uuids
@@ -105,6 +102,7 @@ class ConcurrentTest extends RestapiTestBase {
     @Test @CompileDynamic
     public void createPatients_RunAggrageScripts_ParseScript_Concurrently() {
         init('src/main/bin/client.conf', 'src/main/bin/integTest.clc')
+        def clearCacheScriptName = 'ClearCache'+timeStamp
 
         def patientCount = 10
         def uuids = setupPatients(patientCount)
@@ -113,12 +111,12 @@ class ConcurrentTest extends RestapiTestBase {
 
         def pool = Executors.newFixedThreadPool(patientCount+1)
 
-        Script('ClearCache', folder) {
+        Script(clearCacheScriptName, folder) {
             script(language: 'groovy') {
                 'org.cristalise.kernel.process.Gateway.getStorage().clearCache(); System.gc();'
             }
         }
-        log.info 'finished creating Script: ClearCache'
+        log.info 'finished creating Script: ' + clearCacheScriptName
 
         patientCount.times { int idx ->
             pool.submit {
@@ -127,8 +125,7 @@ class ConcurrentTest extends RestapiTestBase {
                     log.info "${uuids[idx]} - $result"
                 }
             }
-            executeScript(uuids[idx], 'ClearCache', '{}')
-            log.info("Clearing cache...");
+            executeScript(uuids[idx], clearCacheScriptName, '{}')
             Thread.sleep(2000)
         }
 

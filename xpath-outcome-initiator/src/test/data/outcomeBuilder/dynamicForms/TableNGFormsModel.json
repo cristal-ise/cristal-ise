@@ -1,0 +1,83 @@
+
+[{
+  "name": "Details",
+  "id": "Details",
+  "type": "GROUP",
+  "group": [
+    {
+      "validators": {"required": null},
+      "inputType": "text",
+      "id": "Name",
+      "label": "Name *",
+      "placeholder": "Name",
+      "type": "INPUT",
+      "required": true
+    },
+    {
+      "columns": [
+        {
+          "additional": {"showButtonBar": true},
+          "format": "yy-mm-dd",
+          "id": "ETA",
+          "label": "ETA",
+          "placeholder": "ETA",
+          "type": "DATEPICKER",
+          "required": false
+        },
+        {
+          "validators": {"required": null},
+          "id": "RequiredQuantity",
+          "label": "Required Quantity *",
+          "placeholder": "Required Quantity",
+          "type": "INPUT",
+          "value": "0.0",
+          "required": true
+        },
+        {
+          "validators": {"required": null},
+          "id": "PickedQuantity",
+          "label": "Picked Quantity *",
+          "placeholder": "Picked Quantity",
+          "type": "INPUT",
+          "value": "0.0",
+          "required": true
+        },
+        {
+          "validators": {"required": null},
+          "id": "MissingQuantity",
+          "label": "Missing Quantity *",
+          "placeholder": "Missing Quantity",
+          "type": "INPUT",
+          "value": "0.0",
+          "required": true
+        },
+        {
+          "errorMessages": {"pattern": "Trailing spaces or contains only spaces"},
+          "validators": {
+            "pattern": "^[a-zA-Z]+.*\\S+$",
+            "required": null
+          },
+          "inputType": "text",
+          "id": "Product",
+          "label": "Product *",
+          "placeholder": "Product",
+          "type": "INPUT",
+          "required": true
+        }
+      ],
+      "name": "Table",
+      "id": "Table",
+      "type": "TABLE",
+      "rows": []
+    },
+    {
+      "validators": {"required": null},
+      "inputType": "text",
+      "id": "Comment",
+      "label": "Comment *",
+      "placeholder": "Comment",
+      "type": "INPUT",
+      "required": true
+    }
+  ]
+}]

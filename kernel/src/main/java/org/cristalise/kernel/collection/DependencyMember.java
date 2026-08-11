@@ -192,7 +192,7 @@ public class DependencyMember implements CollectionMember {
 //            script.setInputParamValue("proxy", Gateway.getProxyManager());
             script.setInputParamValue("lookup", Gateway.getLookup());
 
-            return script.evaluate(getItemPath(), getProperties(), null, null);
+            return script.evaluate(getItemPath(), getProperties(), null, transactionKey);
         }
         catch (ScriptingEngineException e) {
             log.error("", e);

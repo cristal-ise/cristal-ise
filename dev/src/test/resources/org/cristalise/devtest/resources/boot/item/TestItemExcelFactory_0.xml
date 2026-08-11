@@ -1,7 +1,7 @@
 <Item initialPath="/devtest" name="TestItemExcelFactory" ns="devtest" version="0" workflow="CrudFactory_Workflow" workflowVer="0">
   <Property mutable="false" name="Type">Factory</Property>
   <Property mutable="false" name="Root">/devtest/TestItemExcels</Property>
-  <Property mutable="false" name="UpdateSchema">TestItemExcel_Details:0</Property>
+  <Property mutable="false" name="UpdateSchemaURN">TestItemExcel_Details:0</Property>
   <Outcome schema="PropertyDescription" version="0" viewname="last">boot/property/TestItemExcel_0.xml</Outcome>
   <Dependency classProps="" isDescription="false" name="workflow">
     <DependencyMember itemPath="/desc/ActivityDesc/devtest/TestItemExcel_Workflow">

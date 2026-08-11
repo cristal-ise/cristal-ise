@@ -56,7 +56,7 @@ class ElemActDelegate {
 
         currentVertex = parentBlock.addVertex(type, name)
 
-        if(cl) {
+        if (cl) {
             cl.delegate = this
             cl.resolveStrategy = Closure.DELEGATE_FIRST
             cl()

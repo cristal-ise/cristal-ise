@@ -44,7 +44,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AssignItemToSlot extends PredefinedStep {
 
     public AssignItemToSlot() {
-        super();
+        super("Assigns the referenced item to a pre-existing slot in an aggregation");
     }
 
     /**

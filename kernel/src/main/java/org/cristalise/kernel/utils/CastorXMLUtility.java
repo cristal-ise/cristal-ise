@@ -24,7 +24,6 @@ package org.cristalise.kernel.utils;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Properties;
@@ -51,19 +50,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CastorXMLUtility {
 
-    public static final String CASTOR_XML_SERIALIZER_FACTORY = "org.exolab.castor.xml.serializer.factory";
-
     private XMLContext mappingContext;
 
     /**
      * Looks for a file called 'index' at the given URL, and loads every file listed in there by relative path
-     *
-     * @param aResourceLoader
-     *            the resource loader able to return the right class loader
-     * @param aAppProperties
-     *            the application properties containing optional castor configuration
-     * @param mapURL
-     *            the root URL for the mapfiles
+     * 
+     * @param aResourceLoader the resource loader able to return the right class loader
+     * @param aAppProperties the application properties containing optional castor configuration
+     * @param mapURL the root URL for the mapfiles
+     * @throws InvalidDataException
      */
     public CastorXMLUtility(final ResourceLoader aResourceLoader, final Properties aAppProperties, final URL mapURL)
             throws InvalidDataException
@@ -105,31 +100,14 @@ public class CastorXMLUtility {
                 }
             }
 
+            // check file castor.properties available in the root
             mappingContext = new XMLContext();
             mappingContext.setClassLoader(defaultClassLoader);
-
-            // if the aAppProperties contains castor properties then
-            if (aAppProperties != null && aAppProperties.containsKey(CASTOR_XML_SERIALIZER_FACTORY)) {
-
-                mappingContext.setProperty(CASTOR_XML_SERIALIZER_FACTORY, aAppProperties.getProperty(CASTOR_XML_SERIALIZER_FACTORY));
-
-                log.info("<init>: castor prop: {}=[{}]", CASTOR_XML_SERIALIZER_FACTORY,
-                        mappingContext.getProperty(CASTOR_XML_SERIALIZER_FACTORY));
-            }
-
             mappingContext.addMapping(thisMapping);
         }
-        catch (MappingException ex) {
-            log.error("XML Mapping files are not valid", ex);
-            throw new InvalidDataException("XML Mapping files are not valid: " + ex.getMessage());
-        }
-        catch (MalformedURLException ex) {
-            log.error("Mapping file location invalid", ex);
-            throw new InvalidDataException("Mapping file location invalid: " + ex.getMessage());
-        }
-        catch (IOException ex) {
-            log.error("Could not read XML mapping files", ex);
-            throw new InvalidDataException("Could not read XML mapping files: " + ex.getMessage());
+        catch (MappingException | IOException ex) {
+            log.error("ctor() - Could not initialise", ex);
+            throw new InvalidDataException("Could not initialise", ex);
         }
 
         log.info("Loaded [{}] maps from [{}]", loadedMapURLs.size(), mapURL);
@@ -140,22 +118,30 @@ public class CastorXMLUtility {
      *
      * @param obj the object to be marshalled
      * @return the xml string of the marshalled object
+     * @throws InvalidDataException all errors captured
      */
-    public String marshall(Object obj) throws IOException, MappingException, MarshalException, ValidationException {
-        if (obj == null) return "<NULL/>";
+    public String marshall(Object obj) throws InvalidDataException {
+        try {
+            if (obj == null) return "<NULL/>";
 
-        if (obj instanceof Outcome) return ((Outcome) obj).getData();
+            if (obj instanceof Outcome) return ((Outcome) obj).getData();
 
-        StringWriter sWriter = new StringWriter();
-        Marshaller marshaller = mappingContext.createMarshaller();
-        marshaller.setWriter(sWriter);
-        marshaller.setMarshalAsDocument(false);
+            StringWriter sWriter = new StringWriter();
+            Marshaller marshaller = mappingContext.createMarshaller();
+            marshaller.setWriter(sWriter);
+            marshaller.setMarshalAsDocument(false);
 
-        if (obj instanceof Query) marshaller.addProcessingInstruction(Result.PI_DISABLE_OUTPUT_ESCAPING, "");
+            if (obj instanceof Query) marshaller.addProcessingInstruction(Result.PI_DISABLE_OUTPUT_ESCAPING, "");
 
-        marshaller.marshal(obj);
+            marshaller.marshal(obj);
 
-        return sWriter.toString();
+            return sWriter.toString();
+
+        }
+        catch (IOException | MarshalException | ValidationException ex) {
+            log.error("marshall() - failed", ex);
+            throw new InvalidDataException("marshall failed", ex);
+        }
     }
 
     /**
@@ -163,12 +149,19 @@ public class CastorXMLUtility {
      *
      * @param data the string to be unmarshalled
      * @return the unmarshalled object
+     * @throws InvalidDataException all errors captured
      */
-    public Object unmarshall(String data) throws IOException, MappingException, MarshalException, ValidationException {
+    public Object unmarshall(String data) throws InvalidDataException {
         if (data.equals("<NULL/>")) return null;
 
         StringReader sReader = new StringReader(data);
 
-        return mappingContext.createUnmarshaller().unmarshal(sReader);
+        try {
+            return mappingContext.createUnmarshaller().unmarshal(sReader);
+        }
+        catch (MarshalException | ValidationException ex) {
+            log.error("unmarshall() - failed", ex);
+            throw new InvalidDataException("unmarshall failed", ex);
+        }
     }
 }

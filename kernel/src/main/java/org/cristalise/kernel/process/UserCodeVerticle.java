@@ -20,6 +20,9 @@
  */
 package org.cristalise.kernel.process;
 
+import static org.cristalise.kernel.SystemProperties.$UserCodeRole_StateMachine_completeTransition;
+import static org.cristalise.kernel.SystemProperties.$UserCodeRole_StateMachine_errorTransition;
+import static org.cristalise.kernel.SystemProperties.$UserCodeRole_StateMachine_startTransition;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.cristalise.kernel.process.StandardClient.getRequiredStateMachine;
 import static org.cristalise.kernel.process.UserCodeProcess.getAgentName;
@@ -35,9 +38,10 @@ import org.cristalise.kernel.entity.proxy.AgentProxy;
 import org.cristalise.kernel.entity.proxy.ProxyMessage;
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
+import io.vertx.core.Future;
+import io.vertx.core.VerticleBase;
 import io.vertx.core.eventbus.EventBus;
+import io.vertx.core.eventbus.MessageConsumer;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -53,29 +57,15 @@ import lombok.extern.slf4j.Slf4j;
  * 4. in case of error/exception during complete() execute error transition (e.g. Suspend for default StateMachine)
  */
 @Slf4j
-public class UserCodeVerticle extends AbstractVerticle {
+public class UserCodeVerticle extends VerticleBase {
 
     private AgentProxy userCode;
+    private MessageConsumer<String> jobConsumer;
 
     private final int START;
     private final int COMPLETE;
     private final int ERROR;
 
-    /**
-     * Defines the name of the CRISTAL Property (value:{@value}) to override the default mapping for Start transition.
-     * It is always prefixed like this: eg: UserCode.StateMachine.startTransition
-     */
-    public static final String STATE_MACHINE_START_TRANSITION = "StateMachine.startTransition";
-    /**
-     * Defines the name of the CRISTAL Property (value:{@value}) to override the default mapping for Complete transition.
-     * It is always prefixed like this: eg: UserCode.StateMachine.completeTransition
-     */
-    public static final String STATE_MACHINE_COMPLETE_TRANSITION = "StateMachine.completeTransition";
-    /**
-     * Defines the name of the CRISTAL Property (value:{@value}) to override the default mapping for Error transition.
-     * It is always prefixed like this: eg: UserCode.StateMachine.errorTransition
-     */
-    public static final String STATE_MACHINE_ERROR_TRANSITION = "StateMachine.errorTransition";
     /**
      * Defines the value (value:{@value}) to to be used in CRISTAL Property to ignore the Jobs of that Transition
      * eg: UserCode.StateMachine.resumeTransition = USERCODE_IGNORE
@@ -88,39 +78,27 @@ public class UserCodeVerticle extends AbstractVerticle {
      * @throws InvalidDataException
      * @throws ObjectNotFoundException
      */
-    public UserCodeVerticle() throws InvalidDataException, ObjectNotFoundException {
-
+    public UserCodeVerticle() throws InvalidDataException {
         StateMachine sm = getRequiredStateMachine(getRoleName(), null, "boot/SM/Default.xml");
-        String propPrefix = getRoleName();
 
         //default values are valid for Transitions compatible with kernel provided Default StateMachine
-        START    = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_START_TRANSITION,    "Start");
-        ERROR    = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_ERROR_TRANSITION,    "Suspend");
-        COMPLETE = getValidTransitionID(sm, propPrefix+"."+STATE_MACHINE_COMPLETE_TRANSITION, "Complete");
+        START    = getValidTransitionID(sm, $UserCodeRole_StateMachine_startTransition.getString(null, getRoleName()));
+        ERROR    = getValidTransitionID(sm, $UserCodeRole_StateMachine_errorTransition.getString(null, getRoleName()));
+        COMPLETE = getValidTransitionID(sm, $UserCodeRole_StateMachine_completeTransition.getString(null, getRoleName()));
     }
 
-    /**
-     *
-     * @param sm
-     * @param propertyName
-     * @param defaultValue
-     * @return
-     * @throws InvalidDataException
-     */
-    private int getValidTransitionID(StateMachine sm, String propertyName, String defaultValue) throws InvalidDataException {
-        String propertyValue = Gateway.getProperties().getString(propertyName, defaultValue);
-
+    private int getValidTransitionID(StateMachine sm, String propertyValue) throws InvalidDataException {
         if(USERCODE_IGNORE.equals(propertyValue)) return -1;
         else                                      return sm.getValidTransitionID(propertyValue);
     }
 
     @Override
-    public void start(Promise<Void> startPromise) throws Exception {
+    public Future<?> start() throws Exception {
         userCode = Gateway.getSecurityManager().authenticate(getAgentName(), getAgentPassword(), null);
 
         EventBus eb = vertx.eventBus();
 
-        eb.localConsumer(userCode.getPath().getUUID() + "/" + JOB, (message) -> {
+        jobConsumer = eb.localConsumer(userCode.getPath().getUUID() + "/" + JOB, (message) -> {
             String[] tokens = ((String) message.body()).split(":");
             String jobId = tokens[0];
 
@@ -128,30 +106,36 @@ public class UserCodeVerticle extends AbstractVerticle {
 
             try {
                 Job aJob = userCode.getJob(jobId);
-                vertx.executeBlocking((result) -> process(aJob));
+                vertx.executeBlocking(() -> {
+                    process(aJob);
+                    return null;
+                });
             }
             catch (ObjectNotFoundException e) {
                 log.error("handler()", e);
             }
         });
 
-        startPromise.complete();
         log.info("start() - deployed '{}' consumer", ProxyMessage.ebAddress);
+        return jobConsumer.completion();
     }
 
-    /**
-     * 
-     * @param thisJob
-     * @param errorJob
-     */
+    @Override
+    public Future<?> stop() {
+        log.info("start() - undeployed '{}' consumer", ProxyMessage.ebAddress);
+
+        if (jobConsumer != null) return jobConsumer.unregister();
+        else                     return Future.succeededFuture();
+    }
+
     protected void process(Job thisJob) {
         log.info("=======================================================================================");
 
         try {
             int transitionId = thisJob.getTransition().getId();
 
-            if (transitionId == START)         start(thisJob);
-            else if (transitionId == COMPLETE) complete(thisJob, null); //FIXME: ERROR Job needs to be retrieved
+            if (transitionId == START)         startJob(thisJob);
+            else if (transitionId == COMPLETE) completeJob(thisJob, null); //FIXME: ERROR Job needs to be retrieved
             else if (transitionId == ERROR)    log.trace("process() - skipping ERROR job:{}", thisJob); 
             else                               log.trace("process() - skipping job:{}", thisJob);
         }
@@ -170,34 +154,34 @@ public class UserCodeVerticle extends AbstractVerticle {
      *
      * @param thisJob the actual Job to be executed.
      */
-    public void start(Job thisJob) throws CriseVertxException {
-        log.debug("start() - job:"+thisJob);
+    public void startJob(Job thisJob) throws CriseVertxException {
+        log.debug("startJob() - job:{}", thisJob);
 
         if (assessStartConditions(thisJob)) {
-            log.trace("start() - Attempting to start");
+            log.trace("startJob() - Attempting to start");
             userCode.execute(thisJob);
         }
         else {
-            log.debug("start() - Start conditions failed "+thisJob.getStepName()+" in "+thisJob.getItemPath());
+            log.debug("startJob() - Start conditions failed {} in {}", thisJob.getStepName(), thisJob.getItemPath());
         }
     }
 
     /**
-     * Method called to handle the Complete transition. Override this method to implement application specific action
+     * Method called to handle the Complete transition. Override this method to implement application-specific action
      * for Jobs of Complete Transition.
      *
      * @param thisJob the actual Job to be executed.
      * @param erroJob the error Job to be executed in case of error
      */
-    public void complete(Job thisJob, Job erroJob) throws Exception {
-        log.debug("complete() - job:"+thisJob);
+    public void completeJob(Job thisJob, Job erroJob) throws Exception {
+        log.debug("completeJob() - job:{}", thisJob);
 
         runUserCodeLogic(thisJob, erroJob);
     }
 
     /**
      * Override this method to implement application specific evaluation of start condition.
-     * Default implementation - returns always true, i.e. there were no start conditions.
+     * Default implementation - always returns true, i.e. there were no start conditions.
      *
      * @param job the actual Job to be executed.
      * @return true, if the start condition were met

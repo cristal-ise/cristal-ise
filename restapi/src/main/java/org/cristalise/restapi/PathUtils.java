@@ -29,19 +29,18 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
-import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.DomainPath;
-import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.lookup.RolePath;
+import org.cristalise.kernel.lookup.*;
 import org.cristalise.kernel.process.Gateway;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class PathUtils extends RestHandler {
 
     public PathUtils() {
         super();
     }
 
-    protected Map<String, Object> makeLookupData(String path, org.cristalise.kernel.lookup.Path nextPath, UriInfo uri) {
+    protected Map<String, Object> makeLookupData(String path, Path nextPath, UriInfo uri) {
         String name = nextPath.getName();
         String type = "n/a";
         String domainPath = "";
@@ -49,40 +48,43 @@ public class PathUtils extends RestHandler {
         UUID uuid = null;
         Boolean hasJoblist = null;
 
-        if (nextPath instanceof DomainPath) {
-            type = "domain";
-            DomainPath nextDom = (DomainPath) nextPath;
-            domainPath = nextDom.getStringPath();
-            try {
-                ItemPath nextItem = nextDom.getItemPath();
+        log.debug("makeLookupData() - uriPath:{} nextPath:{}", uri.getPath(), nextPath);
+
+        switch (nextPath) {
+            case DomainPath nextDom -> {
+                type = "domain";
+                domainPath = nextDom.getStringPath();
+                try {
+                    ItemPath nextItem = nextDom.getItemPath();
+                    type = "item";
+                    nextPathURI = ItemUtils.getItemURI(uri, nextItem.getUUID());
+                    uuid = nextItem.getUUID();
+                } catch (ObjectNotFoundException ex) {
+                    nextPathURI = uri.getBaseUriBuilder().path(nextDom.getStringPath()).build();
+                }
+            }
+            case ItemPath itemPath -> {
                 type = "item";
-                nextPathURI = ItemUtils.getItemURI(uri, nextItem.getUUID());
-                uuid = nextItem.getUUID();
-            }
-            catch (ObjectNotFoundException ex) {
-                nextPathURI = uri.getAbsolutePathBuilder().path(nextDom.getName()).build();
-            }
-        }
-        else if (nextPath instanceof ItemPath) {
-            type = "item";
-            if (nextPath instanceof AgentPath) type = "agent";
+                if (nextPath instanceof AgentPath) type = "agent";
 
-            ItemPath itemPath = (ItemPath) nextPath;
-            uuid = itemPath.getUUID();
+                uuid = itemPath.getUUID();
 
-            try {
-                name = Gateway.getProxy(itemPath).getName();
+                try {
+                    name = Gateway.getProxy(itemPath).getName();
+                } catch (ObjectNotFoundException e) {
+                    name = itemPath.getUUID().toString();
+                }
+                nextPathURI = ItemUtils.getItemURI(uri, itemPath);
             }
-            catch (ObjectNotFoundException e) {
-                name = itemPath.getUUID().toString();
-            }
-            nextPathURI = ItemUtils.getItemURI(uri, itemPath);
-        }
-        else if (nextPath instanceof RolePath) {
-            type = "role";
-            hasJoblist = ((RolePath) nextPath).hasJobList();
+            case RolePath rolePath -> {
+                type = "role";
+                hasJoblist = rolePath.hasJobList();
 
-            nextPathURI = uri.getAbsolutePathBuilder().path(nextPath.getName()).build();
+                nextPathURI = uri.getAbsolutePathBuilder().path(nextPath.getName()).build();
+            }
+            default -> {
+                throw new IllegalArgumentException("Unsupported Path type: " + nextPath.getClass().getSimpleName());
+            }
         }
 
         //Now the "json structure" can be created

@@ -41,7 +41,7 @@ public class LoginTimeout extends PredefinedStep {
     public static final String description = "Records the LoginTimeout event in the history";
 
     public LoginTimeout() {
-        super();
+        super(description);
     }
 
     @Override

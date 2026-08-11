@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.lookup.ItemPath;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
 
 import lombok.extern.slf4j.Slf4j;
@@ -92,7 +91,7 @@ public abstract class ClusterStorage {
      * @throws PersistencyException
      *             If storage initialization failed
      */
-    public abstract void open(Authenticator auth) throws PersistencyException;
+    public abstract void open() throws PersistencyException;
 
     /**
      * Shuts down the storage. Data must be completely written to disk before
@@ -137,12 +136,12 @@ public abstract class ClusterStorage {
     public abstract short queryClusterSupport(ClusterType clusterType);
 
     /**
-     * Checks whether the storage support the given type of query or not
+     * Checks whether the storage supports the given type of query or not
      * 
-     * @param language type of the query (e.g. SQL/XQuery/XPath/....)
+     * @param query the query to be checked
      * @return whether the Storage supports the type of the query or not
      */
-    public abstract boolean checkQuerySupport(String language);
+    public abstract boolean checkQuerySupport(Query query);
 
     /**
      * @return A full name of this storage for logging

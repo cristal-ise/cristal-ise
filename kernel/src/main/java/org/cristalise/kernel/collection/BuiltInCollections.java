@@ -37,6 +37,18 @@ public enum BuiltInCollections {
     AGGREGATE_SCRIPT_PRIME("AggregateScript'"),
 
     /**
+     * Dependency Collection of DomainContext. ....
+     */
+    PARENT_CONTEXT("ParentContext"),
+    PARENT_CONTEXT_PRIME("Parentontext'"),
+
+    /**
+     * Dependency Collection of DomainContext. ....
+     */
+    SUB_CONTEXTS("SubContexts"),
+    SUB_CONTEXTS_PRIME("SubContexts'"),
+
+    /**
      * Dependency Collection of Module. ....
      */
     CONTENTS("Contents"),

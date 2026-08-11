@@ -21,15 +21,15 @@
 package org.cristalise.kernel.lifecycle.instance;
 
 import java.util.Vector;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.graph.model.GraphableVertex;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
-import org.cristalise.kernel.lookup.AgentPath;
-import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -96,11 +96,11 @@ public class Join extends WfVertex {
     }
 
     @Override
-    public void runNext(AgentPath agent, ItemPath item, TransactionKey transactionKey) throws InvalidDataException {
+    public void runNext(TransactionKey transactionKey) throws InvalidDataException {
         if (!hasPrevActiveActs()) {
             Vertex[] outVertices = getOutGraphables();
 
-            if (ArrayUtils.isNotEmpty(outVertices)) ((WfVertex) outVertices[0]).run(agent, item, transactionKey);
+            if (ArrayUtils.isNotEmpty(outVertices)) ((WfVertex) outVertices[0]).run(transactionKey);
         }
     }
 
@@ -186,8 +186,8 @@ public class Join extends WfVertex {
     }
 
     @Override
-    public void run(AgentPath agent, ItemPath item, TransactionKey transactionKey) throws InvalidDataException {
-        runNext(agent, item, transactionKey);
+    public void run(TransactionKey transactionKey) throws InvalidDataException {
+        runNext(transactionKey);
     }
 
     /**
@@ -208,8 +208,8 @@ public class Join extends WfVertex {
     }
 
     @Override
-    public void runFirst(AgentPath agent, ItemPath item, TransactionKey transactionKey) throws InvalidDataException {
-        runNext(agent, item, transactionKey);
+    public void runFirst(TransactionKey transactionKey) throws InvalidDataException {
+        runNext(transactionKey);
     }
 
     @Override

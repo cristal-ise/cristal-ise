@@ -1,7 +1,7 @@
 package org.cristalise.dev.test.scenario;
 
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 
 /**

@@ -32,7 +32,6 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.ClusterStorage;
 import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.querying.Query;
 
 import lombok.extern.slf4j.Slf4j;
@@ -53,7 +52,7 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public void open(Authenticator auth) throws PersistencyException {
+    public void open() throws PersistencyException {
 
     }
 
@@ -62,7 +61,7 @@ public class MemoryOnlyClusterStorage extends ClusterStorage {
     }
 
     @Override
-    public boolean checkQuerySupport(String language) {
+    public boolean checkQuerySupport(Query query) {
         log.warn("MemoryOnlyClusterStorage DOES NOT Support any query");
         return false;
     }

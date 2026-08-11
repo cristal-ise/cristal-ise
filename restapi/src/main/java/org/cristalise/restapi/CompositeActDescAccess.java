@@ -21,6 +21,7 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.process.resource.BuiltInResources.COMP_ACT_DESC_RESOURCE;
+import static org.cristalise.restapi.SystemProperties.REST_DefaultBatchSize;
 
 import javax.ws.rs.CookieParam;
 import javax.ws.rs.DefaultValue;
@@ -37,8 +38,6 @@ import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import org.cristalise.kernel.process.Gateway;
-
 @Path("/compositeActDesc")
 public class CompositeActDescAccess extends ResourceAccess {
 
@@ -53,7 +52,7 @@ public class CompositeActDescAccess extends ResourceAccess {
         AuthData authData = checkAuthCookie(authCookie);
         NewCookie cookie = checkAndCreateNewCookie(authData);
 
-        if (batchSize == null) batchSize = Gateway.getProperties().getInt("REST.DefaultBatchSize", 75);
+        if (batchSize == null) batchSize = REST_DefaultBatchSize.getInteger();
 
         return listAllResources(COMP_ACT_DESC_RESOURCE, uri, start, batchSize, cookie).build();
     }

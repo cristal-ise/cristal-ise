@@ -20,6 +20,9 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.server;
 
+import static org.cristalise.kernel.SystemProperties.BulkImport_fileExtension;
+import static org.cristalise.kernel.SystemProperties.BulkImport_rootDirectory;
+import static org.cristalise.kernel.SystemProperties.BulkImport_useDirectories;
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
 import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
 import static org.cristalise.kernel.persistency.ClusterType.JOB;
@@ -64,19 +67,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class BulkImport extends PredefinedStep {
 
-    /**
-     * 
-     */
-    public static final String BULK_IMPORT_ROOT_DIRECTORY = "BulkImport.rootDirectory";
-    /**
-     * 
-     */
-    public static final String BULK_IMPORT_USE_DIRECTORIES = "BulkImport.useDirectories";
-    /**
-     * 
-     */
-    public static final String BULK_IMPORT_FILE_EXTENSION = "BulkImport.fileExtension";
-
     private String  root;
     private String  ext;
     private Boolean  useDir;
@@ -84,15 +74,15 @@ public class BulkImport extends PredefinedStep {
     XMLClusterStorage importCluster;
 
     public BulkImport() {
-        super();
+        super("Imports all data provided in a specific directory");
 
-        root   = Gateway.getProperties().getString( BULK_IMPORT_ROOT_DIRECTORY);
-        ext    = Gateway.getProperties().getString( BULK_IMPORT_FILE_EXTENSION, "");
-        useDir = Gateway.getProperties().getBoolean(BULK_IMPORT_USE_DIRECTORIES, false);
+        root   = BulkImport_rootDirectory.getString();
+        ext    = BulkImport_fileExtension.getString();
+        useDir = BulkImport_useDirectories.getBoolean();
     }
 
     public BulkImport(String rootDir) {
-        super();
+        this();
         root = rootDir;
         ext = "";
         useDir = false;

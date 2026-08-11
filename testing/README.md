@@ -1,4 +1,19 @@
-Functional tests and test related tools 
----------------------------------------
+# CRISTAL-iSE functional testing project
 
- CRISTAL-iSE functional testing project
+## Run tests in your IDE with docker-compose
+1. Run all tests
+   - `mvn -P integtest -pl testing test`
+1. build local docker image of testing project
+   1. `mvn clean install -DskipTests`
+   1. `mvn -P docker -pl restapi,testing jib:dockerBuild`
+1. create src/main/docker/.env file with content similat to this:
+   - `APP_VOLUMES_ROOT=~/workspace/cristal-ise/testing`
+1. use src/main/docker/docker-compose.yml to start the required services
+   - `docker compose -p integtest up -d`
+1. in your IDE select the junit test class to run and add these java system properties to its run config:
+   ```properties
+   -Dvertx.hazelcast.config=src/main/config/cluster-config.xml
+   -Dlogback.configurationFile=src/main/config/logback.xml
+   ```
+   - in case of intellij you can create a junit template for the testing project
+1. execute the test class

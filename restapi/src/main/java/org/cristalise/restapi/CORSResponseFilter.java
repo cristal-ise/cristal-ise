@@ -20,13 +20,16 @@
  */
 package org.cristalise.restapi;
 
-import org.cristalise.kernel.process.Gateway;
+import static org.cristalise.restapi.SystemProperties.REST_corsAllowCredentials;
+import static org.cristalise.restapi.SystemProperties.REST_corsAllowMethods;
+import static org.cristalise.restapi.SystemProperties.REST_corsAllowOrigin;
+
+import java.io.IOException;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.core.MultivaluedMap;
-import java.io.IOException;
 
 /**
  * Implements ContainerResponseFilter to add CORS headers to each Response.
@@ -39,9 +42,9 @@ public class CORSResponseFilter implements ContainerResponseFilter {
         MultivaluedMap<String, Object> respHeaders = responseContext.getHeaders();
 
         respHeaders.add("Access-Control-Allow-Headers", "   X-Requested-With, Content-Type, X-Codingpedia");
-        respHeaders.add("Access-Control-Allow-Origin",      Gateway.getProperties().getString("REST.corsAllowOrigin",  "*"));
-        respHeaders.add("Access-Control-Allow-Credentials", Gateway.getProperties().getString("REST.corsAllowCredentials",  "true"));
-        respHeaders.add("Access-Control-Allow-Methods",     Gateway.getProperties().getString("REST.corsAllowMethods", "GET, POST, OPTIONS"));
+        respHeaders.add("Access-Control-Allow-Origin",      REST_corsAllowOrigin.getString());
+        respHeaders.add("Access-Control-Allow-Credentials", REST_corsAllowCredentials.getString());
+        respHeaders.add("Access-Control-Allow-Methods",     REST_corsAllowMethods.getString());
         respHeaders.add("Access-Control-Expose-Headers",    "Access-Control-Allow-Origin");
     }
 }

@@ -1,4 +1,4 @@
-<AllProperties>
+<AllProperties name="ElementaryActivityDesc">
   <PropertyDescription DefaultValue="" IsClassIdentifier="false" IsMutable="true" Name="Name" Transitive="false"/>
   <PropertyDescription DefaultValue="ActivityDesc" IsClassIdentifier="true" IsMutable="false" Name="Type" Transitive="true"/>
   <PropertyDescription DefaultValue="Elementary" IsClassIdentifier="true" IsMutable="false" Name="Complexity" Transitive="true"/>

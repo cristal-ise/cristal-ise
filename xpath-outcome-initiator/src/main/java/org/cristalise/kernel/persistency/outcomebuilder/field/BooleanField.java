@@ -20,9 +20,10 @@
  */
 package org.cristalise.kernel.persistency.outcomebuilder.field;
 
+import static org.cristalise.kernel.persistency.outcomebuilder.SystemProperties.Webui_inputField_boolean_defaultValue;
+
 import java.util.Map;
 
-import org.cristalise.kernel.process.Gateway;
 import org.json.JSONObject;
 
 import lombok.extern.slf4j.Slf4j;
@@ -49,8 +50,8 @@ public class BooleanField extends StringField {
     }
 
     @Override
-    public JSONObject generateNgDynamicForms(Map<String, Object> inputs) {
-        JSONObject bool = getCommonFieldsNgDynamicForms();
+    public JSONObject generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout) {
+        JSONObject bool = getNgDynamicFormsCommonFields(withModel, withLayout);
 
         bool.put("onLabel", "Yes");
         bool.put("offLabel", "No");
@@ -71,6 +72,6 @@ public class BooleanField extends StringField {
 
     @Override
     public String getDefaultValue() {
-        return Gateway.getProperties().getString("Webui.inputField.boolean.defaultValue", "false");
+        return Webui_inputField_boolean_defaultValue.getString();
     }
 }

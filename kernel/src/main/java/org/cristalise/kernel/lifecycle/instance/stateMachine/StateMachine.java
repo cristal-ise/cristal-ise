@@ -20,12 +20,14 @@
  */
 package org.cristalise.kernel.lifecycle.instance.stateMachine;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.Writer;
+import static org.cristalise.kernel.SystemProperties.StateMachine_Composite_default;
+import static org.cristalise.kernel.SystemProperties.StateMachine_Elementary_default;
+import static org.cristalise.kernel.SystemProperties.StateMachine_Predefined_default;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import org.cristalise.kernel.collection.CollectionArrayList;
 import org.cristalise.kernel.common.AccessRightsException;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -35,11 +37,9 @@ import org.cristalise.kernel.lifecycle.instance.Activity;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.DescriptionObject;
-import org.cristalise.kernel.utils.FileStringUtility;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -313,49 +313,19 @@ public class StateMachine implements DescriptionObject {
     }
 
     @Override
-    public void export(Writer imports, File dir, boolean shallow) throws IOException, InvalidDataException {
-        String smXML;
-        String typeCode = BuiltInResources.STATE_MACHINE_RESOURCE.getTypeCode();
-        String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xml";
-
-        try {
-            smXML = new Outcome(Gateway.getMarshaller().marshall(this)).getData(true);
-        }
-        catch (Exception e) {
-            log.error("", e);
-            throw new InvalidDataException("Couldn't marshall state machine " + getName());
-        }
-
-        FileStringUtility.string2File(new File(new File(dir, typeCode), fileName), smXML);
-
-        if (imports == null) return;
-
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
-            imports.write("<Resource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
-                    + "type='" + typeCode + "'>boot/" + typeCode + "/" + fileName
-                    + "</Resource>\n");
-        }
-        else {
-            imports.write("<StateMachineResource "
-                    + "name='" + getName() + "' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
-                    + "/>\n");
-        }
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.STATE_MACHINE_RESOURCE;
     }
 
     public static String getDefaultStateMachine(String type) {
-        if      ("Elementary".equals(type)) {
-            return Gateway.getProperties().getString("StateMachine.Elementary.default", "Default");
+        if ("Elementary".equals(type)) {
+            return StateMachine_Elementary_default.getString();
         }
         else if ("Composite".equals(type))  {
-            return Gateway.getProperties().getString("StateMachine.Composite.default",  "CompositeActivity");
+            return StateMachine_Composite_default.getString();
         }
         else if ("Predefined".equals(type))  {
-            return Gateway.getProperties().getString("StateMachine.Predefined.default", "PredefinedStep");
+            return StateMachine_Predefined_default.getString();
         }
         else {
             throw new UnsupportedOperationException("Keyword '"+type+"' is not supported");

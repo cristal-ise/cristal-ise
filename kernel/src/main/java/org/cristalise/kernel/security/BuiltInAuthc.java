@@ -32,16 +32,16 @@ import lombok.extern.slf4j.Slf4j;
 public enum BuiltInAuthc {
 
     /**
-     * Built in Admin role
+     * Built-in Admin role
      */
     ADMIN_ROLE("Admin"), 
 
     /**
-     * Built in 'system' agent
+     * Built-in 'system' agent
      */
     SYSTEM_AGENT("system");
 
-    private String name;
+    private final String name;
 
     private BuiltInAuthc(final String n) {
         name = n;
@@ -51,6 +51,15 @@ public enum BuiltInAuthc {
         return getPath(null);
     }
 
+    /**
+     * Retrieves the {@link Path} associated with the specified transaction key for the current
+     * built-in authentication type.
+     *
+     * @param transactionKey the transaction key used to locate the path, can be null
+     * @return the resolved {@link Path} corresponding to the built-in authentication type; 
+     *         returns null if the authentication type is unhandled
+     * @throws ObjectNotFoundException if the path cannot be located
+     */
     public Path getPath(TransactionKey transactionKey) throws ObjectNotFoundException {
         if      (this.equals(SYSTEM_AGENT)) return Gateway.getLookup().getAgentPath(name, transactionKey);
         else if (this.equals(ADMIN_ROLE))   return Gateway.getLookup().getRolePath(name, transactionKey);

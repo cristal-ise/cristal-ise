@@ -24,7 +24,6 @@ import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 import static org.cristalise.kernel.process.resource.BuiltInResources.COMP_ACT_DESC_RESOURCE;
 import static org.cristalise.kernel.process.resource.BuiltInResources.ELEM_ACT_DESC_RESOURCE;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -45,9 +44,6 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.LocalObjectLoader;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 import org.json.XML;
 
 public class ResourceAccess extends ItemUtils {
@@ -106,7 +102,14 @@ public class ResourceAccess extends ItemUtils {
             return toJSON(getResourceVersions(item, VIEWPOINT + "/" + resource.getSchemaName(), name, uri, cookie), cookie);
         }
         catch (ObjectNotFoundException e) {
-            throw new WebAppExceptionBuilder().message(resourceTypeName + " has no versions").status(Status.NOT_FOUND).newCookie(cookie).build();
+            throw new WebAppExceptionBuilder()
+                .message(resourceTypeName + " has no versions")
+                .exception(e)
+                .status(Status.NOT_FOUND)
+                .newCookie(cookie).build();
+        }
+        catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
@@ -129,41 +132,27 @@ public class ResourceAccess extends ItemUtils {
 
             return childrenData;
         }
-        catch (ObjectNotFoundException e) {
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 
     public Response.ResponseBuilder getResource(BuiltInResources resource, String name, Integer version, boolean json, NewCookie cookie) {
         try {
-            String result;
-            switch (resource) {
-                case SCHEMA_RESOURCE:
-                    result = LocalObjectLoader.getSchema(name,version).getSchemaData(); 
-                    break;
-                case STATE_MACHINE_RESOURCE:
-                    result = Gateway.getMarshaller().marshall(LocalObjectLoader.getStateMachine(name,version));
-                    break;
-                case SCRIPT_RESOURCE:
-                    result = LocalObjectLoader.getScript(name,version).getScriptData();
-                    break;
-                case QUERY_RESOURCE:
-                    result = LocalObjectLoader.getQuery(name,version).getQueryXML();
-                    break;
-                case ELEM_ACT_DESC_RESOURCE:
-                    result = Gateway.getMarshaller().marshall(LocalObjectLoader.getElemActDef(name,version));
-                    break;
-                case COMP_ACT_DESC_RESOURCE:
-                    result = Gateway.getMarshaller().marshall(LocalObjectLoader.getCompActDef(name,version));
-                    break;
-                default:
-                    throw new WebAppExceptionBuilder()
-                        .message(resource.name()+" "+name+" v"+version+" not handle")
+            String result = switch (resource) {
+                case SCHEMA_RESOURCE        -> LocalObjectLoader.getSchema(name, version).getSchemaData();
+                case STATE_MACHINE_RESOURCE -> Gateway.getMarshaller().marshall(LocalObjectLoader.getStateMachine(name, version));
+                case SCRIPT_RESOURCE        -> LocalObjectLoader.getScript(name, version).getScriptData();
+                case QUERY_RESOURCE         -> LocalObjectLoader.getQuery(name, version).getQueryXML();
+                case ELEM_ACT_DESC_RESOURCE -> Gateway.getMarshaller().marshall(LocalObjectLoader.getElemActDef(name, version));
+                case COMP_ACT_DESC_RESOURCE -> Gateway.getMarshaller().marshall(LocalObjectLoader.getCompActDef(name, version));
+                default -> throw new WebAppExceptionBuilder()
+                        .message(resource.name() + " " + name + " v" + version + " not handle")
                         .status(Status.BAD_REQUEST)
                         .build();
-            }
+            };
 
-            if(json) result = XML.toJSONObject(result, true).toString();
+            if (json) result = XML.toJSONObject(result, true).toString();
 
             return Response.ok(result);
         }
@@ -173,8 +162,8 @@ public class ResourceAccess extends ItemUtils {
         catch (InvalidDataException e) {
             throw new WebAppExceptionBuilder(resource.name()+" "+name+" v"+version+" does not point to any data", e, Status.NOT_FOUND, cookie).build();
         }
-        catch (MarshalException | ValidationException | IOException | MappingException e) {
-            throw new WebAppExceptionBuilder(resource.name()+" "+name+" v"+version+" xml convert problem", e, Status.INTERNAL_SERVER_ERROR, cookie).build();
+        catch (Exception e) {
+            throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
 }

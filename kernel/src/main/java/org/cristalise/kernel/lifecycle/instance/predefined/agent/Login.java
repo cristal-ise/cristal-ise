@@ -40,7 +40,7 @@ public class Login extends Authenticate {
     public static final String description = "Records the Login event in the history. Login is assocated with user sessions and tokens validity";
 
     public Login() {
-        super();
+        super(description);
     }
 
     @Override

@@ -1,0 +1,57 @@
+<p-treeTable
+  [value]="nodes()"
+  [rows]="rows()"
+  [lazy]="true"
+  [loading]="loading()"
+  [totalRecords]="totalRecords()"
+  (onLazyLoad)="loadNodes($event)"
+  (onNodeExpand)="onNodeExpand($event)">
+  <ng-template pTemplate="header">
+    <tr>
+      <th>{{ 'itemData.headers.nameVersion' | transloco }}</th>
+      <th>{{ 'itemData.headers.viewpoint' | transloco }}</th>
+      <th>{{ 'itemData.headers.agent' | transloco }}</th>
+      <th>{{ 'itemData.headers.timestamp' | transloco }}</th>
+      <th>{{ 'itemData.headers.details' | transloco }}</th>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="body" let-rowNode let-rowData="rowData">
+    <tr [ttRow]="rowNode">
+      <td>
+        <p-treeTableToggler [rowNode]="rowNode" />
+        @if (rowData.isLeaf) {
+          v{{ rowData.version }}
+        } @else {
+          <span [itemData]="rowData.name"></span>
+        }
+      </td>
+      <td>
+        @if (rowData.isLeaf) {
+          {{ rowData.viewpoint | transloco }}
+        } @else {
+          {{ rowData.count }}
+        }
+      </td>
+      <td>
+        @if (rowData.isLeaf) {
+          <span [itemData]="rowData.agent"></span>
+        }
+      </td>
+      <td>
+        @if (rowData.isLeaf && rowData.timestamp) {
+          {{ rowData.timestamp | date:'yyyy-MM-dd HH:mm:ss.SSS' }}
+        }
+      </td>
+      <td>
+        @if (rowData.isLeaf) {
+          <p-button icon="pi pi-eye" [text]="true" severity="primary" (onClick)="navigateToOutcomeView(rowData)"></p-button>
+        }
+      </td>
+    </tr>
+  </ng-template>
+  <ng-template pTemplate="emptymessage">
+    <tr>
+      <td colspan="5" class="text-center py-4">{{ 'history.no_records' | transloco }}</td>
+    </tr>
+  </ng-template>
+</p-treeTable>

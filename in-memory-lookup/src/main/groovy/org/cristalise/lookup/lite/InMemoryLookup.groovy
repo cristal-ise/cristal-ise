@@ -20,6 +20,7 @@
  */
 package org.cristalise.lookup.lite
 
+import org.apache.commons.lang3.NotImplementedException
 import org.cristalise.kernel.common.ObjectNotFoundException
 import org.cristalise.kernel.lookup.AgentPath
 import org.cristalise.kernel.lookup.DomainPath
@@ -31,11 +32,10 @@ import org.cristalise.kernel.lookup.RolePath
 import org.cristalise.kernel.persistency.ClusterStorage
 import org.cristalise.kernel.persistency.ClusterType
 import org.cristalise.kernel.persistency.TransactionKey
-import org.cristalise.kernel.process.auth.Authenticator
+
 import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.property.PropertyDescriptionList
 import org.cristalise.storage.MemoryOnlyClusterStorage
-
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
 
@@ -86,13 +86,11 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     }
 
     /**
-     * Connect to the directory using the credentials supplied in the Authenticator.
-     *
-     * @param user The connected Authenticator. The Lookup implementation may use the AuthObject in this to communicate with the database.
+     * Connect to lookup
      */
     @Override
-    public void open(Authenticator user) {
-        log.info("open(user) - Do nothing")
+    public void open() {
+        log.info("open() - Do nothing")
         clear()
     }
 
@@ -177,13 +175,20 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
     @Override
     public PagedResult getChildren(Path path, int offset, int limit, TransactionKey transactionKey) {
         //cache.values().findAll { ((Path)it).stringPath =~ /^$path.stringPath\/\w+$/ }
-        return null
+        throw new NotImplementedException("Retrieving children of PagedResult is not implemented");
     }
 
     @Override
     public Iterator<Path> getChildren(Path path, TransactionKey transactionKey) {
         log.debug("getChildren() - Path: $path")
         return cache.values().findAll { ((Path)it).stringPath =~ /^$path.stringPath\/\w+$/ }.iterator()
+    }
+
+    @Override
+    public PagedResult getChildren(Path path, int offset, int limit, boolean contextOnly, TransactionKey transactionKey) {
+        if (!contextOnly) getChildren(path, offset, limit, transactionKey);
+
+        throw new NotImplementedException("Retrieving only children of DomainContext is not implemented");
     }
 
     @Override
@@ -297,31 +302,31 @@ abstract class InMemoryLookup extends ClusterStorage implements Lookup {
 
     @Override
     public PagedResult search(Path start, List<Property> props, int offset, int limit, TransactionKey transactionKey) {
-        // TODO Auto-generated method stub
-        return null
+        throw new NotImplementedException("search is not implemented");
     }
 
     @Override
     public PagedResult search(Path start, PropertyDescriptionList props, int offset, int limit, TransactionKey transactionKey) {
-        // TODO Auto-generated method stub
-        return null
+        throw new NotImplementedException("search is not implemented");
     }
 
     @Override
     public PagedResult searchAliases(ItemPath itemPath, int offset, int limit, TransactionKey transactionKey) {
-        // TODO Auto-generated method stub
-        return null
+        throw new NotImplementedException("searchAliases is not implemented");
     }
 
     @Override
     public PagedResult getAgents(RolePath rolePath, int offset, int limit, TransactionKey transactionKey) throws ObjectNotFoundException {
-        // TODO Auto-generated method stub
-        return null
+        throw new NotImplementedException("getAgents is not implemented");
     }
 
     @Override
     public PagedResult getRoles(AgentPath agentPath, int offset, int limit, TransactionKey transactionKey) {
-        // TODO Auto-generated method stub
-        return null
+        throw new NotImplementedException("getRoles is not implemented");
+    }
+
+    @Override
+    public PagedResult getContextTree(DomainPath path, TransactionKey transactionKey) {
+        throw new NotImplementedException("Retrieving ContextTree support is not implemented");
     }
 }

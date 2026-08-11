@@ -23,17 +23,13 @@ package org.cristalise.kernel.collection;
 import org.cristalise.kernel.utils.CastorArrayList;
 
 /**
- * A list of CollectionMembers, used internally in the Collection for XML 
- * marshalling convenience.
- *  *
+ * A list of CollectionMembers, used internally in the Collection for XML marshalling convenience.
+ *
  * @param <E> The CollectionMember implementation stored.
  */
-public class CollectionMemberList<E extends CollectionMember> extends CastorArrayList<E>
-{
+public class CollectionMemberList<E extends CollectionMember> extends CastorArrayList<E> {
 
-    public CollectionMemberList()
-    {
+    public CollectionMemberList() {
         super();
     }
-
 }

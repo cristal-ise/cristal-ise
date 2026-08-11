@@ -21,9 +21,6 @@
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.MEMBER_ADD_SCRIPT;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
-
-import java.io.IOException;
 
 import org.cristalise.kernel.collection.Collection.Cardinality;
 import org.cristalise.kernel.collection.Dependency;
@@ -39,9 +36,6 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.utils.CastorHashMap;
-import org.exolab.castor.mapping.MappingException;
-import org.exolab.castor.xml.MarshalException;
-import org.exolab.castor.xml.ValidationException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,8 +45,7 @@ public class AddMembersToCollection extends ManageMembersOfCollectionBase {
     public static final String description = "Adds many members to the named Collection of the Item";
 
     public AddMembersToCollection() {
-        super();
-        this.setBuiltInProperty(SCHEMA_NAME, "Dependency");
+        super("Dependency", description);
     }
     
     @Override
@@ -98,39 +91,35 @@ public class AddMembersToCollection extends ManageMembersOfCollectionBase {
 
         log.debug("runActivityLogic() - item:{} requestdata:{}", item, requestData);
 
-        try {
-            Dependency inputDependency   = (Dependency) Gateway.getMarshaller().unmarshall(requestData);
-            String     collectionName    = inputDependency.getName();
-            Dependency currentDependency = (Dependency) item.getCollection(collectionName, null, transactionKey);
+        Dependency inputDependency = (Dependency) Gateway.getMarshaller().unmarshall(requestData);
+        String collectionName = inputDependency.getName();
+        Dependency currentDependency =
+                (Dependency) item.getCollection(collectionName, null, transactionKey);
 
-            log.debug("runActivityLogic() - {} of item {}", currentDependency, item);
+        log.debug("runActivityLogic() - Changing {} of item:{}", currentDependency, item);
 
-            checkCardinatilyConstraint(currentDependency, inputDependency, itemPath, transactionKey);
+        checkCardinatilyConstraint(currentDependency, inputDependency, itemPath, transactionKey);
 
-            for (DependencyMember inputMember : inputDependency.getMembers().list) {
-                CastorHashMap inputMemberProps = inputMember.getProperties();
-                DependencyMember newMember = null;
+        for (DependencyMember inputMember : inputDependency.getMembers().list) {
+            CastorHashMap inputMemberProps = inputMember.getProperties();
+            DependencyMember newMember = null;
 
-                if (inputMemberProps.size() != 0) {
-                    newMember = currentDependency.createMember(inputMember.getItemPath(), inputMemberProps, transactionKey);
-                }
-                else {
-                    newMember = currentDependency.createMember(inputMember.getItemPath(), transactionKey);
-                }
-
-                evaluateScript(itemPath, currentDependency, newMember, transactionKey);
-
-                currentDependency.addMember(newMember);
+            if (inputMemberProps.size() != 0) {
+                newMember = currentDependency.createMember(inputMember.getItemPath(),
+                        inputMemberProps, transactionKey);
+            } else {
+                newMember =
+                        currentDependency.createMember(inputMember.getItemPath(), transactionKey);
             }
 
-            Gateway.getStorage().put(itemPath, currentDependency, transactionKey);
+            evaluateScript(itemPath, currentDependency, newMember, transactionKey);
 
-            return Gateway.getMarshaller().marshall(currentDependency);
+            currentDependency.addMember(newMember);
         }
-        catch (IOException | ValidationException | MarshalException | MappingException ex) {
-            log.error("Error adding members to collection", ex);
-            throw new InvalidDataException("Error adding members to collection: " + ex);
-        }
+
+        Gateway.getStorage().put(itemPath, currentDependency, transactionKey);
+
+        return Gateway.getMarshaller().marshall(currentDependency);
     }
 
     /**

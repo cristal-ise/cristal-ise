@@ -1,0 +1,75 @@
+# CRISTAL-iSE Schema DSL Examples
+
+### Basic Employee Record
+```groovy
+Schema('Employee', 1) {
+  struct(name: 'Employee', documentation: 'Core employee record', useSequence: true) {
+    field(name: 'ID', type: 'integer')
+    field(name: 'FullName', type: 'string') {
+      dynamicForms(label: 'Full Name', container: 'ui-g-6')
+    }
+    field(name: 'Department', type: 'string') {
+      listOfValues(queryRef: 'GetDepartments:0')
+    }
+  }
+}
+```
+
+### Employee Record with expression
+
+```groovy
+Schema('Patient_Details', 0) {
+  struct(name: 'Patient_Details') {
+    field(name: 'DateOfBirth', type: 'date')
+    field(name: 'DateOfDeath', type: 'date', multiplicity: '0..1')
+    field(name: 'Age', type: 'integer') {
+      expression(
+          imports: ['java.time.Period', 'java.time.LocalDate'],
+          inputFields: ['DateOfBirth, DateOfDeath'],
+          expression: 'Period.between(DateOfBirth, DateOfDeath ?: LocalDate.now()).getYears()'
+      )
+    }
+  }
+}
+```
+
+### Validation and Computed Fields
+```groovy
+field(name: 'Age', type: 'integer') {
+  dynamicForms(disabled: true) // Computed, so user shouldn't edit
+  expression(
+      imports: ['java.time.Period', 'java.time.LocalDate'],
+      inputFields: ['BirthDate'],
+      expression: 'Period.between(BirthDate, LocalDate.now()).getYears()'
+  )
+  warning(expression: 'element.value >= 18', message: 'Employee must be at least 18 years old')
+}
+```
+
+### Complex UI Layout
+```groovy
+struct(name: 'ContactInfo', useSequence: true) {
+  dynamicForms(label: 'Contact Information', container: 'ui-g-12')
+  field(name: 'Email', type: 'string') {
+    dynamicForms(label: 'Email Address', container: 'ui-g-6')
+    warning(pattern: '^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$', message: 'Invalid email format')
+  }
+  field(name: 'Phone', type: 'string') {
+    dynamicForms(label: 'Phone Number', container: 'ui-g-6', mask: '(999) 999-9999')
+  }
+}
+```
+
+### Update UI form listOfValues using Script or Query
+```groovy
+struct(name: 'Address', useSequence: true) {
+  field(name: 'Country', type: 'string') {
+    dynamicForms(type: 'SELECT', updateFields: ['City'])
+    listOfValues(queryRef: 'GetCountries:0')
+  }
+  field(name: 'City', type: 'string') {
+    dynamicForms(type: 'SELECT')
+    listOfValues(scriptRef: 'GetCities:0', inputName: 'Country')
+  }
+}
+```

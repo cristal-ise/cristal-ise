@@ -79,6 +79,16 @@ class SchemaBuilderExpressionSpecs extends Specification implements CristalTestS
                          </xs:annotation>
                        </xs:element>
                        <xs:element name='Age' type='xs:integer' minOccurs='1' maxOccurs='1'/>
+                       <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:all>
                    </xs:complexType>
                  </xs:element>
@@ -131,6 +141,16 @@ class SchemaBuilderExpressionSpecs extends Specification implements CristalTestS
                          </xs:annotation>
                        </xs:element>
                        <xs:element name='Age' type='xs:integer' minOccurs='1' maxOccurs='1'/>
+                       <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:all>
                    </xs:complexType>
                  </xs:element>

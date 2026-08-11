@@ -39,7 +39,7 @@ public class WriteProperty extends PredefinedStep {
      * Constructor for Castor
      */
     public WriteProperty() {
-        super();
+        super("Writes a property to the Item");
     }
 
     @Override

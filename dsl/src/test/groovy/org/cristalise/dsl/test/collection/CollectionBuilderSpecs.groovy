@@ -56,8 +56,8 @@ class CollectionBuilderSpecs extends Specification implements CristalTestSetup {
         then:
         builder.dependency.properties.size() == 4
         builder.dependency.properties['toto'] == true
-        builder.dependency.properties[DEPENDENCY_CARDINALITY.toString()] == ManyToOne
-        builder.dependency.properties[DEPENDENCY_TYPE.toString()] == Bidirectional
+        builder.dependency.properties[DEPENDENCY_CARDINALITY.toString()] == ManyToOne.toString()
+        builder.dependency.properties[DEPENDENCY_TYPE.toString()] == Bidirectional.toString()
         builder.dependency.properties[DEPENDENCY_TO.toString()] == 'ClubMember'
         builder.dependency.members.list.size() == 1
         builder.dependency.members.list[0].childUUID

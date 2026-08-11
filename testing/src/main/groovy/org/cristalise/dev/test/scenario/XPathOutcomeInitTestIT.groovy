@@ -21,11 +21,13 @@
 
 package org.cristalise.dev.test.scenario
 
+import static org.cristalise.dev.dsl.DevXMLUtility.recordToXML
+
 import org.cristalise.dsl.persistency.outcome.OutcomeBuilder
 import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class XPathOutcomeInitTestIT extends KernelScenarioTestBase {
     
@@ -33,7 +35,12 @@ class XPathOutcomeInitTestIT extends KernelScenarioTestBase {
     public static final String FactoryActName = "XPathOutcomeInitTest_CreateDescription"
 
     private ItemProxy createNewXPathOutcomeInitTest_Details(String name, String folder) {
-        createNewItemByFactory(FactorytPath, FactoryActName, name, folder)
+        executeDoneJob(
+            agent.getItem(FactorytPath),
+            FactoryActName,
+            recordToXML('NewDevObjectDef', [ObjectName: name, SubFolder: folder])
+        )
+
         ItemProxy devItem = agent.getItem("$folder/$name")
         assert devItem && devItem.getName() == name
         return devItem
@@ -129,7 +136,11 @@ class XPathOutcomeInitTestIT extends KernelScenarioTestBase {
             Workflow(wf)
         }
 
-        createNewItemByFactory(factory, "CreateNewInstance", "XPathOutcomeInitTest-$timeStamp", folder)
+        executeDoneJob(
+            factory,
+            "CreateNewInstance",
+            recordToXML('NewDevObjectDef', [ObjectName: "XPathOutcomeInitTest-$timeStamp", SubFolder: folder])
+        )
 
         def item = agent.getItem("$folder/XPathOutcomeInitTest-$timeStamp")
 

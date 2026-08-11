@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ReplaceDomainWorkflow extends PredefinedStep {
     public ReplaceDomainWorkflow() {
-        super();
+        super("Replaces the domain CA with the supplied one. Used by the GUI to save new Wf layout");
     }
 
     @Override
@@ -58,19 +58,13 @@ public class ReplaceDomainWorkflow extends PredefinedStep {
             throw new InvalidDataException("ReplaceDomainWorkflow: Invalid parameters " + Arrays.toString(params));
 
         lifeCycle.getChildrenGraphModel().removeVertex(lifeCycle.search("workflow/domain"));
-        CompositeActivity domain;
-        try {
-            domain = (CompositeActivity) Gateway.getMarshaller().unmarshall(params[0]);
-        }
-        catch (Exception e) {
-            log.error("ReplaceDomainWorkflow: Could not unmarshall new workflow", e);
-            throw new InvalidDataException("ReplaceDomainWorkflow: Could not unmarshall new workflow: " + e.getMessage());
-        }
+        CompositeActivity domain = (CompositeActivity) Gateway.getMarshaller().unmarshall(params[0]);
+
         domain.setName("domain");
         lifeCycle.initChild(domain, true, new GraphPoint(150, 100));
 
         // if new workflow, activate it, otherwise refresh the jobs
-        if (!domain.active) lifeCycle.run(agent, item, transactionKey);
+        if (!domain.active) lifeCycle.run(transactionKey);
 
         // store new wf
         Gateway.getStorage().put(item, lifeCycle, transactionKey);

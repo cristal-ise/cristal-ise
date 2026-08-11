@@ -20,12 +20,13 @@
  */
 package org.cristalise.kernel.lifecycle.routingHelpers;
 
+import static org.cristalise.kernel.SystemProperties.DataHelper_$name;
+
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.Gateway;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,13 +46,15 @@ public class DataHelperUtility {
      * @throws InvalidDataException could not configure DataHelper
      */
     public static DataHelper getDataHelper(String id) throws InvalidDataException {
-        Object configHelper = Gateway.getProperties().getObject("DataHelper."+id);
+        Object[] args = new Object[] {id};
 
-        if (configHelper != null) {
-            if (configHelper instanceof DataHelper)
-                return (DataHelper)configHelper;
-            else
-                throw new InvalidDataException("Config value is not an instance of DataHelper - 'DataHelper."+id+"'=" +configHelper.toString());
+        if (DataHelper_$name.getObject(args) != null) {
+            try {
+                return (DataHelper) DataHelper_$name.getInstance(args);
+            }
+            catch (ReflectiveOperationException e) {
+                throw new InvalidDataException(e);
+            }
         }
         else {
             switch (BuiltInDataHelpers.getValue(id)) {

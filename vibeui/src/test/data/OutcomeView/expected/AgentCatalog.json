@@ -1,0 +1,13 @@
+{
+  "isDisplayable": true,
+  "mappings": {
+    "Agent": "FIELDSET",
+    "Agent.Role": "TABLE",
+    "Agent.password": "PRIMITIVE",
+    "Agent.initialPath": "PRIMITIVE",
+    "Agent.name": "PRIMITIVE",
+    "Agent.id": "PRIMITIVE",
+    "Agent.version": "PRIMITIVE",
+    "Agent.Property": "TABLE"
+  }
+}

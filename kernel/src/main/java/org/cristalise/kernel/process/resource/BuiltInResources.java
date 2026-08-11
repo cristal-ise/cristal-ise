@@ -21,6 +21,9 @@
 
 package org.cristalise.kernel.process.resource;
 
+import org.cristalise.kernel.common.InvalidDataException;
+import org.cristalise.kernel.common.ObjectNotFoundException;
+import org.cristalise.kernel.entity.DomainContext;
 import org.cristalise.kernel.entity.imports.ImportAgent;
 import org.cristalise.kernel.entity.imports.ImportItem;
 import org.cristalise.kernel.entity.imports.ImportRole;
@@ -33,7 +36,7 @@ import org.cristalise.kernel.property.PropertyDescriptionList;
 import org.cristalise.kernel.querying.Query;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.utils.DescriptionObject;
-
+import org.cristalise.kernel.utils.LocalObjectLoader;
 import lombok.Getter;
 
 /**
@@ -41,24 +44,25 @@ import lombok.Getter;
  */
 @Getter
 public enum BuiltInResources {
-    //                     typeCode,   schemaName,              typeRoot,             workflowDef
-    ACTIVITY_DESC_RESOURCE("AC",       "ActivityDef",           "/desc/ActivityDesc", null), //'abstract' resource - does not have an Item
-    PROPERTY_DESC_RESOURCE("property", "PropertyDescription",   "/desc/PropertyDesc", "ManagePropertyDesc"),
-    MODULE_RESOURCE(       "module",   "Module",                "/desc/Module",       "ManageModule"),
-    SCHEMA_RESOURCE(       "OD",       "Schema",                "/desc/Schema",       "ManageSchema"),
-    SCRIPT_RESOURCE(       "SC",       "Script",                "/desc/Script",       "ManageScript"),
-    QUERY_RESOURCE(        "query",    "Query",                 "/desc/Query",        "ManageQuery"),
-    STATE_MACHINE_RESOURCE("SM",       "StateMachine",          "/desc/StateMachine", "ManageStateMachine"),
-    COMP_ACT_DESC_RESOURCE("CA",       "CompositeActivityDef",  "/desc/ActivityDesc", "ManageCompositeActDef"),
-    ELEM_ACT_DESC_RESOURCE("EA",       "ElementaryActivityDef", "/desc/ActivityDesc", "ManageElementaryActDef"),
-    ITEM_DESC_RESOURCE(    "item",     "Item",                  "/desc/ItemDesc",     "ManageItemDesc"),
-    AGENT_DESC_RESOURCE(   "agent",    "Agent",                 "/desc/AgentDesc",    "ManageAgentDesc"),
-    ROLE_DESC_RESOURCE(    "role" ,    "Role",                  "/desc/RoleDesc",     "ManageRoleDesc");
+    //                     typeCode,    schemaName,              typeRoot,              workflowDef
+    ACTIVITY_DESC_RESOURCE( "AC",       "ActivityDef",           "/desc/ActivityDesc",  null), //'abstract' resource - does not have an Item
+    PROPERTY_DESC_RESOURCE( "property", "PropertyDescription",   "/desc/PropertyDesc",  "ManagePropertyDesc"),
+    MODULE_RESOURCE(        "module",   "Module",                "/desc/Module",        "ManageModule"),
+    SCHEMA_RESOURCE(        "OD",       "Schema",                "/desc/Schema",        "ManageSchema"),
+    SCRIPT_RESOURCE(        "SC",       "Script",                "/desc/Script",        "ManageScript"),
+    QUERY_RESOURCE(         "query",    "Query",                 "/desc/Query",         "ManageQuery"),
+    STATE_MACHINE_RESOURCE( "SM",       "StateMachine",          "/desc/StateMachine",  "ManageStateMachine"),
+    COMP_ACT_DESC_RESOURCE( "CA",       "CompositeActivityDef",  "/desc/ActivityDesc",  "ManageCompositeActDef"),
+    ELEM_ACT_DESC_RESOURCE( "EA",       "ElementaryActivityDef", "/desc/ActivityDesc",  "ManageElementaryActDef"),
+    ITEM_DESC_RESOURCE(     "item",     "ItemDesc",              "/desc/ItemDesc",      "ManageItemDesc"),
+    AGENT_DESC_RESOURCE(    "agent",    "AgentDesc",             "/desc/AgentDesc",     "ManageAgentDesc"),
+    ROLE_DESC_RESOURCE(     "role" ,    "RoleDesc",              "/desc/RoleDesc",      "ManageRoleDesc"),
+    DOMAIN_CONTEXT_RESOURCE("context" , "DomainContext",         "/desc/DomainContext", "ManageDomainContext");
 
-    private String  typeCode;
-    private String  schemaName;
-    private String  typeRoot;
-    private String  workflowDef;
+    private final String  typeCode;
+    private final String  schemaName;
+    private final String  typeRoot;
+    private final String  workflowDef;
 
     private BuiltInResources(final String code, final String schema, final String root, final String wf) {
         typeCode = code;
@@ -85,24 +89,43 @@ public enum BuiltInResources {
     }
 
     public static BuiltInResources getValue(DescriptionObject descObject) {
-        switch (descObject.getClass().getSimpleName()) {
-            case "PropertyDescriptionList": return PROPERTY_DESC_RESOURCE;
-            case "Module":                  return MODULE_RESOURCE;
-            case "Schema":                  return SCHEMA_RESOURCE;
-            case "Script":                  return SCRIPT_RESOURCE;
-            case "Query":                   return QUERY_RESOURCE;
-            case "StateMachine":            return STATE_MACHINE_RESOURCE;
-            case "CompositeActivityDef":    return COMP_ACT_DESC_RESOURCE;
-            case "ActivityDef":             return ELEM_ACT_DESC_RESOURCE;
-            case "ImportItem":              return ITEM_DESC_RESOURCE;
-            case "ImportAgent":             return AGENT_DESC_RESOURCE;
-            case "ImportRole":              return ROLE_DESC_RESOURCE;
-            default:
-                return null;
-        }
+        return switch (descObject.getClass().getSimpleName()) {
+            case "PropertyDescriptionList" -> PROPERTY_DESC_RESOURCE;
+            case "Module"                  -> MODULE_RESOURCE;
+            case "Schema"                  -> SCHEMA_RESOURCE;
+            case "Script"                  -> SCRIPT_RESOURCE;
+            case "Query"                   -> QUERY_RESOURCE;
+            case "StateMachine"            -> STATE_MACHINE_RESOURCE;
+            case "CompositeActivityDef"    -> COMP_ACT_DESC_RESOURCE;
+            case "ActivityDef"             -> ELEM_ACT_DESC_RESOURCE;
+            case "ImportItem"              -> ITEM_DESC_RESOURCE;
+            case "ImportAgent"             -> AGENT_DESC_RESOURCE;
+            case "ImportRole"              -> ROLE_DESC_RESOURCE;
+            case "DomainContext"           -> DOMAIN_CONTEXT_RESOURCE;
+            default -> null;
+        };
     }
 
-    public DescriptionObject getDescriptionObject(String name) {
+    public DescriptionObject loadDescriptionObject(String name, Integer version) throws ObjectNotFoundException, InvalidDataException {
+        return switch (this) {
+            case ACTIVITY_DESC_RESOURCE  -> null;  //abstract resource
+            case MODULE_RESOURCE         -> new Module();
+            case SCHEMA_RESOURCE         -> LocalObjectLoader.getSchema(name, version);
+            case SCRIPT_RESOURCE         -> LocalObjectLoader.getScript(name, version);
+            case QUERY_RESOURCE          -> LocalObjectLoader.getQuery(name, version);
+            case PROPERTY_DESC_RESOURCE  -> LocalObjectLoader.getPropertyDescriptionList(name, version);
+            case COMP_ACT_DESC_RESOURCE  -> LocalObjectLoader.getCompActDef(name, version);
+            case ELEM_ACT_DESC_RESOURCE  -> LocalObjectLoader.getElemActDef(name, version);
+            case STATE_MACHINE_RESOURCE  -> LocalObjectLoader.getStateMachine(name, version);
+            case ITEM_DESC_RESOURCE      -> LocalObjectLoader.getItemDesc(name, version);
+            case AGENT_DESC_RESOURCE     -> LocalObjectLoader.getAgentDesc(name, version);
+            case ROLE_DESC_RESOURCE      -> LocalObjectLoader.getRoleDesc(name, version);
+            case DOMAIN_CONTEXT_RESOURCE -> LocalObjectLoader.getDomainContext(name, version);
+            default                      -> null;
+        };
+    }
+
+    public DescriptionObject initDescriptionObject(String name) {
         DescriptionObject descObj;
 
         switch(this) {
@@ -118,6 +141,7 @@ public enum BuiltInResources {
             case ITEM_DESC_RESOURCE:     descObj = new ImportItem(); break;
             case AGENT_DESC_RESOURCE:    descObj = new ImportAgent(); break;
             case ROLE_DESC_RESOURCE:     descObj = new ImportRole(); break;
+            case DOMAIN_CONTEXT_RESOURCE:descObj = new DomainContext(); break;
 
             default:
                 return null;
@@ -129,19 +153,10 @@ public enum BuiltInResources {
     }
 
     private String getActivityTypeText() {
-        switch (this) {
-            case COMP_ACT_DESC_RESOURCE:
-            case ELEM_ACT_DESC_RESOURCE:
-                return "Activity";
-
-            case ITEM_DESC_RESOURCE:
-            case AGENT_DESC_RESOURCE:
-            case ROLE_DESC_RESOURCE:
-                return getSchemaName() + "Desc";
-
-            default:
-                return getSchemaName();
-        }
+        return switch (this) {
+            case COMP_ACT_DESC_RESOURCE, ELEM_ACT_DESC_RESOURCE -> "Activity";
+            default -> getSchemaName();
+        };
     }
 
     public String getEditActivityName() {
@@ -154,5 +169,9 @@ public enum BuiltInResources {
 
     public String getAssignVersionActivityName() {
         return "AssignNew" + getActivityTypeText() + "VersionFromLast";
+    }
+
+    public String getFactoryPath() {
+        return typeRoot + '/' + schemaName + "Factory";
     }
 }

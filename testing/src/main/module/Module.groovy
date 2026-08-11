@@ -12,7 +12,7 @@ setModuleDir scriptUri
 setConfig  'src/main/bin/dsl.conf'
 setConnect 'src/main/bin/integTest.clc'
 
-setResourceRoot Paths.get(scriptUri).parent.toString()+'/resources'
+setResourceRoot 'src/main/resources/org/cristalise/testing/resources'
 
 Module(ns: 'integTest', name: 'IntegrationTest', version: 0) {
 

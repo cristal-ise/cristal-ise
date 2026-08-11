@@ -21,6 +21,7 @@
 package org.cristalise.restapi;
 
 import static org.cristalise.kernel.persistency.ClusterType.COLLECTION;
+import static org.cristalise.restapi.SystemProperties.REST_CollectionForm_checkInputs;
 
 import java.util.HashMap;
 import java.util.List;
@@ -52,11 +53,12 @@ import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.LocalObjectLoader;
+import org.json.JSONArray;
 
 @Path("/item/{uuid}/collection")
 public class ItemCollection extends ItemUtils {
 	
-	private ScriptUtils scriptUtils = new ScriptUtils();
+	private final ScriptUtils scriptUtils = new ScriptUtils();
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -144,8 +146,8 @@ public class ItemCollection extends ItemUtils {
             if (StringUtils.isNotBlank(lovProp)) {
                 String[] lovInfo = lovProp.split(":");
                 if ("ScriptRef".equals( lovInfo[0] )) {
-                    Script script = LocalObjectLoader.getScript(lovInfo[1], Integer.valueOf(lovInfo[2]));
-                    Map<? extends String, ? extends Object> result = (Map<? extends String, ? extends Object>) scriptUtils.executeScript(item, script, null);
+                    Script script = LocalObjectLoader.getScript(lovInfo[1], Integer.parseInt(lovInfo[2]));
+                    Map<? extends String, ?> result = (Map<? extends String, ?>) scriptUtils.executeScript(item, script, null);
                     result.remove(null);
                     Map<String, Object> valuesToCaptions = new TreeMap<String, Object>(result);
                     inputs.put("memberNames", valuesToCaptions); // Put the new member here e.g.ListOfValues
@@ -155,8 +157,8 @@ public class ItemCollection extends ItemUtils {
             if (inputs.isEmpty()) {
                 List<String> names = getItemNames(dep.getClassProperties());
 
-                if (Gateway.getProperties().getBoolean("REST.CollectionForm.checkInputs", false)) {
-                    if (names.size() == 0) {
+                if (REST_CollectionForm_checkInputs.getBoolean()) {
+                    if (names.isEmpty()) {
                         throw new WebAppExceptionBuilder()
                                 .message("No Item was found")
                                 .status(Response.Status.NOT_FOUND)
@@ -175,8 +177,9 @@ public class ItemCollection extends ItemUtils {
             // this shall contain the SchemaName and version like this: Shift:0
             String[] schemaInfo = ((String) dep.getProperties().get("MemberUpdateSchema")).split(":");
 
-            Schema schema = LocalObjectLoader.getSchema(schemaInfo[0], Integer.valueOf(schemaInfo[1]));
-            return Response.ok(new OutcomeBuilder(schema, false).generateNgDynamicForms(inputs)).cookie(cookie).build();
+            Schema schema = LocalObjectLoader.getSchema(schemaInfo[0], Integer.parseInt(schemaInfo[1]));
+            JSONArray formJson = new OutcomeBuilder(schema, false).generateNgDynamicFormsJson(inputs);
+            return Response.ok(formJson.toString()).cookie(cookie).build();
         }
         catch (ObjectNotFoundException | NumberFormatException | InvalidDataException | OutcomeBuilderException | ScriptingEngineException e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();

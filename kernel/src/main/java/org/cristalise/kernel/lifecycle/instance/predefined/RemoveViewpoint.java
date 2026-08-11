@@ -38,7 +38,7 @@ public class RemoveViewpoint extends PredefinedStep {
     public static final String description = "Removes a viewpoint from the Item";
 
     public RemoveViewpoint() {
-        super();
+        super(description);
     }
 
     /**

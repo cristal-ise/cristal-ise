@@ -1,9 +1,9 @@
 package org.cristalise.restapi.test
 
 import static org.junit.jupiter.api.Assertions.fail
-import org.cristalise.kernel.lifecycle.instance.predefined.ChangeName
+
 import org.cristalise.kernel.lifecycle.instance.predefined.Erase
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 import groovy.transform.CompileStatic
 import io.restassured.http.ContentType

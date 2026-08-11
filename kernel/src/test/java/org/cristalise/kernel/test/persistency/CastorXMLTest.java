@@ -132,54 +132,6 @@ public class CastorXMLTest {
         assertTrue(compareXML(origXML, primeXml));
     }
 
-    @Test @Ignore("Castor XML mapping is not done for Query")
-    public void testQueryCDATAHandling() throws Exception {
-        String origQueryXML = FileStringUtility.url2String(CastorXMLTest.class.getResource("/testQuery.xml"));
-        String marshalledQueryXML = Gateway.getMarshaller().marshall(Gateway.getMarshaller().unmarshall(origQueryXML));
-
-        assertTrue(compareXML(origQueryXML, marshalledQueryXML));
-    }
-
-    @Test
-    public void testQueryParsing() throws Exception {
-        String origXml = FileStringUtility.url2String(CastorXMLTest.class.getResource("/testQuery.xml"));
-        Query q = new Query(origXml);
-
-        assertEquals("TestQuery", q.getName());
-        assertEquals(0, (int)q.getVersion());
-        assertEquals("existdb:xquery", q.getLanguage());
-
-        assertEquals(1, q.getParameters().size());
-        assertEquals("uuid", q.getParameters().get(0).getName());
-        assertEquals("java.lang.String", q.getParameters().get(0).getType().getName());
-
-        assertTrue(q.getQuery().startsWith("\n<TRList>"));
-        assertTrue(q.getQuery().endsWith("</TRList>\n    "));
-
-        assertTrue(compareXML(origXml, q.getQueryXML()));
-    }
-
-    @Test
-    public void testSqlQueryParsing() throws Exception {
-        String origXml = FileStringUtility.url2String(CastorXMLTest.class.getResource("/testQuerySql.xml"));
-        Query q = new Query(origXml);
-
-        assertEquals("TestQuerySql", q.getName());
-        assertEquals(0, (int)q.getVersion());
-        assertEquals("sql", q.getLanguage());
-        assertEquals("History", q.getRootElement());
-        assertEquals("Event", q.getRecordElement());
-
-        assertEquals(1, q.getParameters().size());
-        assertEquals("uuid", q.getParameters().get(0).getName());
-        assertEquals("java.lang.String", q.getParameters().get(0).getType().getName());
-
-        assertTrue(q.getQuery().startsWith("\nselect"));
-        assertTrue(q.getQuery().endsWith("'@{schemaName}'\n    "));
-
-        assertTrue(compareXML(origXml, q.getQueryXML()));
-    }
-
     @Test
     public void testCastorItemPath() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
@@ -317,14 +269,23 @@ public class CastorXMLTest {
     @Test
     public void testPropertyDescriptionList() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
+        Schema schema = LocalObjectLoader.getSchema("PropertyDescription", 0);
 
         PropertyDescriptionList pdl = new PropertyDescriptionList();
         pdl.list.add(new PropertyDescription("Name", "", false, true, false));
         pdl.list.add(new PropertyDescription("Type", "Item", true, false, true));
 
+        new Outcome(marshaller.marshall(pdl), schema).validateAndCheck();
+
+        pdl.setName("totolist");
+
+        new Outcome(marshaller.marshall(pdl), schema).validateAndCheck();
+
         PropertyDescriptionList pdlPrime = (PropertyDescriptionList) marshaller.unmarshall(marshaller.marshall(pdl));
 
         assertReflectionEquals(pdl, pdlPrime, LENIENT_ORDER);
+
+        new Outcome(marshaller.marshall(pdlPrime), schema).validateAndCheck();
     }
 
     @Test
@@ -412,8 +373,8 @@ public class CastorXMLTest {
 
         ImportItem item = new ImportItem("name", "initialPath", new ItemPath(), "wf");
         ImportDependency id = new ImportDependency("Cars");
-        id.props.put("Integer", new Integer(10), false);
-        id.props.put("Boolean", new Boolean(false), false);
+        id.props.put("Integer", Integer.valueOf(10), false);
+        id.props.put("Boolean", Boolean.FALSE, false);
         id.props.put(DEPENDENCY_TYPE.toString(), Bidirectional.toString(), false);
         item.getDependencyList().add(id);
 

@@ -20,11 +20,7 @@
  */
 package org.cristalise.dsl.test.persistency.outcome
 
-import org.cristalise.dsl.persistency.outcome.Attribute;
-import org.cristalise.dsl.persistency.outcome.Field
-import org.cristalise.dsl.persistency.outcome.SchemaBuilder
 import org.cristalise.dsl.test.builders.SchemaTestBuilder
-import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.scripting.Script
 import org.cristalise.kernel.test.utils.CristalTestSetup
@@ -62,6 +58,16 @@ class SchemaBuilderListOfValuesSpecs extends Specification implements CristalTes
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:all>
                    </xs:complexType>
                  </xs:element>
@@ -92,6 +98,16 @@ class SchemaBuilderListOfValuesSpecs extends Specification implements CristalTes
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
                      </xs:all>
                    </xs:complexType>
                  </xs:element>
@@ -117,6 +133,16 @@ class SchemaBuilderListOfValuesSpecs extends Specification implements CristalTes
                              <listOfValues>
                                <values>v1,v2,v3</values>
                              </listOfValues>
+                           </xs:appinfo>
+                         </xs:annotation>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
                            </xs:appinfo>
                          </xs:annotation>
                        </xs:element>

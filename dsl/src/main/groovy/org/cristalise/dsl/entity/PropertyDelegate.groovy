@@ -20,7 +20,9 @@
  */
 package org.cristalise.dsl.entity
 
+import org.apache.commons.lang3.StringUtils
 import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.entity.DomainContext
 import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.property.PropertyArrayList
 
@@ -45,15 +47,31 @@ class PropertyDelegate {
         cl()
     }
 
-    public void InmutableProperty(Map<String, String> attrs) {
+    private void setProperty(String key, Object value, boolean mutable) {
+        String stringValue = null
+
+        if (value != null) {
+            if      (value instanceof DomainContext) stringValue = ((DomainContext)value).getDomainPath()
+            else if (value instanceof String)        stringValue = (String)value
+            else                                     stringValue = value.toString()
+        }
+
+        def propType = mutable ? 'Property' : 'InmutableProperty'
+        log.debug('{} - {}:{}', propType, key, stringValue)
+
+        itemProps.put(new Property(key, stringValue, mutable))
+    }
+
+    public void InmutableProperty(Map<String, Object> attrs) {
         assert attrs, "InmutableProperty must have the name and value pair set"
 
         attrs.each { k, v ->
-            if(!v) throw new InvalidDataException("Inmutable EntityProperty '$k' must have valid value")
+            // ItempProperties have type String, so blank values are also rejected here
+            if (v == null || (v instanceof String && StringUtils.isBlank(v))) {
+                throw new InvalidDataException("Inmutable EntityProperty '$k' must have valid value")
+            }
 
-            log.debug "InmutableProperty - name / value: $k / $v"
-
-            itemProps.put(new Property(k, v as String, false))
+            setProperty(k, v, false)
         }
     }
 
@@ -61,13 +79,11 @@ class PropertyDelegate {
         Property((name): "")
     }
 
-    public void Property(Map<String, String> attrs) {
+    public void Property(Map<String, Object> attrs) {
         assert attrs, "Mutable EntityProperty must have the name and value pair set"
 
         attrs.each { k, v ->
-            log.debug "Property - name / value: $k / $v"
-
-            itemProps.put(new Property(k, v as String, true))
+            setProperty(k, v, true)
         }
     }
 }

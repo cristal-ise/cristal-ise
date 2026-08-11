@@ -20,6 +20,12 @@
  */
 package org.cristalise.kernel.process;
 
+import static org.cristalise.kernel.SystemProperties.TcpBridge_host;
+import static org.cristalise.kernel.SystemProperties.$UserCodeRole_StateMachine_name;
+import static org.cristalise.kernel.SystemProperties.$UserCodeRole_StateMachine_version;
+import static org.cristalise.kernel.SystemProperties.$UserCodeRole_StateMachine_namespace;
+import static org.cristalise.kernel.SystemProperties.$UserCodeRole_StateMachine_bootfile;
+
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
@@ -40,7 +46,8 @@ abstract public class StandardClient extends AbstractMain {
      * 
      */
      public static void createClientVerticles() {
-         if (StringUtils.isNotBlank(TcpBridgeClientVerticle.HOST)) {
+         String host = TcpBridge_host.getString();
+         if (StringUtils.isNotBlank(host)) {
              Gateway.getVertx().deployVerticle(new TcpBridgeClientVerticle());
          }
 
@@ -77,7 +84,7 @@ abstract public class StandardClient extends AbstractMain {
     }
 
     /**
-     * CRISTAL-iSE clients should use the StateMachine information to implement application logic. This method loads the
+     * CRISTAL-iSE clients could use the StateMachine information to implement application logic. This method loads the
      * required StateMachine using different cristal-ise configuration. 
      * 
      * @param propPrefix the Property Name prefix to find client specific configuration
@@ -87,20 +94,20 @@ abstract public class StandardClient extends AbstractMain {
      * @throws InvalidDataException Missing/Incorrect configuration data
      */
     protected static StateMachine getRequiredStateMachine(String propPrefix, String namesSpaceDefault, String bootfileDefault) throws InvalidDataException  {
-        if(StringUtils.isBlank(propPrefix)) throw new InvalidDataException("propertyPrefix must contain a value");
+        if (StringUtils.isBlank(propPrefix)) throw new InvalidDataException("propertyPrefix must contain a value");
 
-        String smName    = Gateway.getProperties().getString(propPrefix + ".StateMachine.name");
-        int    smVersion = Gateway.getProperties().getInt(   propPrefix + ".StateMachine.version");
+        String smName     =  $UserCodeRole_StateMachine_name.getString(null, propPrefix);
+        Integer smVersion =  $UserCodeRole_StateMachine_version.getInteger(null, propPrefix);
 
         try {
-            if (StringUtils.isNotBlank(smName) && smVersion != -1) {
+            if (StringUtils.isNotBlank(smName) && smVersion != null) {
                 return LocalObjectLoader.getStateMachine(smName, smVersion);
             }
             else {
                 log.warn("getRequiredStateMachine() - SM Name and/or Version was not specified, trying to load from bootsrap resource.");
 
-                String stateMachineNS   = Gateway.getProperties().getString(propPrefix + ".StateMachine.namespace", namesSpaceDefault);
-                String stateMachinePath = Gateway.getProperties().getString(propPrefix + ".StateMachine.bootfile",  bootfileDefault);
+                String stateMachineNS   = $UserCodeRole_StateMachine_namespace.getString(namesSpaceDefault, propPrefix);
+                String stateMachinePath = $UserCodeRole_StateMachine_bootfile.getString(bootfileDefault, propPrefix);
 
                 return (StateMachine) Gateway.getMarshaller().unmarshall(Gateway.getResource().getTextResource(stateMachineNS, stateMachinePath));
             }

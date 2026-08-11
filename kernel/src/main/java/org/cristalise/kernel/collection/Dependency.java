@@ -20,30 +20,7 @@
  */
 package org.cristalise.kernel.collection;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ACTIVITY_DEF_URN;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_ALLOW_DUPLICATE_ITEMS;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_CARDINALITY;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.DEPENDENCY_TYPE;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.QUERY_NAME;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.QUERY_VERSION;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_VERSION;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_NAME;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCRIPT_VERSION;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
-import static org.cristalise.kernel.property.BuiltInItemProperties.AGGREGATE_SCRIPT_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.MASTER_SCHEMA_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.QUERY_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.SCHEMA_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.SCRIPT_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.STATE_MACHINE_URN;
-import static org.cristalise.kernel.property.BuiltInItemProperties.WORKFLOW_URN;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.InvalidCollectionModification;
 import org.cristalise.kernel.common.InvalidDataException;
@@ -56,13 +33,21 @@ import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
+import org.cristalise.kernel.property.PropertyUtility;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 import org.cristalise.kernel.utils.CastorHashMap;
 import org.cristalise.kernel.utils.KeyValuePair;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
-import lombok.extern.slf4j.Slf4j;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.cristalise.kernel.SystemProperties.*;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.VERSION;
+import static org.cristalise.kernel.property.BuiltInItemProperties.*;
+import static org.cristalise.kernel.property.BuiltInItemProperties.TYPE;
 
 /**
  * A Collection implementation that contains a variable number of members of the
@@ -142,11 +127,6 @@ public class Dependency extends Collection<DependencyMember> {
 
     /**
      * 
-     * @param childPath
-     * @param memberNewProps
-     * @throws ObjectNotFoundException
-     * @throws InvalidDataException
-     * @throws InvalidCollectionModification 
      */
     public void updateMember(ItemPath childPath, CastorHashMap memberNewProps)
             throws ObjectNotFoundException, InvalidDataException, InvalidCollectionModification
@@ -156,12 +136,6 @@ public class Dependency extends Collection<DependencyMember> {
 
     /**
      * 
-     * @param childPath
-     * @param memberID
-     * @param memberNewProps
-     * @throws ObjectNotFoundException
-     * @throws InvalidDataException
-     * @throws InvalidCollectionModification 
      */
     public void updateMember(ItemPath childPath, int memberID, CastorHashMap memberNewProps)
             throws ObjectNotFoundException, InvalidDataException, InvalidCollectionModification
@@ -170,7 +144,7 @@ public class Dependency extends Collection<DependencyMember> {
 
         if (members.size() != 1) throw new InvalidDataException("Child item '"+childPath+"' apperars more them once in collection " + mName);
 
-        DependencyMember member = (DependencyMember) members.get(0);
+        DependencyMember member = (DependencyMember) members.getFirst();
         member.updateProperties(memberNewProps);
     }
 
@@ -194,19 +168,12 @@ public class Dependency extends Collection<DependencyMember> {
 
     /**
      * 
-     * @param depMember
-     * @throws InvalidCollectionModification
-     * @throws ObjectAlreadyExistsException
      */
     public void addMember(DependencyMember depMember) throws InvalidCollectionModification, ObjectAlreadyExistsException {
         mMembers.list.add(depMember);
     }
     /**
      * 
-     * @param itemPath
-     * @return
-     * @throws InvalidCollectionModification
-     * @throws ObjectAlreadyExistsException
      */
     public DependencyMember createMember(ItemPath itemPath, TransactionKey transactionKey) throws InvalidCollectionModification, ObjectAlreadyExistsException {
         if (itemPath == null) 
@@ -257,11 +224,6 @@ public class Dependency extends Collection<DependencyMember> {
 
     /**
      * 
-     * @param itemPath
-     * @param props
-     * @return
-     * @throws InvalidCollectionModification
-     * @throws ObjectAlreadyExistsException
      */
     public DependencyMember createMember(ItemPath itemPath, CastorHashMap props, TransactionKey transactionKey) 
             throws InvalidCollectionModification, ObjectAlreadyExistsException
@@ -299,23 +261,9 @@ public class Dependency extends Collection<DependencyMember> {
     private boolean checkUniqueness() {
         Boolean checkUniqueness = (Boolean) getBuiltInProperty(DEPENDENCY_ALLOW_DUPLICATE_ITEMS);
         if (checkUniqueness == null) {
-            checkUniqueness = Gateway.getProperties().getBoolean("Dependency.checkMemberUniqueness", true);
+            checkUniqueness = Dependency_checkMemberUniqueness.getBoolean();
         }
         return checkUniqueness;
-    }
-
-    /**
-     * 
-     */
-    @Override
-    public void removeMember(int memberId) throws ObjectNotFoundException {
-        for (DependencyMember element : mMembers.list) {
-            if (element.getID() == memberId) {
-                mMembers.list.remove(element);
-                return;
-            }
-        }
-        throw new ObjectNotFoundException("Collection name:"+getName()+" does not contains Member id:"+memberId);
     }
 
     /**
@@ -345,7 +293,7 @@ public class Dependency extends Collection<DependencyMember> {
             //Do not process this member further if Script has done the job already or this is not a BuiltInCollection
             if (member.convertToItemPropertyByScript(props, transactionKey) || builtInColl == null) continue;
 
-            log.debug("addToItemProperties() - BuiltIn Dependency:"+getName()+" memberUUID:"+memberUUID);
+            log.debug("addToItemProperties() - BuiltIn Dependency:{} memberUUID:{}", getName(), memberUUID);
             //LocalObjectLoader checks if data is valid and loads object to cache
             switch (builtInColl) {
                 //***************************************************************************************************
@@ -375,14 +323,14 @@ public class Dependency extends Collection<DependencyMember> {
                     break;
                 //***************************************************************************************************
                 case STATE_MACHINE:
-                    if (Gateway.getProperties().getBoolean("Dependency.addStateMachineURN", false) ) {
+                    if (Dependency_addStateMachineURN.getBoolean() ) {
                         LocalObjectLoader.getStateMachine(memberUUID, memberVer, transactionKey);
                         props.put(new Property(STATE_MACHINE_URN, memberUUID+":"+memberVer));
                     }
                     break;
                 //***************************************************************************************************
                 case WORKFLOW:
-                    if (Gateway.getProperties().getBoolean("Dependency.addWorkflowURN", false) ) {
+                    if (Dependency_addWorkflowURN.getBoolean() ) {
                         LocalObjectLoader.getCompActDef(memberUUID, memberVer, transactionKey);
                         props.put(new Property(WORKFLOW_URN, memberUUID+":"+memberVer));
                     }
@@ -630,6 +578,41 @@ public class Dependency extends Collection<DependencyMember> {
             return Collection.Cardinality.valueOf((String)getBuiltInProperty(DEPENDENCY_CARDINALITY));
         }
         return null;
+    }
+
+
+    /**
+     * Reads the DependencyTo property to retrieve the name of the dependency. The property may 
+     * contain a single Dependency name or a mapping of ItemType to a Dependency 
+     * e.g.: 'Employee:Employees, Guest:Guests'
+     * 
+     * @param referencedItem
+     * @param transactionKey
+     * @return 
+     * @throws InvalidDataException
+     */
+    public String getToDependencyName(ItemPath referencedItem, TransactionKey transactionKey)
+            throws InvalidDataException
+    {
+        String toDependencyName = "";
+        String currentItemType = PropertyUtility.getPropertyValue(referencedItem, TYPE, "", transactionKey);
+        String[] toDependencyNames = ((String)getBuiltInProperty(DEPENDENCY_TO, "")).trim().split(",");
+
+        for (String nameValueString: toDependencyNames) {
+            String[] nameValue = nameValueString.trim().split(":");
+
+            if (nameValue.length == 1)                             toDependencyName = nameValue[0].trim();
+            else if (currentItemType.equals( nameValue[0].trim())) toDependencyName = nameValue[1].trim();
+
+            if (StringUtils.isNotBlank(toDependencyName)) break;
+        }
+
+        if (StringUtils.isBlank(toDependencyName)) {
+            throw new InvalidDataException(
+                    "Invalid value MemberProperty:" + DEPENDENCY_TO + "=" + toDependencyNames + " item:" + referencedItem.getItemName(transactionKey));
+        }
+
+        return toDependencyName;
     }
 
     

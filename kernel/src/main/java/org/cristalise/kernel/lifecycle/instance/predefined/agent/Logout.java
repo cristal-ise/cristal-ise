@@ -41,7 +41,7 @@ public class Logout extends PredefinedStep {
     public static final String description = "Records the Logout event in the history";
 
     public Logout() {
-        super();
+        super(description);
     }
 
     @Override

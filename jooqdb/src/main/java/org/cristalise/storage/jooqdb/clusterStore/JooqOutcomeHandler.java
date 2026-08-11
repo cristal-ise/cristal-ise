@@ -22,7 +22,6 @@ package org.cristalise.storage.jooqdb.clusterStore;
 
 import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.checkSqlXmlSupport;
 import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.getStringXmlType;
-import static org.cristalise.storage.jooqdb.JooqDataSourceHandler.useSqlXml;
 import static org.jooq.impl.DSL.constraint;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.name;
@@ -120,7 +119,7 @@ public class JooqOutcomeHandler extends JooqHandler {
                 .set(SCHEMA_VERSION, outcome.getSchema().getVersion())
                 .set(EVENT_ID,       outcome.getID());
 
-        if (useSqlXml && checkSqlXmlSupport()) {
+        if (checkSqlXmlSupport()) {
             try {
                 insert.set(SQLXML, outcome.getDOM());
             }
@@ -144,7 +143,7 @@ public class JooqOutcomeHandler extends JooqHandler {
             try {
                 String xml = null;
 
-                if (useSqlXml && checkSqlXmlSupport()) {
+                if (checkSqlXmlSupport()) {
                     //this cast should not be needed, see JooqSqlXmlTest class 
                     xml = ((java.sql.SQLXML)result.get(SQLXML)).getString();
                 }
@@ -163,7 +162,7 @@ public class JooqOutcomeHandler extends JooqHandler {
     }
 
     protected Field<?> getXmlField() {
-        if (useSqlXml && checkSqlXmlSupport()) {
+        if (checkSqlXmlSupport()) {
             SQLXML.getDataType().nullable(false);
             return SQLXML;
         }
@@ -184,7 +183,7 @@ public class JooqOutcomeHandler extends JooqHandler {
         .column(EVENT_ID,       ID_TYPE     .nullable(false))
         .column(xmlField)
         .constraints(
-                constraint("PK_"+OUTCOME_TABLE).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
+                constraint("PK_"+OUTCOME_TABLE.getName()).primaryKey(UUID, SCHEMA_NAME, SCHEMA_VERSION, EVENT_ID))
         .execute();
     }
 

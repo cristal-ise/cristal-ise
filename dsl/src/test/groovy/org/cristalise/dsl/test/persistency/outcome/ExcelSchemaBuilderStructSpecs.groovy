@@ -55,15 +55,25 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
         expect:
         SchemaTestBuilder.build('test', 'Stringfields-Seq', 0, xlsxFile)
         .compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
-                          <xs:element name='Stringfields-Seq'>
-                            <xs:complexType>
-                              <xs:sequence>
-                                <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
-                                <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
-                              </xs:sequence>
-                            </xs:complexType>
-                          </xs:element>
-                        </xs:schema>""")
+                         <xs:element name='Stringfields-Seq'>
+                           <xs:complexType>
+                             <xs:sequence>
+                               <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
+                               <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
+                               <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                 <xs:annotation>
+                                   <xs:appinfo>
+                                     <dynamicForms>
+                                       <hidden>true</hidden>
+                                       <required>false</required>
+                                     </dynamicForms>
+                                   </xs:appinfo>
+                                 </xs:annotation>
+                               </xs:element>
+                             </xs:sequence>
+                           </xs:complexType>
+                         </xs:element>
+                       </xs:schema>""")
     }
 
     def 'Define unordered set of Fields which default type is string and multiplicity is 1'() {
@@ -75,6 +85,16 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                               <xs:sequence>
                                 <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
                                 <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
+                                </xs:element>
                               </xs:sequence>
                             </xs:complexType>
                           </xs:element>
@@ -96,6 +116,16 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                               <xs:element name='stringField11' type='xs:string' minOccurs='1' maxOccurs='1' />
                             </xs:sequence>
                           </xs:complexType>
+                        </xs:element>
+                        <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <dynamicForms>
+                                <hidden>true</hidden>
+                                <required>false</required>
+                              </dynamicForms>
+                            </xs:appinfo>
+                          </xs:annotation>
                         </xs:element>
                       </xs:sequence>
                     </xs:complexType>
@@ -129,6 +159,16 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                                   </xs:complexType>
                                 </xs:element>
                                 <xs:element name='stringField3' type='xs:string' minOccurs='1' maxOccurs='1' />
+                        <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                          <xs:annotation>
+                            <xs:appinfo>
+                              <dynamicForms>
+                                <hidden>true</hidden>
+                                <required>false</required>
+                              </dynamicForms>
+                            </xs:appinfo>
+                          </xs:annotation>
+                        </xs:element>
                               </xs:sequence>
                             </xs:complexType>
                           </xs:element>
@@ -232,6 +272,16 @@ class ExcelSchemaBuilderStructSpecs extends Specification implements CristalTest
                              </xs:extension>
                            </xs:simpleContent>
                          </xs:complexType>
+                       </xs:element>
+                       <xs:element name='PredefinedSteps' type='xs:anyType'  minOccurs='0' maxOccurs='1'>
+                         <xs:annotation>
+                           <xs:appinfo>
+                             <dynamicForms>
+                               <hidden>true</hidden>
+                               <required>false</required>
+                             </dynamicForms>
+                           </xs:appinfo>
+                         </xs:annotation>
                        </xs:element>
                      </xs:sequence>
                      <xs:attribute name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>

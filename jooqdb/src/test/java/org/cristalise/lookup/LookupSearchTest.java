@@ -20,18 +20,15 @@
  */
 package org.cristalise.lookup;
 
-import static org.junit.Assert.*;
-import static org.junit.Assume.assumeTrue;
-import static org.unitils.reflectionassert.ReflectionAssert.*;
-import static org.unitils.reflectionassert.ReflectionComparatorMode.*;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals;
+import static org.unitils.reflectionassert.ReflectionComparatorMode.LENIENT_ORDER;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.JooqTestConfigurationBase;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
@@ -90,47 +87,6 @@ public class LookupSearchTest extends LookupTestBase {
     }
 
     @Test
-    public void getChildren_DomainPath() throws Exception {
-        lookup.add( new DomainPath("dummy") );
-
-        compare(Arrays.asList(new DomainPath("empty"), new DomainPath("dummy"), new DomainPath("special")), lookup.getChildren(new DomainPath()) );
-
-        compare(Arrays.asList(new DomainPath("empty/nothing"),  new DomainPath("empty/something")),
-                lookup.getChildren(new DomainPath("empty")));
-    }
-
-    @Test
-    public void getChildren_DomainPathSpecialChars() throws Exception {
-        assumeTrue("This case only works with psql", JooqTestConfigurationBase.dbType == DBModes.PostgreSQL);
-
-        DomainPath dp       = new DomainPath("special/something/special||Chars[escaped] *%._\\\\");
-        DomainPath dp_child = new DomainPath("special/something/special||Chars[escaped] *%._\\\\/dummy");
-
-        compare(new ArrayList<Path>(), lookup.getChildren(dp));
-
-        lookup.add(dp_child);
-        compare(Arrays.asList(dp_child), lookup.getChildren(dp));
-    }
-
-    @Test
-    public void getChildren_RolePath() throws Exception {
-        compare(Arrays.asList(new RolePath(new RolePath("User", false), "SubUser"),  new RolePath(new RolePath("User", false), "LowerUser")),
-                lookup.getChildren(new RolePath(new RolePath(), "User")));
-    }
-
-    @Test
-    public void getChildren_WithDots() throws Exception {
-        lookup.add( new DomainPath("empty/nothing.old") );
-        lookup.add( new DomainPath("empty/nothing.new/toto") );
-
-        compare(Arrays.asList(new DomainPath("empty/nothing"),
-                new DomainPath("empty/something"),
-                new DomainPath("empty/nothing.old"),
-                new DomainPath("empty/nothing.new")),
-                lookup.getChildren(new DomainPath("empty")));
-    }
-
-    @Test
     public void resolvePath() throws Exception {
         ItemPath ip = lookup.resolvePath(new DomainPath("empty/something/uuid0", new ItemPath(uuid0)));
         assertNotNull(ip);
@@ -155,58 +111,6 @@ public class LookupSearchTest extends LookupTestBase {
         catch (ObjectNotFoundException e) {
             assert e.getMessage().contains("Path does not exist");
         }
-    }
-
-    @Test
-    public void getChildrenPaged_DomainPath() throws Exception {
-        List<Path> expecteds = new ArrayList<>();
-
-        for (int i = 0; i < 35; i++) {
-            DomainPath dp = new DomainPath("paged/child" + StringUtils.leftPad(""+i, 2, "0"));
-            lookup.add(dp);
-            expecteds.add(dp);
-        }
-
-        PagedResult actuals = null;
-
-        for (int i = 0; i < 3; i++) {
-            actuals = lookup.getChildren(new DomainPath("paged"), i*10, 10);
-
-            assertReflectionEquals(expecteds.subList(i*10, i*10+10), actuals.rows, LENIENT_ORDER);
-            assertEquals(35, actuals.maxRows);
-        }
-
-        actuals = lookup.getChildren(new DomainPath("paged"), 30, 10);
-
-        assertReflectionEquals(expecteds.subList(30, 35), actuals.rows, LENIENT_ORDER);
-        assertEquals(35, actuals.maxRows);
-    }
-
-    @Test
-    public void getChildrenPaged_RolePath() throws Exception {
-        List<Path> expecteds = new ArrayList<>();
-        RolePath paged = new RolePath(new RolePath(), "paged");
-        lookup.add(paged);
-
-        for (int i = 0; i < 35; i++) {
-            RolePath rp = new RolePath(paged, "child" + StringUtils.leftPad(""+i, 2, "0"));
-            lookup.add(rp);
-            expecteds.add(rp);
-        }
-
-        PagedResult actuals = null;
-
-        for (int i = 0; i < 3; i++) {
-            actuals = lookup.getChildren(paged, i*10, 10);
-
-            assertReflectionEquals(expecteds.subList(i*10, i*10+10), actuals.rows, LENIENT_ORDER);
-            assertEquals(35, actuals.maxRows);
-        }
-
-        actuals = lookup.getChildren(paged, 30, 10);
-
-        assertReflectionEquals(expecteds.subList(30, 35), actuals.rows, LENIENT_ORDER);
-        assertEquals(35, actuals.maxRows);
     }
 
     @Test

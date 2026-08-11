@@ -78,7 +78,7 @@ class RoleBuilderSpecs extends Specification implements CristalTestSetup {
         roles[0].permissions[0] == 'BatchFactory:Create:*'
         roles[0].permissions[1] == 'Batch:Review:*'
         roles[1].name == "User"
-        roles[1].permissions.size == 0
+        roles[1].permissions.size() == 0
     }
 
 }

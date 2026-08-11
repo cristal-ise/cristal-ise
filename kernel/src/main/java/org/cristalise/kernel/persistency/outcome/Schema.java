@@ -20,31 +20,24 @@
  */
 package org.cristalise.kernel.persistency.outcome;
 
-import static org.cristalise.kernel.process.resource.BuiltInResources.SCHEMA_RESOURCE;
-
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.Writer;
-
 import javax.xml.XMLConstants;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
-
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.collection.CollectionArrayList;
+import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.Gateway;
+import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.utils.DescriptionObject;
-import org.cristalise.kernel.utils.FileStringUtility;
 import org.exolab.castor.xml.schema.reader.SchemaReader;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -138,7 +131,7 @@ public class Schema implements DescriptionObject, ErrorHandler {
                 javaxSchema = factory.newSchema(source);
             }
             catch (SAXException e) {
-                log.error("Invalid Schemae", e);
+                log.error("Invalid Schema", e);
             }
         }
         return javaxSchema;
@@ -199,29 +192,13 @@ public class Schema implements DescriptionObject, ErrorHandler {
     }
 
     @Override
-    public void export(Writer imports, File dir, boolean shallow) throws IOException {
-        String fileName = getName() + (getVersion() == null ? "" : "_" + getVersion()) + ".xsd";
-        String typeCode = SCHEMA_RESOURCE.getTypeCode();
+    public String getXml(boolean prettyPrint) throws InvalidDataException {
+        return schemaData;
+    }
 
-        FileStringUtility.string2File(new File(new File(dir, typeCode), fileName), schemaData);
-
-        if (imports == null) return;
-
-        if (Gateway.getProperties().getBoolean("Resource.useOldImportFormat", false)) {
-            imports.write( "<Resource "
-                    + "name='"+getName()+"' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "' ")
-                    + "type='"+typeCode+"'>boot/"+typeCode+"/"+fileName
-                    + "</Resource>\n");
-        }
-        else {
-            imports.write( "<SchemaResource "
-                    + "name='"+getName()+"' "
-                    + (getItemPath() == null ? "" : "id='"      + getItemID()  + "' ")
-                    + (getVersion()  == null ? "" : "version='" + getVersion() + "'")
-                    + "/>\n");
-        }
+    @Override
+    public BuiltInResources getResourceType() {
+        return BuiltInResources.SCHEMA_RESOURCE;
     }
 
     @Override
@@ -233,5 +210,4 @@ public class Schema implements DescriptionObject, ErrorHandler {
         else
             return false;
     }
-
 }

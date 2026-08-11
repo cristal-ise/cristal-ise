@@ -31,6 +31,7 @@ import static org.cristalise.kernel.process.resource.ResourceImportHandler.Statu
 import static org.cristalise.kernel.property.BuiltInItemProperties.MODULE;
 import static org.cristalise.kernel.property.BuiltInItemProperties.NAME;
 import static org.cristalise.kernel.security.BuiltInAuthc.SYSTEM_AGENT;
+import static org.cristalise.kernel.utils.FileStringUtility.resource2String;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -46,8 +47,8 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.lifecycle.CompositeActivityDef;
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
+import org.cristalise.kernel.lifecycle.instance.predefined.CreateItemFromDescription;
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep;
-import org.cristalise.kernel.lifecycle.instance.predefined.item.CreateItemFromDescription;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.lookup.ItemPath;
@@ -193,15 +194,6 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
 
     /**
      * 
-     * @param ns
-     * @param itemName
-     * @param version
-     * @param itemPath
-     * @param outcomes
-     * @param dataLocation
-     * @param reset
-     * @return
-     * @throws Exception
      */
     private DomainPath verifyResource(String ns, String itemName, int version, ItemPath itemPath, Outcome outcome, boolean reset, TransactionKey transactionKey) 
             throws Exception
@@ -347,11 +339,6 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
 
     /**
      * 
-     * @param itemName
-     * @param ns
-     * @param itemPath
-     * @return
-     * @throws Exception
      */
     private ItemProxy createResourceItem(String itemName, int version, String ns, ItemPath itemPath, TransactionKey transactionKey) throws Exception {
         // create props
@@ -397,12 +384,12 @@ public class DefaultResourceImportHandler implements ResourceImportHandler {
      * 
      * @param name of the resource item could be UUID
      * @param version of the resource Item
-     * @param resourceChangesList the change list which was computed during verifyResource()
+     * @param status the change list which was computed during verifyResource()
      * @return the xml fragment 
      * @throws IOException template file was not found
      */
     private String convertToResourceChangeDetails(String name, int version, Schema schema, Status status) throws IOException {
-        String templ = FileStringUtility.url2String(ObjectProperties.class.getResource("resources/templates/ResourceChangeDetails_xsd.tmpl"));
+        String templ = resource2String(ObjectProperties.class, "resources/templates/ResourceChangeDetails_xsd.tmpl");
         CompiledTemplate expr = TemplateCompiler.compileTemplate(templ);
 
         Map<Object, Object> vars = new HashMap<Object, Object>();

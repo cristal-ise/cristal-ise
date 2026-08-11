@@ -1,0 +1,25 @@
+[{
+  "name": "PatientDetails",
+  "id": "PatientDetails",
+  "type": "GROUP",
+  "group": [{
+    "autoComplete": "on",
+    "validators": {"required": null},
+    "id": "Weight",
+    "label": "Weight *",
+    "placeholder": "Weight",
+    "type": "INPUT",
+    "value": "0.0",
+    "required": true
+  },
+  {
+    "autoComplete": "off",
+    "validators": {"required": null},
+    "id": "Height",
+    "label": "Height *",
+    "placeholder": "Height",
+    "type": "INPUT",
+    "value": "0.0",
+    "required": true
+  }]
+}]

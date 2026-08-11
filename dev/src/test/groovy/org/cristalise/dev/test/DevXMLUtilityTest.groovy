@@ -40,6 +40,7 @@ class DevXMLUtilityTest {
                 Status: [Quality: 'Producion', State: 'Verified'],
                 SignedBy: 'User12',
                 Workorders: ['WO-12', 'WO-53', null],
+                Imported: true,
                 ShippmentPerCountry: [
                     [Country: 'Switzerland', boxes: 100],
                     [Country: 'France', boxes: 22],
@@ -60,6 +61,7 @@ class DevXMLUtilityTest {
                  <Workorders>WO-12</Workorders>
                  <Workorders>WO-53</Workorders>
                  <Workorders />
+                 <Imported>true</Imported>
                  <ShippmentPerCountry>
                    <Country>Switzerland</Country>
                    <boxes>100</boxes>

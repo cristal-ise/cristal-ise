@@ -20,7 +20,10 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined.agent;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
+import static org.cristalise.kernel.SystemProperties.Lifecycle_Sign_agentNameField;
+import static org.cristalise.kernel.SystemProperties.Lifecycle_Sign_passwordField;
+import static org.cristalise.kernel.SystemProperties.Lifecycle_Sign_signedFlagField;
+
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
@@ -31,7 +34,7 @@ import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.persistency.outcome.Outcome;
-import org.cristalise.kernel.process.Gateway;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -40,15 +43,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Sign extends Authenticate {
 
-    public static final String description = "Autehnticates the given user and records the Sign event in the system togther with the execution context";
+    public static final String description = "Authenticates the given user and records the Sign event in the system together with the execution context";
 
-    public static final String agenNameField   = Gateway.getProperties().getString("Lifecycle.Sign.agenNameField",   "AgentName");
-    public static final String passwordField   = Gateway.getProperties().getString("Lifecycle.Sign.passwordField",   "Password");
-    public static final String signedFlagField = Gateway.getProperties().getString("Lifecycle.Sign.signedFlagField", "ElectronicallySigned");
+    public static final String agentNameField  = Lifecycle_Sign_agentNameField.getString();
+    public static final String passwordField   = Lifecycle_Sign_passwordField.getString();
+    public static final String signedFlagField = Lifecycle_Sign_signedFlagField.getString();
 
     public Sign() {
-        super();
-        setBuiltInProperty(SCHEMA_NAME, "SimpleElectonicSignature");
+        super("SimpleElectonicSignature", description);
     }
 
     @Override
@@ -67,10 +69,10 @@ public class Sign extends Authenticate {
     /**
      */
     public static String getSimpleElectonicSignature(Job job) throws InvalidDataException, ObjectNotFoundException {
-        if (job.getOutcome().hasField(agenNameField) && job.getOutcome().hasField(passwordField)) {
+        if (job.getOutcome().hasField(agentNameField) && job.getOutcome().hasField(passwordField)) {
             StringBuffer xml = new StringBuffer("<SimpleElectonicSignature>");
 
-            xml.append("<AgentName>").append(job.getOutcome().getField(agenNameField)).append("</AgentName>");
+            xml.append("<AgentName>").append(job.getOutcome().getField(agentNameField)).append("</AgentName>");
             xml.append("<Password>") .append(job.getOutcome().getField(passwordField)) .append("</Password>");
 
             xml.append("<ExecutionContext>");
@@ -86,17 +88,11 @@ public class Sign extends Authenticate {
 
             job.getOutcome().setField(passwordField, REDACTED);
             if (job.getOutcome().hasField(signedFlagField)) job.getOutcome().setField(signedFlagField, "true");
-            
+
             return xml.toString();
         }
         else {
-            if (Gateway.getProperties().getBoolean("Lifecycle.Sign.strictError", true)) {
-                throw new InvalidDataException("Outcome does not contain AgentName or Password fields - job:"+job);
-            }
-            else {
-              log.warn("executeSimpleElectonicSignature() - Outcome does not contain AgentName or Password fields - job:{}", job);
-              return null;
-            }
+            throw new InvalidDataException("Outcome does not contain AgentName or Password fields - job:"+job);
         }
     }
 }

@@ -89,6 +89,7 @@
               <xs:element name="QueryResource" type="resource" minOccurs="0" />
               <xs:element name="StateMachineResource" type="resource" minOccurs="0" />
               <xs:element name="PropertyDescriptionResource" type="resource" minOccurs="0" />
+              <xs:element name="DomainContextResource" type="resource" minOccurs="0" />
               <xs:element name="Activity" type="activity" minOccurs="0" />
               <xs:element name="Workflow" minOccurs="0">
                 <xs:complexType>

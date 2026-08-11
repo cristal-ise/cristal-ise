@@ -116,6 +116,16 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                               <xs:sequence>
                                 <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
                                 <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
+                                </xs:element>
                               </xs:sequence>
                             </xs:complexType>
                           </xs:element>
@@ -128,22 +138,21 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
         SchemaTestBuilder.build('Test', 'TestData', 0) {
             struct(name: 'TestData', useSequence: true) {
                 field(name:'stringField1')
-                anyField()
                 field(name:'stringField2')
+                anyField() // must be last to create a valid schema
             }
         }.compareXML("""<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
                           <xs:element name='TestData'>
                             <xs:complexType>
                               <xs:sequence>
                                 <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
-                                <xs:any minOccurs='0' processContents='lax'/>
                                 <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                <xs:any minOccurs='0' processContents='lax' />
                               </xs:sequence>
                             </xs:complexType>
                           </xs:element>
                         </xs:schema>""")
     }
-
 
     def 'Structure can define an unordered set of Fields xs:all which default type is string and multiplicity is 1'() {
         expect:
@@ -158,6 +167,16 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                               <xs:all minOccurs='0'>
                                 <xs:element name='stringField1' type='xs:string' minOccurs='1' maxOccurs='1' />
                                 <xs:element name='stringField2' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
+                                </xs:element>
                               </xs:all>
                             </xs:complexType>
                           </xs:element>
@@ -210,6 +229,16 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                            </xs:extension>
                          </xs:simpleContent>
                        </xs:complexType>
+                     </xs:element>
+                     <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+                       <xs:annotation>
+                         <xs:appinfo>
+                           <dynamicForms>
+                             <hidden>true</hidden>
+                             <required>false</required>
+                           </dynamicForms>
+                         </xs:appinfo>
+                       </xs:annotation>
                      </xs:element>
                    </xs:all>
                    <xs:attribute name="InsuranceNumber" type="xs:string" default= "123456789ABC"/>
@@ -292,6 +321,16 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                             </xs:sequence>
                           </xs:complexType>
                         </xs:element>
+                     <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+                       <xs:annotation>
+                         <xs:appinfo>
+                           <dynamicForms>
+                             <hidden>true</hidden>
+                             <required>false</required>
+                           </dynamicForms>
+                         </xs:appinfo>
+                       </xs:annotation>
+                     </xs:element>
                       </xs:sequence>
                     </xs:complexType>
                   </xs:element>
@@ -335,6 +374,16 @@ class SchemaBuilderStructSpecs extends Specification implements CristalTestSetup
                                   </xs:complexType>
                                 </xs:element>
                                 <xs:element name='stringField3' type='xs:string' minOccurs='1' maxOccurs='1' />
+                                <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+                                  <xs:annotation>
+                                    <xs:appinfo>
+                                      <dynamicForms>
+                                        <hidden>true</hidden>
+                                        <required>false</required>
+                                      </dynamicForms>
+                                    </xs:appinfo>
+                                  </xs:annotation>
+                                </xs:element>
                               </xs:all>
                             </xs:complexType>
                           </xs:element>

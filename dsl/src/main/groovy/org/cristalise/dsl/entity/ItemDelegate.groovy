@@ -20,6 +20,8 @@
  */
 package org.cristalise.dsl.entity
 
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.apache.commons.lang3.StringUtils
 import org.cristalise.dsl.collection.DependencyBuilder
 import org.cristalise.dsl.collection.DependencyDelegate
@@ -29,6 +31,7 @@ import org.cristalise.kernel.collection.BuiltInCollections
 import org.cristalise.kernel.collection.Dependency
 import org.cristalise.kernel.collection.DependencyDescription
 import org.cristalise.kernel.collection.DependencyMember
+import org.cristalise.kernel.entity.DomainContext
 import org.cristalise.kernel.entity.imports.ImportDependency
 import org.cristalise.kernel.entity.imports.ImportDependencyMember
 import org.cristalise.kernel.entity.imports.ImportItem
@@ -36,11 +39,7 @@ import org.cristalise.kernel.entity.imports.ImportOutcome
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.instance.Workflow
 import org.cristalise.kernel.lookup.ItemPath
-import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.property.PropertyDescriptionList
-
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
 
 /**
  *
@@ -56,34 +55,52 @@ class ItemDelegate extends PropertyDelegate {
 
         log.debug 'constructor() - args:{}', args
 
-        newItem.namespace   = args.ns
-        newItem.name        = args.name
-        newItem.initialPath = args.folder
-
+        newItem.namespace = args.ns
+        newItem.name      = args.name
         if (args.version != null) newItem.version = (Integer)args.version
 
+        initNewItemFolder(args)
+        initNewItemWorkflow(args)
+    }
+
+    private void initNewItemFolder(Map<String, Object> args) {
+        if (args.folder instanceof DomainContext) {
+            newItem.initialPath = ((DomainContext)args.folder).getDomainPath()
+        }
+        else {
+            newItem.initialPath = args.folder
+        }
+    }
+
+    private void initNewItemWorkflow(Map<String, Object> args) {
         if (args.workflow == null) {
-            log.debug 'constructor() - item:{} will be created without workflow', args.name
+            log.debug 'initNewItemWorkflow() - item:{} will be created without workflow', args.name
         }
         else if (args.workflow instanceof String) {
+            assert args.workflow && args.workflowVer != null
+
             newItem.workflow = (String)args.workflow
+            newItem.workflowVer = (Integer)args.workflowVer
         }
         else if (args.workflow instanceof CompositeActivityDef) {
             newItem.compActDef = (CompositeActivityDef)args.workflow
             newItem.workflow = newItem.compActDef.name
+
             if (newItem.compActDef.version != null) {
                 newItem.workflowVer = newItem.compActDef.version
                 if (args.workflowVer != null) assert newItem.workflowVer == (Integer)args.workflowVer
+            }
+            else {
+                assert args.workflowVer != null
+                newItem.workflowVer = (Integer)args.workflowVer
             }
         }
         else if (args.workflow instanceof Workflow) {
             newItem.wf = (Workflow)args.workflow
         }
         else {
-            log.warn 'constructor() - UNKNOWN class:{} item:{} will be created without workflow', args.workflow.class.getSimpleName(), args.name
+            log.warn 'initNewItemWorkflow() - UNKNOWN class:{} item:{} will be created without workflow', args.workflow.class.getSimpleName(), args.name
         }
-
-        if (args.workflowVer != null) newItem.workflowVer = (Integer)args.workflowVer
     }
 
     public ItemDelegate(String name, String folder, String workflow, Integer workflowVer = null) {

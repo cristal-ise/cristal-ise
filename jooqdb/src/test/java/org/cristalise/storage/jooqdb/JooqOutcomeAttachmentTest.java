@@ -63,7 +63,6 @@ public class JooqOutcomeAttachmentTest extends StorageTestBase {
     @After
     public void after() throws Exception {
         jooqHandler.delete(context, uuid);
-        context.close();
 
         if (dbType == MYSQL || dbType == PostgreSQL) jooqHandler.dropTables(context);
     }

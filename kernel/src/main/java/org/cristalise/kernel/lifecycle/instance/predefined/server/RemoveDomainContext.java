@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 public class RemoveDomainContext extends PredefinedStep {
 
     public RemoveDomainContext() {
-        super();
+        super("Deletes an existing context in the domain tree, but only if empty");
     }
 
     @Override

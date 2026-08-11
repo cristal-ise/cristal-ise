@@ -120,7 +120,7 @@ public class RoleAccess extends PathUtils {
 
             return toJSON(roleData, cookie).build();
         }
-        catch (ObjectNotFoundException e) {
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }
@@ -136,7 +136,7 @@ public class RoleAccess extends PathUtils {
     
             return agentsData;
         }
-        catch (ObjectNotFoundException e) {
+        catch (Exception e) {
             throw new WebAppExceptionBuilder().exception(e).newCookie(cookie).build();
         }
     }

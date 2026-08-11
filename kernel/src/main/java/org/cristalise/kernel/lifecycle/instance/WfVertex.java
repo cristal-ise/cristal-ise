@@ -60,12 +60,6 @@ public abstract class WfVertex extends GraphableVertex {
     }
 
     /**
-     * Sets the activity available to be executed on start of Workflow or composite activity 
-     * (when it is the first one of the (sub)process)
-     */
-    public abstract void runFirst(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException;
-
-    /**
      * 
      */
     public WfVertex() {
@@ -74,9 +68,14 @@ public abstract class WfVertex extends GraphableVertex {
         setIsComposite(false);
     }
 
-    public abstract void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException;
-
+    /**
+     * Sets the activity available to be executed on start of Workflow or composite activity 
+     * (when it is the first one of the (sub)process)
+     */
+    public abstract void runFirst(TransactionKey transactionKey) throws InvalidDataException;
+    public abstract void runNext(TransactionKey transactionKey) throws InvalidDataException;
     public abstract void reinit( int idLoop ) throws InvalidDataException;
+    public abstract void run(TransactionKey transactionKey) throws InvalidDataException;
 
     public void abort(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) 
             throws AccessRightsException, InvalidTransitionException, InvalidDataException, ObjectNotFoundException, PersistencyException,
@@ -95,8 +94,6 @@ public abstract class WfVertex extends GraphableVertex {
      * @return String
      */
     public abstract String getErrors();
-
-    public abstract void run(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException;
 
     /**
      * @return boolean

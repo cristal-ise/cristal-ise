@@ -38,6 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.exolab.castor.types.AnyNode;
 import org.exolab.castor.xml.schema.Annotated;
 import org.exolab.castor.xml.schema.Annotation;
+import org.exolab.castor.xml.schema.AnyType;
 import org.exolab.castor.xml.schema.ComplexType;
 import org.exolab.castor.xml.schema.ContentModelGroup;
 import org.exolab.castor.xml.schema.Documentation;
@@ -59,9 +60,7 @@ import org.w3c.dom.NodeList;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * contains child outcome elements - creates new ones
- * @author zsmyt
- *
+ * contains child outcome elements and creates new ones
  */
 @Slf4j
 public abstract class OutcomeStructure {
@@ -77,14 +76,21 @@ public abstract class OutcomeStructure {
 
     public OutcomeStructure() {}
 
+    public OutcomeStructure(Wildcard model) {
+        // Wildcard cannot be stored in this.model
+        subStructure = new HashMap<String, OutcomeStructure>();
+        log.debug("ctor() - Creating Wildcard structure as " + this.getClass().getSimpleName());
+
+        help = extractHelp(model);
+    }
+
     public OutcomeStructure(ElementDecl model) {
         this.model = model;
         subStructure = new HashMap<String, OutcomeStructure>();
 
-        log.debug("Creating '" + model.getName() + "' structure as " + this.getClass().getSimpleName());
+        log.debug("ctor() - Creating '" + model.getName() + "' structure as " + this.getClass().getSimpleName());
 
-        String doc = extractHelp(model);
-        if (StringUtils.isNotBlank(doc)) help = doc;
+        help = extractHelp(model);
     }
 
     /**
@@ -106,13 +112,33 @@ public abstract class OutcomeStructure {
     public abstract Element initNew(Document rootDocument);
 
     public abstract void exportViewTemplate(Writer template) throws IOException;
-    public abstract Object generateNgDynamicForms(Map<String, Object> inputs);
+    public abstract Object generateNgDynamicForms(Map<String, Object> inputs, boolean withModel, boolean withLayout);
     public abstract JSONObject generateNgDynamicFormsCls();
     public abstract void addJsonInstance(OutcomeStructure parentStruct, Element parentElement, String name, Object json) 
             throws OutcomeBuilderException;
 
     /**
-     * Create the named child element from the xsd model and adds it to the document
+     * Finds the Field in the model of the actual element and returns it if it was an anyField.
+     * There should be only one AnyField.
+     * 
+     * @return the AnyField of the actual element, or null
+     */
+    private OutcomeStructure getAnyField() {
+        if (subStructure != null) {
+            for (OutcomeStructure childModel: subStructure.values()) {
+                if (childModel instanceof Field && childModel.isAnyField()) {
+                    return childModel;
+                }
+            }
+        }
+
+        return null;
+    }
+    /**
+     * Creates the named child element from the xsd model and adds it to the document. 
+     * If the name was not found in the model of the actual element, checks 
+     * if the actual element is an xs:anyType or contains an xs:any (anyField). 
+     * If one of the above condition is true, it creates the requested element as a Field.
      * 
      * @param rootDocument the root of the dom
      * @param name the name of the elements to be added
@@ -121,13 +147,27 @@ public abstract class OutcomeStructure {
      */
     public Element createChildElement(Document rootDocument, String name) throws OutcomeBuilderException {
         OutcomeStructure childModel = getChildModelElement(name);
+        Element newElement = null;
 
-        if (childModel == null) throw new StructuralException("'"+model.getName()+"' does not have child '"+name+"'");
+        if (childModel == null) {
+            if (isAnyType()) {
+                newElement = rootDocument.createElement(name);
+            }
+            else {
+                childModel = getAnyField();
 
-        Element newElement = childModel.initNew(rootDocument);
+                if (childModel == null) {
+                    throw new StructuralException("'"+model.getName()+"' does not have child '"+name+"' declaration");
+                }
+
+                newElement = ((Field)childModel).initNewAny(rootDocument, name);
+            }
+        }
+        else {
+            newElement = childModel.initNew(rootDocument);
+        }
 
         addChildElement(name, newElement);
-
         return newElement;
     }
 
@@ -167,10 +207,11 @@ public abstract class OutcomeStructure {
     }
 
     /**
-     * Contains the rules for deciding which OutcomeStructure will represent a chosen Element Declaration. In this order
+     * Creates OutcomeStructure (element) to represent the chosen Element declaration:
      * <ol>
      * <li>if maxOccurs > 1 then Dimension
      * <li>SimpleTypes are Fields
+     * <li>AnyTypes are Fields
      * <li>No element children is a Field
      * <li>Everything else is a DataRecord
      * </ol>
@@ -189,21 +230,32 @@ public abstract class OutcomeStructure {
             throw new StructuralException("Element " + model.getName() + " is elementary yet has no type.");
 
         // simple types will be fields
-        if (elementType instanceof SimpleType) return new Field(model);
-
-        // otherwise is a complex type
-        try {
-            ComplexType elementComplexType = (ComplexType) elementType;
-
-            // when no element children - field
-            if (elementComplexType.getParticleCount() == 0) return new Field(model);
-
-            // everything else is a data record
-            return new DataRecord(model);
+        if (elementType instanceof SimpleType) {
+            return new Field(model);
         }
-        catch (ClassCastException e) {
-            throw new StructuralException("Unknown XMLType for element " + model.getName());
+        else if (elementType instanceof AnyType) {
+            return new Field(model);
         }
+        else {
+            // otherwise is a complex type
+            try {
+                ComplexType elementComplexType = (ComplexType) elementType;
+
+                // when no element children - field
+                if (elementComplexType.getParticleCount() == 0) return new Field(model);
+
+                // everything else is a data record
+                return new DataRecord(model);
+            }
+            catch (ClassCastException e) {
+                throw new StructuralException("Unknown XMLType for element " + model.getName(), e);
+            }
+        }
+    }
+
+    public OutcomeStructure createStructure(Wildcard model) throws OutcomeBuilderException {
+        if (model.getMaxOccurs() == 0) return null;
+        return new Field(model);
     }
 
     /**
@@ -231,18 +283,20 @@ public abstract class OutcomeStructure {
 
                 // xs:sequences and xs:all is supported in data structures such as these
                 Order thisOrder = thisGroup.getOrder();
-                if (thisOrder == Order.sequence || thisOrder == Order.all)
+                if (thisOrder == Order.sequence || thisOrder == Order.all) {
                     enumerateElements(thisGroup);
-                else
+                }
+                else {
                     throw new StructuralException("The '" + thisGroup.getOrder() + "' group is not supported");
+                }
             }
             else if (thisParticle instanceof ElementDecl) {
                 ElementDecl thisElement = (ElementDecl) thisParticle;
                 addStructure(createStructure(thisElement));
             }
             else if (thisParticle instanceof Wildcard) {
-                //do nothing
-                log.debug("enumerateElements() - group has Wildcard representing xs:any");
+                log.debug("enumerateElements() - name:{} has group with Wildcard representing xs:any", getName());
+                addStructure(createStructure((Wildcard)thisParticle));
             }
             else {
                 throw new StructuralException("Cannot process Particle '" + thisParticle.getClass() + "' : Not implemented");
@@ -407,6 +461,22 @@ public abstract class OutcomeStructure {
 
     public boolean isOptional() {
         return model.getMinOccurs() == 0;
+    }
+
+    /**
+     * this,model == null indicates that the structure is AnyField (i.e. used Wildcard representing xs:any)
+     * @return true if field represents xs:any
+     */
+    public boolean isAnyField() {
+        return this.model == null;
+    }
+
+    /**
+     * @return true if field has xs:anyType
+     */
+    public boolean isAnyType() {
+        if (model == null) return false;
+        return             model.getType() instanceof AnyType;
     }
 
     public OutcomeStructure find(String[] names) {

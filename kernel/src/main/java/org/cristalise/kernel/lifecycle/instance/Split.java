@@ -20,11 +20,13 @@
  */
 package org.cristalise.kernel.lifecycle.instance;
 
+import static org.cristalise.kernel.SystemProperties.RoutingScript_enforceStringReturnValue;
 import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.LAST_NUM;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_EXPR;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_NAME;
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_VERSION;
+
 import java.util.Arrays;
 import java.util.Vector;
 
@@ -35,10 +37,8 @@ import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.graph.model.Vertex;
 import org.cristalise.kernel.graph.traversal.GraphTraversal;
 import org.cristalise.kernel.lifecycle.routingHelpers.DataHelperUtility;
-import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.TransactionKey;
-import org.cristalise.kernel.process.Gateway;
 import org.cristalise.kernel.scripting.ScriptingEngineException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -55,12 +55,6 @@ public abstract class Split extends WfVertex {
     }
 
     private boolean loopTested;
-
-    /**
-     * 
-     */
-    @Override
-    public abstract void runNext(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException;
 
     /**
      * Method addNext.
@@ -160,8 +154,8 @@ public abstract class Split extends WfVertex {
      * 
      */
     @Override
-    public void run(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
-        runNext(agent, itemPath, transactionKey);
+    public void run(TransactionKey transactionKey) throws InvalidDataException {
+        runNext(transactionKey);
     }
 
     /**
@@ -194,7 +188,7 @@ public abstract class Split extends WfVertex {
             stringValue = (String) value;
         }
         else {
-            if (Gateway.getProperties().getBoolean("RoutingScript.enforceStringReturnValue", false))
+            if (RoutingScript_enforceStringReturnValue.getBoolean())
                 throw new InvalidDataException("Split id:"+getID()+" Routing script or expression must return String");
             else
                 stringValue = value.toString();
@@ -203,10 +197,12 @@ public abstract class Split extends WfVertex {
         return stringValue.split(",");
     }
 
-    protected String[] calculateNexts(ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
+    protected String[] calculateNexts(TransactionKey transactionKey) throws InvalidDataException {
         String expr = (String) getBuiltInProperty(ROUTING_EXPR);
         String scriptName = (String) getBuiltInProperty(ROUTING_SCRIPT_NAME);
         Integer scriptVersion = deriveVersionNumber(getBuiltInProperty(ROUTING_SCRIPT_VERSION));
+
+        ItemPath itemPath = getWf().getItemPath();
 
         if (StringUtils.isNotBlank(expr)) {
             try {
@@ -314,7 +310,7 @@ public abstract class Split extends WfVertex {
     }
 
     @Override
-    public void runFirst(AgentPath agent, ItemPath itemPath, TransactionKey transactionKey) throws InvalidDataException {
-        runNext(agent, itemPath, transactionKey);
+    public void runFirst(TransactionKey transactionKey) throws InvalidDataException {
+        runNext(transactionKey);
     }
 }

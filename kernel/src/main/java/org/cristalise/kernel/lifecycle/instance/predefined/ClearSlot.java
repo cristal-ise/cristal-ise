@@ -40,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ClearSlot extends PredefinedStep {
 
     public ClearSlot() {
-        super();
+        super("Clears an aggregation member slot, given a slot no or item uuid");
     }
 
     /**

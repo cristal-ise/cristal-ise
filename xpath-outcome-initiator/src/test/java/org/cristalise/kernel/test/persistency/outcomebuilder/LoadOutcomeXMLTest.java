@@ -35,7 +35,7 @@ public class LoadOutcomeXMLTest extends XMLUtils {
     public void setUp() throws Exception {
     }
 
-    private void loaExportCheck(String type, String name) throws Exception {
+    private void loadExportCheck(String type, String name) throws Exception {
         String xsd      = getXSD(dir, type);
         String expected = getXML(dir, type+"-"+name);
 
@@ -46,11 +46,11 @@ public class LoadOutcomeXMLTest extends XMLUtils {
 
     @Test @Ignore
     public void loadAndExportDefaultStateMachine() throws Exception {
-        loaExportCheck("StateMachine", "Default");
+        loadExportCheck("StateMachine", "Default");
     }
 
     @Test @Ignore
     public void loadAndExportDevModule() throws Exception {
-        loaExportCheck("Module", "Dev");
+        loadExportCheck("Module", "Dev");
     }
 }

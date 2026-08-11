@@ -22,8 +22,16 @@ package org.cristalise.kernel.persistency;
 
 import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.ADD;
 import static org.cristalise.kernel.entity.proxy.ProxyMessage.Type.DELETE;
-import static org.cristalise.kernel.persistency.ClusterType.*;
+import static org.cristalise.kernel.persistency.ClusterType.ATTACHMENT;
+import static org.cristalise.kernel.persistency.ClusterType.HISTORY;
+import static org.cristalise.kernel.persistency.ClusterType.JOB;
+import static org.cristalise.kernel.persistency.ClusterType.LIFECYCLE;
+import static org.cristalise.kernel.persistency.ClusterType.OUTCOME;
+import static org.cristalise.kernel.persistency.ClusterType.PATH;
+import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.SystemProperties;
 import org.cristalise.kernel.collection.Collection;
 import org.cristalise.kernel.collection.CollectionMember;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -52,7 +61,6 @@ import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.persistency.outcome.OutcomeAttachment;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.kernel.process.Gateway;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.querying.Query;
 
@@ -71,20 +79,6 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class ClusterStorageManager {
-
-    /**
-     * 
-     */
-    public static final String INSTANCESPEC_PROPERTY = "ClusterStorage";
-    /**
-     * 
-     */
-    public static final String CACHESPEC_PROPERTY = "ClusterStorage.cacheSpec";
-    /**
-     * default value:{@value}
-     */
-    public static final String defaultCacheSpec = "expireAfterAccess = 600s, recordStats";
-
 
     HashMap<String, ClusterStorage>                 allStores           = new HashMap<String, ClusterStorage>();
     String[]                                        clusterPriority     = new String[0];
@@ -111,11 +105,9 @@ public class ClusterStorageManager {
     /**
      * Initializes all ClusterStorage handlers listed by class name in the property "ClusterStorages"
      * This property is usually process specific, and so should be in the server/client.conf and not the connect file.
-     *
-     * @param auth the Authenticator to be used to initialise all the handlers
      */
-    public ClusterStorageManager(Authenticator auth) throws PersistencyException {
-        Object clusterStorageProp = Gateway.getProperties().getObject(INSTANCESPEC_PROPERTY);
+    public ClusterStorageManager() throws PersistencyException {
+        Object clusterStorageProp = SystemProperties.ClusterStorage.getObject();
 
         if (clusterStorageProp == null || "".equals(clusterStorageProp)) {
             throw new PersistencyException("No persistency, no ClusterStorage defined!");
@@ -146,7 +138,7 @@ public class ClusterStorageManager {
 
         int clusterNo = 0;
         for (ClusterStorage newStorage : rootStores) {
-            newStorage.open(auth);
+            newStorage.open();
 
             log.debug("init() - Cluster storage " + newStorage.getClass().getName() + " initialised successfully.");
             allStores.put(newStorage.getId(), newStorage);
@@ -156,7 +148,7 @@ public class ClusterStorageManager {
         clusterReaders.put(ClusterType.ROOT, rootStores); // all storages are queried for clusters at the root level
 
         cache = CacheBuilder
-                .from(Gateway.getProperties().getString(CACHESPEC_PROPERTY, defaultCacheSpec))
+                .from(SystemProperties.ClusterStorage_cacheSpec.getString())
                 .build();
     }
 
@@ -176,9 +168,9 @@ public class ClusterStorageManager {
             String newStorageClass = tok.nextToken();
             try {
                 if (!newStorageClass.contains(".")) newStorageClass = "org.cristalise.storage."+newStorageClass;
-                newStorage = (ClusterStorage)(Class.forName(newStorageClass).newInstance());
+                newStorage = (ClusterStorage)(Class.forName(newStorageClass).getDeclaredConstructor().newInstance());
             }
-            catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+            catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
                 throw new PersistencyException("init() - The cluster storage handler class "+newStorageClass+" could not be found.");
             }
             rootStores.add(newStorage);
@@ -203,13 +195,13 @@ public class ClusterStorageManager {
     /**
      * Check which storage can execute the given query
      *
-     * @param language the language of the query
+     * @param query the query
      * @return the found store or null
      */
-    private ClusterStorage findStorageForQuery(String language) {
+    private ClusterStorage findStorageForQuery(Query query) {
         for (String element : clusterPriority) {
             ClusterStorage store = allStores.get(element);
-            if (store.checkQuerySupport(language) ) return store;
+            if (store.checkQuerySupport(query) ) return store;
         }
         return null;
     }
@@ -272,7 +264,7 @@ public class ClusterStorageManager {
      * @throws PersistencyException
      */
     public String executeQuery(Query query, TransactionKey transactionKey) throws PersistencyException {
-        ClusterStorage reader = findStorageForQuery(query.getLanguage());
+        ClusterStorage reader = findStorageForQuery(query);
 
         if (reader != null) return reader.executeQuery(query, transactionKey);
         else                throw new PersistencyException("No storage was found supporting language:"+query.getLanguage()+" query:"+query.getName());
@@ -372,7 +364,7 @@ public class ClusterStorageManager {
                 }
             }
             catch (PersistencyException e) {
-                log.debug( "retrive() - reader {} could not retrieve {}/{}", thisReader, itemPath, path, e);
+                log.warn( "retrive() - reader {} could not retrieve {}/{}", thisReader, itemPath, path, e);
             }
         }
 

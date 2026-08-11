@@ -20,60 +20,41 @@
  */
 package org.cristalise.kernel.entity;
 
-import static org.cristalise.kernel.process.Gateway.getProperties;
+import static org.cristalise.kernel.SystemProperties.ItemVerticle_ebAddress;
+import static org.cristalise.kernel.SystemProperties.ItemVerticle_includeDebugInfo;
+import static org.cristalise.kernel.SystemProperties.ItemVerticle_instances;
+import static org.cristalise.kernel.SystemProperties.ItemVerticle_requestTimeoutSeconds;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
+import io.vertx.core.Future;
+import io.vertx.core.VerticleBase;
+import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.serviceproxy.ServiceBinder;
-import io.vertx.serviceproxy.ServiceException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class ItemVerticle extends AbstractVerticle {
+public class ItemVerticle extends VerticleBase {
 
-    public static final String EB_ADDRESS_PROPERTY     = "ItemVerticle.ebAddress";
-    public static final String IS_WORKER_PROPERTY      = "ItemVerticle.isWorker";
-    public static final String INSTANCES_PROPERTY      = "ItemVerticle.instances";
-    public static final String INCLUDE_DEBUG_PROPERTY  = "ItemVerticle.includeDebugInfo";
-    public static final String REQUEST_TIMEOUT_SECONDS = "ItemVerticle.requestTimeoutSeconds";
+    public static final String  ebAddress      = ItemVerticle_ebAddress.getString();
+    public static final int     instances      = ItemVerticle_instances.getInteger();
+    public static final boolean includeDebug   = ItemVerticle_includeDebugInfo.getBoolean();
+    public static final int     requestTimeout = ItemVerticle_requestTimeoutSeconds.getInteger();
 
-    /**
-     * The address name of the vertx event bus. Use {@value #EB_ADDRESS_PROPERTY} SystemProperty to configure it. 
-     * Default value is 'cristalise-items'
-     */
-    public static final String ebAddress = getProperties().getString(EB_ADDRESS_PROPERTY, "cristalise-items");
-    /**
-     * If the verticle is a worker verticle or not. Use {@value #IS_WORKER_PROPERTY} SystemProperty to configure it. 
-     * Default value is 'true'
-     */
-    public static final boolean isWorker = getProperties().getBoolean(IS_WORKER_PROPERTY, true);
-    /**
-     * The number of deployed verticle instances. Use {@value #INSTANCES_PROPERTY} SystemProperty to configure it. 
-     * Default value is 8
-     */
-    public static final int instances = getProperties().getInt(INSTANCES_PROPERTY, 8);
-    /**
-     * If the {@link ServiceException} includes debug information or not. Use {@value #INCLUDE_DEBUG_PROPERTY} 
-     * SystemProperty to configure it. Default value is 'true'
-     */
-    public static final boolean includeDebug = getProperties().getBoolean(INCLUDE_DEBUG_PROPERTY, true);
-    /**
-     * The number of seconds before a request to an Item times out. Use {@value #REQUEST_TIMEOUT_SECONDS} 
-     * SystemProperty to configure it. Default value is 10
-     */
-    public static final int requestTimeout = getProperties().getInt(REQUEST_TIMEOUT_SECONDS, 15);
+    private MessageConsumer<?> serviceRegistration;
 
     @Override
-    public void start(Promise<Void> startPromise) throws Exception {
-        // start service and register the handler
-        Item service = new TraceableEntity();
-
-        new ServiceBinder(vertx)
+    public Future<?> start() throws Exception {
+        serviceRegistration = new ServiceBinder(vertx)
                 .setAddress(ebAddress)
                 .setIncludeDebugInfo(includeDebug)
-                .register(Item.class, service);
+                .register(Item.class, new TraceableEntity());
 
-        startPromise.complete();
         log.info("start() - service register done");
+        return serviceRegistration.completion();
+    }
+
+    @Override
+    public Future<?> stop() throws Exception {
+        if (serviceRegistration != null) return serviceRegistration.unregister();
+        else                             return Future.succeededFuture();
     }
 }

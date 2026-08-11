@@ -1,25 +1,15 @@
 package org.cristalise.dev.test.scenario
 
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertThat
-import static org.unitils.reflectionassert.ReflectionAssert.assertReflectionEquals
 
-import org.cristalise.dsl.test.builders.AgentTestBuilder
-import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.entity.proxy.ItemProxy
 import org.cristalise.kernel.lifecycle.ActivityDef
-import org.cristalise.kernel.lifecycle.instance.predefined.server.UpdateRole
-import org.cristalise.kernel.lookup.RolePath
-import org.cristalise.kernel.process.Gateway
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.cristalise.kernel.utils.CastorXMLUtility
-import org.hamcrest.collection.IsIterableContainingInAnyOrder
-import org.junit.Test
-
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
 import groovy.transform.CompileDynamic
 import groovy.transform.CompileStatic
 import groovy.util.logging.Slf4j
-import spock.util.concurrent.PollingConditions
 
 
 /**
@@ -27,6 +17,7 @@ import spock.util.concurrent.PollingConditions
  *
  */
 @CompileStatic @Slf4j
+@TestInstance(Lifecycle.PER_CLASS)
 class TutorialsDevIT extends KernelScenarioTestBase {
     String schemaName  = "PatientDetails"
     String elemActName = "SetPatientDetails"
@@ -70,16 +61,15 @@ class TutorialsDevIT extends KernelScenarioTestBase {
     }
 
     @Test
-    public void 'Basic Tutorial with one Activy'() {
+    public void 'Basic Tutorial with one Activity'() {
         def factory = setupPatient([:])
-        createNewItemByFactory(factory, "CreateNewInstance", "$itemType-$timeStamp", folder)
-        def patient = agent.getItem("$folder/$itemType-$timeStamp")
+        def patient = createItemFromDescription(factory, "$itemType-$timeStamp", folder)
 
         executeDoneJob(patient, elemActName)
     }
     
     @CompileDynamic
-    private ItemProxy setupExtedned() {
+    private ItemProxy setupExtended() {
         Map<String, ActivityDef> actMap = [:]
 
         def urinalysisSchema =  Schema("UrinSample-$timeStamp", folder) {
@@ -119,10 +109,8 @@ class TutorialsDevIT extends KernelScenarioTestBase {
 
     @Test
     public void 'Extended Tutorial with default Master Schema and Aggregate Script'() {
-        def factory = setupExtedned()
-        createNewItemByFactory(factory, "CreateNewInstance", "$itemType-$timeStamp", folder)
-
-        def patient = agent.getItem("$folder/$itemType-$timeStamp")
+        def factory = setupExtended()
+        def patient = createItemFromDescription(factory, "$itemType-$timeStamp", folder)
 
         assert patient.getMasterSchema()
         assert patient.getAggregateScript()

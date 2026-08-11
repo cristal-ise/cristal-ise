@@ -53,7 +53,7 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
     public static final String description = "Updates the Properties of the Item from its description";
 
     public UpdateProperitesFromDescription() {
-        super();
+        super(description);
     }
 
     /**
@@ -151,12 +151,6 @@ public class UpdateProperitesFromDescription extends PredefinedStep {
      * @throws InvalidDataException
      */
     protected PropertyArrayList unmarshallInitProperties(String initPropString) throws InvalidDataException {
-        try {
-            return (PropertyArrayList) Gateway.getMarshaller().unmarshall(initPropString);
-        }
-        catch (Exception e) {
-            log.error("Initial property parameter was not a marshalled PropertyArrayList", e);
-            throw new InvalidDataException("Initial property parameter was not a marshalled PropertyArrayList: " + initPropString);
-        }
+        return (PropertyArrayList) Gateway.getMarshaller().unmarshall(initPropString);
     }
 }

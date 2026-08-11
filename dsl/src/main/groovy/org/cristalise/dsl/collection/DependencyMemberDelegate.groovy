@@ -21,9 +21,7 @@
 package org.cristalise.dsl.collection
 
 import groovy.transform.CompileStatic
-
 import org.cristalise.dsl.property.PropertyDelegate
-
 
 /**
  * 
@@ -32,7 +30,7 @@ import org.cristalise.dsl.property.PropertyDelegate
 @CompileStatic
 class DependencyMemberDelegate extends PropertyDelegate {
 
-    public void processClosure(Closure cl) {
+    public void processClosure(@DelegatesTo(DependencyMemberDelegate) Closure cl) {
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()

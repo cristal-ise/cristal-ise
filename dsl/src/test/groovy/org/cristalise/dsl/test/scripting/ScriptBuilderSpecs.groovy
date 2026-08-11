@@ -22,9 +22,8 @@ package org.cristalise.dsl.test.scripting
 
 import org.cristalise.dsl.test.builders.ScriptTestBuilder
 import org.cristalise.kernel.test.utils.CristalTestSetup
-
+import spock.lang.Ignore
 import spock.lang.Specification
-
 
 /**
  *
@@ -39,17 +38,62 @@ class ScriptBuilderSpecs extends Specification implements CristalTestSetup {
         cristalCleanup()
     }
 
-    def 'Specifying new script'() {
+    def 'Specifying new script of language javascript'() {
         expect:
         ScriptTestBuilder.build("testing", "MyFirstScript", 0) {
             input("input1", "java.lang.String")
             output("org.cristalise.kernel.scripting.ErrorInfo")
             javascript { ";" }
-        }
-        .compareXML( """<cristalscript>
-                             <param name='input1' type='java.lang.String' />
-                             <output type='org.cristalise.kernel.scripting.ErrorInfo' />
-                             <script language='javascript' name='MyFirstScript'><![CDATA[ ; ]]></script>
-                         </cristalscript>""")
+        }.compareXML("""
+<cristalscript>
+  <param name='input1' type='java.lang.String' />
+  <output type='org.cristalise.kernel.scripting.ErrorInfo' />
+  <script language='javascript' name='MyFirstScript'><![CDATA[ ; ]]></script>
+</cristalscript>""")
+    }
+
+    def 'Specifying new script of language groovy'() {
+        expect:
+        ScriptTestBuilder.build("testing", "MyFirstScript", 0) {
+            input("input1", "java.lang.String")
+            output("org.cristalise.kernel.scripting.ErrorInfo")
+            groovy { ";" }
+        }.compareXML( """
+<cristalscript>
+  <param name='input1' type='java.lang.String' />
+  <output type='org.cristalise.kernel.scripting.ErrorInfo' />
+  <script language='groovy' name='MyFirstScript'><![CDATA[ ; ]]></script>
+</cristalscript>""")
+    }
+    
+    def 'Script code must be provided as text'() {
+        when:
+        boolean isEqual = ScriptTestBuilder.build("testing", "MyFirstScript", 0) {
+            input("input1", "java.lang.String")
+            output("org.cristalise.kernel.scripting.ErrorInfo")
+            groovy { ; }
+        }.compareXML( """
+<cristalscript>
+  <param name='input1' type='java.lang.String' />
+  <output type='org.cristalise.kernel.scripting.ErrorInfo' />
+  <script language='groovy' name='MyFirstScript'><![CDATA[ ; ]]></script>
+</cristalscript>""")
+        then:
+        assert !isEqual
+    }
+
+    @Ignore('jython engine is not provided in default distribution')
+    def 'Specifying new script of language jython'() {
+        expect:
+        ScriptTestBuilder.build("testing", "MyFirstScript", 0) {
+            input("input1", "java.lang.String")
+            output("org.cristalise.kernel.scripting.ErrorInfo")
+            jython { ";" }
+        }.compareXML("""
+<cristalscript>
+  <param name='input1' type='java.lang.String' />
+  <output type='org.cristalise.kernel.scripting.ErrorInfo' />
+  <script language='jython' name='MyFirstScript'><![CDATA[ ; ]]></script>
+</cristalscript>""")
     }
 }

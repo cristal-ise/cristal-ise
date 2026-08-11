@@ -44,7 +44,7 @@ class Attribute {
     /**
      * accepted types from XSD specification without namespace (i.e. xs:)
      */
-    public static final List types = ['string', 'boolean', 'integer', 'decimal', 'date', 'time', 'dateTime']
+    public static final List<String> types = ['string', 'boolean', 'integer', 'decimal', 'date', 'time', 'dateTime', 'anyType']
 
     String name
     String type = 'xs:string'
@@ -52,7 +52,7 @@ class Attribute {
 
     String documentation
 
-    List values = null
+    List<String> values = null
 
     BigDecimal minExclusive = null, minInclusive= null, maxExclusive= null, maxInclusive= null
     BigInteger length = null, minLength = null, maxLength = null
@@ -68,7 +68,12 @@ class Attribute {
     Expression expression = null
 
     String multiplicityString
-    
+
+    String getValuesString() {
+        // workaround for limitation in groovy: List.toString() does not quote values
+        return values ? "['" + values.join("','") + "']" : null
+    }
+
     /**
      * Checks if the type is acceptable
      * 
@@ -77,7 +82,7 @@ class Attribute {
      */
     def setType(String t) {
         if (types.contains(t)) type = "xs:$t"
-        else                    throw new InvalidDataException("Field type '$t' is wrong, it must be one of these: $types")
+        else                   throw new InvalidDataException("Attribute type '$t' is wrong, it must be one of these: $types")
     }
 
     /**

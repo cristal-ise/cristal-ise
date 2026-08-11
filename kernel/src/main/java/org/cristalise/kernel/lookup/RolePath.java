@@ -32,6 +32,9 @@ import org.cristalise.kernel.persistency.ClusterType;
 import org.cristalise.kernel.persistency.TransactionKey;
 import org.cristalise.kernel.process.Gateway;
 
+import javax.annotation.concurrent.Immutable;
+
+@Immutable
 public class RolePath extends Path {
     private boolean hasJobList = false;
 

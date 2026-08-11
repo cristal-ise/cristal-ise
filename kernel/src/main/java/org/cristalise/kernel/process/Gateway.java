@@ -21,6 +21,12 @@
 package org.cristalise.kernel.process;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.cristalise.kernel.SystemProperties.Gateway_clusteredVertx;
+import static org.cristalise.kernel.SystemProperties.ItemServer_Telnet_host;
+import static org.cristalise.kernel.SystemProperties.ItemServer_Telnet_port;
+import static org.cristalise.kernel.SystemProperties.Lookup;
+import static org.cristalise.kernel.SystemProperties.ResourceImportHandler_$typeCode;
+import static org.cristalise.kernel.SystemProperties.WebSocketVerticle_enabled;
 
 import java.net.MalformedURLException;
 import java.util.Enumeration;
@@ -33,6 +39,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import io.vertx.core.ThreadingModel;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.CannotManageException;
 import org.cristalise.kernel.common.CriseVertxException;
@@ -48,7 +55,6 @@ import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.Lookup;
 import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.persistency.ClusterStorageManager;
-import org.cristalise.kernel.process.auth.Authenticator;
 import org.cristalise.kernel.process.module.ModuleManager;
 import org.cristalise.kernel.process.resource.BuiltInResources;
 import org.cristalise.kernel.process.resource.DefaultResourceImportHandler;
@@ -139,6 +145,7 @@ public class Gateway extends ProxyManager
 
         System.setProperty("vertx.logger-delegate-factory-class-name", "io.vertx.core.logging.SLF4JLogDelegateFactory");
         System.setProperty("hazelcast.logging.type", "slf4j");
+        System.setProperty("hazelcast.ignoreXxeProtectionFailures", "true");
 
         // Init properties & resources
         mC2KProps.clear();
@@ -180,8 +187,8 @@ public class Gateway extends ProxyManager
         if (props != null) mC2KProps.putAll(props);
 
         // dump properties
-        log.info("Gateway.init() - DONE");
-        dumpC2KProps(7);
+        log.info("init() - DONE");
+        dumpC2KProps();
     }
 
     private static void clearCacheHandler(CommandProcess process) {
@@ -241,24 +248,25 @@ public class Gateway extends ProxyManager
      */
     static private void createServerVerticles() {
         DeploymentOptions options = new DeploymentOptions()
-                .setWorker(ItemVerticle.isWorker)
+                .setThreadingModel(ThreadingModel.VIRTUAL_THREAD)
                 .setInstances(ItemVerticle.instances);
         mVertx.deployVerticle(ItemVerticle.class, options);
 
         options.setInstances(getProperties().getInt("JobPusherVerticle.instances", 2));
 
         options.setInstances(1);
-        options.setWorker(false);
+        options.setThreadingModel(ThreadingModel.EVENT_LOOP);
         mVertx.deployVerticle(TcpBridgeVerticle.class, options);
+
+        if (WebSocketVerticle_enabled.getBoolean()) {
+            mVertx.deployVerticle(WebSocketVerticle.class, options);
+        }
     }
 
     /**
      * 
      */
     static private void createTelnetShellService(String host, int port) {
-        // addClearCacheCommand("proxy-clearCache");
-        addClearCacheCommand("storage-clearCache");
-
         ShellServiceOptions options = new ShellServiceOptions()
             .setTelnetOptions(new TelnetTermOptions().setHost(host).setPort(port));
 
@@ -282,21 +290,21 @@ public class Gateway extends ProxyManager
 
             createServerVerticles();
 
-            String host = Gateway.getProperties().getString("ItemServer.Telnet.host", "localhost");
-            int    port = Gateway.getProperties().getInt(   "ItemServer.Telnet.port", 0);
+            // addClearCacheCommand("proxy-clearCache");
+            addClearCacheCommand("storage-clearCache");
+
+            String host = ItemServer_Telnet_host.getString();
+            int    port = ItemServer_Telnet_port.getInteger();
 
             if (port != 0) createTelnetShellService(host, port);
-
-            // start entity proxy server
-            String serverName = mC2KProps.getProperty("ItemServer.name");
  
-            log.info("Server '"+serverName+"' STARTED.");
+            log.info("startServer() - DONE.");
 
             if (mLookupManager != null) mLookupManager.postStartServer();
             mStorage.postStartServer();
         }
         catch (Exception ex) {
-            log.error("Exception starting server components. Shutting down.", ex);
+            log.error("startServer() - Exception starting server components. Shutting down.", ex);
             AbstractMain.shutdown(1);
         }
     }
@@ -323,11 +331,10 @@ public class Gateway extends ProxyManager
                 Config hazelcastConfig =  ConfigUtil.loadConfig();
                 if (!AbstractMain.isServer) hazelcastConfig.setLiteMember(true);
                 ClusterManager mgr = new HazelcastClusterManager(hazelcastConfig);
-                options.setClusterManager(mgr);
 
                 CompletableFuture<Void> future = new CompletableFuture<Void>();
 
-                Vertx.clusteredVertx(options, (result) -> {
+                Vertx.builder().with(options).withClusterManager(mgr).buildClustered().onComplete((result) -> {
                     if (result.succeeded()) {
                         mVertx = result.result();
                         log.info("createVertx(clustered) -  Done");
@@ -360,47 +367,43 @@ public class Gateway extends ProxyManager
     /**
      * Initialises the {@link Lookup} and {@link ProxyManager}
      *
-     * @param auth the Authenticator instance
-     * @throws CriseVertxException 
+     * @throws CriseVertxException
      */
-    private static void setup(Authenticator auth) throws CriseVertxException {
+    private static void setup() throws CriseVertxException {
         if (mLookup != null) mLookup.close();
 
         // To use tcpip-bride, the client has to create non-clustered vertx
-        createVertx(new VertxOptions(), mC2KProps.getBoolean("Gateway.clusteredVertx", true));
+        createVertx(new VertxOptions(), Gateway_clusteredVertx.getBoolean());
 
         try {
-            mLookup = (Lookup)mC2KProps.getInstance("Lookup");
-            mLookup.open(auth);
+            mLookup = (Lookup) Lookup.getInstance();
+            mLookup.open();
         }
-        catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
+        catch (ReflectiveOperationException ex) {
             log.error("", ex);
-            throw new InvalidDataException("Cannot connect server process. Please check config.");
+            throw new InvalidDataException("Cannot connect server process. Please check config.", ex);
         }
 
-        mStorage = new ClusterStorageManager(auth);
+        mStorage = new ClusterStorageManager();
         mProxyManager = new ProxyManager();
     }
 
     /**
-     * Connects to the Lookup server in an administrative context - using the admin username and
-     * password available in the implementation of the Authenticator. It shall be used in server processes only.
+     * Connects to the Lookup server in an administrative context.  It shall be used in server processes only.
      *
      * @throws InvalidDataException - bad params
      * @throws PersistencyException - error starting storages
      * @throws ObjectNotFoundException - object not found
      */
-    static public Authenticator connect() throws CriseVertxException {
+    static public void connect() throws CriseVertxException {
         mSecurityManager = new SecurityManager();
         mSecurityManager.authenticate();
 
-        setup(mSecurityManager.getAuth());
+        setup();
 
-        log.info("connect(system) DONE.");
+        log.info("connect(system) - DONE.");
 
         mStorage.postConnect();
-
-        return mSecurityManager.getAuth();
     }
 
     /**
@@ -438,7 +441,7 @@ public class Gateway extends ProxyManager
         mSecurityManager = new SecurityManager();
         mSecurityManager.authenticate(agentName, agentPassword, resource, true, null);
 
-        setup(mSecurityManager.getAuth());
+        setup();
 
         AgentProxy agent = getAgentProxy(agentName);
 
@@ -446,29 +449,11 @@ public class Gateway extends ProxyManager
         mModules.setUser(agent);
         mModules.runScripts("startup");
 
-        log.info("connect(agent) DONE.");
+        log.info("connect(agent) - DONE.");
 
         mStorage.postConnect();
 
         return agent;
-    }
-
-    /**
-     * Get the Authenticator instance
-     * 
-     * @return the Authenticator
-     * @throws InvalidDataException in case of ClassNotFoundException or InstantiationException or IllegalAccessException
-     * @deprecated use {{@link #getSecurityManager()}} instead if you need to authenticate
-     */
-    @Deprecated
-    static public Authenticator getAuthenticator() throws InvalidDataException {
-        try {
-            return (Authenticator)mC2KProps.getInstance("Authenticator");
-        }
-        catch (ClassNotFoundException | InstantiationException | IllegalAccessException ex) {
-            log.error("Authenticator "+mC2KProps.getString("Authenticator")+" could not be instantiated", ex);
-            throw new InvalidDataException("Authenticator "+mC2KProps.getString("Authenticator")+" could not be instantiated");
-        } 
     }
 
     /**
@@ -500,6 +485,8 @@ public class Gateway extends ProxyManager
         mResource = null;
         mMarshaller = null;
         mC2KProps.clear();
+
+        log.info("close() - DONE.");
     }
 
     static public SecurityManager getSecurityManager() {
@@ -549,8 +536,8 @@ public class Gateway extends ProxyManager
         return mC2KProps.propertyNames();
     }
 
-    static public void dumpC2KProps(int logLevel) {
-        mC2KProps.dumpProps(logLevel);
+    static public void dumpC2KProps() {
+        mC2KProps.dumpProps();
     }
 
     static public ObjectProperties getProperties() {
@@ -588,11 +575,14 @@ public class Gateway extends ProxyManager
     public static ResourceImportHandler getResourceImportHandler(BuiltInResources resType) throws Exception {
         if (resourceImportHandlerCache.containsKey(resType)) return resourceImportHandlerCache.get(resType);
 
+        //this variable is needed to call the proper signature of SystemProperties
+        Object[] args = new Object[] {resType.toString()};
+
         ResourceImportHandler handler = null;
 
-        if (Gateway.getProperties().containsKey("ResourceImportHandler."+resType)) {
+        if (ResourceImportHandler_$typeCode.getObject(args) != null) {
             try {
-                handler = (ResourceImportHandler) Gateway.getProperties().getInstance("ResourceImportHandler."+resType);
+                handler = (ResourceImportHandler) ResourceImportHandler_$typeCode.getInstance(args);
             }
             catch (Exception ex) {
                 log.error("Exception loading ResourceHandler for "+resType+". Using default.", ex);
@@ -641,7 +631,7 @@ public class Gateway extends ProxyManager
      */
     public static void sendProxyEvent(Set<ProxyMessage> messages) {
         if (getVertx() == null) {
-            log.warn("sendProxyEvent() -  vertx was not initialised, messages were not sent:{}", messages);
+            log.warn("sendProxyEvent() - vertx was not initialised, messages were not sent:{}", messages);
             return;
         }
         JsonArray msgArray = new JsonArray();

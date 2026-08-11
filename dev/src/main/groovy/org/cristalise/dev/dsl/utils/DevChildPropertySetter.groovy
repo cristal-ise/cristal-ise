@@ -47,7 +47,7 @@ class DevChildPropertySetter implements ChildPropertySetter {
                 InvokerHelper.setProperty(parent, propertyName, child);
             }
 
-            if (parentName == 'Item' && propertyName == 'dependencies') {
+            if (['Item', 'Agent'].contains(parentName) && propertyName == 'dependencies') {
                 child.from = parent.name
             }
         }

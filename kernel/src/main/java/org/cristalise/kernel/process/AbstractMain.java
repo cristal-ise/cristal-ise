@@ -102,19 +102,20 @@ abstract public class AbstractMain {
     /**
      * Loads config & connect files into c2kprops, and merges them with existing properties 
      * 
-     * @param configPath path to the config file
+     * @param configFile path to the config file
      * @param connectFile path to the connect (clc) file
      * @param argProps existing properties
      * @return fully initialized and merged list of properties
      * @throws BadArgumentsException
      */
-    public static Properties readPropertyFiles(String configPath, String connectFile, Properties argProps) throws BadArgumentsException {
+    public static Properties readPropertyFiles(String configFile, String connectFile, Properties argProps) throws BadArgumentsException {
+        log.info("readPropertyFiles() - config:{} connect:{}", configFile, connectFile);
         try {
-            Properties c2kProps = FileStringUtility.loadConfigFile(configPath);
+            Properties c2kProps = FileStringUtility.loadConfigFile(configFile);
 
             if (argProps != null) c2kProps.putAll(argProps); // put args overlap config
 
-            FileStringUtility.appendConfigFile( c2kProps, connectFile);
+            FileStringUtility.appendConfigFile(c2kProps, connectFile);
 
             if (!c2kProps.containsKey("LocalCentre")) {
                 String connectFileName = new File(connectFile).getName();
@@ -127,8 +128,8 @@ abstract public class AbstractMain {
             return c2kProps;
         }
         catch (IOException e) {
-            log.error("", e);
-            throw new BadArgumentsException(e.getMessage());
+            log.error("readPropertyFiles() - Error reading config files", e);
+            throw new BadArgumentsException(e);
         }
     }
 

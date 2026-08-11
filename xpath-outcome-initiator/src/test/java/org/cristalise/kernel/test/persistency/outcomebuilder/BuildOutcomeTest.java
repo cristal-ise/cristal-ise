@@ -126,8 +126,8 @@ public class BuildOutcomeTest extends XMLUtils {
 
       Outcome actual = new Outcome(expected, xsd);
 
-      // bug #239
-      OutcomeBuilder ob = new OutcomeBuilder(xsd, actual);
+      // tests bug #239
+      new OutcomeBuilder(xsd, actual);
 
       //at this point the XML is not inline with the XSD, but that acceptable for this test
       assert compareXML(expected, actual.getData());

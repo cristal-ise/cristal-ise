@@ -200,8 +200,7 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
      */
     public boolean isFull() {
         for (E element : mMembers.list) {
-            if (element.getItemPath() == null)
-                return false;
+            if (element.getItemPath() == null) return false;
         }
         return true;
     }
@@ -217,7 +216,7 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
         for (E element : mMembers.list) {
             if (element.getID() == memberId) return element;
         }
-        throw new ObjectNotFoundException("Member " + memberId + " not found in " + mName);
+        throw new ObjectNotFoundException("MemberId:" + memberId + " not found in Collection:" + mName);
     }
 
     /**
@@ -261,12 +260,40 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
     /**
      * Removes the slot with the given ID from the collection.
      * 
-     * @param memberId
-     *            to remove
-     * @throws ObjectNotFoundException
-     *             when there was no slot with this ID found.
+     * @param memberId to remove
+     * @return removed member instance
+     * @throws ObjectNotFoundException when there was no slot with this ID found.
      */
-    public abstract void removeMember(int memberId) throws ObjectNotFoundException;
+    public E removeMember(int memberId) throws ObjectNotFoundException {
+        List<E> members = resolveMembers(memberId);
+
+        if (members.size() == 1) {
+            mMembers.list.remove(members.get(0));
+            return members.get(0);
+        }
+        else {
+            throw new ObjectNotFoundException("Collection name:"+getName()+" has more then one MemberId:"+memberId);
+        }
+    }
+
+    /**
+     * Removes the slot with the given itemPath from the collection.
+     * 
+     * @param ip itemPath to be removed
+     * @return removed member instance
+     * @throws ObjectNotFoundException when there was no slot with this itemPath found.
+     */
+    public E removeMember(ItemPath ip) throws ObjectNotFoundException {
+        List<E> members = resolveMembers(ip);
+
+        if (members.size() == 1) {
+            mMembers.list.remove(members.get(0));
+            return members.get(0);
+        }
+        else {
+            throw new ObjectNotFoundException("Collection name:"+getName()+" has more then one Member:"+ip);
+        }
+    }
 
     @Override
     public int hashCode() {
@@ -307,22 +334,34 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
     }
 
     /**
+     * Helper method to find all the members for the given item.
+     * 
+     * @param slotID The id of the slot (aka memberID)
+     * @return the list of members found for the given ID
+     * @throws ObjectNotFoundException there is not member found for the given input parameters
+     */
+    public List<E> resolveMembers(int slotID) throws ObjectNotFoundException {
+        return resolveMembers(slotID, null);
+    }
+
+    /**
      * Helper method to find all the members with the combination of the input parameters.
      * 
      * @param slotID The id of the slot (aka memberID). When it is set to -1, only the chilPath is used for searching.
      * @param childPath The UUID of the item in the slots. When it is set to null, only the slotID is used for searching.
      * @return the list of members found for the combination of the input parameters
-     * @throws ObjectNotFoundException if no member was found for the given input parameters
+     * @throws ObjectNotFoundException iff no member was found for the given input parameters. When both 
+     * parameters are supplied it indicates that the given slotID does not reference the childPath.
      */
     public List<E> resolveMembers(int slotID, ItemPath childPath) throws ObjectNotFoundException {
-        ArrayList<E> members = new ArrayList<>();
+        List<E> members = new ArrayList<>();
 
         if (slotID > -1) { // find the member for the given ID
             E slot = getMember(slotID);
 
             // if both parameters are supplied, check the given item is actually in that slot
-            if (slot != null && childPath != null && !slot.getItemPath().equals(childPath)) {
-                throw new ObjectNotFoundException("Item " + childPath + " was not in slot " + slotID);
+            if (childPath != null && !slot.getItemPath().equals(childPath)) {
+                throw new ObjectNotFoundException("Item:" + childPath + " was not in slot:" + slotID + " of collection:"+getName());
             }
 
             members.add(slot);
@@ -333,8 +372,9 @@ abstract public class Collection<E extends CollectionMember> implements C2KLocal
             }
         }
 
-        if (members.isEmpty())
-            throw new ObjectNotFoundException("Could not find " + childPath + " in collection " + getName());
+        if (members.isEmpty()) {
+            throw new ObjectNotFoundException( "Could not find Item:" + childPath + " in slot:" + slotID + " of collection:"+getName());
+        }
 
         return members;
     }

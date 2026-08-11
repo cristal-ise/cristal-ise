@@ -1,0 +1,82 @@
+<div class="min-h-screen bg-[var(--vibe-bg)] text-[var(--vibe-text)] selection:bg-indigo-500/30 overflow-x-hidden relative">
+  <!-- Dynamic Background -->
+  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+    <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse-soft"></div>
+    <div class="absolute top-[20%] -right-[10%] w-[35%] h-[35%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-soft" style="animation-delay: 1s"></div>
+    <div class="absolute -bottom-[10%] left-[20%] w-[30%] h-[30%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse-soft" style="animation-delay: 2s"></div>
+  </div>
+
+  <nav class="sticky top-0 z-50 glass-effect border-b border-[var(--vibe-glass-border)] px-8 py-4">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3 group cursor-pointer">
+        <div class="w-10 h-10 premium-gradient rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20 group-hover:scale-110 transition-transform duration-300">
+          <i class="pi pi-bolt text-xl text-white"></i>
+        </div>
+        <span class="text-2xl font-black tracking-tighter bg-white bg-clip-text text-transparent group-hover:opacity-80 transition-opacity">VIBEUI</span>
+      </div>
+      <div class="hidden md:flex items-center gap-8">
+        <a href="#" class="text-sm font-semibold text-[var(--vibe-muted)] hover:text-[var(--vibe-text)] transition-colors">{{ 'landing.features' | transloco }}</a>
+        <a href="#" class="text-sm font-semibold text-[var(--vibe-muted)] hover:text-[var(--vibe-text)] transition-colors">{{ 'landing.solutions' | transloco }}</a>
+        <a href="#" class="text-sm font-semibold text-[var(--vibe-muted)] hover:text(--vibe-text)] transition-colors">{{ 'landing.pricing' | transloco }}</a>
+      </div>
+      <div class="flex items-center gap-4">
+        <app-language-selector class="mr-4"></app-language-selector>
+        <p-button [label]="'landing.login' | transloco" [routerLink]="['/login']" [text]="true" severity="secondary" styleClass="!text-[var(--vibe-muted)] hover:!text-[var(--vibe-text)] font-bold"></p-button>
+        <p-button [label]="'landing.getStarted' | transloco" [routerLink]="['/admin']" [rounded]="true" severity="contrast" styleClass="!px-6 shadow-xl shadow-black/5"></p-button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="relative z-10 max-w-7xl mx-auto px-8 pt-24 pb-32">
+    <div class="text-center mb-24">
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-effect border border-[var(--vibe-glass-border)] text-xs font-bold text-indigo-400 mb-8 animate-float">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+        </span>
+        {{ 'landing.v2_live' | transloco }}
+      </div>
+      <h1 class="text-7xl md:text-9xl font-black tracking-tightest mb-8 leading-[0.9]">
+        {{ 'landing.hero_crafted' | transloco }} <br />
+        <span class="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">{{ 'landing.hero_velocity' | transloco }}</span> <br />
+        {{ 'landing.hero_teams' | transloco }}
+      </h1>
+      <p class="text-xl md:text-2xl text-slate-400 max-w-3xl mx-auto mb-12 leading-relaxed font-medium">
+        {{ 'landing.hero_subtitle' | transloco }}
+      </p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+        <p-button [label]="'landing.start_trial' | transloco" icon="pi pi-sparkles" [routerLink]="['/admin']" size="large" [rounded]="true" severity="primary" styleClass="!px-10 !py-4 !text-lg shadow-2xl shadow-indigo-500/20"></p-button>
+        <p-button [label]="'landing.view_components' | transloco" icon="pi pi-clone" [text]="true" size="large" severity="secondary" styleClass="!text-[var(--vibe-muted)] hover:!text-[var(--vibe-text)] font-bold !text-lg"></p-button>
+      </div>
+    </div>
+
+    <!-- Feature Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      @for (feature of features; track feature.title) {
+        <div class="group relative p-1 rounded-3xl bg-gradient-to-b from-[var(--vibe-glass-border)] to-transparent hover:from-indigo-500/20 transition-all duration-500 cursor-pointer">
+          <div class="h-full bg-[var(--vibe-card-bg)] backdrop-blur-xl rounded-[22px] p-8 border border-[var(--vibe-glass-border)] group-hover:border-indigo-500/30 transition-all">
+            <div [class]="'w-14 h-14 rounded-2xl bg-gradient-to-br ' + feature.color + ' flex items-center justify-center mb-8 border border-[var(--vibe-glass-border)] group-hover:scale-110 transition-transform duration-500'">
+              <i [class]="'pi ' + feature.icon + ' text-2xl text-[var(--vibe-text)]'"></i>
+            </div>
+            <h3 class="text-2xl font-bold mb-4 text-[var(--vibe-text)]">{{feature.title | transloco}}</h3>
+            <p class="text-slate-400 leading-relaxed font-medium">{{feature.desc | transloco}}</p>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Dashboard Preview -->
+    <div class="mt-32 relative group">
+      <div class="absolute -inset-4 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-[40px] opacity-20 blur-2xl group-hover:opacity-30 transition-opacity"></div>
+      <div class="relative glass-card rounded-[32px] overflow-hidden border border-[var(--vibe-glass-border)] aspect-video flex items-center justify-center">
+        <div class="text-center">
+          <div class="w-20 h-20 bg-[var(--vibe-faint-bg)] rounded-full flex items-center justify-center mx-auto mb-6 border border-[var(--vibe-glass-border)]">
+             <i class="pi pi-play text-3xl text-[var(--vibe-text)] ml-1"></i>
+          </div>
+          <p class="text-xl font-bold text-[var(--vibe-text)]">{{ 'landing.watch_tour' | transloco }}</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+

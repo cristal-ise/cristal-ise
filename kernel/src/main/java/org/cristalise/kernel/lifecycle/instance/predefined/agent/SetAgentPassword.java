@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SetAgentPassword extends PredefinedStep {
 
     public SetAgentPassword() {
-        super();
+        super("Changes the Agent's password");
     }
 
     @Override

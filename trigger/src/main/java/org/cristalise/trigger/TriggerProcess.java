@@ -24,6 +24,7 @@ import static org.cristalise.kernel.persistency.ClusterType.JOB;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -88,7 +89,7 @@ public class TriggerProcess extends StandardClient {
             String[] tokens = ((String) message.body()).split(":");
             String jobId = tokens[0];
 
-            vertx.executeBlocking(promise -> {
+            vertx.executeBlocking(() -> {
                 try {
                     if (tokens[1].equals("ADD")) add(agent.getJob(jobId));
                     else                         remove(jobId);
@@ -96,13 +97,11 @@ public class TriggerProcess extends StandardClient {
                 catch (ObjectNotFoundException e) {
                     log.error("", e);
                 }
-                promise.complete();
-            }, res -> {
-                //
+                return null;
             });
         });
 
-        Set<String> jobIds = null;//agent.getJobList().keySet();
+        Set<String> jobIds = new HashSet<>();//agent.getJobList().keySet();
         log.debug("initialise() - Retrieving #{} of Jobs.", jobIds.size());
         for (String id: jobIds) add(agent.getJob(id));
     }

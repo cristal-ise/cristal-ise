@@ -33,22 +33,20 @@ var schemaName = String(org.cristalise.kernel.utils.LocalObjectLoader.getSchema(
 
 switch (schemaName) {
     case "Item":
-        predef = "CreateNewItem";
+        predef = "ImportImportItem";
         break;
 
     case "Agent":
-        predef = "CreateNewAgent";
+        predef = "ImportImportAgent";
         break;
 
     case "Role":
-        predef = "CreateNewRole";
+        predef = "ImportImportRole";
         break;
 
     default:
         throw "Unhandled schema '" + schema + "'";
 }
-
-org.cristalise.kernel.utils.Logger.debug( "agent.execute - prede step:'" + predef + "'" );
 
 agent.execute(item, predef, job.getOutcomeString());
     ]]></script>

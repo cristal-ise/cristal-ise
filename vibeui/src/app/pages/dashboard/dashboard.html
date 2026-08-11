@@ -1,0 +1,104 @@
+<div class="space-y-8 animate-fade-in">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+    <div>
+      <h1 class="text-4xl font-black text-[var(--vibe-text)] tracking-tight mb-2">{{ 'layout.dashboard.analytics_overview' | transloco }}</h1>
+      <p class="text-slate-400 font-medium flex items-center gap-2">
+        <i class="pi pi-calendar text-indigo-400"></i>
+        {{ 'layout.dashboard.welcome_back' | transloco: { name: 'Alex', date: 'March 2026' } }}
+      </p>
+    </div>
+    <div class="flex gap-4">
+      <p-button [label]="'layout.dashboard.export_data' | transloco" icon="pi pi-download" [outlined]="true" severity="secondary" 
+        styleClass="!rounded-2xl !px-6 !border-white/10 !text-white hover:!bg-white/5 font-bold"></p-button>
+      <p-button [label]="'layout.dashboard.create_report' | transloco" icon="pi pi-plus" 
+        styleClass="!rounded-2xl !px-6 premium-gradient border-none shadow-xl shadow-indigo-500/20 font-bold hover:scale-[1.02] active:scale-[0.98] transition-all"></p-button>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    @for (stat of stats; track stat.title) {
+      <div class="glass-card !rounded-3xl p-6 border border-[var(--vibe-glass-border)] hover:border-indigo-500/30 transition-all group cursor-pointer">
+        <div class="flex items-start justify-between mb-4">
+          <div [class]="'w-12 h-12 rounded-2xl bg-' + stat.color + '-500/10 flex items-center justify-center text-' + stat.color + '-400 border border-[var(--vibe-glass-border)] group-hover:scale-110 transition-transform duration-500'">
+            <i [class]="'pi ' + stat.icon + ' text-xl'"></i>
+          </div>
+          <div class="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">
+            <i class="pi pi-arrow-up-right"></i>
+            {{stat.change}}
+          </div>
+        </div>
+        <div>
+          <p class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">{{stat.title | transloco}}</p>
+          <h3 class="text-3xl font-black text-[var(--vibe-text)]">{{stat.value}}</h3>
+        </div>
+        <!-- Micro sparkline placeholder -->
+        <div class="mt-6 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+          <div [class]="'h-full bg-' + stat.color + '-500 rounded-full w-2/3 opacity-50'"></div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Chart Section -->
+    <div class="lg:col-span-2">
+      <div class="glass-card !rounded-[32px] p-8 border border-[var(--vibe-glass-border)] h-full">
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h3 class="text-xl font-bold text-[var(--vibe-text)]">{{ 'layout.dashboard.platform_growth' | transloco }}</h3>
+            <p class="text-sm text-slate-400 font-medium">{{ 'layout.dashboard.revenue_vs_expenses' | transloco }}</p>
+          </div>
+          <div class="flex gap-2">
+             <div class="flex items-center gap-2 px-3 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+                <div class="w-2 h-2 rounded-full bg-indigo-500"></div>
+                <span class="text-[10px] font-bold text-indigo-400 uppercase">{{ 'layout.dashboard.revenue' | transloco }}</span>
+             </div>
+             <div class="flex items-center gap-2 px-3 py-1 rounded-lg bg-pink-500/10 border border-pink-500/20">
+                <div class="w-2 h-2 rounded-full bg-pink-500"></div>
+                <span class="text-[10px] font-bold text-pink-400 uppercase">{{ 'layout.dashboard.expenses' | transloco }}</span>
+             </div>
+          </div>
+        </div>
+        <div class="h-[300px]">
+          <p-chart type="line" [data]="chartData" [options]="chartOptions" styleClass="h-full"></p-chart>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity Section -->
+    <div>
+      <div class="glass-card !rounded-[32px] p-8 border border-[var(--vibe-glass-border)] h-full">
+        <div class="flex items-center justify-between mb-8">
+          <h3 class="text-xl font-bold text-[var(--vibe-text)]">{{ 'layout.dashboard.recent_activity' | transloco }}</h3>
+          <p-button icon="pi pi-ellipsis-h" [text]="true" severity="secondary" styleClass="!text-slate-400"></p-button>
+        </div>
+        
+        <div class="space-y-8">
+          @for (activity of recentActivity; track activity.user) {
+            <div class="flex items-start gap-4 group">
+              <div class="relative">
+                <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-indigo-500/10 group-hover:border-indigo-500/20 transition-all overflow-hidden shadow-lg">
+                  <i class="pi pi-user text-slate-400 group-hover:text-indigo-400 transition-colors"></i>
+                </div>
+                <div [class]="'absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-slate-950 bg-' + (activity.status === 'success' ? 'emerald' : activity.status === 'warn' ? 'amber' : 'blue') + '-500'"></div>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between mb-1">
+                  <p class="text-sm font-bold text-[var(--vibe-text)]">{{activity.user}}</p>
+                  <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">{{ activity.timeKey | transloco: activity.timeParams }}</span>
+                </div>
+                <p class="text-xs text-slate-400 font-medium">{{ activity.actionKey | transloco: activity.actionParams }}</p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <p-button [label]="'layout.dashboard.view_all_events' | transloco" [text]="true" styleClass="w-full mt-10 !py-4 !rounded-2xl !bg-[var(--vibe-faint-bg)] hover:!bg-[var(--vibe-glass-bg)] !text-[var(--vibe-text)] font-bold transition-all border border-[var(--vibe-glass-border)]"></p-button>
+      </div>
+    </div>
+  </div>
+</div>
+

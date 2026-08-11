@@ -25,8 +25,10 @@ import static org.junit.Assert.*;
 import java.util.Properties;
 
 import org.cristalise.JooqTestConfigurationBase;
+import org.cristalise.kernel.lookup.DomainPath;
 import org.cristalise.kernel.process.Gateway;
 import org.cristalise.storage.jooqdb.lookup.JooqLookupManager;
+import org.jooq.SQLDialect;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -53,7 +55,7 @@ public class JooqLookupManagerTest extends JooqTestConfigurationBase {
     @Before
     public void before() throws Exception {
         jooq = new JooqLookupManager();
-        jooq.open(null);
+        jooq.open();
     }
 
     @Test
@@ -62,6 +64,8 @@ public class JooqLookupManagerTest extends JooqTestConfigurationBase {
 
     @Test
     public void testPostgresRegex() {
-        assertEquals("(?e)^Special \\|\\| chars \\[escaped\\] \\*\\%\\.\\_\\/\\\\/[^/]*$", jooq.convertToPostgresPattern("Special || chars [escaped] *%._/\\"));
+        DomainPath dm = new DomainPath("Special || chars [escaped] *%._/\\");
+        assertEquals("(?e)^\\/domain\\/Special \\|\\| chars \\[escaped\\] \\*\\%\\.\\_\\/\\\\\\/[^/]*$", jooq.getChildrenPattern(dm, SQLDialect.POSTGRES));
+        assertEquals("(?e)^\\/domain\\/Special \\|\\| chars \\[escaped\\] \\*\\%\\.\\_\\/\\\\\\/.*$", jooq.getContextTreePattern(dm, SQLDialect.POSTGRES));
     }
 }

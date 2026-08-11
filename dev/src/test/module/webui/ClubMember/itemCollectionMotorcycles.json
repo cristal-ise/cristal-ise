@@ -13,8 +13,26 @@
     "width" : 100
   }, {
     "source" : "itemField",
+    "field" : "Name",
+    "caption" : "Name",
+    "align" : "left",
+    "width" : 100
+  }, {
+    "source" : "itemField",
     "field" : "Email",
     "caption" : "Email",
+    "align" : "left",
+    "width" : 100
+  }, {
+    "source" : "itemField",
+    "field" : "FavoriteCar",
+    "caption" : "Favorite Car",
+    "align" : "left",
+    "width" : 100
+  }, {
+    "source" : "itemField",
+    "field" : "FavoriteMotorcycle",
+    "caption" : "Favorite Motorcycle",
     "align" : "left",
     "width" : 100
   } ],

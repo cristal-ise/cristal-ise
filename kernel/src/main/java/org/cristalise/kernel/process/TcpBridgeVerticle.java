@@ -20,43 +20,42 @@
  */
 package org.cristalise.kernel.process;
 
-import org.cristalise.kernel.entity.proxy.TcpBridgeClientVerticle;
+import static org.cristalise.kernel.SystemProperties.TcpBridge_port;
 
-import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
+import io.vertx.core.Future;
+import io.vertx.core.VerticleBase;
 import io.vertx.ext.bridge.BridgeOptions;
 import io.vertx.ext.bridge.PermittedOptions;
 import io.vertx.ext.eventbus.bridge.tcp.TcpEventBusBridge;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class TcpBridgeVerticle extends AbstractVerticle {
+public class TcpBridgeVerticle extends VerticleBase {
 
     private TcpEventBusBridge bridge;
 
     @Override
-    public void start(Promise<Void> startPromise) throws Exception {
+    public Future<?> start() throws Exception {
         bridge = TcpEventBusBridge.create(
             vertx,
             new BridgeOptions()
                 .addInboundPermitted(new PermittedOptions().setAddressRegex(".*"))
                 .addOutboundPermitted(new PermittedOptions().setAddressRegex(".*t")));
 
-        bridge.listen(TcpBridgeClientVerticle.PORT, res -> {
-          if (res.succeeded()) {
-              log.info("start() - listen to port:{}", TcpBridgeClientVerticle.PORT);
-              startPromise.complete();
-          }
-          else {
-              log.error("start() - CANNOT listen to port:{}", TcpBridgeClientVerticle.PORT, res.cause());
-              startPromise.fail(res.cause());
-          }
-        });
+        int port = TcpBridge_port.getInteger();
+
+        return bridge.listen(port)
+            .mapEmpty()
+            .onSuccess(ignored -> log.info("start() - listen to port:{}", port))
+            .onFailure(error -> log.error("start() - CANNOT listen to port:{}", port, error));
     }
 
     @Override
-    public void stop() throws Exception {
-        log.info("stop() - closing listening to port:{}", TcpBridgeClientVerticle.PORT);
-        bridge.close();
+    public Future<?> stop() throws Exception {
+        int port = TcpBridge_port.getInteger();
+        log.info("stop() - closing listening to port:{}", port);
+
+        if (bridge == null) return Future.succeededFuture();
+        else                return bridge.close();
     }
 }

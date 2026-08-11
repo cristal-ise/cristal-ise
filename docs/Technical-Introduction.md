@@ -14,7 +14,7 @@ The cristalise-kernel has packages and classes to implement the _description-awa
 #### Entity
 Entity implements the fundamental building-blocks of DDF, like Objects in an object-oriented language.
 
-* **Item** is the heart of cristalise-kernel as it abstracts business objects and their logic into _process-driven_, _version-controlled_ and _document-oriented_ data that are managed on-the-fly for specific user domains. Item is fully audited as it stores all Events generated during the execution of its LifeCycle. Items are also communication end-points (CORBA) and have unique IDs (UUID) to support lookup in a distributed environment.
+* **Item** is the heart of cristalise-kernel as it abstracts business objects and their logic into _process-driven_, _version-controlled_ and _document-oriented_ data that are managed on-the-fly for specific user domains. Item is fully audited as it stores all Events generated during the execution of its LifeCycle. Items are also communication end-points (VERT.X service) and have unique IDs (UUID) to support lookup in a distributed environment.
 
 * **Agent** is an Item with Roles to authorise it to execute Steps/Activities defined in the LifeCycle of an Item.
 
@@ -93,4 +93,3 @@ Guidelines to use DDF for software development
 
 Pros and Cons of DDF
 --------------------
-

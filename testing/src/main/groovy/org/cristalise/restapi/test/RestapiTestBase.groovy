@@ -2,53 +2,55 @@ package org.cristalise.restapi.test
 
 import static io.restassured.RestAssured.*
 import static io.restassured.http.ContentType.JSON
+import static org.cristalise.kernel.security.BuiltInAuthc.ADMIN_ROLE
 import static org.cristalise.restapi.RestHandler.PASSWORD
 import static org.cristalise.restapi.RestHandler.USERNAME
 import static org.hamcrest.Matchers.*
+import static javax.ws.rs.core.Response.Status.OK;
+
 import java.nio.charset.StandardCharsets
-import java.time.LocalDateTime
+
+import org.cristalise.kernel.entity.imports.ImportAgent
+import org.cristalise.kernel.entity.imports.ImportItem
+import org.cristalise.kernel.entity.imports.ImportRole
 import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportAgent
 import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportItem
 import org.cristalise.kernel.lifecycle.instance.predefined.ImportImportRole
 import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep
-import org.cristalise.kernel.persistency.outcome.Viewpoint
+import org.cristalise.kernel.lookup.ItemPath
 import org.cristalise.kernel.process.AbstractMain
+import org.cristalise.kernel.process.Gateway
+import org.cristalise.kernel.property.Property
 import org.cristalise.kernel.test.KernelScenarioTestBase
-import org.cristalise.kernel.test.utils.KernelXMLUtility
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.XML;
-import org.junit.Before
-import org.junit.BeforeClass
+import org.junit.jupiter.api.BeforeAll
+
 import groovy.json.JsonBuilder
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import io.restassured.http.ContentType
 import io.restassured.http.Cookie
 import io.restassured.response.Response
 
-@CompileStatic
+import javax.ws.rs.core.Response.Status;
+
+@CompileStatic @Slf4j
 class RestapiTestBase extends KernelScenarioTestBase {
 
     static String apiUri
 
     String userUuid
     Cookie cauthCookie
+    String serverPath = '/servers/localhost'
 
-    static final int STATUS_OK = 200
-
-    @BeforeClass
-    public static void init() {
+    @BeforeAll
+    public void init() {
         Properties props = AbstractMain.readPropertyFiles("src/main/bin/client.conf", "src/main/bin/integTest.clc", null)
         apiUri = props.get('REST.URI')
-    }
 
-    @Before
-    public void before() {
-        timeStamp = getNowString()
-    }
-
-    public static String getNowString() {
-        return LocalDateTime.now().format("yyyy-MM-dd_HH-mm-ss_SSS")
+        serverPath = '/servers/' + InetAddress.getLocalHost().getHostName()
     }
 
     public static String encodeString(String s) {
@@ -75,13 +77,15 @@ class RestapiTestBase extends KernelScenarioTestBase {
                 .post(apiUri+"/login")
             .then()
                 .cookie('cauth')
-                .statusCode(STATUS_OK)
+                .statusCode(OK.statusCode)
                 .extract().response()
 
-        cauthCookie = loginResp.getDetailedCookie('cauth');
-        userUuid = loginResp.body().jsonPath().getString('Login.uuid.value')
+        log.debug('loginPost() - response:{}', loginResp.body().asString())
 
-        assert userUuid
+        cauthCookie = loginResp.getDetailedCookie('cauth');
+        userUuid = loginResp.body().jsonPath().getString('Login.uuid')
+
+        assert userUuid && ItemPath.isUUID(userUuid)
     }
 
     def login(String user, String pwd) {
@@ -93,16 +97,18 @@ class RestapiTestBase extends KernelScenarioTestBase {
                 .get(apiUri+"/login")
             .then()
                 .cookie('cauth')
-                .statusCode(STATUS_OK)
-                .extract().response()
+                .statusCode(OK.statusCode)
+            .extract().response()
+
+        log.debug('login() - response:{}', loginResp.body().asString())
 
         cauthCookie = loginResp.getDetailedCookie('cauth');
-        userUuid = loginResp.body().jsonPath().getString('Login.uuid.value')
+        userUuid = loginResp.body().jsonPath().getString('Login.uuid')
 
-        assert userUuid
+        assert userUuid && ItemPath.isUUID(userUuid)
     }
 
-    def logout(String reason) {
+    def logout(String reason = null) {
         if (reason) {
             given()
                 .accept(JSON)
@@ -111,7 +117,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
            .when()
                 .get(apiUri+"/logout")
            .then()
-                .statusCode(STATUS_OK)
+                .statusCode(OK.statusCode)
         }
         else {
             given()
@@ -120,7 +126,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .when()
                 .get(apiUri+"/logout")
             .then()
-                .statusCode(STATUS_OK)
+                .statusCode(OK.statusCode)
         }
     }
 
@@ -138,7 +144,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
                 .when()
                     .get(apiUri+"/item/$uuid/history")
                 .then()
-                    .statusCode(STATUS_OK)
+                    .statusCode(OK.statusCode)
                 .extract().response().body().asString()
 
             def histJson = new JSONArray(histBody)
@@ -155,11 +161,37 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .when()
                 .get(apiUri+"/item/$userUuid/history/$id")
             .then()
-                .statusCode(STATUS_OK)
+                .statusCode(OK.statusCode)
                 .body('activity.name', equalTo(name))
 
             return id
         }
+    }
+
+    private String getJobForm(String urlPostFix, String uuid, String activityPath, String transition) {
+        def responseBody = given().log().all()
+            .accept(JSON)
+                .cookie(cauthCookie)
+                .queryParam('transition', transition)
+            .when()
+                .get("${apiUri}/item/$uuid/job/form${urlPostFix}/${activityPath}".toString())
+            .then()
+                .statusCode(OK.statusCode)
+            .extract().response().body().asString()
+
+        return responseBody
+    }
+
+    String getJobFormTemplate(String uuid, String activityPath, String transition) {
+        return getJobForm('Template', uuid, activityPath, transition)
+    }
+    
+    String getJobFormModel(String uuid, String activityPath, String transition) {
+        return getJobForm('Model', uuid, activityPath, transition)
+    }
+    
+    String getJobFormLayout(String uuid, String activityPath, String transition) {
+        return getJobForm('Layout', uuid, activityPath, transition)
     }
 
     String executePredefStep(String uuid,  Class<?> predefStep, ContentType contentType = JSON, String...params) {
@@ -187,8 +219,8 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .post(apiUri+"/item/$uuid/workflow/predefined/"+predefStepName)
         .then()
-            .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+            .statusCode(OK.statusCode)
+        .extract().response().body().asString()
 
         return responseBody
     }
@@ -202,8 +234,8 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
         .then()
-            .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+            .statusCode(OK.statusCode)
+        .extract().response().body().asString()
     }
 
     String checkAttachment(String uuid, String schema, int version, int event) {
@@ -212,7 +244,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .get(apiUri+"/item/$uuid/attachment/$schema/$version/$event")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(OK.statusCode)
         .extract().response().body().asString()
     }
 
@@ -222,7 +254,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .get(apiUri+"/item/$uuid/outcome/$schema/$version/$event")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(OK.statusCode)
         .extract().response().body().asString()
     }
 
@@ -232,7 +264,7 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .get(apiUri+"/item/$uuid/viewpoint/$schema/$view")
         .then()
-            .statusCode(STATUS_OK)
+            .statusCode(OK.statusCode)
         .extract().response().body().asString()
     }
 
@@ -246,11 +278,11 @@ class RestapiTestBase extends KernelScenarioTestBase {
             .when()
                 .post(apiUri+"/item/$uuid/workflow/domain/${actPath}?transition=Done")
             .then()
-                .statusCode(STATUS_OK)
+                .statusCode(OK.statusCode)
             .extract().response().asString()
     }
 
-    String executeScript(String uuid, String scriptName, ContentType contentType = JSON, String inputs) {
+    String executeScript(String uuid, String scriptName, ContentType contentType = JSON, Status status = OK, String inputs) {
         return given()
             .contentType(contentType)
             .accept(JSON)
@@ -259,8 +291,8 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .post(apiUri+"/item/$uuid/scriptResult/?script=${scriptName}&version=0")
         .then()
-            .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+            .statusCode(status.statusCode)
+        .extract().response().body().asString()
     }
 
     String resolveDomainPath(String path) {
@@ -273,8 +305,8 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .get(apiUri+"/domain/$path")
         .then()
-            .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+            .statusCode(OK.statusCode)
+        .extract().response().body().asString()
 
         return new JSONObject(responseBody).getString("uuid")
     }
@@ -287,30 +319,36 @@ class RestapiTestBase extends KernelScenarioTestBase {
         .when()
             .get(apiUri+"/role/$name")
         .then()
-            .statusCode(STATUS_OK)
-            .extract().response().body().asString()
+            .statusCode(OK.statusCode)
+        .extract()
+            .response().body().asString()
 
         return new JSONArray(responseBody)
     }
 
-    String createNewItem(String name, ContentType type) {
-        def param = KernelXMLUtility.getItemXML(name: name, type: 'Dummy', workflow: 'NoWorkflow', initialPath: '/restapiTests')
-        def serverItemUUID = resolveDomainPath('/servers/localhost')
+    String createNewItem(String name, String itemType = 'Dummy', ContentType type) {
+        def newItem = new ImportItem(name, '/restapiTests', null, 'NoWorkflow')
+        newItem.getProperties().add(new Property('Type', itemType, false))
+        def serverItemUUID = resolveDomainPath(serverPath)
 
+        def param = Gateway.marshaller.marshall(newItem)
         if (type == JSON) param = XML.toJSONObject(param).toString()
 
         executePredefStep(serverItemUUID, ImportImportItem.class, type, param)
+
         def uuid = resolveDomainPath("/restapiTests/$name")
-        assert uuid
+        assert uuid && ItemPath.isUUID(uuid)
+
         return uuid
     }
 
     String createNewAgent(String name, String pwd, ContentType type) {
-        def param = KernelXMLUtility.getAgentXML(name: name, password: pwd, Role: 'Admin')
-        def serverItemUUID = resolveDomainPath('/servers/localhost')
+        def newAgent = new ImportAgent(name, pwd)
+        newAgent.addRole(ADMIN_ROLE)
+        def param = Gateway.marshaller.marshall(newAgent)
+        def serverItemUUID = resolveDomainPath(serverPath)
 
         if (type == JSON) param = XML.toJSONObject(param).toString()
-
         executePredefStep(serverItemUUID, ImportImportAgent.class, type, param)
 
         def agents = resolveRole('Admin')
@@ -322,19 +360,50 @@ class RestapiTestBase extends KernelScenarioTestBase {
             if (json.getString('name') == name) uuid = json.getString('uuid')
         }
 
-        assert uuid
+        assert uuid && ItemPath.isUUID(uuid)
 
         return uuid
     }
 
-    void createNewRole(String name, ContentType type) {
-        def param = KernelXMLUtility.getRoleXML(name: name)
-        def serverItemUUID = resolveDomainPath('/servers/localhost')
+    String createNewRole(String name, ContentType type) {
+        def newRole = new ImportRole(name)
+        newRole.jobList = false
+        def param = Gateway.marshaller.marshall(newRole)
+        def serverItemUUID = resolveDomainPath(serverPath)
 
         if (type == JSON) param = XML.toJSONObject(param).toString()
 
         executePredefStep(serverItemUUID, ImportImportRole.class, type, param)
 
         resolveRole(name)
+    }
+
+    String executeQueryGet(String queryName, Integer version, String inputs, ContentType acceptType = JSON, Status status = OK) {
+        return given()
+            .accept(acceptType)
+            .cookie(cauthCookie)
+            .queryParam('name', queryName)
+            .queryParam('version', version)
+            .queryParam('inputs', inputs)
+        .when()
+            .get(apiUri+"/query/queryResult")
+        .then()
+            .statusCode(status.statusCode)
+        .extract().response().body().asString()
+    }
+
+    String executeQueryPost(String queryName, Integer version, String inputs, ContentType contentType = JSON, ContentType acceptType = JSON, Status status = OK) {
+        return given().log().all()
+            .contentType(contentType)
+            .accept(acceptType)
+            .cookie(cauthCookie)
+            .queryParam('name', queryName)
+            .queryParam('version', version)
+            .body(inputs)
+        .when()
+            .post(apiUri+"/query/queryResult")
+        .then()
+            .statusCode(status.statusCode)
+        .extract().response().body().asString()
     }
 }

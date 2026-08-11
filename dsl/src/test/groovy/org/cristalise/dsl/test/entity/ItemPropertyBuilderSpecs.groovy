@@ -21,6 +21,7 @@
 package org.cristalise.dsl.test.entity
 
 import org.cristalise.kernel.common.InvalidDataException
+import org.cristalise.kernel.entity.DomainContext
 import org.cristalise.kernel.test.utils.CristalTestSetup;
 
 import spock.lang.Specification
@@ -87,14 +88,19 @@ class ItemPropertyBuilderSpecs extends Specification implements CristalTestSetup
     def 'EntityProperty value is coerced to String'() {
         when:
         def props = ItemPropertyTestBuilder.build {
-            Property(Type: ['e1', 'e2'])
+            Property(List: ['e1', 'e2'])
+            InmutableProperty(Root: new DomainContext('/decs/dev'))
         }
 
         then:
-        props && props.size() == 1
-        props[0].name == 'Type'
+        props && props.size() == 2
+        props[0].name == 'List'
         props[0].value == '[e1, e2]'
         props[0].mutable == true
+
+        props[1].name == 'Root'
+        props[1].value == '/decs/dev'
+        props[1].mutable == false
     }
 
     def 'EntityProperty Builder builds unlimited length of List keeping the order of declaration'() {

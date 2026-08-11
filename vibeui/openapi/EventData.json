@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "EventData",
+  "type": "object",
+  "properties": {
+    "id": { "type": "integer" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "agent": { "type": "string" },
+    "role": { "type": "string" },
+    "hasAttachment": { "type": "boolean" },
+    "outcome": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "schema": { "type": "string" },
+        "schemaVersion": { "type": "integer" },
+        "data": { "type": "string", "format": "uri" }
+      },
+      "required": ["name", "schema", "schemaVersion", "data"]
+    },
+    "activity": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "path": { "type": "string" },
+        "type": { "type": "string" }
+      },
+      "required": ["name", "path", "type"]
+    },
+    "transition": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "origin": { "type": "string" },
+            "target": { "type": "string" },
+            "stateMachine": { "type": "string" },
+            "stateMachineVersion": { "type": "integer" }
+          },
+          "required": ["name", "origin", "target", "stateMachine", "stateMachineVersion"]
+        },
+        { "type": "string" }
+      ]
+    }
+  },
+  "required": ["id", "timestamp", "agent", "role", "hasAttachment", "activity", "transition"]
+}
