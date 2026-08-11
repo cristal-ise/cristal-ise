@@ -125,7 +125,27 @@ Schema('WorkflowReplaceData', 0) {
 Schema('WorkflowMigrationData', 0) {
     struct(name: 'WorkflowMigrationData', useSequence: true) {
         field(name:'DescItemUrn', type: 'string')
-        field(name: 'StepPathToEnable', multiplicity: '0..*')
+        /**
+         * Contains the mapping between 'old' and 'new' activityPaths of the workflow, i.e. the key is 
+         * the new activityPath and the value is the old activityPath. It shall only contain 
+         * mappings which cannot be automatically found by matching paths.
+         */
+         struct('newToOldActivityPathMapping', useSequence: true) {
+            field(name: 'NewActivityPath', type: 'string')
+            field(name: 'OldActivityPath', type: 'string')
+        }
+        /**
+         * Contains an old activityPath which was removed from the new version. It is used to consolidate 
+         * Jobs for the list of expected activityPaths after the successful migration. 
+         */
+        field(name: 'OldActivityPathRemoved', multiplicity: '0..*')
+        /**
+         *  Contains the list of activityPaths which needs to be enabled. It should only contain the
+         * new Activities, Elementary and Composite, which were added with the new version. 
+         * It is used when setting the Activity state and also it is also added to the expected 
+         * list of activityPaths to test the Workflow status after the successful migration.
+         */
+        field(name: 'NewActivityPathToEnable', multiplicity: '0..*')
         field(name:'OldWorkflowXml', type: 'anyType')
     }
 }
