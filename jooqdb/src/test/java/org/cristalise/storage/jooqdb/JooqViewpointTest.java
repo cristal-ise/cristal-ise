@@ -25,6 +25,9 @@ import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
 
 import java.util.UUID;
 
+
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
+
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.persistency.outcome.Viewpoint;
 import org.cristalise.storage.jooqdb.clusterStore.JooqViewpointHandler;
@@ -120,7 +123,7 @@ public class JooqViewpointTest extends StorageTestBase {
         assert jooq.put(context, uuid, new Viewpoint(new ItemPath(uuid), "SchemaName2", "Name3", 0, 1)) == 1;
         assert jooq.put(context, uuid, new Viewpoint(new ItemPath(uuid), "SchemaName2", "Name4", 0, 1)) == 1;
 
-        UUID uuid2 = UUID.randomUUID();
+        UUID uuid2 = createUUID();
         assert jooq.put(context, uuid2, new Viewpoint(new ItemPath(uuid2), "SchemaName",  "Name5", 0, 1)) == 1;
         assert jooq.put(context, uuid2, new Viewpoint(new ItemPath(uuid2), "SchemaName2", "Name6", 0, 1)) == 1;
 

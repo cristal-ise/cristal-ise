@@ -28,6 +28,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.lookup.AgentPath;
@@ -115,7 +118,7 @@ public class LookupSearchTest extends LookupTestBase {
 
     @Test
     public void searchAliasesPaged() throws Exception {
-        ItemPath ip = new ItemPath(UUID.randomUUID());
+        ItemPath ip = new ItemPath(createUUID());
         lookup.add(ip);
 
         List<Path> expecteds = new ArrayList<>();

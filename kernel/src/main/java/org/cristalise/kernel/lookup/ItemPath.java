@@ -26,7 +26,10 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.UUID;
 
+import com.github.f4b6a3.uuid.UuidCreator;
+
 import org.apache.commons.lang3.StringUtils;
+import org.cristalise.kernel.SystemProperties;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
 import org.cristalise.kernel.persistency.ClusterType;
@@ -41,11 +44,20 @@ import javax.annotation.concurrent.Immutable;
  */
 @Immutable
 public class ItemPath extends Path {
+
+    public static UUID createUUID() {
+        if (SystemProperties.UUIDv7_disable.getBoolean()) {
+            return UUID.randomUUID();
+        }
+        else {
+            return UuidCreator.getTimeOrderedEpochPlus1();
+        }
+    }
     
     String itemName;
 
     public ItemPath() {
-        setSysKey(UUID.randomUUID());
+        setSysKey(createUUID());
     }
 
     public ItemPath(UUID uuid) {

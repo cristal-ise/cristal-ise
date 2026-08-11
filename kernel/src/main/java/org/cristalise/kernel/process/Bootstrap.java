@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.UUID;
 
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.Job;
@@ -48,7 +49,6 @@ import org.cristalise.kernel.lifecycle.instance.predefined.UpdateImportReport;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.DomainPath;
-import org.cristalise.kernel.lookup.InvalidItemPathException;
 import org.cristalise.kernel.lookup.ItemPath;
 import org.cristalise.kernel.lookup.LookupManager;
 import org.cristalise.kernel.lookup.RolePath;
@@ -60,8 +60,9 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.utils.FileStringUtility;
 import org.cristalise.kernel.utils.LocalObjectLoader;
 
-import lombok.extern.slf4j.Slf4j;
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
 
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Bootstrap loads all Items defined in the kernel resource XMLs and the module XML
@@ -182,10 +183,6 @@ public class Bootstrap {
 
     /**
      *
-     * @param bootList
-     * @param ns
-     * @param reset
-     * @throws InvalidItemPathException
      */
     private static void verifyBootDataItems(String bootList, String ns, boolean reset, TransactionKey transactionKey) throws Exception {
         StringTokenizer str = new StringTokenizer(bootList, "\n\r");
@@ -248,14 +245,13 @@ public class Bootstrap {
 
     /**
      * 
-     * @throws Exception
      */
     public static void checkAdminAgents(TransactionKey transactionKey) throws Exception {
         RolePath rootRole = new RolePath();
         if (!rootRole.exists(transactionKey)) Gateway.getLookupManager().createRole(rootRole, transactionKey);
 
         // check for 'Admin' role
-        RolePath adminRole = new RolePath(rootRole, ADMIN_ROLE.getName(), false, Arrays.asList("*"));
+        RolePath adminRole = new RolePath(rootRole, ADMIN_ROLE.getName(), false, List.of("*"));
         ImportRole importAdminRole = ImportRole.getImportRole(adminRole);
 
         if (adminRole.exists(transactionKey)) importAdminRole.update(null, transactionKey); // this will reset any changes done to the Admin role
@@ -272,7 +268,7 @@ public class Bootstrap {
         String ucName = UserCodeProcess.getAgentName();
         String ucPwd = UserCodeProcess.getAgentPassword();
 
-        checkOrCreateAgent(ucName, ucPwd, importUCRole, UUID.randomUUID(), transactionKey);
+        checkOrCreateAgent(ucName, ucPwd, importUCRole, createUUID(), transactionKey);
     }
 
     private static ItemPath createServerItem(TransactionKey transactionKey) throws Exception {
