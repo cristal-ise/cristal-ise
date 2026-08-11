@@ -29,6 +29,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.UUID;
 
+
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
+
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SQLDialect;
@@ -104,7 +107,7 @@ public class JooqNameTestNoNameField {
     @Test
     public void testWithH2() throws Exception {
         openH2();
-        UUID uuid = UUID.randomUUID();
+        UUID uuid = createUUID();
         createTable();
         assert insert(uuid, "Type", "Serious") == 1;
         Assert.assertEquals("Serious", fetch(uuid, "Type"));
@@ -113,7 +116,7 @@ public class JooqNameTestNoNameField {
     @Test @Ignore("Postgres test cannot run in Travis")
     public void testWithPostgres() throws Exception {
         openPostgres();
-        UUID uuid = UUID.randomUUID();
+        UUID uuid = createUUID();
         createTable();
         assert insert(uuid, "Type", "Serious") == 1;
         Assert.assertEquals("Serious", fetch(uuid, "Type"));

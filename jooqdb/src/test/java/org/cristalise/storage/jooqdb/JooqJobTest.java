@@ -25,6 +25,8 @@ import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
 import static org.hamcrest.MatcherAssert.assertThat;
 import java.util.Arrays;
 import java.util.UUID;
+
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.graph.model.BuiltInVertexProperties;
@@ -109,7 +111,7 @@ public class JooqJobTest extends StorageTestBase {
         assert jooq.put(context, uuid, createJob(uuid, 2)) == 1;
         assert jooq.put(context, uuid, createJob(uuid, 3)) == 1;
 
-        UUID uuid2 = UUID.randomUUID();
+        UUID uuid2 = createUUID();
         assert jooq.put(context, uuid2, createJob(uuid2, 0)) == 1;
         assert jooq.put(context, uuid2, createJob(uuid2, 1)) == 1;
         assert jooq.put(context, uuid2, createJob(uuid2, 2)) == 1;
@@ -131,7 +133,7 @@ public class JooqJobTest extends StorageTestBase {
         assert jooq.put(context, uuid, createJob(uuid, 2)) == 1;
         assert jooq.put(context, uuid, createJob(uuid, 3)) == 1;
 
-        UUID uuid2 = UUID.randomUUID();
+        UUID uuid2 = createUUID();
         assert jooq.put(context, uuid2, createJob(uuid2, 0)) == 1;
         assert jooq.put(context, uuid2, createJob(uuid2, 1)) == 1;
         assert jooq.put(context, uuid2, createJob(uuid2, 2)) == 1;

@@ -30,6 +30,9 @@ import static org.junit.Assert.assertEquals;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
+
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
+
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.InsertQuery;
@@ -132,7 +135,7 @@ public class JooqOnDuplicateKeyUpdateTest {
      * 
      */
     private void testLogic() {
-        java.util.UUID uuid = java.util.UUID.randomUUID();
+        java.util.UUID uuid = createUUID();
         createTable();
 
         assertEquals(1, set(uuid, "Type", "Serious"));

@@ -31,6 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.github.f4b6a3.uuid.UuidCreator;
+
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.lookup.AgentPath;
 import org.cristalise.kernel.lookup.Path;
@@ -57,7 +59,7 @@ public class JooqRolePathHandler {
     static public final Field<Boolean> JOBLIST = field(name("JOBLIST"), Boolean.class);
     static public final Field<UUID>    AGENT   = field(name("AGENT"),   UUID.class);
 
-    static final UUID NO_AGENT = new UUID(0,0);
+    static final UUID NO_AGENT = UuidCreator.getNil();
 
     public void createTables(DSLContext context) throws PersistencyException {
         context.createTableIfNotExists(ROLE_PATH_TABLE)
@@ -232,7 +234,7 @@ public class JooqRolePathHandler {
     public List<Path> find(DSLContext context, String pattern, List<UUID> uuids) {
         SelectConditionStep<?> select = context.select().from(ROLE_PATH_TABLE).where(PATH.like(pattern));
 
-        if (uuids != null && uuids.size() != 0) select.and(AGENT.in(uuids));
+        if (uuids != null && !uuids.isEmpty()) select.and(AGENT.in(uuids));
 
         return getListOfPaths(select.fetch());
     }

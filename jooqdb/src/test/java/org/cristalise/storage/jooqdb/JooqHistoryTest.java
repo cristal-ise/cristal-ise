@@ -28,6 +28,9 @@ import static org.junit.Assert.assertEquals;
 import java.util.Arrays;
 import java.util.UUID;
 
+
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
+
 import org.cristalise.kernel.common.PersistencyException;
 import org.cristalise.kernel.events.Event;
 import org.cristalise.kernel.lookup.AgentPath;
@@ -151,7 +154,7 @@ public class JooqHistoryTest extends StorageTestBase {
         assert jooq.put(context, uuid, createEvent(uuid, 2)) == 1;
         assert jooq.put(context, uuid, createEvent(uuid, 3)) == 1;
 
-        UUID uuid2 = UUID.randomUUID();
+        UUID uuid2 = createUUID();
         assert jooq.put(context, uuid2, createEvent(uuid2, 0)) == 1;
         assert jooq.put(context, uuid2, createEvent(uuid2, 1)) == 1;
         assert jooq.put(context, uuid2, createEvent(uuid2, 2)) == 1;
@@ -177,7 +180,7 @@ public class JooqHistoryTest extends StorageTestBase {
         String[] keys = jooq.getNextPrimaryKeys(context, uuid);
         assertThat(Arrays.asList(keys), IsIterableContainingInAnyOrder.containsInAnyOrder("0", "1", "2", "3"));
 
-        UUID uuid2 = UUID.randomUUID();
+        UUID uuid2 = createUUID();
         assertEquals(-1, jooq.getLastEventId(context, uuid2));
         assert jooq.put(context, uuid2, createEvent(uuid2, 0)) == 1;
         assert jooq.put(context, uuid2, createEvent(uuid2, 1)) == 1;
