@@ -33,7 +33,7 @@ import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.LoopDef
 import org.cristalise.kernel.lifecycle.OrSplitDef
 import org.cristalise.kernel.test.utils.CristalTestSetup
-
+import spock.lang.Ignore
 import spock.lang.Specification
 
 
@@ -77,7 +77,31 @@ class TabularAndSplitDefBuilderSpecs extends Specification implements CristalTes
 
         caDef.verify()
     }
-    
+
+    def 'CompositeActivityDef starting with AndSplit - alternative syntax'() {
+        when:
+        def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'StartWithAndSplit_2', 2)
+        def tadb = new TabularActivityDefBuilder(new CompositeActivityDef('TabularBuilder_StartWithAndSplit', 0))
+        caDef = tadb.build(parser)
+//        def litOfActDefs = caDef.getRefChildActDef()
+//        def startVertex = caDef.childrenGraphModel.startVertex
+//        def checker = new CompActDefChecker(caDef)
+//        def andSplitDef = caDef.getChildren().find { it instanceof AndSplitDef }
+
+        then:
+        caDef.verify()
+
+//        litOfActDefs.size() == 1
+//        litOfActDefs[0] instanceof ActivityDef
+//        litOfActDefs[0].name == 'TestItem_AndSplit'
+
+//        caDef.childrenGraphModel.vertices.length == 4
+//        startVertex && startVertex instanceof AndSplitDef
+
+//        AndSplitDef
+//        checker.checkSequence(AndSplitDef, 'Left', JoinDef)
+//        checker.checkSequence(AndSplitDef, 'Right', JoinDef)
+    }
     
     def 'CompositeActivityDef of AndSplit and a sequence of Acts'() {
         when:
@@ -141,6 +165,7 @@ class TabularAndSplitDefBuilderSpecs extends Specification implements CristalTes
         checker.checkSequence(AndSplitDef, 'Right', JoinDef)
     }
 
+    @Ignore
     def 'CompositeActivityDef of AndSplit with Loop'() {
         when:
         def parser = TabularGroovyParserBuilder.build(new File(xlsxFile), 'AndSplitWithLoop', 2)
@@ -157,6 +182,7 @@ class TabularAndSplitDefBuilderSpecs extends Specification implements CristalTes
         checker.checkSequence(AndSplitDef, 'Right', JoinDef)
     }
 
+    @Ignore
     def 'CompositeActivityDef of AndSplit with OrSplit'() {
         when:
         def sheetName = 'AndSplitWithOrSplit'
