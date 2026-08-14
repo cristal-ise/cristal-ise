@@ -102,7 +102,7 @@ public class ItemPath extends Path {
                 throw new InvalidItemPathException(mPath[0] + " is not a valid UUID : " + ex.getMessage());
             }
         }
-        else
+        else {
             throw new InvalidItemPathException("Not a valid item path: " + Arrays.toString(mPath));
         }
     }
