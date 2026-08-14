@@ -26,6 +26,9 @@ import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
 import java.util.List;
 import java.util.UUID;
 
+
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
+
 import org.cristalise.kernel.property.Property;
 import org.cristalise.storage.jooqdb.clusterStore.JooqItemPropertyHandler;
 import org.junit.After;
@@ -96,7 +99,7 @@ public class JooqItemPropertyTest extends StorageTestBase {
     @Test
     public void getPropertyNames() throws Exception {
         assert jooq.put(context, uuid,              new Property("zaza", "value", false)) == 1;
-        assert jooq.put(context, UUID.randomUUID(), new Property("mimi", "value", false)) == 1;
+        assert jooq.put(context, createUUID(), new Property("mimi", "value", false)) == 1;
 
         String[] keys = jooq.getNextPrimaryKeys(context, uuid);
 
@@ -108,7 +111,7 @@ public class JooqItemPropertyTest extends StorageTestBase {
     @Test
     public void checkName() throws Exception {
         assert jooq.put(context, uuid,              new Property("zaza", "value", false)) == 1;
-        assert jooq.put(context, UUID.randomUUID(), new Property("mimi", "value", false)) == 1;
+        assert jooq.put(context, createUUID(), new Property("mimi", "value", false)) == 1;
 
         String[] keys = jooq.getNextPrimaryKeys(context, uuid, "zaza");
 
@@ -118,7 +121,7 @@ public class JooqItemPropertyTest extends StorageTestBase {
     @Test
     public void checkName_empty() throws Exception {
         assert jooq.put(context, uuid,              new Property("zaza", "value", false)) == 1;
-        assert jooq.put(context, UUID.randomUUID(), new Property("mimi", "value", false)) == 1;
+        assert jooq.put(context, createUUID(), new Property("mimi", "value", false)) == 1;
 
         String[] keys = jooq.getNextPrimaryKeys(context, uuid, "mimi");
 
@@ -127,7 +130,7 @@ public class JooqItemPropertyTest extends StorageTestBase {
 
     @Test
     public void delete() throws Exception {
-        UUID uuid2 = UUID.randomUUID();
+        UUID uuid2 = createUUID();
         assert jooq.put(context, uuid,  new Property("zaza", "value", false)) == 1;
         assert jooq.put(context, uuid2, new Property("mimi", "value", false)) == 1;
 

@@ -31,6 +31,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.UUID;
 
+
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
+
 import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.storage.jooqdb.bindings.PostgreSqlXmlBinding;
 import org.jooq.DSLContext;
@@ -112,7 +115,7 @@ public class JooqSqlXmlTest {
     
     @Test
     public void testWithPostgres() throws Exception {
-        UUID uuid = UUID.randomUUID();
+        UUID uuid = createUUID();
 
         assert set(uuid, Outcome.parse("<Outcome/>")) == 1;
         assert fetch(uuid) != null;

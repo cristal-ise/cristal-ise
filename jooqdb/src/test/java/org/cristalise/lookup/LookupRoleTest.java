@@ -29,6 +29,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
+
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectAlreadyExistsException;
 import org.cristalise.kernel.common.ObjectCannotBeUpdated;
@@ -230,7 +233,7 @@ public class LookupRoleTest extends LookupTestBase {
         lookup.add(paged);
 
         for (int i = 0; i < 35; i++) {
-            AgentPath ap = new AgentPath(UUID.randomUUID(), "agent" + StringUtils.leftPad(""+i, 2, "0"));
+            AgentPath ap = new AgentPath(createUUID(), "agent" + StringUtils.leftPad(""+i, 2, "0"));
             lookup.add(ap);
             lookup.addRole(ap, paged);
             expecteds.add(ap);

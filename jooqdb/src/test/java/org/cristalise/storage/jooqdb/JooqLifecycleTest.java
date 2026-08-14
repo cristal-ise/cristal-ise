@@ -25,6 +25,9 @@ import static org.cristalise.JooqTestConfigurationBase.DBModes.PostgreSQL;
 
 import java.util.UUID;
 
+
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
+
 import org.cristalise.kernel.lifecycle.instance.CompositeActivity;
 import org.cristalise.kernel.lifecycle.instance.Workflow;
 import org.cristalise.kernel.lifecycle.instance.predefined.server.ServerPredefinedStepContainer;
@@ -49,7 +52,7 @@ public class JooqLifecycleTest extends StorageTestBase {
         jooq.createTables(context);
 
         wf = new Workflow(new CompositeActivity(), new ServerPredefinedStepContainer());
-        wf.initialise(new ItemPath(), new AgentPath(UUID.randomUUID(), "dummy"), null);
+        wf.initialise(new ItemPath(), new AgentPath(createUUID(), "dummy"), null);
         assert jooq.put(context, uuid, wf) == 1;
     }
 
