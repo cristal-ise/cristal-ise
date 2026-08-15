@@ -23,6 +23,9 @@ package org.cristalise.storage.jooqdb;
 import java.util.Properties;
 import java.util.UUID;
 
+
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
+
 import org.cristalise.JooqTestConfigurationBase;
 import org.cristalise.kernel.common.GTimeStamp;
 import org.cristalise.kernel.process.Gateway;
@@ -33,7 +36,7 @@ import org.junit.BeforeClass;
 
 public class StorageTestBase extends JooqTestConfigurationBase {
     DSLContext context;
-    UUID       uuid = UUID.randomUUID();
+    UUID       uuid = createUUID();
 
     @BeforeClass
     public static void beforeClass() throws Exception {

@@ -37,8 +37,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Properties;
-import java.util.UUID;
 
+import static org.cristalise.kernel.lookup.ItemPath.createUUID;
 import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.entity.Job;
 import org.cristalise.kernel.entity.JobArrayList;
@@ -61,8 +61,7 @@ import org.cristalise.kernel.property.Property;
 import org.cristalise.kernel.property.PropertyArrayList;
 import org.cristalise.kernel.property.PropertyDescription;
 import org.cristalise.kernel.property.PropertyDescriptionList;
-import org.cristalise.kernel.querying.Query;
-import org.cristalise.kernel.scripting.ErrorInfo;
+ import org.cristalise.kernel.scripting.ErrorInfo;
 import org.cristalise.kernel.scripting.Script;
 import org.cristalise.kernel.test.TestUtility;
 import org.cristalise.kernel.test.process.MainTest;
@@ -112,7 +111,7 @@ public class CastorXMLTest implements TestUtility {
     public void testCastorItemPath() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
 
-        ItemPath item      = new ItemPath(UUID.randomUUID());
+        ItemPath item      = new ItemPath(createUUID());
         ItemPath itemPrime = (ItemPath) marshaller.unmarshall(marshaller.marshall(item));
 
         assertEquals( item.getUUID(),      itemPrime.getUUID());
@@ -124,7 +123,7 @@ public class CastorXMLTest implements TestUtility {
     public void testCastorAgentPath() throws Exception {
         CastorXMLUtility marshaller = Gateway.getMarshaller();
 
-        AgentPath agent      = new AgentPath(UUID.randomUUID(), "toto");
+        AgentPath agent      = new AgentPath(createUUID(), "toto");
         AgentPath agentPrime = (AgentPath) marshaller.unmarshall(marshaller.marshall(agent));
 
         assertEquals( agent.getUUID(),      agentPrime.getUUID());
