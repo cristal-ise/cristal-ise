@@ -20,11 +20,8 @@
  */
 package org.cristalise.dsl.module
 
-import static org.cristalise.dsl.module.GitStatus.*
-import static org.cristalise.kernel.process.resource.BuiltInResources.*
-
-import java.nio.file.Path
-
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 import org.cristalise.kernel.entity.Job
 import org.cristalise.kernel.entity.proxy.AgentProxy
 import org.cristalise.kernel.entity.proxy.ItemProxy
@@ -33,8 +30,10 @@ import org.cristalise.kernel.persistency.outcome.Outcome
 import org.cristalise.kernel.process.resource.BuiltInResources
 import org.cristalise.kernel.scripting.Script
 
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
+import java.nio.file.Path
+
+import static org.cristalise.dsl.module.GitStatus.*
+import static org.cristalise.kernel.process.resource.BuiltInResources.SCRIPT_RESOURCE
 
 @CompileStatic @Slf4j
 class ResourceUpdateHandler {
@@ -63,7 +62,7 @@ class ResourceUpdateHandler {
      * and updates the Items using Activities defined in the kernel.
      */
     private void updateResourceItems() {
-        def resourcesStatus = GitStatus.getStatusMapForWorkTree(resourceBootDir)
+        def resourcesStatus = getStatusMap(resourceBootDir)
 
         for (GitStatus status: resourcesStatus.keySet()) {
             List<Path> files = resourcesStatus.get(status)

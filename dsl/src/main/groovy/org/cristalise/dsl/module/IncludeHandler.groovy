@@ -20,13 +20,13 @@
  */
 package org.cristalise.dsl.module
 
-import static org.cristalise.dsl.module.GitStatus.*
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 import java.nio.file.Path
 import java.nio.file.Paths
 
-import groovy.transform.CompileStatic
-import groovy.util.logging.Slf4j
+import static org.cristalise.dsl.module.GitStatus.*
 
 @CompileStatic @Slf4j
 class IncludeHandler {
@@ -50,7 +50,7 @@ class IncludeHandler {
     }
 
     public void captureModuleFileChanges(String moduleDir) {
-        def moduleFilesStatus = GitStatus.getStatusMapForWorkTree(moduleDir)
+        def moduleFilesStatus = getStatusMap(moduleDir)
 
         for (GitStatus status: moduleFilesStatus.keySet()) {
             List<Path> files = moduleFilesStatus.get(status)

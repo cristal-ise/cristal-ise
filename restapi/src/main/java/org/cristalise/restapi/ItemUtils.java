@@ -20,38 +20,11 @@
  */
 package org.cristalise.restapi;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.MediaType.APPLICATION_XML_TYPE;
-import static javax.ws.rs.core.MediaType.TEXT_XML_TYPE;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ATTACHMENT_MIME_TYPES;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_NAME;
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.STATE_MACHINE_VERSION;
-import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
-import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.UUID;
-import java.util.regex.Pattern;
-import javax.ws.rs.core.*;
-import javax.ws.rs.core.Response.Status;
-
+import com.google.common.io.ByteStreams;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.cristalise.kernel.collection.Aggregation;
-import org.cristalise.kernel.collection.AggregationMember;
+import org.cristalise.kernel.collection.*;
 import org.cristalise.kernel.collection.Collection;
-import org.cristalise.kernel.collection.CollectionDescription;
-import org.cristalise.kernel.collection.CollectionMember;
-import org.cristalise.kernel.collection.Dependency;
 import org.cristalise.kernel.common.CriseVertxException;
 import org.cristalise.kernel.common.InvalidDataException;
 import org.cristalise.kernel.common.ObjectNotFoundException;
@@ -83,9 +56,22 @@ import org.cristalise.kernel.utils.LocalObjectLoader;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.XML;
-import com.google.common.io.ByteStreams;
-import lombok.extern.slf4j.Slf4j;
 
+import javax.ws.rs.core.*;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import static javax.ws.rs.core.MediaType.*;
+import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.*;
+import static org.cristalise.kernel.persistency.ClusterType.PROPERTY;
+import static org.cristalise.kernel.persistency.ClusterType.VIEWPOINT;
 
 
 @Slf4j
@@ -654,5 +640,25 @@ public abstract class ItemUtils extends RestHandler {
         }
 
         return agent.execute(thisJob);
+    }
+
+    /**
+     * If transition isn't specified explicitly, look for a valueless query parameter
+     * 
+     * @param transName the name of the transition, can be null
+     * @param uri the uri of the request
+     * @return the transName if it was not blank or the name of first valueless query parameter
+     * @throws InvalidDataException if no transition name can be extracted
+     */
+    protected String extractAndCheckTransitionName(String transName, UriInfo uri) throws InvalidDataException {
+        if (StringUtils.isNotBlank(transName)) return transName;
+
+        for (String key: uri.getQueryParameters().keySet()) {
+            List<String> qparams = uri.getQueryParameters().get(key);
+
+            if (qparams.size() == 1 && qparams.getFirst().isEmpty()) return key;
+        }
+
+        throw new InvalidDataException("Must specify transition name");
     }
 }
