@@ -264,5 +264,10 @@
       <artifactId>json</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>net.javacrumbs.json-unit</groupId>
+      <artifactId>json-unit</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 </project>

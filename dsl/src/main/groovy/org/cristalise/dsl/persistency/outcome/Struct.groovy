@@ -20,9 +20,8 @@
  */
 package org.cristalise.dsl.persistency.outcome
 
-import org.cristalise.kernel.common.InvalidDataException
-
 import groovy.transform.CompileStatic
+import org.cristalise.kernel.common.InvalidDataException
 
 /**
  *
@@ -63,7 +62,7 @@ class Struct {
     }
     
     public setAnyField(AnyField any) {
-        if (anyField) throw new InvalidDataException('Struct can conatian one anyField only')
+        if (anyField) throw new InvalidDataException('Struct may contain one anyField only')
 
         anyField = any
     }
