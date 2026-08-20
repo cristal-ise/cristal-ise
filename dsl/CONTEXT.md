@@ -54,6 +54,18 @@ _Avoid_: Measurement, UOM
 A Schema defined via CSV or Excel tabular data, using special column headers to declare Structs, Fields, and their properties.
 _Avoid_: SpreadsheetSchema, CSVSchema
 
+**SchemaGenerator**:
+An abstraction that transforms the parsed Schema Struct representation into a specific target format.
+_Avoid_: SchemaExporter, SchemaSerializer, OutputFormatter
+
+**JsonSchema**:
+A JSON Schema representation generated from a Schema definition, defining structural and validation constraints for JSON data payloads.
+_Avoid_: JsonDataModel, JsonSpec
+
+**NgForgeConfig**:
+A dynamic form configuration generated from a Schema definition for rendering Angular forms with @ng-forge/dynamic-forms.
+_Avoid_: AngularFormConfig, ForgeFormDef
+
 ### Script DSL
 
 **Script**:

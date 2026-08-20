@@ -6,6 +6,13 @@
         "-y",
         "@plantuml/mcp-js"
       ]
+    },
+    "ng-forge": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@ng-forge/dynamic-form-mcp"
+      ]
     }
   }
 }
