@@ -45,12 +45,12 @@ Before writing non-trivial code, verify:
 
 ## Reference Guide
 
-| Load when | File |
-|---|---|
-| Debugging subtle language / API behavior (Optional, Stream, switch, records, generics) | `references/pitfalls.md` |
-| Records, sealed hierarchies, pattern-matching switch, preview features (pitfalls & traps, not syntax tutorials) | `references/modern-java.md` |
+| Load when                                                                                                           | File                        |
+|---------------------------------------------------------------------------------------------------------------------|-----------------------------|
+| Debugging subtle language / API behavior (Optional, Stream, switch, records, generics)                              | `references/pitfalls.md`    |
+| Records, sealed hierarchies, pattern-matching switch, preview features (pitfalls & traps, not syntax tutorials)     | `references/modern-java.md` |
 | Writing concurrent code (virtual threads, structured concurrency, `ExecutorService` lifecycle, `ThreadLocal` traps) | `references/concurrency.md` |
-| File / stream / socket I/O, charsets, partial reads, NIO buffers | `references/io.md` |
+| File / stream / socket I/O, charsets, partial reads, NIO buffers                                                    | `references/io.md`          |
 
 ## Output Format
 
