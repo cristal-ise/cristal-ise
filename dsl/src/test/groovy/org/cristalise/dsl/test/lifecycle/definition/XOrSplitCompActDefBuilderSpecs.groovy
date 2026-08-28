@@ -87,9 +87,9 @@ class XOrSplitCompActDefBuilderSpecs extends Specification implements CristalTes
 
         xorSplitDef.getInGraphables().size() == 0
         xorSplitDef.getOutGraphables().collect {it.name} == ['left','right']
+        xorSplitDef.getOutEdges().collect {((GraphableEdge)it).getBuiltInProperty(ALIAS)} == ['left','right']
         xorSplitDef.properties.RoutingScriptName == "groovy:left"
         xorSplitDef.properties.RoutingScriptVersion == null;
-        xorSplitDef.getOutEdges().collect {((GraphableEdge)it).getBuiltInProperty(ALIAS)} == ['left','right']
 
         joinDef.getInGraphables().collect {it.name} == ['left','right']
         joinDef.getOutGraphables().size() == 0
@@ -256,7 +256,7 @@ class XOrSplitCompActDefBuilderSpecs extends Specification implements CristalTes
             Layout {
                 XOrSplit {
                     Loop { Act('Middle', middle)}
-                    LoopInfinitive { CompActDef('ManageItemDesc', 0) }
+                    LoopInfinite { CompActDef('ManageItemDesc', 0) }
                 }
             }
         }

@@ -28,11 +28,6 @@ import org.cristalise.kernel.lifecycle.instance.Loop;
 import org.cristalise.kernel.lifecycle.instance.WfVertex;
 import org.cristalise.kernel.persistency.TransactionKey;
 
-/**
- * @version $Revision: 1.19 $ $Date: 2005/09/29 10:18:31 $
- * @author $Author: abranson $
- */
-
 public class LoopDef extends XOrSplitDef {
     public boolean hasLoop = false;
     public int     isNext  = 0;

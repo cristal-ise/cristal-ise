@@ -127,6 +127,8 @@ public class CompositeActivityDef extends ActivityDef {
     }
 
     public NextDef addNextDef(WfVertexDef origin, WfVertexDef terminus) {
+        log.debug("addNextDef() - origin:{} terminus:{}",origin, terminus);
+
         NextDef returnNxt = new NextDef(origin, terminus);
         getChildrenGraphModel().addEdgeAndCreateId(returnNxt, origin, terminus);
         return returnNxt;
@@ -415,7 +417,7 @@ public class CompositeActivityDef extends ActivityDef {
         for (int i = 0; i < vChildren.length; i++) {
             WfVertexDef wfvChild = (WfVertexDef) vChildren[i];
             if (!(wfvChild.verify())) {
-                mErrors.add(wfvChild.getName() + ": " + wfvChild.getErrors());
+                mErrors.add(wfvChild + ": " + wfvChild.getErrors());
                 isCorrect = false;
             }
         }

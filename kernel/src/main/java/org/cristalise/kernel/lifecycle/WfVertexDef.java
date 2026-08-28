@@ -113,6 +113,11 @@ public abstract class WfVertexDef extends GraphableVertex {
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName()+"("+(isNotBlank(getName()) ? "name:"+getName() : "id:"+getID())+")";
+        String pairingId = getPairingId();
+        String name = getName();
+
+        return this.getClass().getSimpleName() + "("
+                + (isNotBlank(name) ? "name:" + name : (isNotBlank(pairingId) ? "pairingId:" + pairingId : "id:" + getID()))
+                + ")";
     }
 }

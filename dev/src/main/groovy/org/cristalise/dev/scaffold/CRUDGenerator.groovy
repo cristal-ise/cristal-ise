@@ -22,6 +22,8 @@ package org.cristalise.dev.scaffold
 
 import org.cristalise.dev.dsl.item.CRUDAgent
 
+import java.nio.file.Path
+
 import static org.cristalise.dsl.SystemProperties.DSL_Module_BindingConvention_variablePrefix
 
 import org.apache.commons.lang3.StringUtils
@@ -217,9 +219,16 @@ class CRUDGenerator {
         }
     }
 
-    private boolean checkIncludeRequiredInModule(File file) {
-        if (file.name.endsWith('.groovy')) {
-            return !(file.path.contains('/script') || ['Module.groovy', 'CommonDefs.groovy'].contains(file.name))
+    private boolean checkIncludeRequiredInModule(Path file) {
+        def fileName = file.fileName.toString()
+
+        if (fileName.endsWith('.groovy')) {
+            def dirName = file.parent.fileName.toString()
+
+            boolean isScriptDir          = ['script', 'scripts'].contains(dirName)
+            boolean isModuleOrCommonDefs = ['Module.groovy', 'CommonDefs.groovy'].contains(fileName)
+
+            return !(isScriptDir || isModuleOrCommonDefs)
         }
         return false
     }
@@ -240,8 +249,8 @@ class CRUDGenerator {
         if (!inputs['moduleFiles']) {
             inputs['moduleFiles'] = []
 
-            moduleDir.eachFileRecurse(FileType.FILES) { file ->
-                if (checkIncludeRequiredInModule(file)) {
+            moduleDir.eachFileRecurse(FileType.FILES) { File file ->
+                if (checkIncludeRequiredInModule(file.toPath())) {
                     ((List)inputs['moduleFiles']).add(file.name)
                 }
             }
@@ -290,7 +299,7 @@ class CRUDGenerator {
 
         def generator = new CRUDGenerator(rootDir: rootDir)
 
-        items.split(',').each { itemType ->
+        items.split(',').each { String itemType ->
             def item = new CRUDItem(itemType.trim())
             log.info('genererateTypes() - generating item:{}', item.name)
 

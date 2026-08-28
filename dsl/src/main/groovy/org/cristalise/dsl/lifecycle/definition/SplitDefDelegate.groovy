@@ -20,22 +20,65 @@
  */
 package org.cristalise.dsl.lifecycle.definition
 
+import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.PAIRING_ID
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_EXPR
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_NAME
 import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.ROUTING_SCRIPT_VERSION
 
+import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.graph.model.GraphableVertex
+import org.cristalise.kernel.lifecycle.AndSplitDef
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
+import org.cristalise.kernel.lifecycle.JoinDef
+import org.cristalise.kernel.lifecycle.LoopDef
+import org.cristalise.kernel.lifecycle.NextDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
+import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
 import org.cristalise.kernel.scripting.Script
-import groovy.transform.CompileStatic
 
-@CompileStatic
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
+
+@CompileStatic @Slf4j
 abstract class SplitDefDelegate extends BlockDefDelegate {
+
+    AndSplitDef splitDef
+    JoinDef joinDef
 
     SplitDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef) {
         super(parent, originSlotDef)
+        joinDef = (JoinDef) compActDef.newChild("", Types.Join, 0, new GraphPoint())
+    }
+
+    
+    @Override
+    public void initialiseDelegate() {
+        log.debug('initialiseDelegate() - {}', splitDef)
+        addAsNext(splitDef)
+    }
+
+    @Override
+    public void finaliseDelegate() {
+        log.debug('finaliseDelegate() - {}', splitDef)
+        lastSlotDef = joinDef
+
+        props.each { k, v ->
+            splitDef.properties.put(k, v, props.isAbstract(k))
+        }
+    }
+
+    @Override
+    public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
+        log.debug('finaliseBlock() - {} linking lastSlotDef:{} to join:{}', splitDef, newLastSlotDef, joinDef)
+        def lastNextDef = compActDef.addNextDef(newLastSlotDef, joinDef)
+
+        if (alias) {
+            if (currentFirstEdge) currentFirstEdge.setBuiltInProperty(ALIAS, alias)
+            else lastNextDef.setBuiltInProperty(ALIAS, alias)
+        }
+
+        return lastNextDef
     }
 
     protected void setPairingId(id, GraphableVertex...vertices) {
@@ -52,12 +95,24 @@ abstract class SplitDefDelegate extends BlockDefDelegate {
             initialProps.remove('groovy')
         }
         else if (initialProps?.RoutingScript) {
-            def script = initialProps?.RoutingScript as Script
-            setRoutingScript(splitDef, script.getName(), script.getVersion());
+            if (initialProps.RoutingScript instanceof Script) {
+                def script = initialProps.RoutingScript as Script
+                setRoutingScript(splitDef, script.getName(), script.getVersion());
+            }
+            else if (initialProps.RoutingScript instanceof String) {
+                def nameAndVersion = ((String)initialProps.RoutingScript).split(':')
+                def name = nameAndVersion[0]
+                def version =  nameAndVersion.length == 2 ? nameAndVersion[1] : '0'
+                setRoutingScript(splitDef, name, version as Integer)
+            }
             initialProps.remove('RoutingScript')
         }
-        else {
-            setRoutingExpr(splitDef, 'true')
+        else if (initialProps?.RoutingExpr) {
+            setRoutingExpr(splitDef, initialProps.RoutingExpr as String)
+            initialProps.remove('RoutingExpr')
+        }
+        else if (splitDef instanceof LoopDef) {
+            setRoutingExpr(splitDef, 'false')
         }
 
         if (initialProps) initialProps.each { k, v -> props.put(k, v, false) }

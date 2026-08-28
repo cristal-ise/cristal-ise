@@ -29,8 +29,9 @@ import org.cristalise.dsl.csv.TabularGroovyParser.ParserTypes
 import org.cristalise.kernel.common.InvalidDataException
 
 import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
-@CompileStatic
+@CompileStatic @Slf4j
 class TabularGroovyParserBuilder {
     
     private ParserTypes type = null
@@ -73,7 +74,7 @@ class TabularGroovyParserBuilder {
         InputStream is= new FileInputStream(file)
         XSSFWorkbook workbook = new XSSFWorkbook(is);
         XSSFSheet sheet = workbook.getSheet(sheetName.trim())
-
+        assert sheet
         return new ExcelGroovyParser(workbook, sheet, options)
     }
 
@@ -95,6 +96,25 @@ class TabularGroovyParserBuilder {
         }
     }
 
+    /**
+     * Builds TabularGroovyParser of the correct type (excel or csv) based on the extension of the file (xslx or csv)
+     * 
+     * @param file to be parsed
+     * @param headerRowCount to be used for the header record
+     * @return initialised TabularGroovyParser
+     */
+    public static TabularGroovyParser build(File file, int headerRowCount) {
+        return build(file, "", headerRowCount)
+    }
+
+    /**
+     * Builds TabularGroovyParser of the correct type (excel or csv) based on the extension of the file (xslx or csv)
+     * 
+     * @param file to be parsed
+     * @param sheet to be used (used for excel)
+     * @param headerRowCount to be used for the header record
+     * @return initialised TabularGroovyParser
+     */
     public static TabularGroovyParser build(File file, String sheet, int headerRowCount) {
         def fileName = file.name
         def type = fileName.substring(fileName.lastIndexOf('.')+1).toUpperCase()

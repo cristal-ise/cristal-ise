@@ -94,11 +94,11 @@
         <OutEdgeId>9</OutEdgeId>
         <OutEdgeId>10</OutEdgeId>
         <Properties>
-          <KeyValuePair Key="RoutingExpr" String="" isAbstract="false"/>
+          <KeyValuePair Key="RoutingExpr" String="true" isAbstract="false"/>
           <KeyValuePair Key="PairingID" String="Loop2" isAbstract="false"/>
-          <KeyValuePair Key="RoutingScriptVersion" isAbstract="false"/>
+          <KeyValuePair Key="RoutingScriptVersion" String="" isAbstract="false"/>
           <KeyValuePair Key="LastNum" String="2" isAbstract="false"/>
-          <KeyValuePair Key="RoutingScriptName" String="groovy:true" isAbstract="false"/>
+          <KeyValuePair Key="RoutingScriptName" String="" isAbstract="false"/>
         </Properties>
       </LoopDef>
       <JoinDef Height="24" ID="1" IsComposite="false" IsLayoutable="true" Name="" Width="60">
@@ -127,7 +127,7 @@
         <OutEdgeId>16</OutEdgeId>
         <OutEdgeId>19</OutEdgeId>
         <Properties>
-          <KeyValuePair Key="RoutingExpr" String="true" isAbstract="false"/>
+          <KeyValuePair Key="RoutingExpr" String="" isAbstract="false"/>
           <KeyValuePair Key="PairingID" String="AndSplit0" isAbstract="false"/>
           <KeyValuePair Key="RoutingScriptVersion" String="" isAbstract="false"/>
           <KeyValuePair Key="RoutingScriptName" String="" isAbstract="false"/>

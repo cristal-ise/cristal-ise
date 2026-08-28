@@ -25,48 +25,60 @@ import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.lifecycle.CompositeActivityDef
 import org.cristalise.kernel.lifecycle.JoinDef
 import org.cristalise.kernel.lifecycle.LoopDef
+import org.cristalise.kernel.lifecycle.NextDef
 import org.cristalise.kernel.lifecycle.WfVertexDef
 import org.cristalise.kernel.lifecycle.instance.WfVertex.Types
-import groovy.transform.CompileStatic
 
-@CompileStatic
+import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
+
+@CompileStatic @Slf4j
 class LoopDefDelegate extends SplitDefDelegate {
 
-    LoopDef loopDef
     JoinDef joinDefFirst
-    JoinDef joinDefLast
 
     public LoopDefDelegate(CompositeActivityDef parent, WfVertexDef originSlotDef, Map<String, Object> initialProps) {
         super(parent, originSlotDef)
 
-        loopDef      = (LoopDef) compActDef.newChild("", Types.LoopSplit, 0, new GraphPoint())
+        splitDef     = (LoopDef) compActDef.newChild("", Types.LoopSplit, 0, new GraphPoint())
         joinDefFirst = (JoinDef) compActDef.newChild("", Types.Join, 0, new GraphPoint())
-        joinDefLast  = (JoinDef) compActDef.newChild("", Types.Join, 0, new GraphPoint())
 
-        String pairingId = "Loop${loopDef.getID()}";
-        setPairingId(pairingId, loopDef, joinDefFirst)
+        String pairingId = "Loop${splitDef.getID()}";
+        setPairingId(pairingId, splitDef, joinDefFirst)
 
-        setInitialProperties(loopDef, initialProps)
+        setInitialProperties(splitDef, initialProps)
     }
 
-    public void processClosure(Closure cl) {
-        assert cl, "Split only works with a valid Closure"
-
+    @Override
+    public void initialiseDelegate() {
         addAsNext(joinDefFirst)
+    }
 
-        cl.delegate = this
-        cl.resolveStrategy = Closure.DELEGATE_FIRST
-        cl()
+    @Override
+    public void finaliseDelegate() {
+        log.debug('finaliseDelegate() - {}', splitDef)
 
-        addAsNext(loopDef) // sets loop input to the lastSlotDef
-        def nextLast = addAsNext(joinDefLast) // sets loop output to the joinDefLast
-        def nextFirst = compActDef.addNextDef(loopDef, joinDefFirst) // sets loop output to the joinDefFirst
+        addAsNext(splitDef) // sets loop input to the lastSlotDef
+
+        def nextLast = addAsNext(joinDef) // sets loop output to the joinDefLast
+        def nextFirst = compActDef.addNextDef(splitDef, joinDefFirst) // sets loop output to the joinDefFirst
 
         nextFirst.setBuiltInProperty(ALIAS, 'true')
         nextLast.setBuiltInProperty(ALIAS, 'false')
 
         props.each { k, v ->
-            loopDef.properties.put(k, v, props.getAbstract().contains(k))
+            splitDef.properties.put(k, v, props.getAbstract().contains(k))
         }
+    }
+
+    @Override
+    public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
+        log.debug('finaliseBlock() - setting lastSlotDef:{} to newLastSlotDef:{}', lastSlotDef, newLastSlotDef)
+
+        lastSlotDef = newLastSlotDef
+
+        if (alias && currentFirstEdge) currentFirstEdge.setBuiltInProperty(ALIAS, alias)
+
+        return null
     }
 }

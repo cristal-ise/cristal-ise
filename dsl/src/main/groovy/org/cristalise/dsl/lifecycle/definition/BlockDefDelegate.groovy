@@ -20,7 +20,10 @@
  */
 package org.cristalise.dsl.lifecycle.definition
 
+import static org.cristalise.kernel.graph.model.BuiltInEdgeProperties.ALIAS
+
 import org.cristalise.dsl.property.PropertyDelegate
+import org.cristalise.kernel.common.InvalidDataException
 import org.cristalise.kernel.graph.model.GraphPoint
 import org.cristalise.kernel.graph.model.GraphableEdge
 import org.cristalise.kernel.lifecycle.ActivityDef
@@ -45,20 +48,32 @@ class BlockDefDelegate extends PropertyDelegate {
         lastSlotDef = originSlotDef
     }
 
+    public void initialiseDelegate() {
+        log.debug('initialiseDelegate() - NOTHING DONE')
+    }
+
+    public void finaliseDelegate() {
+        log.debug('finaliseDelegate() - NOTHING DONE')
+    }
+
     public void processClosure(Closure cl) {
         assert cl, "Block only works with a valid Closure"
+
+        initialiseDelegate()
 
         cl.delegate = this
         cl.resolveStrategy = Closure.DELEGATE_FIRST
         cl()
+
+        finaliseDelegate()
     }
 
     protected NextDef addAsNext(WfVertexDef newSlotDef) {
         log.debug('addAsNext() - newSlotDef:{} lastSlotDef:{}', newSlotDef, lastSlotDef)
 
         NextDef nextDef = null
-        if(lastSlotDef) nextDef = compActDef.addNextDef(lastSlotDef, newSlotDef)
-        else            compActDef.getChildrenGraphModel().setStartVertexId(newSlotDef.ID)
+        if (lastSlotDef) nextDef = compActDef.addNextDef(lastSlotDef, newSlotDef)
+        else             compActDef.getChildrenGraphModel().setStartVertexId(newSlotDef.ID)
 
         lastSlotDef = newSlotDef;
         if (!firstEdge) firstEdge = nextDef
@@ -72,22 +87,58 @@ class BlockDefDelegate extends PropertyDelegate {
         return newSlotDef
     }
 
-    def LoopInfinitive(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
-        // Add the conditions to make the infinitive
+    public NextDef finaliseBlock(WfVertexDef newLastSlotDef, NextDef currentFirstEdge, Object alias) {
+        log.debug('finaliseBlock() - setting lastSlotDef:{} to newLastSlotDef:{}', lastSlotDef, newLastSlotDef)
+
+        lastSlotDef = newLastSlotDef
+
+        if (alias && currentFirstEdge) currentFirstEdge.setBuiltInProperty(ALIAS, alias)
+
+        return null
+    }
+
+    public BlockDefDelegate Block(@DelegatesTo(BlockDefDelegate) Closure cl) {
+        return Block(null, cl)
+    }
+
+    public BlockDefDelegate Block(Map<String, Object> initialProps = null, @DelegatesTo(BlockDefDelegate) Closure cl = null) {
+        def blockD =  new BlockDefDelegate(compActDef, lastSlotDef)
+
+        if (cl) {
+            blockD.processClosure(cl)
+            finaliseBlock(blockD.lastSlotDef, blockD.firstEdge, initialProps?.Alias)
+        }
+
+        return blockD
+    }
+
+    public LoopDefDelegate LoopInfinite(@DelegatesTo(LoopDefDelegate) Closure cl) {
+        return LoopInfinite(null, cl)
+    }
+
+    public LoopDefDelegate LoopInfinite(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl = null) {
+        // Add the conditions to make it endless
         if (!initialProps) initialProps = [:]
 
-        initialProps.groovy = true
+        //initialProps.groovy = true
+        initialProps.RoutingExpr = 'true'
 
         return Loop(initialProps, cl)
     }
 
-    def Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl) {
+    public LoopDefDelegate Loop(@DelegatesTo(LoopDefDelegate) Closure cl) {
+        return Loop(null, cl)
+    }
+
+    public LoopDefDelegate Loop(Map<String, Object> initialProps = null, @DelegatesTo(LoopDefDelegate) Closure cl = null) {
         def loopD =  new LoopDefDelegate(compActDef, lastSlotDef, initialProps)
-        loopD.processClosure(cl)
 
-        lastSlotDef = loopD.joinDefLast
+        if (cl) {
+            loopD.processClosure(cl)
+            finaliseBlock(loopD.joinDef, loopD.firstEdge, initialProps?.Alias as String)
+        }
 
-        return loopD.loopDef
+        return loopD
     }
 
     def Act(ActivityDef actDef, @DelegatesTo(PropertyDelegate) Closure cl = null) {
@@ -100,7 +151,8 @@ class BlockDefDelegate extends PropertyDelegate {
         if (cl) {
             def propD = new PropertyDelegate()
             propD.processClosure(cl)
-            propD.props.each { k, v ->
+
+            propD.props?.each { k, v ->
                 newSlotDef.properties.put(k, v, props.getAbstract().contains(k))
             }
         }
@@ -115,12 +167,10 @@ class BlockDefDelegate extends PropertyDelegate {
         return Act(actName, LocalObjectLoader.getElemActDef(actDefName, actVer), cl)
     }
 
-    // Alias of method Act(...)
     def ElemActDef(ActivityDef actDef, @DelegatesTo(PropertyDelegate) Closure cl = null) {
         return Act(actDef.actName, actDef, cl)
     }
 
-    // Alias of method Act(...)
     def ElemActDef(String actName, ActivityDef actDef, @DelegatesTo(PropertyDelegate) Closure cl = null) {
         return Act(actName, actDef, cl)
     }
@@ -133,40 +183,52 @@ class BlockDefDelegate extends PropertyDelegate {
         return Act(actName, LocalObjectLoader.getCompActDef(actDefName, actVer), cl)
     }
 
-    // Alias of method Act(...)
     def CompActDef(CompositeActivityDef actDef, @DelegatesTo(PropertyDelegate) Closure cl = null) {
         return Act(actDef.actName, actDef, cl)
     }
 
-    // Alias of method Act(...)
     def CompActDef(String actName, CompositeActivityDef actDef, @DelegatesTo(PropertyDelegate) Closure cl = null) {
         return Act(actName, actDef, cl)
     }
 
-    def AndSplit(Map<String, Object> props = null, @DelegatesTo(AndSplitDefDelegate) Closure cl) {
-        def andD =  new AndSplitDefDelegate(compActDef, lastSlotDef, props)
-        andD.processClosure(cl)
-
-        lastSlotDef = andD.lastSlotDef
-
-        return andD.andSplitDef
+    public AndSplitDefDelegate AndSplit(@DelegatesTo(AndSplitDefDelegate) Closure cl) {
+        return AndSplit(null, cl)
     }
 
-    def OrSplit(Map<String, Object> props = null, @DelegatesTo(OrSplitDefDelegate) Closure cl) {
-        def orD =  new OrSplitDefDelegate(compActDef, lastSlotDef, props)
-        orD.processClosure(cl)
+    public AndSplitDefDelegate AndSplit(Map<String, Object> initialProps = null, @DelegatesTo(AndSplitDefDelegate) Closure cl = null) {
+        def andD =  new AndSplitDefDelegate(compActDef, lastSlotDef, initialProps)
 
-        lastSlotDef = orD.lastSlotDef
+        if (cl) {
+            andD.processClosure(cl)
+            finaliseBlock(andD.lastSlotDef, andD.firstEdge, initialProps?.Alias as String)
+        }
 
-        return orD.orSplitDef
+        return andD
     }
 
-    def XOrSplit(Map<String, Object> props = null, @DelegatesTo(XOrSplitDefDelegate) Closure cl) {
-        def xorD =  new XOrSplitDefDelegate(compActDef, lastSlotDef, props)
-        xorD.processClosure(cl)
+    public OrSplitDefDelegate OrSplit(@DelegatesTo(OrSplitDefDelegate) Closure cl) {
+        return OrSplit(null, cl)
+    }
 
-        lastSlotDef = xorD.lastSlotDef
+    public OrSplitDefDelegate OrSplit(Map<String, Object> initialProps = null, @DelegatesTo(OrSplitDefDelegate) Closure cl = null) {
+        def orD =  new OrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
 
-        return xorD.xorSplitDef
+        if (cl) {
+            orD.processClosure(cl)
+            finaliseBlock(orD.lastSlotDef, orD.firstEdge, initialProps?.Alias as String)
+        }
+
+        return orD
+    }
+
+    public XOrSplitDefDelegate XOrSplit(Map<String, Object> initialProps = null, @DelegatesTo(XOrSplitDefDelegate) Closure cl) {
+        def xorD =  new XOrSplitDefDelegate(compActDef, lastSlotDef, initialProps)
+
+        if (cl) {
+            xorD.processClosure(cl)
+            finaliseBlock(xorD.lastSlotDef, xorD.firstEdge, initialProps?.Alias as String)
+        }
+
+        return xorD
     }
 }
