@@ -207,7 +207,7 @@ public class DependencyMember implements CollectionMember {
      * @throws ObjectNotFoundException
      * @throws InvalidCollectionModification
      */
-    public void updatePropertieFromDescription(CastorHashMap propDesc, DependencyMember newMember) 
+    public void updatePropertiesFromDescription(CastorHashMap propDesc, DependencyMember newMember) 
             throws ObjectNotFoundException, InvalidCollectionModification
     {
         for(String key: propDesc.keySet()) {

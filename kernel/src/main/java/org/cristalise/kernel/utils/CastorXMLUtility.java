@@ -121,11 +121,10 @@ public class CastorXMLUtility {
      * @throws InvalidDataException all errors captured
      */
     public String marshall(Object obj) throws InvalidDataException {
+        if (obj == null) return "<NULL/>";
+        if (obj instanceof Outcome) return ((Outcome) obj).getData();
+        
         try {
-            if (obj == null) return "<NULL/>";
-
-            if (obj instanceof Outcome) return ((Outcome) obj).getData();
-
             StringWriter sWriter = new StringWriter();
             Marshaller marshaller = mappingContext.createMarshaller();
             marshaller.setWriter(sWriter);
@@ -136,11 +135,9 @@ public class CastorXMLUtility {
             marshaller.marshal(obj);
 
             return sWriter.toString();
-
         }
         catch (IOException | MarshalException | ValidationException ex) {
-            log.error("marshall() - failed", ex);
-            throw new InvalidDataException("marshall failed", ex);
+            throw new InvalidDataException(ex);
         }
     }
 
@@ -160,8 +157,7 @@ public class CastorXMLUtility {
             return mappingContext.createUnmarshaller().unmarshal(sReader);
         }
         catch (MarshalException | ValidationException ex) {
-            log.error("unmarshall() - failed", ex);
-            throw new InvalidDataException("unmarshall failed", ex);
+            throw new InvalidDataException(ex);
         }
     }
 }

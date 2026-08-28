@@ -20,7 +20,6 @@
  */
 package org.cristalise.kernel.lifecycle.instance.predefined;
 
-import static org.cristalise.kernel.graph.model.BuiltInVertexProperties.SCHEMA_NAME;
 import static org.cristalise.kernel.lifecycle.instance.predefined.agent.Authenticate.REDACTED;
 
 import org.cristalise.kernel.common.CannotManageException;

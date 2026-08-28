@@ -219,20 +219,12 @@ public class CompositeActivityDef extends ActivityDef {
 
         return child;
     }
-    /**
-     * 
-     * @return CompositeActivity
-     */
-    @Override
-    public WfVertex instantiate(TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
-        return instantiate(getName(), transactionKey);
-    }
 
     @Override
     public WfVertex instantiate(String name, TransactionKey transactionKey) throws ObjectNotFoundException, InvalidDataException {
         CompositeActivity caInstance = new CompositeActivity();
 
-        log.info("instantiate(name:"+name+") - Starting.");
+        log.debug("instantiate(name:"+name+") - Starting.");
 
         caInstance.setName(name);
 

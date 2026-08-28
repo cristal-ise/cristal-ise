@@ -29,6 +29,7 @@ import java.util.UUID;
 import com.github.f4b6a3.uuid.UuidCreator;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.cristalise.kernel.SystemProperties;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.entity.proxy.ItemProxy;
@@ -116,6 +117,18 @@ public class ItemPath extends Path {
     @Override
     public ItemPath getItemPath(TransactionKey transactionKey) throws ObjectNotFoundException {
         return this;
+    }
+
+    public static ItemPath getItemPath(String pathOrUUID, TransactionKey transactionKey) throws ObjectNotFoundException {
+        Validate.notBlank(pathOrUUID);
+
+        try {
+            if (isUUID(pathOrUUID)) return Gateway.getLookup().getItemPath(pathOrUUID, transactionKey);
+            else                    return Gateway.getLookup().resolvePath(new DomainPath(pathOrUUID), transactionKey);
+        }
+        catch (InvalidItemPathException e) {
+            throw new ObjectNotFoundException(e);
+        }
     }
 
     public byte[] getOID() {

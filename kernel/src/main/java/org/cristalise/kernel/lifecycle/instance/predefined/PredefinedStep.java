@@ -89,7 +89,6 @@ public abstract class PredefinedStep extends Activity {
     @Getter
     private Map<ItemPath, String> autoUpdates = new  LinkedHashMap<ItemPath, String>();
 
-
     public PredefinedStep(String schemaName, String description) {
         super();
         setBuiltInProperty(STATE_MACHINE_NAME, StateMachine.getDefaultStateMachine("Predefined"));
@@ -300,17 +299,16 @@ public abstract class PredefinedStep extends Activity {
     public static void storeOutcomeEventAndViews(ItemPath itemPath, Outcome newOutcome, Integer version, TransactionKey transactionKey)
             throws PersistencyException, ObjectNotFoundException, InvalidDataException
     {
-        String viewName = "";
-        if (version != null) viewName = String.valueOf(version);
+        String viewName = version != null ? String.valueOf(version) : "last";
 
-        log.info("storeOutcomeEventAndViews() - Schema '{}' of version '{}' to '{}'", 
-                newOutcome.getSchema().getName(), version != null ? viewName : "last", itemPath);
+        log.info("storeOutcomeEventAndViews() - item:{} version:{} schema:{}", 
+                itemPath.getItemName(transactionKey), viewName, newOutcome.getSchema().getName());
 
         History hist = new History(itemPath, transactionKey);
 
         int eventID = hist.addEvent((AgentPath)SYSTEM_AGENT.getPath(transactionKey),
                 ADMIN_ROLE.getName(), "Bootstrap", "Bootstrap", "Bootstrap", newOutcome.getSchema(), 
-                LocalObjectLoader.getStateMachine("PredefinedStep", 0, transactionKey), PredefinedStep.DONE, version != null ? viewName : "last"
+                LocalObjectLoader.getStateMachine("PredefinedStep", 0, transactionKey), PredefinedStep.DONE, viewName
                 ).getID();
 
         newOutcome.setID(eventID);

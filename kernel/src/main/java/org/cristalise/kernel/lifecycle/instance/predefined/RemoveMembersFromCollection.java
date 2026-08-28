@@ -73,7 +73,7 @@ public class RemoveMembersFromCollection extends ManageMembersOfCollectionBase {
                 removedMember = currentDependency.removeMember(inputMember.getItemPath());
             }
 
-            if (inputMember.getItemPath() != null & !removedMember.getItemPath().equals(inputMember.getItemPath())) {
+            if (inputMember.getItemPath() != null & ! removedMember.getItemPath().equals(inputMember.getItemPath())) {
                 throw new InvalidDataException("MemberID is inconsistent with ItemPath");
             }
         }

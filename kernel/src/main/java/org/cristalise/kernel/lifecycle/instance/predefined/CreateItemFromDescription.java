@@ -214,8 +214,8 @@ public class CreateItemFromDescription extends PredefinedStep {
      * 
      */
     protected void initialiseItem(ItemPath          newItem, 
-                                  AgentProxy        agent, 
-                                  ItemProxy         descItem, 
+                                  AgentProxy        agent,
+                                  ItemProxy         descItem,
                                   PropertyArrayList initProps,
                                   String            outcome,
                                   String            newName, 
@@ -299,7 +299,7 @@ public class CreateItemFromDescription extends PredefinedStep {
     /**
      * Retrieve the Workflow dependency for the given description version, instantiate the loaded CompositeActivityDef
      */
-    protected CompositeActivity instantiateWorkflow(ItemProxy descItem, String descVer, TransactionKey transactionKey)
+    public static CompositeActivity instantiateWorkflow(ItemProxy descItem, String descVer, TransactionKey transactionKey)
             throws ObjectNotFoundException, InvalidDataException, PersistencyException
     {
         Collection<?> wfCol = descItem.getCollection(WORKFLOW, Ints.tryParse(descVer), transactionKey);
@@ -315,18 +315,19 @@ public class CreateItemFromDescription extends PredefinedStep {
         if (wfVerObj == null || String.valueOf(wfVerObj).isEmpty()) {
             throw new InvalidDataException("Workflow version number not set");
         }
+        
         try {
             Integer wfDefVer = Integer.valueOf(wfVerObj.toString());
 
             String cacheKey = LIFECYCLE + "/" + wfDefName + ':' + wfDefVer;
-            CompositeActivity ca = (CompositeActivity) getFromCache(cacheKey);
+            CompositeActivity ca = null; // (CompositeActivity) getFromCache(cacheKey);
 
             if (ca == null) {
                 // load workflow def
                 CompositeActivityDef wfDef = (CompositeActivityDef) LocalObjectLoader.getActDef(wfDefName, wfDefVer, transactionKey);
                 ca = (CompositeActivity) wfDef.instantiate(transactionKey);
 
-                addToCache(cacheKey, ca);
+                //addToCache(cacheKey, ca);
             }
 
             return ca;

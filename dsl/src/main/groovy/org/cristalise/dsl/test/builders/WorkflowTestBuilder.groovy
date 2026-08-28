@@ -30,6 +30,7 @@ import org.cristalise.kernel.graph.layout.DefaultGraphLayoutGenerator
 import org.cristalise.kernel.graph.model.DirectedEdge
 import org.cristalise.kernel.graph.model.GraphModel
 import org.cristalise.kernel.lifecycle.instance.*
+import org.cristalise.kernel.lifecycle.instance.predefined.PredefinedStep
 import org.cristalise.kernel.lifecycle.instance.stateMachine.StateMachine
 import org.cristalise.kernel.lifecycle.instance.stateMachine.Transition
 import org.cristalise.kernel.lifecycle.renderer.LifecycleRenderer
@@ -204,7 +205,16 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      */
     public void checkActPath(String name, String path) {
         assert vertexCache[name]
-        assert wf.search(path).is(vertexCache[name]) : "Activity '$name' equals '$path'"
+        assert wf.search(path) == vertexCache[name]// : "Activity '$name' equals '$path'"
+    }
+
+    /**
+     * 
+     * @param name
+     * @param trans
+     */
+    public void requestAction(String name, String trans) {
+        requestAction(name, trans, (String)null)
     }
 
     /**
@@ -214,16 +224,32 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param outcome
      */
     public void requestAction(String name, String trans, Outcome outcome) {
-        requestAction((Activity)vertexCache[name], trans, outcome)
+        requestAction(name, trans, (outcome == null ? null : outcome.getData()))
     }
 
     /**
      * 
      * @param name
      * @param trans
+     * @param outcome
      */
-    public void requestAction(String name, String trans) {
-        requestAction((Activity)vertexCache[name], trans, null)
+    public void requestAction(String name, String trans, String xml) {
+        Activity act = null
+
+        if (name.startsWith('workflow/predefined')) act = (Activity) wf.search(name)
+        else                                        act = (Activity) vertexCache[name]
+
+        requestAction(act, trans, xml)
+    }
+
+    /**
+     * 
+     * @param act
+     * @param trans
+     * @param outcome
+     */
+    public void requestAction(WfVertex act, String trans, Outcome outcome) {
+        requestAction(act, trans, (outcome == null ? null : outcome.getData()))
     }
 
     /**
@@ -231,16 +257,17 @@ class WorkflowTestBuilder extends WorkflowBuilder {
      * @param act
      * @param trans
      */
-    public void requestAction(WfVertex act, String trans, Outcome outcome) {
+    public void requestAction(WfVertex act, String trans, String xml) {
         log.info "requestAction() - $act.path : $trans"
 
         int transID = -1
         String requestData = null
 
-        if (outcome != null) requestData = outcome.getData()
+        if (xml != null) requestData = xml
 
-        if (act instanceof CompositeActivity) transID = getTransID(caSM, trans)
-        else transID = getTransID(eaSM, trans)
+        if      (act instanceof PredefinedStep)     transID = PredefinedStep.DONE
+        else if (act instanceof CompositeActivity)  transID = getTransID(caSM, trans)
+        else                                        transID = getTransID(eaSM, trans)
 
         TransactionKey tk = new TransactionKey('WorkflowTestBuilder')
         Gateway.getStorage().begin(tk)

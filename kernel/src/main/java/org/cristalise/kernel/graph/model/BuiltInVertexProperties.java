@@ -70,7 +70,7 @@ public enum BuiltInVertexProperties {
      *
      * <pre>
      * Activity('User_AddAddress', 0) {
-     *   Property(PredefinedStep: 'AddMemberToCollection')
+     *   Property(PredefinedStep: 'AddMembersToCollection')
      *   Property(DependencyName: 'Addresses')
      *   Schema('Address_Details', 0)
      * }</pre>

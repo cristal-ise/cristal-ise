@@ -38,6 +38,8 @@ import lombok.extern.slf4j.Slf4j;
 public class UpdateItemFromDescription extends PredefinedStep {
 
     public static final String description = "";
+    
+
 
     public UpdateItemFromDescription() {
         super(description);
@@ -56,8 +58,10 @@ public class UpdateItemFromDescription extends PredefinedStep {
         String[] input = getDataList(requestData);
 
         log.debug("Called by {} on {} with parameters {}", agent.getAgentName(transactionKey), descItemPath, (Object)input);
+        
+        //when finished with the update refresh the ItemProperty called 'MigratedToVersion' to store the current version
+        //agent.execute(item, 'AddC2KObject', agent.marshall(new Property(MIGRATED_PROP_NAME, versionTag, true)))
 
         return requestData;
     }
-
 }

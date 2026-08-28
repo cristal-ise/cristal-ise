@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xs:schema xmlns:xs='http://www.w3.org/2001/XMLSchema'>
+  <xs:element name='WorkflowReplaceData'>
+    <xs:complexType>
+      <xs:all minOccurs='0'>
+        <xs:element name='NewWorkflowXml' type='xs:anyType' minOccurs='1' maxOccurs='1' />
+        <xs:element name='OldWorkflowXml' type='xs:anyType' minOccurs='1' maxOccurs='1' />
+        <xs:element name='PredefinedSteps' type='xs:anyType' minOccurs='0' maxOccurs='1'>
+          <xs:annotation>
+            <xs:appinfo>
+              <dynamicForms>
+                <hidden>true</hidden>
+                <required>false</required>
+              </dynamicForms>
+            </xs:appinfo>
+          </xs:annotation>
+        </xs:element>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
