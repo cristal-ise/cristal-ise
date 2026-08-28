@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.UUID;
 
 import com.github.f4b6a3.uuid.UuidCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.SystemProperties;
@@ -101,13 +102,15 @@ public class ItemPath extends Path {
                 throw new InvalidItemPathException(mPath[0] + " is not a valid UUID : " + ex.getMessage());
             }
         }
-        else
+        else {
             throw new InvalidItemPathException("Not a valid item path: " + Arrays.toString(mPath));
+        }
     }
 
     /**
      * The root of ItemPath is /entity
      */
+    @JsonIgnore
     @Override
     public String getRoot() {
         return "entity";
@@ -118,6 +121,7 @@ public class ItemPath extends Path {
         return this;
     }
 
+    @JsonIgnore
     public byte[] getOID() {
         UUID uuid = getUUID();
 
@@ -145,11 +149,13 @@ public class ItemPath extends Path {
     /**
      * Returns the UUID in String form
      */
+    @JsonIgnore
     @Override
     public String getName() {
         return mPath[0];
     }
 
+    @JsonIgnore
     @Override
     public String getClusterPath() {
         return ClusterType.PATH + "/Item";
@@ -166,10 +172,12 @@ public class ItemPath extends Path {
         return entityKey.matches("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
     }
 
+    @JsonIgnore
     public String getItemName() {
         return getItemName(null);
     }
 
+    @JsonIgnore
     public String getItemName(TransactionKey transactionKey) {
         if (StringUtils.isBlank(itemName)) {
             itemName = PropertyUtility.getPropertyValue(this, NAME, "", transactionKey);
@@ -178,10 +186,12 @@ public class ItemPath extends Path {
         return itemName;
     }
 
+    @JsonIgnore
     public ItemProxy getProxy() throws ObjectNotFoundException {
         return getProxy(null);
     }
 
+    @JsonIgnore
     public ItemProxy getProxy(TransactionKey transactionKey) throws ObjectNotFoundException {
         return Gateway.getProxy(this, transactionKey);
     }

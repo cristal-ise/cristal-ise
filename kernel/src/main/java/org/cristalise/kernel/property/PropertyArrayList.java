@@ -36,16 +36,29 @@ public class PropertyArrayList extends CastorArrayList<Property> {
      */
     public PropertyArrayList(List<Property> aList) {
         super();
-        for (Property property : aList) {
-            put(property);
+        if (aList != null) {
+            for (Property property : aList) {
+                put(property);
+            }
         }
     }
 
+    /**
+     * Puts a property into the list, overwriting any existing property with the same name
+     * 
+     * @param p The property to add
+     */
     public void put(Property p) {
         if (contains(p.getName())) remove(p);
         list.add(p);
     }
 
+    /**
+     * Checks if the list contains a property with the given name
+     * 
+     * @param name The name of the property to check
+     * @return true if the property exists, false otherwise
+     */
     public boolean contains(String name) {
         for (Property p : list) {
             if (p.getName().equals(name)) return true;
@@ -53,16 +66,19 @@ public class PropertyArrayList extends CastorArrayList<Property> {
         return false;
     }
 
+    /**
+     * Gets the property with the given name
+     * 
+     * @param name The name of the property to retrieve
+     * @return The property with the given name, or null if not found
+     */
     public Property get(String name) {
         for (Property p : list) {
-            if (p.getName().equals(p.getName())) return p;
+            if (p.getName().equals(name)) return p;
         }
         return null;
     }
 
-    /**
-     * @param p
-     */
     private void remove(Property p) {
         for (Property thisProp : list) {
             if (thisProp.getName().equals(p.getName())) {

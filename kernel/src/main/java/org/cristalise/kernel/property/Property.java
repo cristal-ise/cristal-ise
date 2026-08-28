@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.property;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.cristalise.kernel.entity.C2KLocalObject;
 import org.cristalise.kernel.persistency.ClusterType;
 
@@ -54,11 +55,13 @@ public class Property implements C2KLocalObject {
     }
 
     @Override
+    @JsonIgnore
     public ClusterType getClusterType() {
         return ClusterType.PROPERTY;
     }
 
     @Override
+    @JsonIgnore
     public String getClusterPath() {
         return getClusterType()+"/"+mName;
     }

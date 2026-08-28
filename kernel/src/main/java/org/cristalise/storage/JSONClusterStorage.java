@@ -21,55 +21,49 @@
 package org.cristalise.storage;
 
 import org.cristalise.kernel.entity.C2KLocalObject;
+import org.cristalise.kernel.persistency.outcome.Outcome;
 import org.cristalise.kernel.process.Gateway;
 
-import static org.cristalise.kernel.SystemProperties.XMLStorage_root;
-
 /**
- * Implementation of ClusterStorage providing the XML file based persistence.
+ * Implementation of ClusterStorage providing the JSON file based persistence.
+ * Non-outcome objects are stored as direct serialized JSON instances.
  */
-public class XMLClusterStorage extends FileBasedClusterStorage {
-    private static final String DEFAULT_FILE_EXTENSION = ".xml";
+public class JSONClusterStorage extends FileBasedClusterStorage {
+    private static final String DEFAULT_FILE_EXTENSION = ".json";
 
     /**
      * Required during ClusterStorageManager initialization
      */
-    public XMLClusterStorage() {
-        super(XMLStorage_root.getString(), null, null, DEFAULT_FILE_EXTENSION);
+    public JSONClusterStorage() {
+        super(null, null, null, DEFAULT_FILE_EXTENSION);
     }
 
-    /**
-     * Create new XMLClusterStorage with specific setup, Used in predefined step
-     * {@link org.cristalise.kernel.lifecycle.instance.predefined.server.BulkImport}
-     *
-     * @param root specify the root directory
-     */
-    public XMLClusterStorage(String root) {
+    public JSONClusterStorage(String root) {
         this(root, null, null);
     }
 
-    /**
-     * Create new XMLClusterStorage with specific setup, Used in predefined step
-     * {@link org.cristalise.kernel.lifecycle.instance.predefined.server.BulkImport}
-     *
-     * @param root specify the root directory
-     * @param ext the extension of the files with dot, e.g. '.xml', used to save the cluster content.
-     *        If it is null the default '.xml' extension is used.
-     * @param useDir specify if the files should be stored in directories or in single files, e.g. Property.Type,xml
-     *        If it is null the default is true.
-     */
-    public XMLClusterStorage(String root, String ext, Boolean useDir) {
+    public JSONClusterStorage(String root, String ext, Boolean useDir) {
         super(root, ext, useDir, DEFAULT_FILE_EXTENSION);
     }
 
     @Override
     public String getName() {
-        return "XML File Cluster Storage";
+        return "JSON File Cluster Storage";
     }
 
     @Override
     public String getId() {
-        return "XML";
+        return "JSON";
+    }
+
+    @Override
+    protected boolean returnNullForMissingClusterFile() {
+        return true;
+    }
+
+    @Override
+    protected String serializeOutcome(Outcome outcome) {
+        return outcome.getData();
     }
 
     @Override

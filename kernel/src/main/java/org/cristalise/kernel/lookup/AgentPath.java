@@ -20,6 +20,7 @@
  */
 package org.cristalise.kernel.lookup;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 import java.util.UUID;
 
@@ -84,6 +85,7 @@ public class AgentPath extends ItemPath {
         return getAgentName(null);
     }
 
+    @JsonIgnore
     public String getAgentName(TransactionKey transactionKey) {
         if (mAgentName == null) {
             try {
@@ -96,10 +98,12 @@ public class AgentPath extends ItemPath {
         return mAgentName;
     }
 
+    @JsonIgnore
     public RolePath[] getRoles() {
         return getRoles(null);
     }
 
+    @JsonIgnore
     public RolePath[] getRoles(TransactionKey transactionKey) {
         return Gateway.getLookup().getRoles(this, transactionKey);
     }
@@ -136,16 +140,19 @@ public class AgentPath extends ItemPath {
         }
     }
 
+    @JsonIgnore
     @Override
     public String getClusterPath() {
         return ClusterType.PATH + "/Agent";
     }
 
+    @JsonIgnore
     @Override
     public AgentProxy getProxy() throws ObjectNotFoundException {
         return this.getProxy(null);
     }
 
+    @JsonIgnore
     @Override
     public AgentProxy getProxy(TransactionKey transactionKey) throws ObjectNotFoundException {
         return (AgentProxy) super.getProxy(transactionKey);
@@ -156,6 +163,7 @@ public class AgentPath extends ItemPath {
         return super.dump() + "\n        agentID=" + mAgentName;
     }
 
+    @JsonIgnore
     public boolean isPasswordTemporary() {
         return mPasswordTemporary;
     }

@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import static org.apache.commons.lang3.StringUtils.capitalize;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -46,19 +48,24 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Getter @Setter @Slf4j
 public class DomainContext implements DescriptionObject {
+    @JsonIgnore
     private String   namespace;
+    @JsonProperty("name")
     private String   name;
+    @JsonIgnore
     private Integer  version;
 
+    @JsonIgnore
     private ItemPath itemPath;
 
-    @Setter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE) @JsonIgnore
     private DomainPath domainPath;
 
     /**
      * List of SubContexts (can be empty)
      */
-    private List<DomainContext> subCcontexts = new ArrayList<DomainContext>();
+    @JsonIgnore
+    private List<DomainContext> subContexts = new ArrayList<DomainContext>();
 
     public DomainContext() {}
 
@@ -92,11 +99,13 @@ public class DomainContext implements DescriptionObject {
         log.debug("ctor() - name:{}", name);
     }
 
+    @JsonIgnore
     @Override
     public String getItemID() {
         return (itemPath != null) ? itemPath.getUUID().toString() : null;
     }
 
+    @JsonIgnore
     @Override
     public CollectionArrayList makeDescCollections(TransactionKey transactionKey) throws InvalidDataException, ObjectNotFoundException {
         CollectionArrayList retArr = new CollectionArrayList();
@@ -107,6 +116,7 @@ public class DomainContext implements DescriptionObject {
         return retArr;
     }
 
+    @JsonIgnore
     public DomainContext getParentContext() throws InvalidDataException {
         DomainPath parentPath = domainPath.getParent();
 
@@ -114,6 +124,7 @@ public class DomainContext implements DescriptionObject {
         else                    return null;
     }
 
+    @JsonIgnore
     public List<DomainContext> getSubContexts(TransactionKey transactionKey) {
         List<Path> children = Gateway.getLookup().getChildren(domainPath, 0, 0, true, transactionKey).rows;
         List<DomainContext> result = new ArrayList<>();
@@ -147,10 +158,12 @@ public class DomainContext implements DescriptionObject {
      * 
      * @return string format of the domain path
      */
+    @JsonProperty("domainPath")
     public String getDomainPath() {
         return domainPath.getStringPath(false);
     }
 
+    @JsonIgnore
     @Override
     public BuiltInResources getResourceType() {
         return BuiltInResources.DOMAIN_CONTEXT_RESOURCE;

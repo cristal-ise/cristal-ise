@@ -20,6 +20,8 @@
  */
 package org.cristalise.kernel.lookup;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 import org.cristalise.kernel.common.ObjectNotFoundException;
 import org.cristalise.kernel.persistency.ClusterType;
@@ -62,11 +64,13 @@ public class DomainPath extends Path {
     /*
      * the root of domain paths is /domain clearly
      */
+    @JsonIgnore
     @Override
     public String getRoot() {
         return "domain";
     }
 
+    @JsonIgnore
     public DomainPath getParent() {
         if (mPath.length == 0) return null;
 
@@ -79,6 +83,7 @@ public class DomainPath extends Path {
         target = newTarget;
     }
 
+    @JsonIgnore
     public ItemPath getTarget() {
         return target;
     }
@@ -97,6 +102,7 @@ public class DomainPath extends Path {
         return target;
     }
 
+    @JsonProperty("target")
     public String getTargetUUID() {
         if (target != null) return target.getUUID().toString();
         return null;
@@ -122,6 +128,7 @@ public class DomainPath extends Path {
      * 
      * @return true if the DomainPath represents a context node
      */
+    @JsonIgnore
     public boolean isContext() {
         return target == null;
     }
@@ -131,12 +138,14 @@ public class DomainPath extends Path {
      * 
      * @return the last path component;
      */
+    @JsonIgnore
     @Override
     public String getName() {
         if (mPath.length > 0) return mPath[mPath.length - 1];
         else                  return getRoot();
     }
 
+    @JsonIgnore
     @Override
     public String getClusterPath() {
         return StringUtils.remove(ClusterType.PATH + "/Domain/" + StringUtils.join(mPath, ""), ".");

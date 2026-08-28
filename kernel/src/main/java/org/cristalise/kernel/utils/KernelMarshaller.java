@@ -18,36 +18,12 @@
  *
  * http://www.fsf.org/licensing/licenses/lgpl.html
  */
-package org.cristalise.kernel.lookup;
+package org.cristalise.kernel.utils;
 
-import java.util.List;
+import org.cristalise.kernel.common.InvalidDataException;
 
-import org.cristalise.kernel.property.Property;
-import org.cristalise.kernel.property.PropertyArrayList;
-
-import lombok.Getter;
-import lombok.Setter;
-
-@Getter @Setter
-public class SearchFilter {
-    protected String searchRoot;
-    protected PropertyArrayList properties = new PropertyArrayList();
-    protected Integer recordsFound;
-
-    /**
-     * Method required to be backward compatible with castor marshalling. check issue #518
-     * @return
-     */
-    public List<Property> getProperties() {
-        return properties.list;
-    }
-
-    public void setProperties(List<Property> newProps) {
-        this.properties = new PropertyArrayList(newProps);
-    }
-
-    @Override
-    public String toString() {
-        return "Filter{"+searchRoot+":"+properties.list+"}";
-    }
+public interface KernelMarshaller {
+    String marshall(Object obj) throws InvalidDataException;
+    Object unmarshall(String data) throws InvalidDataException;
+    <T> T unmarshall(String data, Class<T> type) throws InvalidDataException;
 }

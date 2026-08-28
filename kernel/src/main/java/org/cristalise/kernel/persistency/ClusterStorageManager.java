@@ -171,7 +171,7 @@ public class ClusterStorageManager {
                 newStorage = (ClusterStorage)(Class.forName(newStorageClass).getDeclaredConstructor().newInstance());
             }
             catch (ClassNotFoundException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException ex) {
-                throw new PersistencyException("init() - The cluster storage handler class "+newStorageClass+" could not be found.");
+                throw new PersistencyException("init() - The cluster storage handler class "+newStorageClass+" could not be found.", ex);
             }
             rootStores.add(newStorage);
         }

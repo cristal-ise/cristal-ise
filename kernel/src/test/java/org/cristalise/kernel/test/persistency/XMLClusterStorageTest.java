@@ -88,6 +88,8 @@ public class XMLClusterStorageTest {
                 case OUTCOME:
                     assertEquals(14, contents.length);
                     assertNotNull( importCluster.get(itemPath, OUTCOME+"/PredefinedStepOutcome/0/7", null) );
+                    // FIXME: this is not working yet, Schema CommercialDataData is not loaded because of test is initialised without Lookup
+                    //assertNotNull( importCluster.get(itemPath, OUTCOME+"/CommercialDataData/0/19", null) );
                     break;
 
                 case VIEWPOINT:
@@ -144,11 +146,13 @@ public class XMLClusterStorageTest {
 
     @Test
     public void checkFileBasedStorage() throws Exception {
-        checkXMLClusterStorage(new XMLClusterStorage("src/test/data/xmlstorage/filebased", "", false));
+        var xmlStore = new XMLClusterStorage("src/test/data/xmlstorage/filebased", "", false);
+        checkXMLClusterStorage(xmlStore);
     }
 
     @Test
     public void checkDirectoryBasedStorage() throws Exception {
-        checkXMLClusterStorage(new XMLClusterStorage("src/test/data/xmlstorage/directorybased"));
+        var xmlStore = new XMLClusterStorage("src/test/data/xmlstorage/directorybased");
+        checkXMLClusterStorage(xmlStore);
     }
 }
