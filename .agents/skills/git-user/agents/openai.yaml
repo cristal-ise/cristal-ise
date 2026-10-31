@@ -1,0 +1,3 @@
+interface:
+  display_name: "Git User"
+  short_description: "Conventional Commits and branching strategy"
